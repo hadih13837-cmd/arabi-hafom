@@ -347,6 +347,100 @@
             transform: translateY(0);
         }
 
+        /* --- بنر نصب PWA --- */
+        .install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: #fff;
+            padding: 16px 20px;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.3);
+            z-index: 7000;
+            transform: translateY(100%);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .install-banner.show {
+            transform: translateY(0);
+        }
+        .install-banner-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        .install-banner-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .install-banner-content {
+            flex: 1;
+            text-align: right;
+        }
+        .install-banner-title {
+            font-size: 15px;
+            font-weight: 900;
+            margin-bottom: 3px;
+        }
+        .install-banner-desc {
+            font-size: 12px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        .install-banner-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .install-btn-install {
+            background: #fff;
+            color: #1976d2;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Vazirmatn', sans-serif;
+            white-space: nowrap;
+        }
+        .install-btn-install:hover {
+            background: #f0f7ff;
+            transform: scale(1.05);
+        }
+        .install-btn-install:active {
+            transform: scale(0.95);
+        }
+        .install-btn-later {
+            background: transparent;
+            color: #fff;
+            border: none;
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+        .install-btn-later:hover {
+            opacity: 1;
+        }
+
         .screen-header {
             flex-shrink: 0;
             padding: 20px 20px 10px 20px;
@@ -802,6 +896,21 @@
     </style>
 </head>
 <body>
+
+    <!-- بنر نصب اپلیکیشن -->
+    <div class="install-banner" id="install-banner">
+        <div class="install-banner-icon">
+            <img src="./icon-512.png" alt="آیکون اپ">
+        </div>
+        <div class="install-banner-content">
+            <div class="install-banner-title">اپلیکیشن عربی هفتم را نصب کنید!</div>
+            <div class="install-banner-desc">با نصب اپ، همیشه و حتی بدون اینترنت در دسترس است.</div>
+        </div>
+        <div class="install-banner-actions">
+            <button class="install-btn-install" id="install-btn" onclick="installApp()">نصب می‌کنم</button>
+            <button class="install-btn-later" onclick="dismissInstallBanner()">بعداً</button>
+        </div>
+    </div>
 
 <div id="app-container">
     
@@ -1707,6 +1816,80 @@
                 });
         });
     }
+
+    // --- منطق نصب PWA ---
+    let deferredPrompt = null;
+    const installBanner = document.getElementById('install-banner');
+    const installBtn = document.getElementById('install-btn');
+    
+    // بررسی اینکه آیا اپ قبلاً نصب شده یا نه
+    function isAppInstalled() {
+        if (window.matchMedia('(display-mode: standalone)').matches || 
+            window.navigator.standalone === true) {
+            return true;
+        }
+        return false;
+    }
+    
+    // بررسی اینکه کاربر قبلاً "بعداً" رو نزده باشه
+    function wasDismissed() {
+        return localStorage.getItem('installBannerDismissed') === 'true';
+    }
+    
+    // ذخیره اینکه کاربر "بعداً" رو زد
+    function dismissInstallBanner() {
+        installBanner.classList.remove('show');
+        localStorage.setItem('installBannerDismissed', 'true');
+    }
+    
+    // ثبت رویداد beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        if (!isAppInstalled() && !wasDismissed()) {
+            setTimeout(() => {
+                installBanner.classList.add('show');
+            }, 3000);
+        }
+    });
+    
+    // اگر مرورگر از beforeinstallprompt پشتیبانی نکرد (مثل iOS)
+    setTimeout(() => {
+        if (!isAppInstalled() && !wasDismissed() && !deferredPrompt) {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            if (!isStandalone) {
+                installBanner.classList.add('show');
+            }
+        }
+    }, 3000);
+    
+    // نصب اپ
+    async function installApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                installBanner.classList.remove('show');
+                localStorage.setItem('installBannerDismissed', 'true');
+            }
+            deferredPrompt = null;
+        } else {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            if (isIOS) {
+                alert('برای نصب اپ در آیفون:\n\n۱. روی دکمه Share (مربع با فلش رو به بالا) در پایین صفحه بزنید.\n۲. گزینه "Add to Home Screen" را انتخاب کنید.\n۳. روی "Add" بزنید.');
+            } else {
+                alert('برای نصب اپ:\n\n۱. منوی مرورگر (سه نقطه) را باز کنید.\n۲. گزینه "Add to Home screen" یا "نصب برنامه" را انتخاب کنید.');
+            }
+        }
+    }
+    
+    // تشخیص اینکه اپ نصب شده
+    window.addEventListener('appinstalled', () => {
+        installBanner.classList.remove('show');
+        localStorage.setItem('installBannerDismissed', 'true');
+    });
 </script>
 </body>
 </html>
