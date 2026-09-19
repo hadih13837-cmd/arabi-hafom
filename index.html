@@ -211,6 +211,139 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
+        /* --- دکمه شناور نصب اپ --- */
+        .install-fab-btn {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            color: #fff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.5);
+            z-index: 5000;
+            transition: all 0.3s ease;
+            animation: installFabPulse 2s ease-in-out infinite;
+        }
+        @keyframes installFabPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 3px 10px rgba(76, 175, 80, 0.5); }
+            50% { transform: scale(1.1); box-shadow: 0 5px 15px rgba(76, 175, 80, 0.8); }
+        }
+        .install-fab-btn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.8);
+        }
+        .install-fab-btn:active {
+            transform: scale(0.95);
+        }
+        .install-fab-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* --- مودال راهنمای نصب --- */
+        .install-guide-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 8000;
+            padding: 20px;
+            animation: fadeInModal 0.3s ease;
+        }
+        .install-guide-overlay.active { display: flex; }
+        .install-guide-box {
+            background: #fff;
+            border-radius: 25px;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            animation: popInModal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid #4caf50;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .install-guide-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px auto;
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+        .install-guide-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: #fff;
+        }
+        .install-guide-title {
+            font-size: 20px;
+            color: #1565c0;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
+        .install-guide-steps {
+            text-align: right;
+            background: #f0f7ff;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .install-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .install-step:last-child { margin-bottom: 0; }
+        .install-step-num {
+            background: #1976d2;
+            color: #fff;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .install-guide-close {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4);
+        }
+        .install-guide-close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(25, 118, 210, 0.5);
+        }
+
         /* --- مودال سازنده --- */
         .creator-modal-overlay {
             position: fixed;
@@ -896,6 +1029,31 @@
     </style>
 </head>
 <body>
+
+    <!-- دکمه شناور نصب اپ (همیشه دیده می‌شود) -->
+    <button class="install-fab-btn" id="install-fab" onclick="showInstallGuide()" title="نصب اپلیکیشن">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L12 15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M5 20H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </button>
+
+    <!-- مودال راهنمای نصب دستی -->
+    <div class="install-guide-overlay" id="install-guide-modal" onclick="closeInstallGuide(event)">
+        <div class="install-guide-box" onclick="event.stopPropagation()">
+            <div class="install-guide-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L12 15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <path d="M5 20H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="install-guide-title">راهنمای نصب اپلیکیشن</div>
+            <div class="install-guide-steps" id="install-steps-content">
+                <!-- محتوا به صورت داینامیک پر می‌شود -->
+            </div>
+            <button class="install-guide-close" onclick="closeInstallGuide()">متوجه شدم</button>
+        </div>
+    </div>
 
     <!-- بنر نصب اپلیکیشن -->
     <div class="install-banner" id="install-banner">
@@ -1821,6 +1979,9 @@
     let deferredPrompt = null;
     const installBanner = document.getElementById('install-banner');
     const installBtn = document.getElementById('install-btn');
+    const installFab = document.getElementById('install-fab');
+    const installGuideModal = document.getElementById('install-guide-modal');
+    const installStepsContent = document.getElementById('install-steps-content');
     
     // بررسی اینکه آیا اپ قبلاً نصب شده یا نه
     function isAppInstalled() {
@@ -1840,6 +2001,80 @@
     function dismissInstallBanner() {
         installBanner.classList.remove('show');
         localStorage.setItem('installBannerDismissed', 'true');
+    }
+    
+    // تشخیص نوع دستگاه برای راهنمای نصب
+    function getInstallSteps() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isIOS = /iphone|ipad|ipod/.test(userAgent);
+        const isAndroid = /android/.test(userAgent);
+        const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
+        const isChrome = /chrome/.test(userAgent) && !/edg/.test(userAgent);
+        const isFirefox = /firefox/.test(userAgent);
+        const isEdge = /edg/.test(userAgent);
+        
+        if (isIOS) {
+            return [
+                'مرورگر Safari را باز کنید (اگر در مرورگر دیگری هستید، لینک را در Safari کپی کنید).',
+                'روی دکمه Share (مربع با فلش رو به بالا) در پایین صفحه بزنید.',
+                'در منوی باز شده، به پایین اسکرول کنید و گزینه "Add to Home Screen" (افزودن به صفحه اصلی) را انتخاب کنید.',
+                'روی "Add" (افزودن) در گوشه بالا سمت راست بزنید.',
+                'آیکون اپ روی صفحه اصلی گوشی شما ظاهر می‌شود! 🎉'
+            ];
+        } else if (isAndroid && isChrome) {
+            return [
+                'روی سه نقطه بالا سمت راست مرورگر Chrome بزنید.',
+                'گزینه "Install app" یا "نصب برنامه" یا "Add to Home screen" را انتخاب کنید.',
+                'روی "Install" یا "نصب" کلیک کنید.',
+                'آیکون اپ روی صفحه اصلی گوشی شما ظاهر می‌شود! 🎉'
+            ];
+        } else if (isAndroid && isFirefox) {
+            return [
+                'روی سه نقطه پایین سمت راست مرورگر Firefox بزنید.',
+                'گزینه "Install" یا "نصب" را انتخاب کنید.',
+                'روی "Add to Home screen" یا "افزودن به صفحه اصلی" بزنید.',
+                'آیکون اپ روی صفحه اصلی گوشی شما ظاهر می‌شود! 🎉'
+            ];
+        } else if (isAndroid && isEdge) {
+            return [
+                'روی سه نقطه پایین سمت راست مرورگر Edge بزنید.',
+                'گزینه "Add to phone" یا "افزودن به گوشی" را انتخاب کنید.',
+                'روی "Install" یا "نصب" کلیک کنید.',
+                'آیکون اپ روی صفحه اصلی گوشی شما ظاهر می‌شود! 🎉'
+            ];
+        } else if (isAndroid) {
+            return [
+                'منوی مرورگر خود (سه نقطه) را باز کنید.',
+                'گزینه "Install app" یا "نصب برنامه" یا "Add to Home screen" را انتخاب کنید.',
+                'روی "Install" یا "نصب" کلیک کنید.',
+                'آیکون اپ روی صفحه اصلی گوشی شما ظاهر می‌شود! 🎉'
+            ];
+        } else {
+            return [
+                'منوی مرورگر خود را باز کنید.',
+                'گزینه "Install app" یا "نصب برنامه" یا "Add to Home screen" را انتخاب کنید.',
+                'روی "Install" یا "نصب" کلیک کنید.',
+                'آیکون اپ روی دسکتاپ یا صفحه اصلی شما ظاهر می‌شود! 🎉'
+            ];
+        }
+    }
+    
+    // نمایش راهنمای نصب
+    function showInstallGuide() {
+        const steps = getInstallSteps();
+        installStepsContent.innerHTML = steps.map((step, index) => `
+            <div class="install-step">
+                <div class="install-step-num">${toPersianNum(index + 1)}</div>
+                <div>${step}</div>
+            </div>
+        `).join('');
+        installGuideModal.classList.add('active');
+    }
+    
+    // بستن راهنمای نصب
+    function closeInstallGuide(event) {
+        if (event && event.target !== event.currentTarget) return;
+        installGuideModal.classList.remove('active');
     }
     
     // ثبت رویداد beforeinstallprompt
@@ -1876,12 +2111,8 @@
             }
             deferredPrompt = null;
         } else {
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            if (isIOS) {
-                alert('برای نصب اپ در آیفون:\n\n۱. روی دکمه Share (مربع با فلش رو به بالا) در پایین صفحه بزنید.\n۲. گزینه "Add to Home Screen" را انتخاب کنید.\n۳. روی "Add" بزنید.');
-            } else {
-                alert('برای نصب اپ:\n\n۱. منوی مرورگر (سه نقطه) را باز کنید.\n۲. گزینه "Add to Home screen" یا "نصب برنامه" را انتخاب کنید.');
-            }
+            dismissInstallBanner();
+            showInstallGuide();
         }
     }
     
@@ -1889,7 +2120,13 @@
     window.addEventListener('appinstalled', () => {
         installBanner.classList.remove('show');
         localStorage.setItem('installBannerDismissed', 'true');
+        installFab.style.display = 'none';
     });
+    
+    // اگر اپ نصب شده، دکمه شناور نصب رو مخفی کن
+    if (isAppInstalled()) {
+        installFab.style.display = 'none';
+    }
 </script>
 </body>
 </html>

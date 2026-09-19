@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arabi-hafom-v1';
+const CACHE_NAME = 'arabi-hafom-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -12,7 +12,6 @@ const urlsToCache = [
   'https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3'
 ];
 
-// نصب و ذخیره فایل‌ها در کش
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -25,7 +24,6 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// فعال‌سازی و پاک کردن کش قدیمی
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -41,7 +39,6 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// پاسخگویی از کش در صورت آفلاین بودن
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
