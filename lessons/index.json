@@ -1,0 +1,13 @@
+{
+  "lessons": [
+    {
+      "id": "lesson1",
+      "title": "درس اول",
+      "subtitle": "آشنایی با واژگان و عبارات‌ها",
+      "icon": "📖",
+      "version": "1.0",
+      "releaseDate": "1404/08/15",
+      "file": "lesson1.json"
+    }
+  ]
+}
