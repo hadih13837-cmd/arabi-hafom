@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>بازی عربی هفتم</title>
+    <title>عربی هفتم</title>
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#1976d2">
@@ -12,9 +12,6 @@
     <meta name="apple-mobile-web-app-title" content="عربی هفتم">
     <link rel="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="./icon-512.png">
-    
-    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png">
-    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -68,95 +65,543 @@
         }
         .screen.active { display: flex; }
 
+        /* ============ صفحه خوش‌آمد ============ */
+        #screen-welcome {
+            padding-top: 0;
+            background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px 25px;
+        }
+        .welcome-title {
+            font-size: 26px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+        .welcome-sub {
+            font-size: 15px;
+            color: #546e7a;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .welcome-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 16px;
+            outline: none;
+            background: #fff;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+        .welcome-input:focus { border-color: #1976d2; }
+        
+        .welcome-btn {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: #fff;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4);
+            transition: all 0.3s ease;
+        }
+        .welcome-btn:hover { transform: translateY(-2px); }
+        .welcome-btn:active { transform: scale(0.98); }
+
+        /* ============ صفحه اصلی (Home) ============ */
         #screen-home {
             padding-top: 0;
-            background: #000;
-            position: relative;
-            overflow: hidden;
+            background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 50%, #f0f7ff 100%);
+            overflow-y: auto;
         }
         
-        .home-bg-image {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .home-container {
+            padding: 20px;
+            padding-top: 80px;
+            padding-bottom: 100px;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* هدر با آواتار و نام */
+        .home-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .home-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #bbdefb, #90caf9);
+            margin: 0 auto 12px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 25px rgba(25, 118, 210, 0.25);
+        }
+        .home-avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            z-index: 0;
-            will-change: transform;
+        }
+        .home-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 4px;
+        }
+        .home-subtitle {
+            font-size: 13px;
+            color: #78909c;
+            font-weight: bold;
         }
 
-        .home-light-glow {
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 300px;
-            height: 200px;
-            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.4) 0%, rgba(200, 230, 255, 0.2) 40%, transparent 70%);
-            border-radius: 50%;
-            z-index: 1;
-            animation: glowPulse 4s ease-in-out infinite;
-            pointer-events: none;
-            will-change: opacity, transform;
-        }
-        @keyframes glowPulse {
-            0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
-            50% { opacity: 0.8; transform: translateX(-50%) scale(1.1); }
-        }
-
-        .home-content-wrapper {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            height: 100%;
+        /* دکمه‌های منو */
+        .menu-list {
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            gap: 12px;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .menu-item {
+            background: #fff;
+            border: 2px solid #e3f2fd;
+            border-radius: 18px;
+            padding: 18px 20px;
+            display: flex;
             align-items: center;
-            padding-bottom: 40px;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.08);
+            position: relative;
+        }
+        .menu-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(25, 118, 210, 0.15);
+            border-color: #90caf9;
+        }
+        .menu-item:active { transform: scale(0.98); }
+
+        .menu-item-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
         }
 
-        .btn-start-home {
-            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-            color: #fff; border: none; padding: 16px 25px; border-radius: 50px;
-            font-size: 16px; font-weight: bold; cursor: pointer;
-            width: 80%; max-width: 280px; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.4); position: relative; overflow: hidden;
-            animation: btnPulse 2.5s ease-in-out infinite;
-            will-change: transform, box-shadow;
-        }
-        @keyframes btnPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 10px 25px rgba(25, 118, 210, 0.6); }
-        }
-        .btn-start-home::after {
-            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: all 0.5s;
-        }
-        .btn-start-home:hover::after { left: 100%; }
-        .btn-start-home:active { transform: scale(0.98); }
-
-        .top-vector {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+        .menu-item-icon {
             width: 45px;
             height: 45px;
-            object-fit: contain;
-            z-index: 100;
-            animation: pulse 2s ease-in-out infinite;
-            will-change: transform;
-            cursor: pointer;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
-        @keyframes pulse {
-            0%, 100% { transform: translateX(-50%) scale(1); }
-            50% { transform: translateX(-50%) scale(1.15); }
+        .menu-item-icon svg {
+            width: 26px;
+            height: 26px;
         }
 
-        /* --- دکمه شناور کنترل صدا --- */
+        .menu-item-text {
+            text-align: right;
+            flex: 1;
+        }
+        .menu-item-title {
+            font-size: 17px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 3px;
+        }
+        .menu-item-desc {
+            font-size: 12px;
+            color: #90a4ae;
+        }
+
+        /* نشانگر تکلیف جدید */
+        .badge-new {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            background: linear-gradient(135deg, #f44336, #e53935);
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 12px;
+            box-shadow: 0 3px 8px rgba(244, 67, 54, 0.5);
+            animation: badgePulse 2s ease-in-out infinite;
+            white-space: nowrap;
+        }
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        /* تصویر دکور پایین */
+        .home-decoration {
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            font-size: 70px;
+            opacity: 0.8;
+            line-height: 1;
+        }
+
+        /* دکمه خروج */
+        .home-logout-wrapper {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 280px;
+            z-index: 10;
+        }
+        .home-logout {
+            background: linear-gradient(135deg, #546e7a 0%, #37474f 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 6px 15px rgba(84, 110, 122, 0.4);
+            transition: all 0.3s ease;
+        }
+        .home-logout:hover { transform: translateY(-2px); }
+        .home-logout:active { transform: scale(0.98); }
+
+        /* ============ صفحه لیست تکالیف ============ */
+        #screen-lessons {
+            background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+        }
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            padding-top: 20px;
+        }
+        .page-back {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #1976d2;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
+        }
+        .page-back:hover { background: #bbdefb; transform: scale(1.05); }
+        .page-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #1565c0;
+            flex: 1;
+        }
+        
+        .lessons-list {
+            padding: 0 20px 20px 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .lesson-card {
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #80deea;
+            box-shadow: 0 8px 20px rgba(0, 131, 143, 0.1);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+        .lesson-card:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0, 131, 143, 0.18); }
+        .lesson-card:active { transform: scale(0.98); }
+
+        .lesson-card-icon {
+            width: 60px;
+            height: 60px;
+            background: #fff;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        .lesson-card-text {
+            flex: 1;
+        }
+        .lesson-card-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #00695c;
+            margin-bottom: 4px;
+        }
+        .lesson-card-desc {
+            font-size: 13px;
+            color: #00838f;
+            font-weight: bold;
+        }
+        .lesson-card-arrow {
+            font-size: 22px;
+            color: #00838f;
+            font-weight: bold;
+        }
+
+        /* ============ صفحه کارنامه‌ها ============ */
+        #screen-reports {
+            background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+        }
+        .reports-list {
+            padding: 0 20px 20px 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .report-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 15px;
+            border: 2px solid #e3f2fd;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.08);
+            position: relative;
+        }
+        .report-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        .report-card-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #1565c0;
+        }
+        .report-card-date {
+            font-size: 11px;
+            color: #90a4ae;
+        }
+        .report-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 13px;
+            color: #555;
+        }
+        .report-info-row .value { font-weight: bold; color: #333; }
+        .report-info-row .value.green { color: #2e7d32; }
+        .report-info-row .value.red { color: #c62828; }
+        .report-info-row .value.blue { color: #1565c0; }
+        
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .report-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 50px;
+            border: none;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            transition: all 0.2s;
+        }
+        .report-btn-download {
+            background: linear-gradient(135deg, #4caf50, #43a047);
+            color: #fff;
+            box-shadow: 0 3px 8px rgba(76, 175, 80, 0.3);
+        }
+        .report-btn-download:hover { transform: translateY(-2px); }
+        
+        .report-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #90a4ae;
+        }
+        .report-empty-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        .report-empty-text {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        /* ============ صفحه تنظیمات ============ */
+        #screen-settings {
+            background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+        }
+        .settings-list {
+            padding: 0 20px 20px 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .setting-item {
+            background: #fff;
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 12px;
+            border: 2px solid #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.08);
+        }
+        .setting-label {
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+        .setting-value {
+            font-size: 14px;
+            color: #1976d2;
+            font-weight: bold;
+        }
+        
+        /* سوییچ */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #4caf50; }
+        input:checked + .slider:before { transform: translateX(-22px); }
+        html[dir="rtl"] input:checked + .slider:before { transform: translateX(-22px); }
+
+        /* ============ صفحه درباره ما ============ */
+        #screen-about {
+            background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+        }
+        .about-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        .about-icon-wrapper {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.5);
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .about-icon-wrapper svg { width: 55px; height: 55px; fill: #fff; }
+        
+        .about-title {
+            font-size: 16px;
+            color: #666;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .about-name {
+            font-size: 26px;
+            color: #1565c0;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+        .about-role {
+            font-size: 14px;
+            color: #f57c00;
+            font-weight: bold;
+            background: rgba(255, 193, 7, 0.15);
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .about-info-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #e3f2fd;
+            text-align: right;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.08);
+        }
+        .about-info-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+        .about-info-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* ============ دکمه شناور صدا ============ */
         .sound-control-wrapper {
             position: fixed;
             top: 12px;
@@ -180,25 +625,10 @@
             cursor: pointer;
             box-shadow: 0 3px 10px rgba(25, 118, 210, 0.5);
             transition: all 0.3s ease;
-            will-change: transform, box-shadow;
         }
-        .sound-toggle-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 5px 15px rgba(25, 118, 210, 0.7);
-        }
-        .sound-toggle-btn:active {
-            transform: scale(0.95);
-        }
-        .sound-toggle-btn svg {
-            width: 20px;
-            height: 20px;
-        }
+        .sound-toggle-btn svg { width: 20px; height: 20px; }
         .sound-toggle-btn.muted {
             background: linear-gradient(135deg, #757575 0%, #616161 100%);
-            box-shadow: 0 3px 10px rgba(117, 117, 117, 0.4);
-        }
-        .sound-toggle-btn.muted:hover {
-            box-shadow: 0 5px 15px rgba(117, 117, 117, 0.6);
         }
         .sound-label {
             font-size: 9px;
@@ -208,284 +638,13 @@
             padding: 1px 6px;
             border-radius: 8px;
             white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
-        /* --- دکمه شناور نصب اپ --- */
-        .install-fab-btn {
-            position: fixed;
-            top: 12px;
-            right: 12px;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-            color: #fff;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.5);
-            z-index: 5000;
-            transition: all 0.3s ease;
-            animation: installFabPulse 2s ease-in-out infinite;
-        }
-        @keyframes installFabPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 3px 10px rgba(76, 175, 80, 0.5); }
-            50% { transform: scale(1.1); box-shadow: 0 5px 15px rgba(76, 175, 80, 0.8); }
-        }
-        .install-fab-btn:hover {
-            transform: scale(1.15);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.8);
-        }
-        .install-fab-btn:active {
-            transform: scale(0.95);
-        }
-        .install-fab-btn svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* --- مودال راهنمای نصب --- */
-        .install-guide-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 8000;
-            padding: 20px;
-            animation: fadeInModal 0.3s ease;
-        }
-        .install-guide-overlay.active { display: flex; }
-        .install-guide-box {
-            background: #fff;
-            border-radius: 25px;
-            padding: 30px 25px;
-            width: 100%;
-            max-width: 360px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            animation: popInModal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 2px solid #4caf50;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-        .install-guide-icon {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px auto;
-            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
-        }
-        .install-guide-icon svg {
-            width: 40px;
-            height: 40px;
-            fill: #fff;
-        }
-        .install-guide-title {
-            font-size: 20px;
-            color: #1565c0;
-            font-weight: 900;
-            margin-bottom: 15px;
-        }
-        .install-guide-steps {
-            text-align: right;
-            background: #f0f7ff;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .install-step {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: #333;
-            line-height: 1.6;
-        }
-        .install-step:last-child { margin-bottom: 0; }
-        .install-step-num {
-            background: #1976d2;
-            color: #fff;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-        .install-guide-close {
-            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-            color: #fff;
-            border: none;
-            padding: 14px 30px;
-            border-radius: 50px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4);
-        }
-        .install-guide-close:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(25, 118, 210, 0.5);
-        }
-
-        /* --- مودال سازنده --- */
-        .creator-modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 6000;
-            padding: 20px;
-            animation: fadeInModal 0.3s ease;
-        }
-        .creator-modal-overlay.active { display: flex; }
-        @keyframes fadeInModal {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .creator-modal-box {
-            background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
-            border-radius: 25px;
-            padding: 35px 25px;
-            width: 100%;
-            max-width: 340px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(255, 193, 7, 0.3);
-            position: relative;
-            overflow: hidden;
-            animation: popInModal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 2px solid #ffc107;
-        }
-        @keyframes popInModal {
-            from { transform: scale(0.6) translateY(30px); opacity: 0; }
-            to { transform: scale(1) translateY(0); opacity: 1; }
-        }
-
-        .creator-modal-box::before {
-            content: '';
-            position: absolute;
-            top: -50px; right: -50px;
-            width: 150px; height: 150px;
-            background: radial-gradient(circle, rgba(255, 193, 7, 0.3) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-        .creator-modal-box::after {
-            content: '';
-            position: absolute;
-            bottom: -50px; left: -50px;
-            width: 150px; height: 150px;
-            background: radial-gradient(circle, rgba(25, 118, 210, 0.2) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-
-        .creator-icon-wrapper {
-            width: 90px;
-            height: 90px;
-            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px auto;
-            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.5);
-            position: relative;
-            z-index: 1;
-            animation: floatIcon 3s ease-in-out infinite;
-        }
-        @keyframes floatIcon {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
-        }
-        .creator-icon-wrapper svg {
-            width: 50px;
-            height: 50px;
-            fill: #fff;
-        }
-
-        .creator-title {
-            font-size: 16px;
-            color: #666;
-            font-weight: bold;
-            margin-bottom: 8px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .creator-name {
-            font-size: 26px;
-            color: #1565c0;
-            font-weight: 900;
-            margin-bottom: 5px;
-            position: relative;
-            z-index: 1;
-            line-height: 1.4;
-            text-shadow: 0 2px 5px rgba(25, 118, 210, 0.15);
-        }
-
-        .creator-role {
-            font-size: 14px;
-            color: #f57c00;
-            font-weight: bold;
-            margin-bottom: 25px;
-            position: relative;
-            z-index: 1;
-            background: rgba(255, 193, 7, 0.15);
-            display: inline-block;
-            padding: 6px 18px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 193, 7, 0.3);
-        }
-
-        .creator-close-btn {
-            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-            color: #fff;
-            border: none;
-            padding: 14px 30px;
-            border-radius: 50px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-            box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4);
-            transition: all 0.3s ease;
-        }
-        .creator-close-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(25, 118, 210, 0.5);
-        }
-        .creator-close-btn:active {
-            transform: translateY(0);
-        }
-
-        /* --- بنر نصب PWA --- */
+        /* ============ بنر نصب PWA ============ */
         .install-banner {
             position: fixed;
             bottom: 0;
-            left: 0;
-            right: 0;
+            left: 0; right: 0;
             background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
             color: #fff;
             padding: 16px 20px;
@@ -498,110 +657,41 @@
             align-items: center;
             gap: 12px;
         }
-        .install-banner.show {
-            transform: translateY(0);
-        }
+        .install-banner.show { transform: translateY(0); }
         .install-banner-icon {
-            width: 45px;
-            height: 45px;
+            width: 45px; height: 45px;
             border-radius: 12px;
             background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            overflow: hidden;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; overflow: hidden;
         }
-        .install-banner-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .install-banner-content {
-            flex: 1;
-            text-align: right;
-        }
-        .install-banner-title {
-            font-size: 15px;
-            font-weight: 900;
-            margin-bottom: 3px;
-        }
-        .install-banner-desc {
-            font-size: 12px;
-            opacity: 0.9;
-            line-height: 1.4;
-        }
-        .install-banner-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex-shrink: 0;
-        }
+        .install-banner-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .install-banner-content { flex: 1; text-align: right; }
+        .install-banner-title { font-size: 15px; font-weight: 900; margin-bottom: 3px; }
+        .install-banner-desc { font-size: 12px; opacity: 0.9; line-height: 1.4; }
+        .install-banner-actions { display: flex; flex-direction: column; gap: 6px; }
         .install-btn-install {
-            background: #fff;
-            color: #1976d2;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            background: #fff; color: #1976d2; border: none;
+            padding: 8px 16px; border-radius: 20px;
+            font-size: 13px; font-weight: bold; cursor: pointer;
             font-family: 'Vazirmatn', sans-serif;
-            white-space: nowrap;
-        }
-        .install-btn-install:hover {
-            background: #f0f7ff;
-            transform: scale(1.05);
-        }
-        .install-btn-install:active {
-            transform: scale(0.95);
         }
         .install-btn-later {
-            background: transparent;
-            color: #fff;
-            border: none;
-            padding: 4px 10px;
-            font-size: 11px;
-            cursor: pointer;
+            background: transparent; color: #fff; border: none;
+            padding: 4px 10px; font-size: 11px; cursor: pointer;
             font-family: 'Vazirmatn', sans-serif;
             opacity: 0.8;
-            transition: opacity 0.2s;
-            white-space: nowrap;
-        }
-        .install-btn-later:hover {
-            opacity: 1;
         }
 
-        .screen-header {
-            flex-shrink: 0;
-            padding: 20px 20px 10px 20px;
-            background: inherit;
-        }
-        .screen-content {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            padding: 0 20px 15px 20px;
-            display: flex;
-            flex-direction: column;
-        }
-        .screen-footer {
-            flex-shrink: 0;
-            padding: 10px 20px 20px 20px;
-            background: inherit;
-            border-top: 1px solid rgba(0,0,0,0.05);
-        }
-
+        /* ============ مودال عمومی ============ */
         .modal-overlay {
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.55);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 8000;
             padding: 20px;
         }
         .modal-overlay.active { display: flex; }
@@ -619,135 +709,18 @@
         .modal-text { font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.6; }
         .modal-btn {
             background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-            color: #fff; border: none; padding: 12px 25px; border-radius: 50px;
-            font-size: 15px; font-weight: bold; cursor: pointer; width: 100%;
-            box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
-        }
-        .modal-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4); }
-
-        #screen-login {
-            background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
-            justify-content: center; align-items: center; text-align: center;
-        }
-        .login-title { font-size: 22px; font-weight: 900; color: #1565c0; margin-bottom: 10px; }
-        .login-sub { font-size: 14px; color: #546e7a; margin-bottom: 10px; }
-        
-        .avatar-image {
-            width: 140px;
-            height: 140px;
-            object-fit: contain;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 8px 15px rgba(25, 118, 210, 0.2));
+            color: #fff; border: none; padding: 12px 25px;
+            border-radius: 50px; font-size: 15px; font-weight: bold;
+            cursor: pointer; width: 100%;
+            font-family: 'Vazirmatn', sans-serif;
         }
 
-        .input-group { width: 100%; margin-bottom: 12px; }
-        .input-group input, .input-group select {
-            width: 100%; padding: 14px; border: 2px solid #e0e0e0; border-radius: 50px;
-            text-align: center; font-size: 15px; outline: none; background: #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: border-color 0.3s;
-            appearance: none; -webkit-appearance: none;
-            background-image: none;
+        /* ============ صفحه سوالات (بازی) ============ */
+        #screen-quiz { background: #fff; padding-top: 60px; }
+        .screen-header {
+            flex-shrink: 0;
+            padding: 20px 20px 10px 20px;
         }
-        .input-group input:focus, .input-group select:focus { border-color: #1976d2; }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-            color: #fff; border: none; padding: 14px 30px; border-radius: 50px;
-            font-size: 16px; font-weight: bold; cursor: pointer;
-            width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
-            box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4); position: relative; overflow: hidden;
-        }
-        .btn-primary::after {
-            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: all 0.5s;
-        }
-        .btn-primary:hover::after { left: 100%; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(25, 118, 210, 0.5); }
-        .btn-primary:active { transform: translateY(0); }
-
-        .btn-green {
-            background: linear-gradient(135deg, #4caf50 0%, #43a047 100%);
-            color: #fff; border: none; padding: 14px 30px; border-radius: 50px;
-            font-size: 16px; font-weight: bold; cursor: pointer;
-            width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
-            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4); position: relative; overflow: hidden;
-            animation: greenPulse 2.5s ease-in-out infinite;
-            will-change: transform, box-shadow;
-        }
-        @keyframes greenPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4); }
-            50% { transform: scale(1.03); box-shadow: 0 10px 22px rgba(76, 175, 80, 0.55); }
-        }
-        .btn-green::after {
-            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: all 0.5s;
-        }
-        .btn-green:hover::after { left: 100%; }
-        .btn-green:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 20px rgba(76, 175, 80, 0.6); }
-        .btn-green:active { transform: scale(0.98); }
-
-        #screen-intro { background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%); }
-        .header-simple {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 15px; font-size: 18px; font-weight: 900; color: #1565c0;
-        }
-        .header-simple .back-icon {
-            order: -1;
-            font-size: 20px; color: #1976d2; cursor: pointer; width: 45px; height: 45px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; background: #e3f2fd; transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
-        }
-        .header-simple .back-icon:hover { background: #bbdefb; transform: scale(1.05); }
-        
-        .lesson-card {
-            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
-            border-radius: 20px; padding: 20px; display: flex; align-items: center;
-            gap: 15px; margin-bottom: 15px; border: 1px solid #80deea;
-            box-shadow: 0 8px 20px rgba(0, 131, 143, 0.1);
-        }
-        .lesson-icon {
-            width: 60px; height: 60px; background: #fff; border-radius: 15px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        }
-        .lesson-icon svg { width: 40px; height: 40px; }
-        .lesson-text h3 { color: #00695c; font-size: 20px; margin-bottom: 5px; font-weight: 900; }
-        .lesson-text p { color: #00838f; font-size: 13px; font-weight: bold; }
-
-        .info-card {
-            background: #fff; border: 1px solid #e3f2fd; border-radius: 20px;
-            padding: 15px; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.04);
-        }
-        .info-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 0; border-bottom: 1px dashed #e0e0e0; font-size: 14px; color: #555;
-        }
-        .info-row:last-child { border-bottom: none; }
-        .info-row span:last-child { font-weight: 900; color: #1565c0; font-size: 15px; }
-        .info-row span:first-child { display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        
-        .info-icon-svg {
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .info-icon-svg svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .intro-text {
-            text-align: center; font-size: 13px; color: #666;
-            line-height: 1.7; margin-bottom: 15px; padding: 12px; border-radius: 15px;
-            background: #fff; border: 1px solid #f0f0f0;
-        }
-
-        #screen-quiz { background: #fff; }
         .quiz-header {
             display: flex; justify-content: space-between; align-items: center;
             font-size: 16px; font-weight: bold; color: #333; margin-bottom: 8px;
@@ -769,7 +742,16 @@
             height: 100%; background: linear-gradient(90deg, #4caf50, #81c784);
             width: 0%; transition: width 0.3s ease;
         }
-
+        .screen-content {
+            flex: 1; overflow-y: auto;
+            padding: 0 20px 15px 20px;
+            display: flex; flex-direction: column;
+        }
+        .screen-footer {
+            flex-shrink: 0;
+            padding: 10px 20px 20px 20px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
         .question-area {
             display: flex; flex-direction: column;
             align-items: center; padding-top: 5px;
@@ -779,11 +761,9 @@
             font-size: 20px; font-weight: 900; color: #1565c0;
             text-align: center; margin-bottom: 18px; line-height: 1.6;
         }
-
         .fill-blank-container {
             width: 100%; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            margin-bottom: 15px; text-align: center;
+            align-items: center; margin-bottom: 15px; text-align: center;
         }
         .fill-blank-sentence {
             font-size: 24px; font-weight: bold; color: #333;
@@ -794,42 +774,31 @@
             display: inline-block; min-width: 100px; border-bottom: 3px solid #1976d2;
             margin: 0 5px; height: 32px; text-align: center;
             font-size: 22px; color: #1976d2; font-weight: 900;
-            transition: all 0.3s ease;
         }
-
-        .options-grid {
-            width: 100%; display: flex; flex-direction: column; gap: 10px;
-        }
+        .options-grid { width: 100%; display: flex; flex-direction: column; gap: 10px; }
         .option-btn {
             background: #fff; border: 1.5px solid #e0e0e0; padding: 16px;
             border-radius: 50px; font-size: 17px; font-weight: bold; color: #333;
             cursor: pointer; text-align: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
-        .option-btn:hover { border-color: #90caf9; }
         .option-btn.selected { 
             border-color: #1976d2; background: #e3f2fd; color: #1565c0;
             box-shadow: 0 4px 10px rgba(25, 118, 210, 0.2);
         }
-        .option-btn.correct { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; }
-        .option-btn.wrong { border-color: #ef5350; background: #ffebee; color: #c62828; }
-
         .image-options-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
             width: 100%; padding: 0 5px;
         }
         .image-option {
             background: #fff; border: 2px solid #e0e0e0; border-radius: 18px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             height: 110px; font-size: 46px; cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.03);
         }
-        .image-option:hover { border-color: #90caf9; }
         .image-option.selected { 
             border-color: #1976d2; background: #e3f2fd;
-            box-shadow: 0 6px 15px rgba(25, 118, 210, 0.2);
         }
-
         .true-false-grid {
             display: flex; gap: 12px; justify-content: center; width: 100%;
         }
@@ -840,13 +809,10 @@
         }
         .tf-btn.selected-true {
             background: #e8f5e9; border-color: #4caf50; color: #2e7d32;
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
         }
         .tf-btn.selected-false {
             background: #ffebee; border-color: #ef5350; color: #c62828;
-            box-shadow: 0 5px 15px rgba(239, 83, 80, 0.3);
         }
-
         .matching-container {
             display: flex; justify-content: space-between; width: 100%; gap: 8px;
         }
@@ -857,13 +823,10 @@
             background: #fff; border: 1.5px solid #e0e0e0; padding: 14px;
             border-radius: 12px; font-size: 16px; font-weight: bold; color: #333;
             cursor: pointer; text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
-        .matching-item:hover { border-color: #90caf9; }
         .matching-item.selected { border-color: #1976d2; background: #e3f2fd; color: #1565c0; }
         .matching-item.correct { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; }
         .matching-item.wrong { border-color: #ef5350; background: #ffebee; color: #c62828; }
-
         .order-container {
             display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
             margin-bottom: 15px; width: 100%;
@@ -871,9 +834,8 @@
         .order-item {
             background: #fff; border: 2px solid #e0e0e0; padding: 12px 22px;
             border-radius: 15px; font-size: 17px; font-weight: bold; color: #333;
-            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            cursor: pointer;
         }
-        .order-item:hover { border-color: #90caf9; }
         .order-result {
             min-height: 60px; border: 2px dashed #cfd8dc; border-radius: 15px;
             display: flex; gap: 8px; justify-content: center; align-items: center;
@@ -885,74 +847,65 @@
             border-radius: 25px; font-size: 15px; font-weight: bold;
             cursor: pointer;
         }
-
-        .quiz-footer {
-            display: flex; justify-content: center; align-items: center;
-        }
         .btn-next {
             background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
             color: #fff; border: none; padding: 0 30px; height: 54px;
             border-radius: 50px; font-size: 17px; font-weight: bold; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 15px rgba(25, 118, 210, 0.4);
-            position: relative; overflow: hidden; width: 100%;
+            width: 100%;
+            font-family: 'Vazirmatn', sans-serif;
         }
-        .btn-next::after {
-            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: all 0.5s;
+        .btn-primary {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: #fff; border: none; padding: 14px 30px; border-radius: 50px;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4);
+            font-family: 'Vazirmatn', sans-serif;
         }
-        .btn-next:hover::after { left: 100%; }
-        .btn-next:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(25, 118, 210, 0.5); }
-        .btn-next:active { transform: translateY(0); }
 
-        .feedback-screen {
-            justify-content: center; align-items: center; text-align: center; background: #fff;
+        /* صفحه بازخورد */
+        #screen-feedback {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: #fff;
         }
         .feedback-icon { font-size: 70px; margin-bottom: 15px; }
         .feedback-title { font-size: 26px; font-weight: 900; margin-bottom: 10px; }
         .feedback-sub { font-size: 16px; color: #666; margin-bottom: 15px; }
         .points-earned { color: #f57c00; font-weight: bold; font-size: 24px; margin-bottom: 15px; }
-        
         .correct-answer-box {
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             border: 2px solid #4caf50;
             border-radius: 20px;
             padding: 20px 25px;
             margin: 15px auto 20px auto;
-            width: 95%;
-            max-width: 380px;
+            width: 95%; max-width: 380px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
         }
         .correct-answer-box .answer-label {
-            font-size: 15px;
-            color: #2e7d32;
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: block;
+            font-size: 15px; color: #2e7d32; font-weight: bold;
+            margin-bottom: 10px; display: block;
         }
         .correct-answer-box .answer-text {
-            font-size: 24px;
-            font-weight: 900;
-            color: #1b5e20;
-            display: block;
-            line-height: 1.4;
+            font-size: 24px; font-weight: 900; color: #1b5e20;
+            display: block; line-height: 1.4;
         }
         .correct-answer-box.wrong-answer {
             background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
             border-color: #ef5350;
-            box-shadow: 0 5px 15px rgba(239, 83, 80, 0.2);
         }
-        .correct-answer-box.wrong-answer .answer-label {
-            color: #c62828;
-        }
-        .correct-answer-box.wrong-answer .answer-text {
-            color: #b71c1c;
-        }
+        .correct-answer-box.wrong-answer .answer-label { color: #c62828; }
+        .correct-answer-box.wrong-answer .answer-text { color: #b71c1c; }
 
-        .result-screen {
-            justify-content: center; align-items: center; text-align: center; background: #fff;
+        /* صفحه پایان */
+        #screen-result {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: #fff;
         }
         .result-circle {
             width: 130px; height: 130px; border-radius: 50%;
@@ -960,115 +913,78 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 38px; font-weight: 900; color: #1976d2;
             margin-bottom: 20px; background: #f8f9fa;
-            box-shadow: 0 0 20px rgba(25, 118, 210, 0.2);
         }
         .result-details {
             width: 100%; background: #f8f9fa; padding: 20px;
-            border-radius: 15px; margin-bottom: 20px; font-size: 15px; border: 1px solid #eee;
+            border-radius: 15px; margin-bottom: 20px;
+            font-size: 15px; border: 1px solid #eee;
         }
         .result-details div {
-            display: flex; justify-content: space-between; margin-bottom: 12px; color: #555;
+            display: flex; justify-content: space-between;
+            margin-bottom: 12px; color: #555;
         }
         .result-details div:last-child { margin-bottom: 0; }
         .result-details span:last-child { font-weight: bold; color: #333; }
 
-        #screen-report { background: #f0f4f8; }
-        .report-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #1976d2;
+        /* صفحه کارنامه (پایان) */
+        #screen-report-view {
+            background: #f0f4f8;
         }
-        .report-header h2 { font-size: 18px; color: #1565c0; font-weight: 900; }
-        .report-header .logo { font-size: 24px; }
-
-        .report-card {
+        .report-view-content {
+            padding: 20px;
+            padding-top: 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .report-view-card {
             background: #fff; border-radius: 15px; padding: 18px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
             position: relative; overflow: hidden;
         }
-        .report-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+        .report-view-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 5px;
             background: linear-gradient(90deg, #1976d2, #4caf50);
         }
-        .report-row {
+        .report-view-row {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 0; border-bottom: 1px dashed #eee; font-size: 14px;
+            padding: 10px 0; border-bottom: 1px dashed #eee;
+            font-size: 14px;
         }
-        .report-row:last-child { border-bottom: none; }
-        .report-row .label { color: #555; display: flex; align-items: center; gap: 5px; }
-        .report-row .value { font-weight: bold; color: #333; }
-        .report-row .value.green { color: #2e7d32; }
-        .report-row .value.red { color: #c62828; }
-        .report-row .value.blue { color: #1565c0; }
+        .report-view-row:last-child { border-bottom: none; }
+        .report-view-row .label { color: #555; }
+        .report-view-row .value { font-weight: bold; color: #333; }
+        .report-view-row .value.green { color: #2e7d32; }
+        .report-view-row .value.red { color: #c62828; }
+        .report-view-row .value.blue { color: #1565c0; }
 
-        .report-status {
-            text-align: center; padding: 12px; border-radius: 12px;
-            background: #e8f5e9; margin-top: 10px; border: 1px solid #c8e6c9;
+        /* انیمیشن */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .report-status .status-text {
-            font-size: 18px; font-weight: 900; color: #2e7d32; margin-bottom: 5px;
+        .screen.active > * {
+            animation: fadeIn 0.3s ease;
         }
-        .report-status .status-sub { font-size: 13px; color: #555; }
-
-        .btn-pdf {
-            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
-            color: #fff; border: none; padding: 15px; border-radius: 50px;
-            font-size: 15px; font-weight: bold; cursor: pointer; width: 100%;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            box-shadow: 0 4px 10px rgba(229, 57, 53, 0.3);
-            margin-bottom: 10px;
-        }
-        .btn-pdf:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(229, 57, 53, 0.4); }
-
-        .btn-home {
-            background: #f5f5f5; color: #555; border: 1.5px solid #e0e0e0;
-            padding: 15px; border-radius: 50px; font-size: 15px; font-weight: bold;
-            cursor: pointer; width: 100%;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn-home:hover { background: #e0e0e0; transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
-    <!-- دکمه شناور نصب اپ (همیشه دیده می‌شود) -->
-    <button class="install-fab-btn" id="install-fab" onclick="showInstallGuide()" title="نصب اپلیکیشن">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L12 15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <path d="M5 20H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-    </button>
-
-    <!-- مودال راهنمای نصب دستی -->
-    <div class="install-guide-overlay" id="install-guide-modal" onclick="closeInstallGuide(event)">
-        <div class="install-guide-box" onclick="event.stopPropagation()">
-            <div class="install-guide-icon">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L12 15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                    <path d="M5 20H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </div>
-            <div class="install-guide-title">راهنمای نصب اپلیکیشن</div>
-            <div class="install-guide-steps" id="install-steps-content">
-                <!-- محتوا به صورت داینامیک پر می‌شود -->
-            </div>
-            <button class="install-guide-close" onclick="closeInstallGuide()">متوجه شدم</button>
-        </div>
+<!-- بنر نصب PWA -->
+<div class="install-banner" id="install-banner">
+    <div class="install-banner-icon">
+        <img src="./icon-512.png" alt="آیکون اپ">
     </div>
-
-    <!-- بنر نصب اپلیکیشن -->
-    <div class="install-banner" id="install-banner">
-        <div class="install-banner-icon">
-            <img src="./icon-512.png" alt="آیکون اپ">
-        </div>
-        <div class="install-banner-content">
-            <div class="install-banner-title">اپلیکیشن عربی هفتم را نصب کنید!</div>
-            <div class="install-banner-desc">با نصب اپ، همیشه و حتی بدون اینترنت در دسترس است.</div>
-        </div>
-        <div class="install-banner-actions">
-            <button class="install-btn-install" id="install-btn" onclick="installApp()">نصب می‌کنم</button>
-            <button class="install-btn-later" onclick="dismissInstallBanner()">بعداً</button>
-        </div>
+    <div class="install-banner-content">
+        <div class="install-banner-title">اپلیکیشن عربی هفتم را نصب کنید!</div>
+        <div class="install-banner-desc">با نصب اپ، همیشه و حتی بدون اینترنت در دسترس است.</div>
     </div>
+    <div class="install-banner-actions">
+        <button class="install-btn-install" onclick="installApp()">نصب می‌کنم</button>
+        <button class="install-btn-later" onclick="dismissInstallBanner()">بعداً</button>
+    </div>
+</div>
 
 <div id="app-container">
     
@@ -1076,7 +992,7 @@
     
     <!-- دکمه شناور کنترل صدا -->
     <div class="sound-control-wrapper">
-        <button class="sound-toggle-btn" id="sound-toggle" onclick="toggleSound()" title="قطع/وصل صدا">
+        <button class="sound-toggle-btn" id="sound-toggle" onclick="toggleSound()">
             <svg id="sound-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="currentColor"/>
                 <path d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -1086,23 +1002,7 @@
         <span class="sound-label">صدای موسیقی</span>
     </div>
 
-    <!-- مودال سازنده -->
-    <div class="creator-modal-overlay" id="creator-modal" onclick="closeCreatorModal(event)">
-        <div class="creator-modal-box" onclick="event.stopPropagation()">
-            <div class="creator-icon-wrapper">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
-            </div>
-            <div class="creator-title">سازنده بازی</div>
-            <div class="creator-name">محمدهادی حججی</div>
-            <div class="creator-role">⭐ طراحی و توسعه ⭐</div>
-            <button class="creator-close-btn" onclick="closeCreatorModal()">بستن</button>
-        </div>
-    </div>
-    
-    <img src="https://cdn.imgurl.ir/uploads/y212653___.png" alt="وکتور" class="top-vector" id="top-vector" style="display: none;" onclick="openCreatorModal()">
-    
+    <!-- مودال عمومی -->
     <div class="modal-overlay" id="modal">
         <div class="modal-box">
             <div class="modal-icon" id="modal-icon">ℹ️</div>
@@ -1112,121 +1012,221 @@
         </div>
     </div>
 
-    <div id="screen-home" class="screen active">
-        <img src="https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png" alt="پس زمینه" class="home-bg-image">
-        <div class="home-light-glow"></div>
-        <div class="home-content-wrapper">
-            <button class="btn-start-home" onclick="goToScreen('screen-login')">
-                <span>بریم برای انجام تکلیف</span>
-            </button>
-        </div>
+    <!-- ============ صفحه خوش‌آمد (ثبت نام) ============ -->
+    <div id="screen-welcome" class="screen active">
+        <h1 class="welcome-title">سلام! خوش آمدی 👋</h1>
+        <p class="welcome-sub">برای شروع، لطفاً نام و کلاس خودت را وارد کن:</p>
+        
+        <input type="text" class="welcome-input" id="welcome-name" placeholder="نام و نام خانوادگی">
+        
+        <select class="welcome-input" id="welcome-class">
+            <option value="" disabled selected>انتخاب کلاس</option>
+            <option value="هفتم یک">هفتم یک</option>
+            <option value="هفتم دو">هفتم دو</option>
+            <option value="هفتم سه">هفتم سه</option>
+            <option value="هفتم چهار">هفتم چهار</option>
+            <option value="هفتم پنج">هفتم پنج</option>
+        </select>
+        
+        <button class="welcome-btn" onclick="saveUserInfo()">
+            ورود به برنامه 🚀
+        </button>
     </div>
 
-    <div id="screen-login" class="screen">
-        <div class="screen-content" style="justify-content: center; align-items: center; text-align: center;">
-            <h2 class="login-title">سلام دانش‌آموز عزیز!</h2>
-            <p class="login-sub">لطفاً نام و کلاس خود را وارد کنید.</p>
-            
-            <img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" alt="دانش‌آموز" class="avatar-image">
-
-            <div class="input-group">
-                <input type="text" id="student-name" placeholder="نام دانش‌آموز">
-            </div>
-            
-            <div class="input-group">
-                <select id="student-class">
-                    <option value="" disabled selected>انتخاب کلاس</option>
-                    <option value="هفتم یک">هفتم یک</option>
-                    <option value="هفتم دو">هفتم دو</option>
-                    <option value="هفتم سه">هفتم سه</option>
-                    <option value="هفتم چهار">هفتم چهار</option>
-                </select>
-            </div>
-            
-            <button class="btn-green" onclick="startLesson()">
-                <span>شروع تکلیف</span>
-            </button>
-        </div>
-    </div>
-
-    <div id="screen-intro" class="screen">
-        <div class="screen-header">
-            <div class="header-simple">
-                <span class="back-icon" onclick="goToScreen('screen-login')">←</span>
-                <span>تکلیف درس اول</span>
-                <span style="width: 45px;"></span>
-            </div>
-        </div>
-        <div class="screen-content">
-            <div class="lesson-card">
-                <div class="lesson-icon">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 6C4 4.89543 4.89543 4 6 4H18C19.1046 4 20 4.89543 20 6V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V6Z" stroke="#00695c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M4 6H20" stroke="#00695c" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M8 10H16" stroke="#00695c" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M8 14H13" stroke="#00695c" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
+    <!-- ============ صفحه اصلی (Home) ============ -->
+    <div id="screen-home" class="screen">
+        <div class="home-container">
+            <div class="home-header">
+                <div class="home-avatar">
+                    <img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" alt="دانش‌آموز">
                 </div>
-                <div class="lesson-text">
-                    <h3>درس اول</h3>
-                    <p>آشنایی با واژگان و عبارات‌ها</p>
-                </div>
+                <div class="home-title">عربی هفتم</div>
+                <div class="home-subtitle">تکالیف من</div>
             </div>
-
-            <div class="info-card">
-                <div class="info-row">
-                    <span>
-                        <span class="info-icon-svg">
+            
+            <div class="menu-list">
+                <!-- دکمه تکالیف من (با نشانگر تکلیف جدید) -->
+                <div class="menu-item" onclick="goToScreen('screen-lessons')">
+                    <div class="menu-item-content">
+                        <div class="menu-item-icon">
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="4" y="3" width="16" height="18" rx="2" stroke="#e53935" stroke-width="2"/>
-                                <path d="M8 8H16" stroke="#e53935" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M8 12H16" stroke="#e53935" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M8 16H12" stroke="#e53935" stroke-width="2" stroke-linecap="round"/>
+                                <rect x="4" y="3" width="16" height="18" rx="2" stroke="#1976d2" stroke-width="2"/>
+                                <path d="M8 8H16" stroke="#1976d2" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M8 12H16" stroke="#1976d2" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M8 16H12" stroke="#1976d2" stroke-width="2" stroke-linecap="round"/>
                             </svg>
-                        </span>
-                        تعداد فعالیت‌ها:
-                    </span>
-                    <span id="info-activities">۱۲</span>
+                        </div>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">تکالیف من</div>
+                            <div class="menu-item-desc">لیست تمام درس‌ها</div>
+                        </div>
+                    </div>
+                    <span id="new-lesson-badge" class="badge-new" style="display: none;">✨ یک تکلیف جدید دارید</span>
                 </div>
-                <div class="info-row">
-                    <span>
-                        <span class="info-icon-svg">
+                
+                <!-- دکمه کارنامه‌ها -->
+                <div class="menu-item" onclick="goToScreen('screen-reports')">
+                    <div class="menu-item-content">
+                        <div class="menu-item-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 4H20V20H4V4Z" stroke="#1976d2" stroke-width="2"/>
+                                <path d="M8 8H16" stroke="#1976d2" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M8 12H16" stroke="#1976d2" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M8 16H12" stroke="#1976d2" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">کارنامه‌ها</div>
+                            <div class="menu-item-desc">سوابق تکالیف انجام‌شده</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- دکمه تنظیمات -->
+                <div class="menu-item" onclick="goToScreen('screen-settings')">
+                    <div class="menu-item-content">
+                        <div class="menu-item-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="3" stroke="#1976d2" stroke-width="2"/>
+                                <path d="M12 1V3M12 21V23M23 12H21M3 12H1M20.5 3.5L19 5M5 19L3.5 20.5M20.5 20.5L19 19M5 5L3.5 3.5" stroke="#1976d2" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">تنظیمات</div>
+                            <div class="menu-item-desc">تنظیمات برنامه</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- دکمه درباره ما -->
+                <div class="menu-item" onclick="goToScreen('screen-about')">
+                    <div class="menu-item-content">
+                        <div class="menu-item-icon">
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="12" cy="12" r="9" stroke="#1976d2" stroke-width="2"/>
-                                <path d="M12 7V12L15 15" stroke="#1976d2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 8V12M12 16H12.01" stroke="#1976d2" stroke-width="2" stroke-linecap="round"/>
                             </svg>
-                        </span>
-                        زمان پیشنهادی:
-                    </span>
-                    <span id="info-time">۱۵ دقیقه</span>
-                </div>
-                <div class="info-row">
-                    <span>
-                        <span class="info-icon-svg">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#ffc107" stroke="#ffc107" stroke-width="2" stroke-linejoin="round"/>
-                            </svg>
-                        </span>
-                        امتیاز کل:
-                    </span>
-                    <span id="info-points">۱۰۰</span>
+                        </div>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">درباره ما</div>
+                            <div class="menu-item-desc">اطلاعات سازنده</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <p class="intro-text">
-                دانش‌آموز عزیز!<br>
-                با دقت به سوالات پاسخ دهید و به امتیاز کامل دست پیدا کنید.
-            </p>
+            
+            <div class="home-decoration">📚✏️🎓</div>
         </div>
-        <div class="screen-footer">
-            <button class="btn-primary" onclick="startQuiz()">شروع</button>
+        
+        <div class="home-logout-wrapper">
+            <button class="home-logout" onclick="logout()">خروج از حساب</button>
         </div>
     </div>
 
+    <!-- ============ صفحه لیست تکالیف ============ -->
+    <div id="screen-lessons" class="screen">
+        <div class="page-header">
+            <div class="page-back" onclick="goToScreen('screen-home')">←</div>
+            <div class="page-title">تکالیف من</div>
+        </div>
+        <div class="lessons-list" id="lessons-list">
+            <!-- لیست تکالیف به صورت داینامیک پر می‌شود -->
+        </div>
+    </div>
+
+    <!-- ============ صفحه کارنامه‌ها ============ -->
+    <div id="screen-reports" class="screen">
+        <div class="page-header">
+            <div class="page-back" onclick="goToScreen('screen-home')">←</div>
+            <div class="page-title">کارنامه‌ها</div>
+        </div>
+        <div class="reports-list" id="reports-list">
+            <!-- لیست کارنامه‌ها به صورت داینامیک پر می‌شود -->
+        </div>
+    </div>
+
+    <!-- ============ صفحه تنظیمات ============ -->
+    <div id="screen-settings" class="screen">
+        <div class="page-header">
+            <div class="page-back" onclick="goToScreen('screen-home')">←</div>
+            <div class="page-title">تنظیمات</div>
+        </div>
+        <div class="settings-list">
+            <div class="setting-item">
+                <span class="setting-label">🔊 صدای موسیقی</span>
+                <label class="switch">
+                    <input type="checkbox" id="setting-music" checked onchange="toggleMusicSetting(this)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">🔔 صدای پاسخ‌ها</span>
+                <label class="switch">
+                    <input type="checkbox" id="setting-sounds" checked onchange="toggleSoundsSetting(this)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">👤 نام دانش‌آموز</span>
+                <span class="setting-value" id="setting-name">-</span>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">🏫 کلاس</span>
+                <span class="setting-value" id="setting-class">-</span>
+            </div>
+            <div class="setting-item" onclick="clearCache()" style="cursor: pointer;">
+                <span class="setting-label">🗑️ پاک کردن کش</span>
+                <span class="setting-value">↻</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ صفحه درباره ما ============ -->
+    <div id="screen-about" class="screen">
+        <div class="page-header">
+            <div class="page-back" onclick="goToScreen('screen-home')">←</div>
+            <div class="page-title">درباره ما</div>
+        </div>
+        <div class="about-content">
+            <div class="about-icon-wrapper">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                </svg>
+            </div>
+            <div class="about-title">سازنده بازی</div>
+            <div class="about-name">محمدهادی حججی</div>
+            <div class="about-role">⭐ طراحی و توسعه ⭐</div>
+            
+            <div class="about-info-card">
+                <div class="about-info-title">📱 درباره این اپلیکیشن</div>
+                <div class="about-info-text">
+                    این اپلیکیشن آموزشی، برای کمک به دانش‌آموزان پایه هفتم در یادگیری زبان عربی طراحی شده است. تمام تکالیف به صورت تعاملی و با گرافیک جذاب ارائه می‌شوند.
+                </div>
+            </div>
+            
+            <div class="about-info-card">
+                <div class="about-info-title">📖 ویژگی‌ها</div>
+                <div class="about-info-text">
+                    ✅ تکالیف تعاملی و جذاب<br>
+                    ✅ انواع متنوع سوالات<br>
+                    ✅ کارنامه و دانلود PDF<br>
+                    ✅ کارکرد آفلاین<br>
+                    ✅ نصب روی موبایل
+                </div>
+            </div>
+            
+            <div class="about-info-card">
+                <div class="about-info-title">📅 نسخه</div>
+                <div class="about-info-text">نسخه ۲.۰.۰</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ صفحه سوالات (بازی) ============ -->
     <div id="screen-quiz" class="screen">
         <div class="screen-header">
             <div class="quiz-header">
-                <span>درس اول</span>
+                <span id="quiz-lesson-title">درس</span>
                 <span id="question-counter">سوال ۱ از ۱۲</span>
                 <span class="score-badge">
                     <span class="star-icon">★</span>
@@ -1235,36 +1235,29 @@
             </div>
             <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
         </div>
-        
-        <div class="screen-content" id="question-area">
-        </div>
-        
+        <div class="screen-content" id="question-area"></div>
         <div class="screen-footer">
-            <div class="quiz-footer">
-                <button class="btn-next" id="submit-btn" onclick="checkAnswer()">
-                    <span>بررسی سوال</span>
-                </button>
-            </div>
+            <button class="btn-next" id="submit-btn" onclick="checkAnswer()">بررسی سوال</button>
         </div>
     </div>
 
-    <div id="screen-feedback" class="screen feedback-screen">
+    <!-- ============ صفحه بازخورد ============ -->
+    <div id="screen-feedback" class="screen">
         <div class="screen-content" style="justify-content: center; align-items: center; text-align: center;">
             <div class="feedback-icon" id="fb-icon">⭐</div>
             <div class="feedback-title" id="fb-title">آفرین!</div>
             <div class="feedback-sub" id="fb-sub">پاسخ شما درست بود.</div>
             <div class="points-earned" id="fb-points">+۱۰ امتیاز</div>
-            
             <div class="correct-answer-box" id="correct-answer-box" style="display: none;">
                 <div class="answer-label" id="answer-label">پاسخ صحیح:</div>
                 <div class="answer-text" id="answer-text">-</div>
             </div>
-            
             <button class="btn-primary" onclick="nextQuestion()" style="margin-top: 20px; width: 100%;">سوال بعدی</button>
         </div>
     </div>
 
-    <div id="screen-result" class="screen result-screen">
+    <!-- ============ صفحه پایان ============ -->
+    <div id="screen-result" class="screen">
         <div class="screen-content" style="justify-content: center; align-items: center; text-align: center;">
             <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
             <h2 style="color: #1565c0; margin-bottom: 20px; font-size: 24px;">تکلیف تمام شد!</h2>
@@ -1275,86 +1268,28 @@
                 <div><span>پاسخ غلط:</span> <span id="final-wrong">۰</span></div>
                 <div><span>امتیاز کل:</span> <span id="final-points">۰</span></div>
             </div>
-            <button class="btn-primary" onclick="showReportCard()">دیدن کارنامه</button>
+            <button class="btn-primary" onclick="showReportCard()" style="width: 100%;">دیدن کارنامه</button>
         </div>
     </div>
 
-    <div id="screen-report" class="screen">
-        <div class="screen-header">
-            <div class="report-header">
-                <h2>کارنامه تکلیف عربی هفتم</h2>
-                <span class="logo">🏫</span>
-            </div>
+    <!-- ============ صفحه نمایش کارنامه ============ -->
+    <div id="screen-report-view" class="screen">
+        <div class="page-header">
+            <div class="page-back" onclick="goToScreen('screen-home')">←</div>
+            <div class="page-title">کارنامه</div>
         </div>
-        <div class="screen-content" id="report-content">
-            <div class="report-card">
-                <div class="report-row">
-                    <span class="label">👤 نام دانش‌آموز:</span>
-                    <span class="value" id="report-name">-</span>
-                </div>
-                <div class="report-row">
-                    <span class="label">🏫 کلاس:</span>
-                    <span class="value" id="report-class">-</span>
-                </div>
-                <div class="report-row">
-                    <span class="label">📖 درس:</span>
-                    <span class="value">درس اول - آشنایی با واژگان و عبارات‌ها</span>
-                </div>
-                <div class="report-row">
-                    <span class="label">📅 تاریخ انجام:</span>
-                    <span class="value" id="report-date">-</span>
-                </div>
-                <div class="report-row">
-                    <span class="label">📝 تعداد فعالیت‌ها:</span>
-                    <span class="value">۱۲</span>
-                </div>
-                <div class="report-row">
-                    <span class="label">✅ پاسخ صحیح:</span>
-                    <span class="value green" id="report-correct">۰</span>
-                </div>
-                <div class="report-row">
-                    <span class="label">❌ پاسخ غلط:</span>
-                    <span class="value red" id="report-wrong">۰</span>
-                </div>
-                <div class="report-row">
-                    <span class="label">⭐ امتیاز:</span>
-                    <span class="value blue" id="report-points">۰ از ۱۰۰</span>
-                </div>
-                <div class="report-row">
-                    <span class="label">📊 درصد موفقیت:</span>
-                    <span class="value blue" id="report-percent">۰%</span>
-                </div>
-                <div class="report-row">
-                    <span class="label">⏱ زمان انجام:</span>
-                    <span class="value" id="report-time">- دقیقه</span>
-                </div>
-
-                <div class="report-status">
-                    <div class="status-text" id="report-status-text">عالی</div>
-                    <div class="status-sub">ادامه بده، تو می‌توانی!</div>
-                </div>
-            </div>
-        </div>
-        <div class="screen-footer">
-            <button class="btn-pdf" onclick="downloadPDF()">
-                <span>📥</span>
-                <span>دانلود کارنامه (PDF)</span>
-            </button>
-            <button class="btn-home" onclick="location.reload()">
-                <span>🏠</span>
-                <span>بازگشت به خانه</span>
-            </button>
+        <div class="report-view-content" id="report-view-content">
+            <!-- کارنامه اینجا نمایش داده می‌شود -->
         </div>
     </div>
 
 </div>
 
 <script>
+    // ==================== توابع کمکی ====================
     function toPersianNum(num) {
         const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-        return num.toString().replace(/\d/g, function(x) {
-            return persianDigits[parseInt(x)];
-        });
+        return num.toString().replace(/\d/g, x => persianDigits[parseInt(x)]);
     }
 
     function shuffleArray(array) {
@@ -1364,156 +1299,6 @@
         }
         return array;
     }
-
-    // --- مودال سازنده ---
-    function openCreatorModal() {
-        document.getElementById('creator-modal').classList.add('active');
-    }
-    function closeCreatorModal(event) {
-        if (event && event.target !== event.currentTarget) return;
-        document.getElementById('creator-modal').classList.remove('active');
-    }
-
-    // --- موسیقی پس‌زمینه ---
-    const bgMusic = document.getElementById('bg-music');
-    let musicStarted = false;
-    let isMuted = false;
-
-    function startMusic() {
-        if (musicStarted && !isMuted) return;
-        bgMusic.volume = 0.9;
-        bgMusic.play().then(() => {
-            musicStarted = true;
-        }).catch(err => {
-            console.log('Music autoplay blocked:', err);
-        });
-    }
-
-    function toggleSound() {
-        const btn = document.getElementById('sound-toggle');
-        const icon = document.getElementById('sound-icon');
-        
-        if (isMuted) {
-            isMuted = false;
-            btn.classList.remove('muted');
-            bgMusic.volume = 0.9;
-            if (!musicStarted) {
-                startMusic();
-            } else {
-                bgMusic.play().catch(e => console.log(e));
-            }
-            icon.innerHTML = `
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="currentColor"/>
-                <path d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <path d="M19.07 4.93C20.9447 6.80528 21.9979 9.34836 21.9979 12C21.9979 14.6516 20.9447 17.1947 19.07 19.07" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            `;
-        } else {
-            isMuted = true;
-            btn.classList.add('muted');
-            bgMusic.pause();
-            icon.innerHTML = `
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="currentColor"/>
-                <path d="M22 9L16 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <path d="M16 9L22 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            `;
-        }
-    }
-
-    document.addEventListener('click', function() {
-        if (!isMuted) startMusic();
-    }, { once: false });
-    document.addEventListener('touchstart', function() {
-        if (!isMuted) startMusic();
-    }, { once: false });
-    document.addEventListener('keydown', function() {
-        if (!isMuted) startMusic();
-    }, { once: false });
-
-    // --- سیستم صدا با Web Audio API ---
-    let audioContext = null;
-    
-    function initAudio() {
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
-    }
-
-    function playCorrectSound() {
-        try {
-            initAudio();
-            const now = audioContext.currentTime;
-            const notes = [523.25, 659.25, 783.99, 1046.50];
-            notes.forEach((freq, i) => {
-                const osc = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0, now + i * 0.1);
-                gain.gain.linearRampToValueAtTime(0.2, now + i * 0.1 + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
-                osc.connect(gain);
-                gain.connect(audioContext.destination);
-                osc.start(now + i * 0.1);
-                osc.stop(now + i * 0.1 + 0.3);
-            });
-        } catch(e) { console.log('Audio error:', e); }
-    }
-
-    function playWrongSound() {
-        try {
-            initAudio();
-            const now = audioContext.currentTime;
-            const notes = [400, 300, 200];
-            notes.forEach((freq, i) => {
-                const osc = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0, now + i * 0.15);
-                gain.gain.linearRampToValueAtTime(0.15, now + i * 0.15 + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.25);
-                osc.connect(gain);
-                gain.connect(audioContext.destination);
-                osc.start(now + i * 0.15);
-                osc.stop(now + i * 0.15 + 0.25);
-            });
-        } catch(e) { console.log('Audio error:', e); }
-    }
-
-    const questions = [
-        { type: 'multiple', question: 'معنی کلمه "شَجَرَة" چیست؟', options: ['درخت', 'کتاب', 'مدرسه', 'معلم'], correct: 0, points: 10 },
-        { type: 'fill', question: 'جای خالی را با کلمه مناسب پر کنید:', sentence: 'هذا ______ .', options: ['طالب', 'طالبة'], correct: 0, points: 10 },
-        { type: 'match', question: 'ستون‌ها را به هم وصل کنید.', pairs: [{fa: 'شجرة', ar: 'درخت'}, {fa: 'طالب', ar: 'دانش‌آموز'}, {fa: 'بنت', ar: 'دختر'}, {fa: 'استاذ', ar: 'استاد'}], points: 10 },
-        { type: 'order', question: 'کلمات را به ترتیب درست قرار دهید: (هذا - کتاب - مفید)', options: ['هذا', 'کتاب', 'مفید'], correct: ['هذا', 'کتاب', 'مفید'], points: 10 },
-        { type: 'image', question: 'کلمه "شجرة" را با تصویر مناسب انتخاب کنید.', options: ['🌳', '📚', '🏫', '✏️'], correct: 0, points: 10 },
-        { type: 'truefalse', question: 'کلمه "هذه" برای "بنت" استفاده می‌شود.', correct: true, points: 10 },
-        { type: 'translation', question: 'ترجمه کلمه زیر را بنویسید: أُستاذ', correct: 'استاد', points: 10 },
-        { type: 'multiple', question: 'معنی "کتاب" به عربی چیست؟', options: ['قلم', 'کتاب', 'باب', 'مدرسة'], correct: 1, points: 10 },
-        { type: 'fill', question: 'جای خالی را با کلمه مناسب پر کنید:', sentence: '______ طالبة.', options: ['هذا', 'هذه', 'هؤلاء', 'ذلک'], correct: 1, points: 10 },
-        { type: 'truefalse', question: 'کلمه "مدرسة" به معنی "معلم" است.', correct: false, points: 10 },
-        { type: 'multiple', question: 'کدام گزینه به معنی "دختر" است؟', options: ['بنت', 'ابن', 'استاذ', 'طالب'], correct: 0, points: 10 },
-        { type: 'translation', question: 'ترجمه: مَدرَسة', correct: 'مدرسه', points: 10 }
-    ];
-
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let correctCount = 0;
-    let wrongCount = 0;
-    let studentName = '';
-    let studentClass = '';
-    let selectedOptionIndex = -1;
-    let selectedMatchFa = null;
-    let selectedMatchAr = null;
-    let orderSelected = [];
-    let isAnswered = false;
-    let matchedPairs = 0;
-    let startTime = null;
-    let endTime = null;
-    let shuffledMatchAr = [];
-    let shuffledOrderOptions = [];
 
     function showModal(title, text, icon = 'ℹ️') {
         document.getElementById('modal-title').textContent = title;
@@ -1528,51 +1313,276 @@
     function goToScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
-        
-        const topVector = document.getElementById('top-vector');
-        if (screenId === 'screen-home') {
-            topVector.style.display = 'none';
-        } else {
-            topVector.style.display = 'block';
-        }
     }
 
-    function startLesson() {
-        studentName = document.getElementById('student-name').value.trim();
-        studentClass = document.getElementById('student-class').value;
-        if (!studentName) {
+    // ==================== مدیریت کاربر ====================
+    function saveUserInfo() {
+        const name = document.getElementById('welcome-name').value.trim();
+        const cls = document.getElementById('welcome-class').value;
+        
+        if (!name) {
             showModal('خطا', 'لطفاً نام خود را وارد کنید.', '⚠️');
             return;
         }
-        if (!studentClass) {
+        if (!cls) {
             showModal('خطا', 'لطفاً کلاس خود را انتخاب کنید.', '⚠️');
             return;
         }
-        goToScreen('screen-intro');
+        
+        // ذخیره در LocalStorage
+        localStorage.setItem('userName', name);
+        localStorage.setItem('userClass', cls);
+        localStorage.setItem('userRegistered', 'true');
+        
+        // به‌روزرسانی نمایش
+        document.getElementById('setting-name').textContent = name;
+        document.getElementById('setting-class').textContent = cls;
+        
+        // رفتن به صفحه اصلی
+        goToScreen('screen-home');
     }
 
-    function startQuiz() {
-        currentQuestionIndex = 0;
-        score = 0;
-        correctCount = 0;
-        wrongCount = 0;
-        startTime = new Date();
-        goToScreen('screen-quiz');
-        renderQuestion();
+    function loadUserInfo() {
+        const name = localStorage.getItem('userName');
+        const cls = localStorage.getItem('userClass');
+        const registered = localStorage.getItem('userRegistered');
+        
+        if (registered === 'true' && name && cls) {
+            document.getElementById('setting-name').textContent = name;
+            document.getElementById('setting-class').textContent = cls;
+            goToScreen('screen-home');
+        } else {
+            goToScreen('screen-welcome');
+        }
     }
+
+    function logout() {
+        if (confirm('آیا مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟')) {
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userClass');
+            localStorage.removeItem('userRegistered');
+            location.reload();
+        }
+    }
+
+    // ==================== مدیریت تکالیف ====================
+    let allLessons = [];       // لیست تکالیف از فایل index.json
+    let currentLesson = null;  // تکلیف در حال اجرا
+    
+    // بارگذاری لیست تکالیف
+    async function loadLessonsList() {
+        try {
+            const response = await fetch('./lessons/index.json');
+            if (!response.ok) throw new Error('خطا در بارگذاری');
+            const data = await response.json();
+            allLessons = data.lessons;
+            renderLessonsList();
+            checkNewLessons();
+        } catch (error) {
+            console.error('خطا در بارگذاری لیست تکالیف:', error);
+            document.getElementById('lessons-list').innerHTML = `
+                <div class="report-empty">
+                    <div class="report-empty-icon">📭</div>
+                    <div class="report-empty-text">هنوز تکلیفی وجود ندارد</div>
+                </div>
+            `;
+        }
+    }
+
+    // نمایش لیست تکالیف
+    function renderLessonsList() {
+        const container = document.getElementById('lessons-list');
+        if (allLessons.length === 0) {
+            container.innerHTML = `
+                <div class="report-empty">
+                    <div class="report-empty-icon">📭</div>
+                    <div class="report-empty-text">هنوز تکلیفی وجود ندارد</div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = allLessons.map(lesson => `
+            <div class="lesson-card" onclick="startLesson('${lesson.id}')">
+                <div class="lesson-card-icon">${lesson.icon || '📖'}</div>
+                <div class="lesson-card-text">
+                    <div class="lesson-card-title">${lesson.title}</div>
+                    <div class="lesson-card-desc">${lesson.subtitle}</div>
+                </div>
+                <div class="lesson-card-arrow">←</div>
+            </div>
+        `).join('');
+    }
+
+    // بررسی تکالیف جدید (نشانگر)
+    function checkNewLessons() {
+        const seenLessons = JSON.parse(localStorage.getItem('seenLessons') || '[]');
+        const newLessons = allLessons.filter(l => !seenLessons.includes(l.id));
+        
+        if (newLessons.length > 0) {
+            document.getElementById('new-lesson-badge').style.display = 'inline-block';
+        } else {
+            document.getElementById('new-lesson-badge').style.display = 'none';
+        }
+    }
+
+    // علامت‌گذاری تکالیف به عنوان دیده‌شده
+    function markLessonsAsSeen() {
+        const allIds = allLessons.map(l => l.id);
+        localStorage.setItem('seenLessons', JSON.stringify(allIds));
+        document.getElementById('new-lesson-badge').style.display = 'none';
+    }
+
+    // شروع یک تکلیف
+    async function startLesson(lessonId) {
+        try {
+            const lessonMeta = allLessons.find(l => l.id === lessonId);
+            if (!lessonMeta) return;
+            
+            const response = await fetch('./lessons/' + lessonMeta.file);
+            if (!response.ok) throw new Error('خطا در بارگذاری');
+            currentLesson = await response.json();
+            
+            // علامت‌گذاری به عنوان دیده‌شده
+            markLessonsAsSeen();
+            
+            // شروع بازی
+            currentQuestionIndex = 0;
+            score = 0;
+            correctCount = 0;
+            wrongCount = 0;
+            startTime = new Date();
+            
+            document.getElementById('quiz-lesson-title').textContent = currentLesson.title;
+            goToScreen('screen-quiz');
+            renderQuestion();
+        } catch (error) {
+            console.error('خطا:', error);
+            showModal('خطا', 'مشکلی در بارگذاری تکلیف پیش آمد.', '❌');
+        }
+    }
+
+    // ==================== مدیریت کارنامه‌ها ====================
+    function loadReports() {
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const container = document.getElementById('reports-list');
+        
+        if (reports.length === 0) {
+            container.innerHTML = `
+                <div class="report-empty">
+                    <div class="report-empty-icon">📋</div>
+                    <div class="report-empty-text">هنوز کارنامه‌ای ندارید</div>
+                </div>
+            `;
+            return;
+        }
+        
+        // مرتب‌سازی بر اساس تاریخ (جدیدترین اول)
+        reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        container.innerHTML = reports.map((report, index) => `
+            <div class="report-card">
+                <div class="report-card-header">
+                    <div class="report-card-title">${report.lessonTitle}</div>
+                    <div class="report-card-date">${report.date}</div>
+                </div>
+                <div class="report-info-row">
+                    <span>درصد موفقیت:</span>
+                    <span class="value blue">${toPersianNum(report.percent)}%</span>
+                </div>
+                <div class="report-info-row">
+                    <span>پاسخ صحیح:</span>
+                    <span class="value green">${toPersianNum(report.correct)}</span>
+                </div>
+                <div class="report-info-row">
+                    <span>پاسخ غلط:</span>
+                    <span class="value red">${toPersianNum(report.wrong)}</span>
+                </div>
+                <div class="report-info-row">
+                    <span>امتیاز:</span>
+                    <span class="value blue">${toPersianNum(report.score)} از ${toPersianNum(report.totalPoints)}</span>
+                </div>
+                <div class="report-actions">
+                    <button class="report-btn report-btn-download" onclick="downloadReportById(${index})">
+                        📥 دانلود PDF
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function saveReport(report) {
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        reports.push(report);
+        localStorage.setItem('reports', JSON.stringify(reports));
+    }
+
+    function downloadReportById(index) {
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const report = reports[index];
+        if (report) {
+            // ساخت PDF از این کارنامه
+            const element = document.createElement('div');
+            element.style.padding = '30px';
+            element.style.fontFamily = 'Vazirmatn, sans-serif';
+            element.style.direction = 'rtl';
+            element.innerHTML = `
+                <h1 style="text-align: center; color: #1565c0; margin-bottom: 20px;">کارنامه تکلیف</h1>
+                <div style="background: #f0f7ff; padding: 20px; border-radius: 15px;">
+                    <p style="margin: 10px 0;"><strong>نام دانش‌آموز:</strong> ${report.studentName}</p>
+                    <p style="margin: 10px 0;"><strong>کلاس:</strong> ${report.studentClass}</p>
+                    <p style="margin: 10px 0;"><strong>درس:</strong> ${report.lessonTitle}</p>
+                    <p style="margin: 10px 0;"><strong>تاریخ:</strong> ${report.date}</p>
+                    <p style="margin: 10px 0;"><strong>درصد موفقیت:</strong> ${report.percent}%</p>
+                    <p style="margin: 10px 0;"><strong>پاسخ صحیح:</strong> ${report.correct}</p>
+                    <p style="margin: 10px 0;"><strong>پاسخ غلط:</strong> ${report.wrong}</p>
+                    <p style="margin: 10px 0;"><strong>امتیاز:</strong> ${report.score} از ${report.totalPoints}</p>
+                </div>
+            `;
+            
+            const opt = {
+                margin: 0.5,
+                filename: `کارنامه_${report.lessonTitle}_${report.date.replace(/\//g, '-')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a5', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                showModal('دانلود موفق', 'کارنامه با موفقیت دانلود شد.', '✅');
+            });
+        }
+    }
+
+    // ==================== مدیریت سوالات ====================
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let startTime = null;
+    let endTime = null;
+    let selectedOptionIndex = -1;
+    let selectedMatchFa = null;
+    let selectedMatchAr = null;
+    let orderSelected = [];
+    let isAnswered = false;
+    let matchedPairs = 0;
+    let shuffledMatchAr = [];
+    let shuffledOrderOptions = [];
 
     function renderQuestion() {
-        const q = questions[currentQuestionIndex];
+        const q = currentLesson.questions[currentQuestionIndex];
         const container = document.getElementById('question-area');
         const counter = document.getElementById('question-counter');
         const progress = document.getElementById('progress-fill');
         const submitBtn = document.getElementById('submit-btn');
         const scoreDisplay = document.getElementById('score-display');
-
-        counter.textContent = `سوال ${toPersianNum(currentQuestionIndex + 1)} از ${toPersianNum(questions.length)}`;
-        progress.style.width = `${((currentQuestionIndex) / questions.length) * 100}%`;
+        
+        counter.textContent = `سوال ${toPersianNum(currentQuestionIndex + 1)} از ${toPersianNum(currentLesson.questions.length)}`;
+        progress.style.width = `${((currentQuestionIndex) / currentLesson.questions.length) * 100}%`;
         scoreDisplay.textContent = toPersianNum(score);
-
+        
         selectedOptionIndex = -1;
         selectedMatchFa = null;
         selectedMatchAr = null;
@@ -1580,8 +1590,8 @@
         isAnswered = false;
         matchedPairs = 0;
         submitBtn.disabled = false;
-        submitBtn.innerHTML = `<span>بررسی سوال</span>`;
-
+        submitBtn.textContent = 'بررسی سوال';
+        
         let html = '';
         
         if (q.type === 'fill') {
@@ -1605,7 +1615,7 @@
                     html += `<div class="option-btn" onclick="selectOption(this, ${index})">${opt}</div>`;
                 });
                 html += `</div>`;
-            } 
+            }
             else if (q.type === 'match') {
                 const arItems = q.pairs.map((p, i) => ({ text: p.ar, idx: i }));
                 shuffledMatchAr = shuffleArray([...arItems]);
@@ -1617,16 +1627,14 @@
                             <div class="matching-col" id="col-ar">
                                 ${shuffledMatchAr.map((item) => `<div class="matching-item" data-idx="${item.idx}" data-type="ar" onclick="selectMatch(this, 'ar')">${item.text}</div>`).join('')}
                             </div>
-                         </div>
-                         <button class="btn-primary" id="match-check-btn" style="margin-top: 15px; display: none; padding: 12px;" onclick="checkMatch()">بررسی پاسخ</button>`;
+                         </div>`;
             }
             else if (q.type === 'order') {
                 shuffledOrderOptions = shuffleArray([...q.options]);
-                
                 html += `<div class="order-container" id="order-container">
                             ${shuffledOrderOptions.map((opt) => `<div class="order-item" onclick="selectOrder(this, '${opt}')">${opt}</div>`).join('')}
                          </div>`;
-                html += `<div class="order-result" id="order-result">کلمات را اینجا بچینید (برای برگرداندن، روی کلمه کلیک کنید)</div>`;
+                html += `<div class="order-result" id="order-result">کلمات را اینجا بچینید (برای برگرداندن کلیک کنید)</div>`;
             }
             else if (q.type === 'image') {
                 html += `<div class="image-options-grid">`;
@@ -1637,15 +1645,15 @@
             }
             else if (q.type === 'truefalse') {
                 html += `<div class="true-false-grid">
-                            <button class="tf-btn" id="tf-true" onclick="selectTF(this, 1)">درست ✓</button>
-                            <button class="tf-btn" id="tf-false" onclick="selectTF(this, 0)">غلط ✗</button>
+                            <button class="tf-btn" onclick="selectTF(this, 1)">درست ✓</button>
+                            <button class="tf-btn" onclick="selectTF(this, 0)">غلط ✗</button>
                          </div>`;
             }
             else if (q.type === 'translation') {
-                html += `<input type="text" class="input-group" style="width: 100%; padding: 16px; border: 2px solid #cfd8dc; border-radius: 50px; text-align: center; font-size: 17px; outline: none; margin-bottom: 15px;" id="translation-answer" placeholder="ترجمه را وارد کنید...">`;
+                html += `<input type="text" id="translation-answer" placeholder="ترجمه را وارد کنید..." style="width:100%;padding:16px;border:2px solid #cfd8dc;border-radius:50px;text-align:center;font-size:17px;outline:none;margin-bottom:15px;font-family:'Vazirmatn',sans-serif;">`;
             }
         }
-
+        
         container.innerHTML = html;
     }
 
@@ -1661,10 +1669,7 @@
         document.querySelectorAll('.option-btn').forEach(e => e.classList.remove('selected'));
         el.classList.add('selected');
         selectedOptionIndex = index;
-        
-        const blankSlot = document.getElementById('blank-slot');
-        blankSlot.textContent = word;
-        blankSlot.style.color = '#1976d2';
+        document.getElementById('blank-slot').textContent = word;
     }
 
     function selectTF(el, value) {
@@ -1672,18 +1677,14 @@
         document.querySelectorAll('.tf-btn').forEach(e => {
             e.classList.remove('selected-true', 'selected-false');
         });
-        if (value === 1) {
-            el.classList.add('selected-true');
-        } else {
-            el.classList.add('selected-false');
-        }
+        el.classList.add(value === 1 ? 'selected-true' : 'selected-false');
         selectedOptionIndex = value;
     }
 
     function selectMatch(el, type) {
         if (isAnswered) return;
         if (el.classList.contains('correct')) return;
-
+        
         if (type === 'fa') {
             if (selectedMatchFa) selectedMatchFa.classList.remove('selected');
             selectedMatchFa = el;
@@ -1692,7 +1693,7 @@
             selectedMatchAr = el;
         }
         el.classList.add('selected');
-
+        
         if (selectedMatchFa && selectedMatchAr) {
             if (selectedMatchFa.dataset.idx === selectedMatchAr.dataset.idx) {
                 selectedMatchFa.classList.add('correct');
@@ -1702,36 +1703,18 @@
                 selectedMatchFa = null;
                 selectedMatchAr = null;
                 matchedPairs++;
-
-                if (matchedPairs === questions[currentQuestionIndex].pairs.length) {
-                    document.getElementById('match-check-btn').style.display = 'block';
-                }
             } else {
                 const faEl = selectedMatchFa;
                 const arEl = selectedMatchAr;
                 faEl.classList.add('wrong');
                 arEl.classList.add('wrong');
-                
                 setTimeout(() => {
                     faEl.classList.remove('wrong', 'selected');
                     arEl.classList.remove('wrong', 'selected');
                 }, 800);
-
                 selectedMatchFa = null;
                 selectedMatchAr = null;
             }
-        }
-    }
-
-    function checkMatch() {
-        const q = questions[currentQuestionIndex];
-        if (matchedPairs === q.pairs.length) {
-            isAnswered = true;
-            document.getElementById('submit-btn').disabled = true;
-            score += q.points;
-            correctCount++;
-            playCorrectSound();
-            showFeedback(true, q.points, q);
         }
     }
 
@@ -1750,15 +1733,12 @@
             const idx = orderSelected.indexOf(word);
             if (idx > -1) {
                 orderSelected.splice(idx, 1);
-                const orderItems = document.querySelectorAll('#order-container .order-item');
-                orderItems.forEach(item => {
-                    if (item.textContent === word) {
-                        item.style.display = 'block';
-                    }
+                document.querySelectorAll('#order-container .order-item').forEach(item => {
+                    if (item.textContent === word) item.style.display = 'block';
                 });
                 this.remove();
                 if (orderSelected.length === 0) {
-                    resultDiv.innerHTML = 'کلمات را اینجا بچینید (برای برگرداندن، روی کلمه کلیک کنید)';
+                    resultDiv.innerHTML = 'کلمات را اینجا بچینید (برای برگرداندن کلیک کنید)';
                 }
             }
         };
@@ -1767,16 +1747,16 @@
 
     function checkAnswer() {
         if (isAnswered) return;
-        const q = questions[currentQuestionIndex];
+        const q = currentLesson.questions[currentQuestionIndex];
         let isCorrect = false;
         let answerGiven = false;
-
+        
         if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image') {
             if (selectedOptionIndex !== -1) {
                 answerGiven = true;
                 if (selectedOptionIndex === q.correct) isCorrect = true;
             }
-        } 
+        }
         else if (q.type === 'truefalse') {
             if (selectedOptionIndex !== -1) {
                 answerGiven = true;
@@ -1804,22 +1784,22 @@
                 answerGiven = true;
                 if (JSON.stringify(orderSelected) === JSON.stringify(q.correct)) isCorrect = true;
                 else {
-                    showModal('خطا', 'ترتیب کلمات اشتباه است. دوباره تلاش کنید.', '❌');
+                    showModal('خطا', 'ترتیب کلمات اشتباه است.', '❌');
                     orderSelected = [];
                     renderQuestion();
                     return;
                 }
             }
         }
-
+        
         if (!answerGiven) {
             showModal('توجه', 'لطفاً یک پاسخ انتخاب کنید.', '⚠️');
             return;
         }
-
+        
         isAnswered = true;
         document.getElementById('submit-btn').disabled = true;
-
+        
         if (isCorrect) {
             score += q.points;
             correctCount++;
@@ -1833,24 +1813,11 @@
     }
 
     function getCorrectAnswerText(q) {
-        if (q.type === 'multiple' || q.type === 'fill') {
-            return q.options[q.correct];
-        }
-        if (q.type === 'image') {
-            return q.options[q.correct];
-        }
-        if (q.type === 'truefalse') {
-            return q.correct ? 'درست ✓' : 'غلط ✗';
-        }
-        if (q.type === 'translation') {
-            return q.correct;
-        }
-        if (q.type === 'match') {
-            return 'همه جفت‌ها به درستی وصل شدند.';
-        }
-        if (q.type === 'order') {
-            return q.correct.join(' - ');
-        }
+        if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image') return q.options[q.correct];
+        if (q.type === 'truefalse') return q.correct ? 'درست ✓' : 'غلط ✗';
+        if (q.type === 'translation') return q.correct;
+        if (q.type === 'match') return 'همه جفت‌ها به درستی وصل شدند.';
+        if (q.type === 'order') return q.correct.join(' - ');
         return '-';
     }
 
@@ -1863,7 +1830,7 @@
         const answerBox = document.getElementById('correct-answer-box');
         const answerLabel = document.getElementById('answer-label');
         const answerText = document.getElementById('answer-text');
-
+        
         if (isCorrect) {
             icon.textContent = '⭐';
             title.textContent = 'آفرین!';
@@ -1871,7 +1838,6 @@
             sub.textContent = 'پاسخ شما درست بود.';
             pts.textContent = `+${toPersianNum(points)} امتیاز`;
             pts.style.color = '#f57c00';
-            
             answerBox.className = 'correct-answer-box';
             answerLabel.textContent = 'پاسخ صحیح شما:';
             answerText.textContent = getCorrectAnswerText(q);
@@ -1883,7 +1849,6 @@
             sub.textContent = 'پاسخ شما اشتباه است.';
             pts.textContent = '۰ امتیاز';
             pts.style.color = '#999';
-            
             answerBox.className = 'correct-answer-box wrong-answer';
             answerLabel.textContent = 'پاسخ صحیح:';
             answerText.textContent = getCorrectAnswerText(q);
@@ -1893,7 +1858,7 @@
 
     function nextQuestion() {
         currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
+        if (currentQuestionIndex < currentLesson.questions.length) {
             goToScreen('screen-quiz');
             renderQuestion();
         } else {
@@ -1904,7 +1869,7 @@
     function showResult() {
         endTime = new Date();
         goToScreen('screen-result');
-        const percent = Math.round((correctCount / questions.length) * 100);
+        const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
         document.getElementById('final-score-circle').textContent = `${toPersianNum(percent)}%`;
         document.getElementById('final-percent').textContent = `${toPersianNum(percent)}%`;
         document.getElementById('final-correct').textContent = toPersianNum(correctCount);
@@ -1913,220 +1878,254 @@
     }
 
     function showReportCard() {
-        const percent = Math.round((correctCount / questions.length) * 100);
+        const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
         const timeTaken = Math.round((endTime - startTime) / 60000);
-        
         const now = new Date();
         const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
         
-        document.getElementById('report-name').textContent = studentName;
-        document.getElementById('report-class').textContent = studentClass;
-        document.getElementById('report-date').textContent = dateStr;
-        document.getElementById('report-correct').textContent = toPersianNum(correctCount);
-        document.getElementById('report-wrong').textContent = toPersianNum(wrongCount);
-        document.getElementById('report-points').textContent = `${toPersianNum(score)} از ${toPersianNum(100)}`;
-        document.getElementById('report-percent').textContent = `${toPersianNum(percent)}%`;
-        document.getElementById('report-time').textContent = `${toPersianNum(timeTaken)} دقیقه`;
-
-        let statusText = '';
-        let statusSub = '';
-        if (percent >= 90) { statusText = 'عالی'; statusSub = 'ادامه بده، تو می‌توانی!'; }
-        else if (percent >= 70) { statusText = 'خوب'; statusSub = 'کمی تلاش بیشتر نیاز داری.'; }
-        else if (percent >= 50) { statusText = 'قابل قبول'; statusSub = 'باید بیشتر تمرین کنی.'; }
-        else { statusText = 'نیاز به تلاش'; statusSub = 'نگران نباش، دوباره تلاش کن!'; }
+        // ذخیره کارنامه
+        const report = {
+            studentName: localStorage.getItem('userName'),
+            studentClass: localStorage.getItem('userClass'),
+            lessonId: currentLesson.lessonId,
+            lessonTitle: currentLesson.title,
+            date: dateStr,
+            timestamp: now.toISOString(),
+            percent: percent,
+            correct: correctCount,
+            wrong: wrongCount,
+            score: score,
+            totalPoints: currentLesson.totalPoints,
+            timeTaken: timeTaken
+        };
+        saveReport(report);
         
-        document.getElementById('report-status-text').textContent = statusText;
-        document.querySelector('.report-status .status-sub').textContent = statusSub;
-
-        goToScreen('screen-report');
+        // نمایش کارنامه
+        const container = document.getElementById('report-view-content');
+        container.innerHTML = `
+            <div class="report-view-card">
+                <div class="report-view-row"><span class="label">👤 نام دانش‌آموز:</span><span class="value">${report.studentName}</span></div>
+                <div class="report-view-row"><span class="label">🏫 کلاس:</span><span class="value">${report.studentClass}</span></div>
+                <div class="report-view-row"><span class="label">📖 درس:</span><span class="value">${report.lessonTitle}</span></div>
+                <div class="report-view-row"><span class="label">📅 تاریخ:</span><span class="value">${report.date}</span></div>
+                <div class="report-view-row"><span class="label">✅ پاسخ صحیح:</span><span class="value green">${toPersianNum(report.correct)}</span></div>
+                <div class="report-view-row"><span class="label">❌ پاسخ غلط:</span><span class="value red">${toPersianNum(report.wrong)}</span></div>
+                <div class="report-view-row"><span class="label">⭐ امتیاز:</span><span class="value blue">${toPersianNum(report.score)} از ${toPersianNum(report.totalPoints)}</span></div>
+                <div class="report-view-row"><span class="label">📊 درصد موفقیت:</span><span class="value blue">${toPersianNum(report.percent)}%</span></div>
+                <div class="report-view-row"><span class="label">⏱ زمان:</span><span class="value">${toPersianNum(report.timeTaken)} دقیقه</span></div>
+            </div>
+            <button class="btn-primary" onclick="downloadCurrentReport()" style="margin-top: 15px;">
+                📥 دانلود کارنامه (PDF)
+            </button>
+            <button class="btn-primary" onclick="goToScreen('screen-home')" style="margin-top: 10px; background: linear-gradient(135deg, #546e7a 0%, #37474f 100%);">
+                🏠 بازگشت به خانه
+            </button>
+        `;
+        
+        goToScreen('screen-report-view');
     }
 
-    function downloadPDF() {
-        const element = document.getElementById('report-content');
+    function downloadCurrentReport() {
+        const element = document.getElementById('report-view-content').querySelector('.report-view-card');
+        const studentName = localStorage.getItem('userName');
         const opt = {
-            margin:       0.5,
-            filename:     `کارنامه_${studentName}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a5', orientation: 'portrait' }
+            margin: 0.5,
+            filename: `کارنامه_${currentLesson.title}_${studentName}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'a5', orientation: 'portrait' }
         };
         
         html2pdf().set(opt).from(element).save().then(() => {
-            showModal('دانلود موفق', 'فایل PDF کارنامه با موفقیت دانلود شد.', '✅');
-        }).catch(() => {
-            showModal('خطا', 'مشکلی در دانلود فایل پیش آمد. لطفاً دوباره تلاش کنید.', '❌');
+            showModal('دانلود موفق', 'کارنامه با موفقیت دانلود شد.', '✅');
         });
     }
 
-    renderQuestion();
-</script>
+    // ==================== تنظیمات ====================
+    function toggleMusicSetting(el) {
+        if (el.checked) {
+            localStorage.setItem('musicEnabled', 'true');
+            if (!isMuted) bgMusic.play().catch(e => console.log(e));
+        } else {
+            localStorage.setItem('musicEnabled', 'false');
+            bgMusic.pause();
+        }
+    }
 
-<script>
-    // ثبت Service Worker برای PWA
+    function toggleSoundsSetting(el) {
+        localStorage.setItem('soundsEnabled', el.checked ? 'true' : 'false');
+    }
+
+    function clearCache() {
+        if (confirm('آیا مطمئن هستید که می‌خواهید کش را پاک کنید؟ (تکالیف شما پاک نمی‌شوند)')) {
+            caches.keys().then(names => {
+                names.forEach(name => caches.delete(name));
+            });
+            showModal('موفق', 'کش با موفقیت پاک شد.', '✅');
+        }
+    }
+
+    // ==================== موسیقی و صدا ====================
+    const bgMusic = document.getElementById('bg-music');
+    let musicStarted = false;
+    let isMuted = false;
+    
+    function startMusic() {
+        if (musicStarted && !isMuted) return;
+        if (localStorage.getItem('musicEnabled') === 'false') return;
+        bgMusic.volume = 0.9;
+        bgMusic.play().then(() => { musicStarted = true; }).catch(e => console.log(e));
+    }
+
+    function toggleSound() {
+        const btn = document.getElementById('sound-toggle');
+        const icon = document.getElementById('sound-icon');
+        
+        if (isMuted) {
+            isMuted = false;
+            btn.classList.remove('muted');
+            bgMusic.volume = 0.9;
+            if (!musicStarted) startMusic(); else bgMusic.play().catch(e => console.log(e));
+            icon.innerHTML = `<path d="M11 5L6 9H2V15H6L11 19V5Z" fill="currentColor"/><path d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.07 4.93C20.9447 6.80528 21.9979 9.34836 21.9979 12C21.9979 14.6516 20.9447 17.1947 19.07 19.07" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`;
+        } else {
+            isMuted = true;
+            btn.classList.add('muted');
+            bgMusic.pause();
+            icon.innerHTML = `<path d="M11 5L6 9H2V15H6L11 19V5Z" fill="currentColor"/><path d="M22 9L16 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16 9L22 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`;
+        }
+    }
+
+    document.addEventListener('click', () => { if (!isMuted) startMusic(); });
+    document.addEventListener('touchstart', () => { if (!isMuted) startMusic(); });
+
+    // صداهای درست/غلط
+    let audioContext = null;
+    function initAudio() {
+        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') audioContext.resume();
+    }
+
+    function playCorrectSound() {
+        if (localStorage.getItem('soundsEnabled') === 'false') return;
+        try {
+            initAudio();
+            const now = audioContext.currentTime;
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0, now + i * 0.1);
+                gain.gain.linearRampToValueAtTime(0.2, now + i * 0.1 + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
+                osc.connect(gain); gain.connect(audioContext.destination);
+                osc.start(now + i * 0.1); osc.stop(now + i * 0.1 + 0.3);
+            });
+        } catch(e) {}
+    }
+
+    function playWrongSound() {
+        if (localStorage.getItem('soundsEnabled') === 'false') return;
+        try {
+            initAudio();
+            const now = audioContext.currentTime;
+            [400, 300, 200].forEach((freq, i) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0, now + i * 0.15);
+                gain.gain.linearRampToValueAtTime(0.15, now + i * 0.15 + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.25);
+                osc.connect(gain); gain.connect(audioContext.destination);
+                osc.start(now + i * 0.15); osc.stop(now + i * 0.15 + 0.25);
+            });
+        } catch(e) {}
+    }
+
+    // ==================== PWA ====================
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(function(registration) {
-                    console.log('Service Worker با موفقیت ثبت شد:', registration.scope);
-                })
-                .catch(function(error) {
-                    console.log('خطا در ثبت Service Worker:', error);
-                });
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js').catch(e => console.log(e));
         });
     }
 
-    // --- منطق نصب PWA ---
     let deferredPrompt = null;
     const installBanner = document.getElementById('install-banner');
-    const installBtn = document.getElementById('install-btn');
-    const installFab = document.getElementById('install-fab');
-    const installGuideModal = document.getElementById('install-guide-modal');
-    const installStepsContent = document.getElementById('install-steps-content');
     
-    // بررسی اینکه آیا اپ قبلاً نصب شده یا نه
     function isAppInstalled() {
-        if (window.matchMedia('(display-mode: standalone)').matches || 
-            window.navigator.standalone === true) {
-            return true;
-        }
-        return false;
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     }
-    
-    // بررسی اینکه کاربر قبلاً "بعداً" رو نزده باشه
     function wasDismissed() {
         return localStorage.getItem('installBannerDismissed') === 'true';
     }
-    
-    // ذخیره اینکه کاربر "بعداً" رو زد
     function dismissInstallBanner() {
         installBanner.classList.remove('show');
         localStorage.setItem('installBannerDismissed', 'true');
     }
     
-    // تشخیص نوع دستگاه برای راهنمای نصب
-    function getInstallSteps() {
-        const userAgent = navigator.userAgent.toLowerCase();
-        const isIOS = /iphone|ipad|ipod/.test(userAgent);
-        const isAndroid = /android/.test(userAgent);
-        const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
-        const isChrome = /chrome/.test(userAgent) && !/edg/.test(userAgent);
-        const isFirefox = /firefox/.test(userAgent);
-        const isEdge = /edg/.test(userAgent);
-        
-        if (isIOS) {
-            return [
-                'مرورگر Safari را باز کنید (اگر در مرورگر دیگری هستید، لینک را در Safari کپی کنید).',
-                'روی دکمه Share (مربع با فلش رو به بالا) در پایین صفحه بزنید.',
-                'در منوی باز شده، به پایین اسکرول کنید و گزینه "Add to Home Screen" (افزودن به صفحه اصلی) را انتخاب کنید.',
-                'روی "Add" (افزودن) در گوشه بالا سمت راست بزنید.',
-                'آیکون اپ روی صفحه اصلی گوشی شما ظاهر می‌شود! 🎉'
-            ];
-        } else if (isAndroid && isChrome) {
-            return [
-                'روی سه نقطه بالا سمت راست مرورگر Chrome بزنید.',
-                'گزینه "Install app" یا "نصب برنامه" یا "Add to Home screen" را انتخاب کنید.',
-                'روی "Install" یا "نصب" کلیک کنید.',
-                'آیکون اپ روی صفحه اصلی گوشی شما ظاهر می‌شود! 🎉'
-            ];
-        } else if (isAndroid && isFirefox) {
-            return [
-                'روی سه نقطه پایین سمت راست مرورگر Firefox بزنید.',
-                'گزینه "Install" یا "نصب" را انتخاب کنید.',
-                'روی "Add to Home screen" یا "افزودن به صفحه اصلی" بزنید.',
-                'آیکون اپ روی صفحه اصلی گوشی شما ظاهر می‌شود! 🎉'
-            ];
-        } else if (isAndroid && isEdge) {
-            return [
-                'روی سه نقطه پایین سمت راست مرورگر Edge بزنید.',
-                'گزینه "Add to phone" یا "افزودن به گوشی" را انتخاب کنید.',
-                'روی "Install" یا "نصب" کلیک کنید.',
-                'آیکون اپ روی صفحه اصلی گوشی شما ظاهر می‌شود! 🎉'
-            ];
-        } else if (isAndroid) {
-            return [
-                'منوی مرورگر خود (سه نقطه) را باز کنید.',
-                'گزینه "Install app" یا "نصب برنامه" یا "Add to Home screen" را انتخاب کنید.',
-                'روی "Install" یا "نصب" کلیک کنید.',
-                'آیکون اپ روی صفحه اصلی گوشی شما ظاهر می‌شود! 🎉'
-            ];
-        } else {
-            return [
-                'منوی مرورگر خود را باز کنید.',
-                'گزینه "Install app" یا "نصب برنامه" یا "Add to Home screen" را انتخاب کنید.',
-                'روی "Install" یا "نصب" کلیک کنید.',
-                'آیکون اپ روی دسکتاپ یا صفحه اصلی شما ظاهر می‌شود! 🎉'
-            ];
-        }
-    }
-    
-    // نمایش راهنمای نصب
-    function showInstallGuide() {
-        const steps = getInstallSteps();
-        installStepsContent.innerHTML = steps.map((step, index) => `
-            <div class="install-step">
-                <div class="install-step-num">${toPersianNum(index + 1)}</div>
-                <div>${step}</div>
-            </div>
-        `).join('');
-        installGuideModal.classList.add('active');
-    }
-    
-    // بستن راهنمای نصب
-    function closeInstallGuide(event) {
-        if (event && event.target !== event.currentTarget) return;
-        installGuideModal.classList.remove('active');
-    }
-    
-    // ثبت رویداد beforeinstallprompt
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        
         if (!isAppInstalled() && !wasDismissed()) {
-            setTimeout(() => {
-                installBanner.classList.add('show');
-            }, 3000);
+            setTimeout(() => installBanner.classList.add('show'), 3000);
         }
     });
     
-    // اگر مرورگر از beforeinstallprompt پشتیبانی نکرد (مثل iOS)
     setTimeout(() => {
         if (!isAppInstalled() && !wasDismissed() && !deferredPrompt) {
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-            if (!isStandalone) {
-                installBanner.classList.add('show');
-            }
+            installBanner.classList.add('show');
         }
     }, 3000);
     
-    // نصب اپ
     async function installApp() {
         if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            
             if (outcome === 'accepted') {
                 installBanner.classList.remove('show');
                 localStorage.setItem('installBannerDismissed', 'true');
             }
             deferredPrompt = null;
         } else {
-            dismissInstallBanner();
-            showInstallGuide();
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            alert(isIOS 
+                ? 'برای نصب در آیفون:\n\n۱. دکمه Share را بزنید.\n۲. Add to Home Screen را انتخاب کنید.'
+                : 'برای نصب:\n\nمنوی مرورگر → Add to Home screen یا نصب برنامه');
         }
     }
     
-    // تشخیص اینکه اپ نصب شده
     window.addEventListener('appinstalled', () => {
         installBanner.classList.remove('show');
         localStorage.setItem('installBannerDismissed', 'true');
-        installFab.style.display = 'none';
     });
-    
-    // اگر اپ نصب شده، دکمه شناور نصب رو مخفی کن
-    if (isAppInstalled()) {
-        installFab.style.display = 'none';
-    }
+
+    // ==================== شروع برنامه ====================
+    window.addEventListener('load', () => {
+        loadUserInfo();
+        loadLessonsList();
+        loadReports();
+        
+        // بارگذاری تنظیمات
+        if (localStorage.getItem('soundsEnabled') === 'false') {
+            document.getElementById('setting-sounds').checked = false;
+        }
+        if (localStorage.getItem('musicEnabled') === 'false') {
+            document.getElementById('setting-music').checked = false;
+        }
+    });
+
+    // وقتی وارد صفحه تکالیف شدیم، نشانگر رو حذف کن
+    const originalGoToScreen = goToScreen;
+    window.goToScreen = function(screenId) {
+        originalGoToScreen(screenId);
+        if (screenId === 'screen-lessons') {
+            markLessonsAsSeen();
+        }
+        if (screenId === 'screen-reports') {
+            loadReports();
+        }
+    };
 </script>
 </body>
 </html>
