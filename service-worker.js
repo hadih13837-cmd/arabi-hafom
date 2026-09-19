@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arabi-hafom-v2';
+const CACHE_NAME = 'arabi-hafom-v3';
 const urlsToCache = [
   './',
   './index.html',
