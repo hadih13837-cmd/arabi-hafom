@@ -65,7 +65,106 @@
         }
         .screen.active { display: flex; }
 
-        /* ============ صفحه خوش‌آمد ============ */
+        /* ============ صفحه شروع (Splash) ============ */
+        #screen-splash {
+            padding-top: 0;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+        .splash-bg-image {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            will-change: transform;
+        }
+        .splash-light-glow {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 200px;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.4) 0%, rgba(200, 230, 255, 0.2) 40%, transparent 70%);
+            border-radius: 50%;
+            z-index: 1;
+            animation: glowPulse 4s ease-in-out infinite;
+            pointer-events: none;
+            will-change: opacity, transform;
+        }
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.8; transform: translateX(-50%) scale(1.1); }
+        }
+        .splash-content-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 40px;
+        }
+        .btn-start-splash {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: #fff;
+            border: none;
+            padding: 16px 25px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 80%;
+            max-width: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+            animation: btnPulse 2.5s ease-in-out infinite;
+            font-family: 'Vazirmatn', sans-serif;
+            will-change: transform, box-shadow;
+        }
+        @keyframes btnPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 10px 25px rgba(25, 118, 210, 0.6); }
+        }
+        .btn-start-splash::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: all 0.5s;
+        }
+        .btn-start-splash:hover::after { left: 100%; }
+        .btn-start-splash:active { transform: scale(0.98); }
+
+        /* وکتور بالای صفحه */
+        .top-vector {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            z-index: 100;
+            animation: pulse 2s ease-in-out infinite;
+            will-change: transform;
+            cursor: pointer;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.15); }
+        }
+
+        /* ============ صفحه خوش‌آمد (ثبت‌نام) ============ */
         #screen-welcome {
             padding-top: 0;
             background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
@@ -97,6 +196,7 @@
             background: #fff;
             margin-bottom: 15px;
             transition: border-color 0.3s;
+            font-family: 'Vazirmatn', sans-serif;
         }
         .welcome-input:focus { border-color: #1976d2; }
         
@@ -112,6 +212,7 @@
             width: 100%;
             box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4);
             transition: all 0.3s ease;
+            font-family: 'Vazirmatn', sans-serif;
         }
         .welcome-btn:hover { transform: translateY(-2px); }
         .welcome-btn:active { transform: scale(0.98); }
@@ -132,7 +233,6 @@
             flex-direction: column;
         }
 
-        /* هدر با آواتار و نام */
         .home-header {
             text-align: center;
             margin-bottom: 25px;
@@ -167,7 +267,6 @@
             font-weight: bold;
         }
 
-        /* دکمه‌های منو */
         .menu-list {
             display: flex;
             flex-direction: column;
@@ -234,7 +333,6 @@
             color: #90a4ae;
         }
 
-        /* نشانگر تکلیف جدید */
         .badge-new {
             position: absolute;
             top: -6px;
@@ -254,7 +352,6 @@
             50% { transform: scale(1.08); }
         }
 
-        /* تصویر دکور پایین */
         .home-decoration {
             text-align: center;
             margin-top: auto;
@@ -264,7 +361,6 @@
             line-height: 1;
         }
 
-        /* دکمه خروج */
         .home-logout-wrapper {
             position: absolute;
             bottom: 20px;
@@ -286,6 +382,7 @@
             width: 100%;
             box-shadow: 0 6px 15px rgba(84, 110, 122, 0.4);
             transition: all 0.3s ease;
+            font-family: 'Vazirmatn', sans-serif;
         }
         .home-logout:hover { transform: translateY(-2px); }
         .home-logout:active { transform: scale(0.98); }
@@ -496,7 +593,6 @@
             font-weight: bold;
         }
         
-        /* سوییچ */
         .switch {
             position: relative;
             display: inline-block;
@@ -959,7 +1055,6 @@
         .report-view-row .value.red { color: #c62828; }
         .report-view-row .value.blue { color: #1565c0; }
 
-        /* انیمیشن */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1012,8 +1107,19 @@
         </div>
     </div>
 
+    <!-- ============ صفحه شروع (Splash) ============ -->
+    <div id="screen-splash" class="screen active">
+        <img src="https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png" alt="پس زمینه" class="splash-bg-image">
+        <div class="splash-light-glow"></div>
+        <div class="splash-content-wrapper">
+            <button class="btn-start-splash" onclick="startApp()">
+                بریم برای انجام تکلیف
+            </button>
+        </div>
+    </div>
+
     <!-- ============ صفحه خوش‌آمد (ثبت نام) ============ -->
-    <div id="screen-welcome" class="screen active">
+    <div id="screen-welcome" class="screen">
         <h1 class="welcome-title">سلام! خوش آمدی 👋</h1>
         <p class="welcome-sub">برای شروع، لطفاً نام و کلاس خودت را وارد کن:</p>
         
@@ -1045,7 +1151,6 @@
             </div>
             
             <div class="menu-list">
-                <!-- دکمه تکالیف من (با نشانگر تکلیف جدید) -->
                 <div class="menu-item" onclick="goToScreen('screen-lessons')">
                     <div class="menu-item-content">
                         <div class="menu-item-icon">
@@ -1064,7 +1169,6 @@
                     <span id="new-lesson-badge" class="badge-new" style="display: none;">✨ یک تکلیف جدید دارید</span>
                 </div>
                 
-                <!-- دکمه کارنامه‌ها -->
                 <div class="menu-item" onclick="goToScreen('screen-reports')">
                     <div class="menu-item-content">
                         <div class="menu-item-icon">
@@ -1082,7 +1186,6 @@
                     </div>
                 </div>
                 
-                <!-- دکمه تنظیمات -->
                 <div class="menu-item" onclick="goToScreen('screen-settings')">
                     <div class="menu-item-content">
                         <div class="menu-item-icon">
@@ -1098,7 +1201,6 @@
                     </div>
                 </div>
                 
-                <!-- دکمه درباره ما -->
                 <div class="menu-item" onclick="goToScreen('screen-about')">
                     <div class="menu-item-content">
                         <div class="menu-item-icon">
@@ -1129,9 +1231,7 @@
             <div class="page-back" onclick="goToScreen('screen-home')">←</div>
             <div class="page-title">تکالیف من</div>
         </div>
-        <div class="lessons-list" id="lessons-list">
-            <!-- لیست تکالیف به صورت داینامیک پر می‌شود -->
-        </div>
+        <div class="lessons-list" id="lessons-list"></div>
     </div>
 
     <!-- ============ صفحه کارنامه‌ها ============ -->
@@ -1140,9 +1240,7 @@
             <div class="page-back" onclick="goToScreen('screen-home')">←</div>
             <div class="page-title">کارنامه‌ها</div>
         </div>
-        <div class="reports-list" id="reports-list">
-            <!-- لیست کارنامه‌ها به صورت داینامیک پر می‌شود -->
-        </div>
+        <div class="reports-list" id="reports-list"></div>
     </div>
 
     <!-- ============ صفحه تنظیمات ============ -->
@@ -1278,9 +1376,7 @@
             <div class="page-back" onclick="goToScreen('screen-home')">←</div>
             <div class="page-title">کارنامه</div>
         </div>
-        <div class="report-view-content" id="report-view-content">
-            <!-- کارنامه اینجا نمایش داده می‌شود -->
-        </div>
+        <div class="report-view-content" id="report-view-content"></div>
     </div>
 
 </div>
@@ -1313,6 +1409,29 @@
     function goToScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
+        
+        // اگر صفحه لیست تکالیف باز شده، تکالیف رو بارگذاری کن
+        if (screenId === 'screen-lessons') {
+            loadLessonsList();
+            markLessonsAsSeen();
+        }
+        if (screenId === 'screen-reports') {
+            loadReports();
+        }
+    }
+
+    // ==================== شروع برنامه از صفحه Splash ====================
+    function startApp() {
+        // چک کن که آیا قبلاً ثبت‌نام کرده یا نه
+        const isRegistered = localStorage.getItem('userRegistered') === 'true';
+        
+        if (isRegistered) {
+            // اگر قبلاً ثبت‌نام کرده، مستقیم برو صفحه اصلی
+            goToScreen('screen-home');
+        } else {
+            // اگر بار اول است، برو صفحه ثبت‌نام
+            goToScreen('screen-welcome');
+        }
     }
 
     // ==================== مدیریت کاربر ====================
@@ -1329,30 +1448,23 @@
             return;
         }
         
-        // ذخیره در LocalStorage
         localStorage.setItem('userName', name);
         localStorage.setItem('userClass', cls);
         localStorage.setItem('userRegistered', 'true');
         
-        // به‌روزرسانی نمایش
         document.getElementById('setting-name').textContent = name;
         document.getElementById('setting-class').textContent = cls;
         
-        // رفتن به صفحه اصلی
         goToScreen('screen-home');
     }
 
     function loadUserInfo() {
         const name = localStorage.getItem('userName');
         const cls = localStorage.getItem('userClass');
-        const registered = localStorage.getItem('userRegistered');
         
-        if (registered === 'true' && name && cls) {
+        if (name && cls) {
             document.getElementById('setting-name').textContent = name;
             document.getElementById('setting-class').textContent = cls;
-            goToScreen('screen-home');
-        } else {
-            goToScreen('screen-welcome');
         }
     }
 
@@ -1366,10 +1478,9 @@
     }
 
     // ==================== مدیریت تکالیف ====================
-    let allLessons = [];       // لیست تکالیف از فایل index.json
-    let currentLesson = null;  // تکلیف در حال اجرا
+    let allLessons = [];
+    let currentLesson = null;
     
-    // بارگذاری لیست تکالیف
     async function loadLessonsList() {
         try {
             const response = await fetch('./lessons/index.json');
@@ -1379,7 +1490,7 @@
             renderLessonsList();
             checkNewLessons();
         } catch (error) {
-            console.error('خطا در بارگذاری لیست تکالیف:', error);
+            console.error('خطا:', error);
             document.getElementById('lessons-list').innerHTML = `
                 <div class="report-empty">
                     <div class="report-empty-icon">📭</div>
@@ -1389,7 +1500,6 @@
         }
     }
 
-    // نمایش لیست تکالیف
     function renderLessonsList() {
         const container = document.getElementById('lessons-list');
         if (allLessons.length === 0) {
@@ -1414,7 +1524,6 @@
         `).join('');
     }
 
-    // بررسی تکالیف جدید (نشانگر)
     function checkNewLessons() {
         const seenLessons = JSON.parse(localStorage.getItem('seenLessons') || '[]');
         const newLessons = allLessons.filter(l => !seenLessons.includes(l.id));
@@ -1426,14 +1535,13 @@
         }
     }
 
-    // علامت‌گذاری تکالیف به عنوان دیده‌شده
     function markLessonsAsSeen() {
+        if (allLessons.length === 0) return;
         const allIds = allLessons.map(l => l.id);
         localStorage.setItem('seenLessons', JSON.stringify(allIds));
         document.getElementById('new-lesson-badge').style.display = 'none';
     }
 
-    // شروع یک تکلیف
     async function startLesson(lessonId) {
         try {
             const lessonMeta = allLessons.find(l => l.id === lessonId);
@@ -1443,10 +1551,8 @@
             if (!response.ok) throw new Error('خطا در بارگذاری');
             currentLesson = await response.json();
             
-            // علامت‌گذاری به عنوان دیده‌شده
             markLessonsAsSeen();
             
-            // شروع بازی
             currentQuestionIndex = 0;
             score = 0;
             correctCount = 0;
@@ -1477,7 +1583,6 @@
             return;
         }
         
-        // مرتب‌سازی بر اساس تاریخ (جدیدترین اول)
         reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         
         container.innerHTML = reports.map((report, index) => `
@@ -1522,7 +1627,6 @@
         reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         const report = reports[index];
         if (report) {
-            // ساخت PDF از این کارنامه
             const element = document.createElement('div');
             element.style.padding = '30px';
             element.style.fontFamily = 'Vazirmatn, sans-serif';
@@ -1883,7 +1987,6 @@
         const now = new Date();
         const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
         
-        // ذخیره کارنامه
         const report = {
             studentName: localStorage.getItem('userName'),
             studentClass: localStorage.getItem('userClass'),
@@ -1900,7 +2003,6 @@
         };
         saveReport(report);
         
-        // نمایش کارنامه
         const container = document.getElementById('report-view-content');
         container.innerHTML = `
             <div class="report-view-card">
@@ -1957,7 +2059,7 @@
     }
 
     function clearCache() {
-        if (confirm('آیا مطمئن هستید که می‌خواهید کش را پاک کنید؟ (تکالیف شما پاک نمی‌شوند)')) {
+        if (confirm('آیا مطمئن هستید؟ (تکالیف شما پاک نمی‌شوند)')) {
             caches.keys().then(names => {
                 names.forEach(name => caches.delete(name));
             });
@@ -1998,7 +2100,6 @@
     document.addEventListener('click', () => { if (!isMuted) startMusic(); });
     document.addEventListener('touchstart', () => { if (!isMuted) startMusic(); });
 
-    // صداهای درست/غلط
     let audioContext = null;
     function initAudio() {
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -2103,10 +2204,7 @@
     // ==================== شروع برنامه ====================
     window.addEventListener('load', () => {
         loadUserInfo();
-        loadLessonsList();
-        loadReports();
         
-        // بارگذاری تنظیمات
         if (localStorage.getItem('soundsEnabled') === 'false') {
             document.getElementById('setting-sounds').checked = false;
         }
@@ -2114,18 +2212,6 @@
             document.getElementById('setting-music').checked = false;
         }
     });
-
-    // وقتی وارد صفحه تکالیف شدیم، نشانگر رو حذف کن
-    const originalGoToScreen = goToScreen;
-    window.goToScreen = function(screenId) {
-        originalGoToScreen(screenId);
-        if (screenId === 'screen-lessons') {
-            markLessonsAsSeen();
-        }
-        if (screenId === 'screen-reports') {
-            loadReports();
-        }
-    };
 </script>
 </body>
 </html>
