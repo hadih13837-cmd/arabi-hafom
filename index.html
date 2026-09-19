@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>بازی عربی هفتم</title>
     
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1976d2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="عربی هفتم">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+    
     <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png">
     <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png">
     
@@ -148,7 +156,7 @@
             50% { transform: translateX(-50%) scale(1.15); }
         }
 
-        /* --- دکمه شناور کنترل صدا (بالا سمت چپ - کوچک) --- */
+        /* --- دکمه شناور کنترل صدا --- */
         .sound-control-wrapper {
             position: fixed;
             top: 12px;
@@ -1684,6 +1692,21 @@
     }
 
     renderQuestion();
+</script>
+
+<script>
+    // ثبت Service Worker برای PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(function(registration) {
+                    console.log('Service Worker با موفقیت ثبت شد:', registration.scope);
+                })
+                .catch(function(error) {
+                    console.log('خطا در ثبت Service Worker:', error);
+                });
+        });
+    }
 </script>
 </body>
 </html>
