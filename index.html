@@ -16,9 +16,9 @@
     <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png">
     <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/n50857_IMG__.png">
     <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/f76502_IMG__.png">
+    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/b632041_IMG__.png">
     <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/s432012_IMG__.png">
     <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/x44300_IMG__.png">
-    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/b632041_IMG__.png">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
     <style>
@@ -68,7 +68,7 @@
         }
         .screen.active { display: flex; }
 
-        /* ============ نوار پایین گرافیکی ============ */
+        /* ============ نوار پایین ============ */
         .bottom-nav {
             flex-shrink: 0;
             background: #fff;
@@ -127,23 +127,25 @@
         .bottom-nav-item.home-item.active svg { stroke: #1976d2; fill: #e3f2fd; }
         .bottom-nav-item.home-item.active span { color: #1976d2; }
         
-        .bottom-nav-item.lessons-item.active {
-            background: linear-gradient(135deg, #ffebee, #ffcdd2);
-            box-shadow: 0 3px 10px rgba(229, 57, 53, 0.25);
-        }
-        .bottom-nav-item.lessons-item.active svg { stroke: #e53935; fill: #ffebee; }
-        .bottom-nav-item.lessons-item.active span { color: #e53935; }
-        
-        .bottom-nav-item.reports-item.active {
+        .bottom-nav-item.medals-item.active {
             background: linear-gradient(135deg, #fff8e1, #ffecb3);
             box-shadow: 0 3px 10px rgba(255, 193, 7, 0.3);
         }
-        .bottom-nav-item.reports-item.active svg { stroke: #f57c00; fill: #fff8e1; }
-        .bottom-nav-item.reports-item.active span { color: #f57c00; }
+        .bottom-nav-item.medals-item.active svg { stroke: #f57c00; fill: #fff8e1; }
+        .bottom-nav-item.medals-item.active span { color: #f57c00; }
         
+        /* تنظیمات: قرمز */
+        .bottom-nav-item.settings-item.active {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            box-shadow: 0 3px 10px rgba(229, 57, 53, 0.3);
+        }
+        .bottom-nav-item.settings-item.active svg { stroke: #c62828; fill: #ffebee; }
+        .bottom-nav-item.settings-item.active span { color: #c62828; }
+        
+        /* حساب کاربری: سبز */
         .bottom-nav-item.profile-item.active {
             background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-            box-shadow: 0 3px 10px rgba(46, 125, 50, 0.25);
+            box-shadow: 0 3px 10px rgba(46, 125, 50, 0.3);
         }
         .bottom-nav-item.profile-item.active svg { stroke: #2e7d32; fill: #e8f5e9; }
         .bottom-nav-item.profile-item.active span { color: #2e7d32; }
@@ -158,10 +160,8 @@
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 5px;
+            padding-bottom: 10px;
             position: relative;
-            display: flex;
-            flex-direction: column;
         }
 
         .home-top-bar {
@@ -261,14 +261,13 @@
             object-fit: cover;
         }
 
-        /* گرید دکمه‌ها - بزرگ‌تر و چسبیده‌تر */
         .home-menu-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2px;
+            gap: 0;
             padding: 0 4px;
             margin: 0;
-            margin-top: 0;
+            margin-top: -10px;
         }
 
         .menu-button {
@@ -295,10 +294,42 @@
             pointer-events: none;
         }
 
+        .home-clips-row {
+            padding: 0 8px;
+            margin-top: -60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .clip-button {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            width: 100%;
+            max-width: 360px;
+            aspect-ratio: 1.5 / 1;
+        }
+        .clip-button:active { transform: scale(0.96); }
+        
+        .clip-button-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
+
         .badge-new {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 8px;
+            right: 8px;
             background: linear-gradient(135deg, #f44336, #e53935);
             color: #fff;
             font-size: 10px;
@@ -309,25 +340,6 @@
             white-space: nowrap;
             z-index: 5;
             pointer-events: none;
-        }
-
-        /* وکتور پایین صفحه خانه */
-        .home-bottom-vector {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 5px 20px 15px 20px;
-            margin-top: 0;
-            flex: 1;
-            min-height: 0;
-        }
-        
-        .home-bottom-vector img {
-            max-width: 150px;
-            max-height: 150px;
-            width: auto;
-            height: auto;
-            object-fit: contain;
         }
 
         /* ============ صفحه شروع (Splash) ============ */
@@ -753,334 +765,71 @@
             font-weight: bold;
         }
 
-        /* ============ صفحه کارنامه‌ها ============ */
-        #screen-reports { background: #f0f7ff; }
-        .report-card {
-            background: #fff;
-            border-radius: 18px;
-            padding: 18px;
-            margin-bottom: 15px;
-            border: 2px solid #e3f2fd;
-            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.08);
-        }
-        .report-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px dashed #e0e0e0;
-        }
-        .report-card-title {
-            font-size: 16px;
-            font-weight: 900;
-            color: #1565c0;
-        }
-        .report-card-date {
-            font-size: 11px;
-            color: #90a4ae;
-        }
-        .report-info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            font-size: 13px;
-            color: #555;
-        }
-        .report-info-row .value { font-weight: bold; color: #333; }
-        .report-info-row .value.green { color: #2e7d32; }
-        .report-info-row .value.red { color: #c62828; }
-        .report-info-row .value.blue { color: #1565c0; }
-        
-        .report-btn {
-            width: 100%;
-            padding: 10px;
-            border-radius: 50px;
-            border: none;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            font-family: 'Vazirmatn', sans-serif;
-            margin-top: 12px;
-        }
-        .report-btn-download {
-            background: linear-gradient(135deg, #4caf50, #43a047);
-            color: #fff;
-        }
-        .report-btn-download:active { transform: scale(0.96); }
-        
+        /* ============ حالت خالی (Empty State) ============ */
         .report-empty {
-            text-align: center;
-            padding: 60px 20px;
-            color: #90a4ae;
-        }
-        .report-empty-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-        .report-empty-text {
-            font-size: 15px;
-            font-weight: bold;
-        }
-
-        /* ============ صفحه حساب کاربری ============ */
-        #screen-profile { background: #f0f7ff; }
-        
-        .profile-header {
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 18px 20px;
-            background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
-            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
-            border-bottom: 2px solid #e3f2fd;
-            z-index: 10;
-        }
-        
-        .profile-edit-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-            flex-shrink: 0;
-            margin-left: auto;
-        }
-        .profile-edit-btn:active { transform: scale(0.92); }
-        .profile-edit-btn svg {
-            width: 22px;
-            height: 22px;
-            stroke: #1976d2;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        
-        .profile-scroll-content {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            padding: 20px 15px 25px 15px;
-        }
-        
-        .profile-avatar-section {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .profile-avatar-wrapper {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 15px auto;
-        }
-        
-        .profile-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #bbdefb, #90caf9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border: 5px solid #fff;
-            box-shadow: 0 8px 25px rgba(25, 118, 210, 0.3);
-        }
-        
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .profile-avatar-edit {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #1976d2, #1565c0);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid #fff;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
-        }
-        .profile-avatar-edit svg {
-            width: 18px;
-            height: 18px;
-            stroke: #fff;
-            fill: none;
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        
-        .profile-name {
-            font-size: 22px;
-            font-weight: 900;
-            color: #1565c0;
-            margin-bottom: 6px;
-        }
-        .profile-grade {
-            font-size: 14px;
-            color: #78909c;
-            font-weight: bold;
-        }
-        
-        .profile-info-table {
-            background: #fff;
-            border-radius: 18px;
-            padding: 5px 18px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
-        }
-        
-        .profile-info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 0;
-            border-bottom: 1px solid #f0f4f8;
-            font-size: 14px;
-        }
-        .profile-info-row:last-child { border-bottom: none; }
-        .profile-info-row .label {
-            color: #1565c0;
-            font-weight: 900;
-        }
-        .profile-info-row .value {
-            color: #546e7a;
-            font-weight: bold;
-        }
-        
-        .profile-stats-title {
-            font-size: 17px;
-            font-weight: 900;
-            color: #1565c0;
-            text-align: right;
-            margin-bottom: 12px;
-            padding-right: 5px;
-        }
-        
-        .profile-stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .stat-card {
-            border-radius: 18px;
-            padding: 16px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            min-height: 100px;
-        }
-        
-        .stat-card-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255,255,255,0.9);
-            margin-bottom: 12px;
-        }
-        .stat-card-icon svg {
-            width: 22px;
-            height: 22px;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        
-        .stat-card-content { text-align: right; }
-        .stat-card-label {
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 4px;
-            opacity: 0.85;
-        }
-        .stat-card-value {
-            font-size: 18px;
-            font-weight: 900;
-        }
-        
-        .stat-yellow {
-            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-            border: 1.5px solid #ffe082;
-        }
-        .stat-yellow .stat-card-label { color: #8d6e63; }
-        .stat-yellow .stat-card-value { color: #f57f17; }
-        .stat-yellow .stat-card-icon svg { stroke: #f57f17; fill: #ffca28; }
-        
-        .stat-teal {
-            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
-            border: 1.5px solid #80cbc4;
-        }
-        .stat-teal .stat-card-label { color: #00695c; }
-        .stat-teal .stat-card-value { color: #004d40; }
-        .stat-teal .stat-card-icon svg { stroke: #00897b; fill: #4db6ac; }
-        
-        .stat-purple {
-            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
-            border: 1.5px solid #ce93d8;
-        }
-        .stat-purple .stat-card-label { color: #6a1b9a; }
-        .stat-purple .stat-card-value { color: #4a148c; }
-        .stat-purple .stat-card-icon svg { stroke: #8e24aa; fill: #ba68c8; }
-        
-        .stat-orange {
-            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-            border: 1.5px solid #ffcc80;
-        }
-        .stat-orange .stat-card-label { color: #e65100; }
-        .stat-orange .stat-card-value { color: #bf360c; }
-        .stat-orange .stat-card-icon svg { stroke: #ef6c00; fill: #ffb74d; }
-        
-        .delete-account-btn {
-            background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
-            border-radius: 18px;
-            padding: 16px;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            border: none;
-            width: 100%;
-            box-shadow: 0 6px 20px rgba(229, 57, 53, 0.35);
+            text-align: center;
+            padding: 60px 20px;
             font-family: 'Vazirmatn', sans-serif;
         }
-        .delete-account-btn:active { transform: scale(0.97); }
-        .delete-account-btn svg {
-            width: 22px;
-            height: 22px;
-            stroke: #fff;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+        .report-empty-icon {
+            font-size: 70px;
+            margin-bottom: 18px;
+            opacity: 0.6;
         }
-        .delete-account-btn span {
-            color: #fff;
+        .report-empty-text {
             font-size: 16px;
             font-weight: 900;
+            color: #78909c;
+            font-family: 'Vazirmatn', sans-serif;
+            line-height: 1.7;
+        }
+
+        /* ============ صفحه مدال‌ها ============ */
+        #screen-medals { background: #f0f7ff; }
+        
+        .medals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 5px;
+        }
+        
+        .medal-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px 15px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.08);
+            border: 2px solid #e3f2fd;
+            position: relative;
+        }
+        
+        .medal-card.locked {
+            opacity: 0.45;
+            filter: grayscale(1);
+        }
+        
+        .medal-icon {
+            font-size: 55px;
+            margin-bottom: 12px;
+            display: block;
+        }
+        
+        .medal-title {
+            font-size: 14px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 5px;
+        }
+        
+        .medal-desc {
+            font-size: 11px;
+            color: #90a4ae;
+            font-weight: bold;
         }
 
         /* ============ صفحه تنظیمات ============ */
@@ -1226,6 +975,342 @@
             color: #fff;
             font-size: 16px;
             font-weight: 900;
+        }
+
+        /* ============ صفحه کلیپ‌ها ============ */
+        #screen-clips { background: #f0f7ff; }
+        .clips-soon-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px 25px;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        .clips-soon-icon {
+            font-size: 90px;
+            margin-bottom: 20px;
+            animation: floatIcon 2.5s ease-in-out infinite;
+        }
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+        .clips-soon-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 12px;
+        }
+        .clips-soon-text {
+            font-size: 15px;
+            color: #607d8b;
+            font-weight: bold;
+            line-height: 1.9;
+            max-width: 300px;
+        }
+        .clips-soon-badge {
+            margin-top: 25px;
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            border: 1.5px solid #ffcc80;
+            color: #e65100;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        /* ============ صفحه پروفایل ============ */
+        #screen-profile { background: #f0f7ff; }
+
+        .profile-header {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 20px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            z-index: 10;
+        }
+        .profile-header .page-back {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+        }
+        .profile-header .page-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #1565c0;
+            flex: 1;
+            margin-right: 5px;
+        }
+        .profile-edit-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        }
+        .profile-edit-btn:active { transform: scale(0.92); }
+        .profile-edit-btn svg {
+            width: 20px; height: 20px;
+            stroke: #fff; fill: none;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        .profile-scroll-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px 15px 25px 15px;
+        }
+
+        .profile-avatar-section {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+        .profile-avatar-wrapper {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 15px auto;
+        }
+        .profile-avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #bbdefb, #90caf9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 25px rgba(25, 118, 210, 0.3);
+        }
+        .profile-avatar img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .profile-avatar-edit {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 10px rgba(25, 118, 210, 0.4);
+        }
+        .profile-avatar-edit:active { transform: scale(0.9); }
+        .profile-avatar-edit svg {
+            width: 16px; height: 16px;
+            stroke: #fff; fill: none;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .profile-name {
+            font-size: 20px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 5px;
+        }
+        .profile-grade {
+            font-size: 13px;
+            color: #78909c;
+            font-weight: bold;
+            background: #e3f2fd;
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .profile-info-table {
+            background: #fff;
+            border-radius: 20px;
+            padding: 8px 18px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+            border: 1.5px solid #e3f2fd;
+        }
+        .profile-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px dashed #e3f2fd;
+            font-size: 14px;
+        }
+        .profile-info-row:last-child { border-bottom: none; }
+        .profile-info-row .label { color: #78909c; font-weight: bold; }
+        .profile-info-row .value { color: #1565c0; font-weight: 900; }
+
+        .profile-stats-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 12px;
+            padding-right: 5px;
+        }
+
+        .profile-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.08);
+            border: 1.5px solid #e3f2fd;
+        }
+        .stat-card-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .stat-card-icon svg {
+            width: 22px; height: 22px;
+            fill: none; stroke-width: 2;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+        .stat-yellow .stat-card-icon { background: linear-gradient(135deg, #fff8e1, #ffecb3); }
+        .stat-yellow .stat-card-icon svg { stroke: #f57c00; fill: #f57c00; }
+        .stat-orange .stat-card-icon { background: linear-gradient(135deg, #fff3e0, #ffe0b2); }
+        .stat-orange .stat-card-icon svg { stroke: #ef6c00; fill: none; }
+        .stat-teal .stat-card-icon { background: linear-gradient(135deg, #e0f2f1, #b2dfdb); }
+        .stat-teal .stat-card-icon svg { stroke: #00897b; fill: none; }
+        .stat-purple .stat-card-icon { background: linear-gradient(135deg, #f3e5f5, #e1bee7); }
+        .stat-purple .stat-card-icon svg { stroke: #8e24aa; fill: none; }
+
+        .stat-card-content { flex: 1; min-width: 0; }
+        .stat-card-label {
+            font-size: 11px;
+            color: #78909c;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .stat-card-value {
+            font-size: 18px;
+            font-weight: 900;
+            color: #1565c0;
+        }
+
+        .delete-account-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            border: 1.5px solid #ef9a9a;
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            margin-bottom: 15px;
+        }
+        .delete-account-btn:active { transform: scale(0.97); }
+        .delete-account-btn svg {
+            width: 20px; height: 20px;
+            stroke: #c62828; fill: none;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .delete-account-btn span {
+            color: #c62828;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        /* ============ کارت‌های کارنامه ============ */
+        .report-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+            border: 1.5px solid #e3f2fd;
+            position: relative;
+            overflow: hidden;
+        }
+        .report-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 5px; height: 100%;
+            background: linear-gradient(180deg, #1976d2, #4caf50);
+        }
+        .report-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #e3f2fd;
+        }
+        .report-card-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: #1565c0;
+        }
+        .report-card-date {
+            font-size: 11px;
+            color: #90a4ae;
+            font-weight: bold;
+        }
+        .report-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 0;
+            font-size: 13px;
+        }
+        .report-info-row span:first-child { color: #607d8b; font-weight: bold; }
+        .report-info-row .value { font-weight: 900; }
+        .report-info-row .value.green { color: #2e7d32; }
+        .report-info-row .value.red { color: #c62828; }
+        .report-info-row .value.blue { color: #1565c0; }
+
+        .report-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 50px;
+            border: none;
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .report-btn:active { transform: scale(0.97); }
+        .report-btn-download {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
         }
 
         /* ============ بنر نصب PWA ============ */
@@ -1844,7 +1929,7 @@
         </button>
     </div>
 
-    <!-- صفحه خانه با تصاویر جدید -->
+    <!-- صفحه خانه -->
     <div id="screen-home" class="screen">
         <div class="home-scroll-area">
             <div class="home-top-bar">
@@ -1873,33 +1958,21 @@
                 </div>
             </div>
 
-            <!-- دکمه‌ها با تصاویر جدید -->
             <div class="home-menu-grid">
-                <!-- تکالیف من - تصویر جدید -->
                 <div class="menu-button" onclick="goToScreen('screen-lessons')">
                     <span id="new-lesson-badge" class="badge-new" style="display: none;">جدید</span>
                     <img src="https://cdn.imgurl.ir/uploads/n50857_IMG__.png" alt="تکالیف من" class="menu-button-image">
                 </div>
                 
-                <!-- کارنامه - تصویر جدید -->
                 <div class="menu-button" onclick="goToScreen('screen-reports')">
                     <img src="https://cdn.imgurl.ir/uploads/f76502_IMG__.png" alt="کارنامه" class="menu-button-image">
                 </div>
-                
-                <!-- مدال‌ها - تصویر جدید -->
-                <div class="menu-button" onclick="showModal('مدال‌ها', 'این بخش در حال ساخت است.', '🚧')">
-                    <img src="https://cdn.imgurl.ir/uploads/s432012_IMG__.png" alt="مدال‌ها" class="menu-button-image">
-                </div>
-                
-                <!-- تنظیمات - تصویر جدید -->
-                <div class="menu-button" onclick="goToScreen('screen-settings')">
-                    <img src="https://cdn.imgurl.ir/uploads/x44300_IMG__.png" alt="تنظیمات" class="menu-button-image">
-                </div>
             </div>
 
-            <!-- وکتور پایین - تصویر کلیپ‌های آموزشی -->
-            <div class="home-bottom-vector">
-                <img src="https://cdn.imgurl.ir/uploads/b632041_IMG__.png" alt="کلیپ‌های آموزشی">
+            <div class="home-clips-row">
+                <button class="clip-button" onclick="goToScreen('screen-clips')">
+                    <img src="https://cdn.imgurl.ir/uploads/b632041_IMG__.png" alt="کلیپ‌های آموزشی" class="clip-button-image">
+                </button>
             </div>
         </div>
         
@@ -1910,19 +1983,22 @@
                 </svg>
                 <span>خانه</span>
             </button>
-            <button class="bottom-nav-item lessons-item" onclick="goToScreen('screen-lessons')">
+            <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="3" width="16" height="18" rx="2" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M8 8H16M8 12H16M8 16H12" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
+                    <path d="M12 16V20"/>
+                    <path d="M8 20H16"/>
                 </svg>
-                <span>تکالیف</span>
+                <span>مدال‌ها</span>
             </button>
-            <button class="bottom-nav-item reports-item" onclick="goToScreen('screen-reports')">
+            <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4H20V20H4V4Z" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M8 8H16M8 12H16M8 16H12" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
-                <span>کارنامه</span>
+                <span>تنظیمات</span>
             </button>
             <button class="bottom-nav-item profile-item" onclick="goToScreen('screen-profile')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1966,19 +2042,22 @@
                 </svg>
                 <span>خانه</span>
             </button>
-            <button class="bottom-nav-item lessons-item active" onclick="goToScreen('screen-lessons')">
+            <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="3" width="16" height="18" rx="2" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M8 8H16M8 12H16M8 16H12" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
+                    <path d="M12 16V20"/>
+                    <path d="M8 20H16"/>
                 </svg>
-                <span>تکالیف</span>
+                <span>مدال‌ها</span>
             </button>
-            <button class="bottom-nav-item reports-item" onclick="goToScreen('screen-reports')">
+            <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4H20V20H4V4Z" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M8 8H16M8 12H16M8 16H12" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
-                <span>کارنامه</span>
+                <span>تنظیمات</span>
             </button>
             <button class="bottom-nav-item profile-item" onclick="goToScreen('screen-profile')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1990,17 +2069,40 @@
         </div>
     </div>
 
-    <!-- صفحه کارنامه‌ها -->
-    <div id="screen-reports" class="screen">
+    <!-- صفحه کلیپ‌ها -->
+    <div id="screen-clips" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
-            <div class="page-title">کارنامه‌ها</div>
+            <div class="page-title">کلیپ‌های آموزشی</div>
         </div>
-        <div class="page-scroll-content" id="reports-list"></div>
+        <div class="clips-soon-content">
+            <div class="clips-soon-icon">🎬</div>
+            <div class="clips-soon-title">به زودی...</div>
+            <div class="clips-soon-text">
+                کلیپ‌های آموزشی درس‌های عربی پایه هفتم به زودی در این بخش بارگذاری خواهد شد.
+            </div>
+            <div class="clips-soon-badge">📚 در حال آماده‌سازی</div>
+        </div>
+    </div>
+
+    <!-- صفحه مدال‌ها -->
+    <div id="screen-medals" class="screen">
+        <div class="page-header">
+            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="page-title">مدال‌ها</div>
+        </div>
+        
+        <div class="page-scroll-content">
+            <div class="medals-grid" id="medals-grid"></div>
+        </div>
         
         <div class="bottom-nav">
             <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
@@ -2009,19 +2111,22 @@
                 </svg>
                 <span>خانه</span>
             </button>
-            <button class="bottom-nav-item lessons-item" onclick="goToScreen('screen-lessons')">
+            <button class="bottom-nav-item medals-item active" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="3" width="16" height="18" rx="2" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M8 8H16M8 12H16M8 16H12" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
+                    <path d="M12 16V20"/>
+                    <path d="M8 20H16"/>
                 </svg>
-                <span>تکالیف</span>
+                <span>مدال‌ها</span>
             </button>
-            <button class="bottom-nav-item reports-item active" onclick="goToScreen('screen-reports')">
+            <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4H20V20H4V4Z" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M8 8H16M8 12H16M8 16H12" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
-                <span>کارنامه</span>
+                <span>تنظیمات</span>
             </button>
             <button class="bottom-nav-item profile-item" onclick="goToScreen('screen-profile')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2033,7 +2138,160 @@
         </div>
     </div>
 
-    <!-- صفحه حساب کاربری -->
+    <!-- صفحه تنظیمات -->
+    <div id="screen-settings" class="screen">
+        <div class="page-header">
+            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="page-title">تنظیمات</div>
+        </div>
+        <div class="page-scroll-content">
+            <div class="settings-new-list">
+                
+                <div class="setting-card" onclick="openInfoModal()">
+                    <div class="setting-card-content">
+                        <div class="setting-card-icon icon-blue">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="8" r="4"/>
+                                <path d="M4 21C4 17 7 14 12 14C17 14 20 17 20 21"/>
+                            </svg>
+                        </div>
+                        <div class="setting-card-text">
+                            <div class="setting-card-title">اطلاعات حساب کاربری</div>
+                            <div class="setting-card-desc">ویرایش اطلاعات شخصی</div>
+                        </div>
+                    </div>
+                    <svg class="setting-arrow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 18L9 12L15 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                    </svg>
+                </div>
+                
+                <div class="setting-card">
+                    <div class="setting-card-content">
+                        <div class="setting-card-icon icon-purple">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+                            </svg>
+                        </div>
+                        <div class="setting-card-text">
+                            <div class="setting-card-title">حالت شب</div>
+                            <div class="setting-card-desc">تغییر حالت نمایش برنامه</div>
+                        </div>
+                    </div>
+                    <label class="switch-card">
+                        <input type="checkbox" id="setting-dark-mode" onchange="toggleDarkMode(this)">
+                        <span class="slider-card"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-card">
+                    <div class="setting-card-content">
+                        <div class="setting-card-icon icon-teal">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 5L6 9H2V15H6L11 19V5Z"/>
+                                <path d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53"/>
+                                <path d="M19.07 4.93C20.9447 6.80528 21.9979 9.34836 21.9979 12C21.9979 14.6516 20.9447 17.1947 19.07 19.07"/>
+                            </svg>
+                        </div>
+                        <div class="setting-card-text">
+                            <div class="setting-card-title">موسیقی</div>
+                            <div class="setting-card-desc">صدای موسیقی پس‌زمینه</div>
+                        </div>
+                    </div>
+                    <label class="switch-card">
+                        <input type="checkbox" id="setting-music" checked onchange="toggleMusicSetting(this)">
+                        <span class="slider-card"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-card">
+                    <div class="setting-card-content">
+                        <div class="setting-card-icon icon-teal">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 5L6 9H2V15H6L11 19V5Z"/>
+                                <path d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53"/>
+                            </svg>
+                        </div>
+                        <div class="setting-card-text">
+                            <div class="setting-card-title">صدا</div>
+                            <div class="setting-card-desc">صدای پاسخ‌های درست و غلط</div>
+                        </div>
+                    </div>
+                    <label class="switch-card">
+                        <input type="checkbox" id="setting-sounds" checked onchange="toggleSoundsSetting(this)">
+                        <span class="slider-card"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-card" onclick="clearCache()">
+                    <div class="setting-card-content">
+                        <div class="setting-card-icon icon-red">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 6H5H21"/>
+                                <path d="M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6"/>
+                                <path d="M10 11V17"/>
+                                <path d="M14 11V17"/>
+                            </svg>
+                        </div>
+                        <div class="setting-card-text">
+                            <div class="setting-card-title">پاک کردن داده‌ها</div>
+                            <div class="setting-card-desc">حذف اطلاعات ذخیره شده</div>
+                        </div>
+                    </div>
+                    <svg class="setting-arrow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 18L9 12L15 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                    </svg>
+                </div>
+                
+                <button class="reset-settings-btn" onclick="openResetSettingsModal()">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z"/>
+                        <path d="M12 7V12L15 15"/>
+                    </svg>
+                    <span>بازگشت تنظیمات به حالت اول</span>
+                </button>
+                
+            </div>
+        </div>
+        
+        <div class="bottom-nav">
+            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>خانه</span>
+            </button>
+            <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
+                    <path d="M12 16V20"/>
+                    <path d="M8 20H16"/>
+                </svg>
+                <span>مدال‌ها</span>
+            </button>
+            <button class="bottom-nav-item settings-item active" onclick="goToScreen('screen-settings')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                <span>تنظیمات</span>
+            </button>
+            <button class="bottom-nav-item profile-item" onclick="goToScreen('screen-profile')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="8" r="4" stroke-width="2"/>
+                    <path d="M4 21C4 17 7 14 12 14C17 14 20 17 20 21" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>حساب کاربری</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- صفحه پروفایل -->
     <div id="screen-profile" class="screen">
         <div class="profile-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -2135,7 +2393,7 @@
                 <div class="stat-card stat-purple">
                     <div class="stat-card-icon">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#ba68c8" stroke="#8e24aa"/>
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                         </svg>
                     </div>
                     <div class="stat-card-content">
@@ -2163,19 +2421,22 @@
                 </svg>
                 <span>خانه</span>
             </button>
-            <button class="bottom-nav-item lessons-item" onclick="goToScreen('screen-lessons')">
+            <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="3" width="16" height="18" rx="2" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M8 8H16M8 12H16M8 16H12" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
+                    <path d="M12 16V20"/>
+                    <path d="M8 20H16"/>
                 </svg>
-                <span>تکالیف</span>
+                <span>مدال‌ها</span>
             </button>
-            <button class="bottom-nav-item reports-item" onclick="goToScreen('screen-reports')">
+            <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4H20V20H4V4Z" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M8 8H16M8 12H16M8 16H12" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
-                <span>کارنامه</span>
+                <span>تنظیمات</span>
             </button>
             <button class="bottom-nav-item profile-item active" onclick="goToScreen('screen-profile')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2184,163 +2445,6 @@
                 </svg>
                 <span>حساب کاربری</span>
             </button>
-        </div>
-    </div>
-
-    <!-- صفحه تنظیمات -->
-    <div id="screen-settings" class="screen">
-        <div class="page-header">
-            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
-            <div class="page-title">تنظیمات</div>
-        </div>
-        <div class="page-scroll-content">
-            <div class="settings-new-list">
-                
-                <div class="setting-card" onclick="openInfoModal()">
-                    <div class="setting-card-content">
-                        <div class="setting-card-icon icon-blue">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="8" r="4"/>
-                                <path d="M4 21C4 17 7 14 12 14C17 14 20 17 20 21"/>
-                            </svg>
-                        </div>
-                        <div class="setting-card-text">
-                            <div class="setting-card-title">اطلاعات حساب کاربری</div>
-                            <div class="setting-card-desc">ویرایش اطلاعات شخصی</div>
-                        </div>
-                    </div>
-                    <svg class="setting-arrow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 18L9 12L15 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-                    </svg>
-                </div>
-                
-                <div class="setting-card" onclick="showModal('اعلان‌ها', 'این بخش در حال ساخت است.', '🔔')">
-                    <div class="setting-card-content">
-                        <div class="setting-card-icon icon-yellow">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z"/>
-                                <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21"/>
-                            </svg>
-                        </div>
-                        <div class="setting-card-text">
-                            <div class="setting-card-title">اعلان‌ها</div>
-                            <div class="setting-card-desc">مدیریت اعلان‌ها و یادآورها</div>
-                        </div>
-                    </div>
-                    <svg class="setting-arrow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 18L9 12L15 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-                    </svg>
-                </div>
-                
-                <div class="setting-card">
-                    <div class="setting-card-content">
-                        <div class="setting-card-icon icon-purple">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
-                            </svg>
-                        </div>
-                        <div class="setting-card-text">
-                            <div class="setting-card-title">حالت شب</div>
-                            <div class="setting-card-desc">تغییر حالت نمایش برنامه</div>
-                        </div>
-                    </div>
-                    <label class="switch-card">
-                        <input type="checkbox" id="setting-dark-mode" onchange="toggleDarkMode(this)">
-                        <span class="slider-card"></span>
-                    </label>
-                </div>
-                
-                <div class="setting-card">
-                    <div class="setting-card-content">
-                        <div class="setting-card-icon icon-teal">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M11 5L6 9H2V15H6L11 19V5Z"/>
-                                <path d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53"/>
-                                <path d="M19.07 4.93C20.9447 6.80528 21.9979 9.34836 21.9979 12C21.9979 14.6516 20.9447 17.1947 19.07 19.07"/>
-                            </svg>
-                        </div>
-                        <div class="setting-card-text">
-                            <div class="setting-card-title">موسیقی</div>
-                            <div class="setting-card-desc">صدای موسیقی پس‌زمینه</div>
-                        </div>
-                    </div>
-                    <label class="switch-card">
-                        <input type="checkbox" id="setting-music" checked onchange="toggleMusicSetting(this)">
-                        <span class="slider-card"></span>
-                    </label>
-                </div>
-                
-                <div class="setting-card">
-                    <div class="setting-card-content">
-                        <div class="setting-card-icon icon-teal">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M11 5L6 9H2V15H6L11 19V5Z"/>
-                                <path d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53"/>
-                            </svg>
-                        </div>
-                        <div class="setting-card-text">
-                            <div class="setting-card-title">صدا</div>
-                            <div class="setting-card-desc">صدای پاسخ‌های درست و غلط</div>
-                        </div>
-                    </div>
-                    <label class="switch-card">
-                        <input type="checkbox" id="setting-sounds" checked onchange="toggleSoundsSetting(this)">
-                        <span class="slider-card"></span>
-                    </label>
-                </div>
-                
-                <div class="setting-card" onclick="showModal('زبان برنامه', 'زبان فعلی برنامه: فارسی', '🌐')">
-                    <div class="setting-card-content">
-                        <div class="setting-card-icon icon-teal">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M2 12H22"/>
-                                <path d="M12 2C14.5 4.5 15.5 8 15.5 12C15.5 16 14.5 19.5 12 22C9.5 19.5 8.5 16 8.5 12C8.5 8 9.5 4.5 12 2Z"/>
-                            </svg>
-                        </div>
-                        <div class="setting-card-text">
-                            <div class="setting-card-title">زبان برنامه</div>
-                            <div class="setting-card-desc">فارسی</div>
-                        </div>
-                    </div>
-                    <svg class="setting-arrow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 18L9 12L15 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-                    </svg>
-                </div>
-                
-                <div class="setting-card" onclick="clearCache()">
-                    <div class="setting-card-content">
-                        <div class="setting-card-icon icon-red">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M3 6H5H21"/>
-                                <path d="M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6"/>
-                                <path d="M10 11V17"/>
-                                <path d="M14 11V17"/>
-                            </svg>
-                        </div>
-                        <div class="setting-card-text">
-                            <div class="setting-card-title">پاک کردن داده‌ها</div>
-                            <div class="setting-card-desc">حذف اطلاعات ذخیره شده</div>
-                        </div>
-                    </div>
-                    <svg class="setting-arrow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 18L9 12L15 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-                    </svg>
-                </div>
-                
-                <button class="reset-settings-btn" onclick="openResetSettingsModal()">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z"/>
-                        <path d="M12 7V12L15 15"/>
-                    </svg>
-                    <span>بازگشت تنظیمات به حالت اول</span>
-                </button>
-                
-            </div>
         </div>
     </div>
 
@@ -2363,6 +2467,7 @@
         </div>
     </div>
 
+    <!-- صفحه بازخورد -->
     <div id="screen-feedback" class="screen">
         <div class="feedback-icon" id="fb-icon">⭐</div>
         <div class="feedback-title" id="fb-title">آفرین!</div>
@@ -2375,6 +2480,7 @@
         <button class="btn-primary" onclick="nextQuestion()" style="margin-top: 20px; width: 100%; max-width: 320px;">سوال بعدی</button>
     </div>
 
+    <!-- صفحه نتیجه -->
     <div id="screen-result" class="screen">
         <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
         <h2 style="color: #1565c0; margin-bottom: 20px; font-size: 24px;">تکلیف تمام شد!</h2>
@@ -2388,6 +2494,7 @@
         <button class="btn-primary" onclick="showReportCard()" style="max-width: 320px;">دیدن کارنامه</button>
     </div>
 
+    <!-- صفحه کارنامه -->
     <div id="screen-report-view" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -2398,6 +2505,19 @@
             <div class="page-title">کارنامه</div>
         </div>
         <div class="report-view-content" id="report-view-content"></div>
+    </div>
+
+    <!-- صفحه کارنامه‌ها (Reports List) -->
+    <div id="screen-reports" class="screen">
+        <div class="page-header">
+            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="page-title">کارنامه‌ها</div>
+        </div>
+        <div class="page-scroll-content" id="reports-list"></div>
     </div>
 
 </div>
@@ -2474,6 +2594,7 @@
         goToScreen('screen-home', false);
     }
     
+    // حذف پیام خروج - فقط برگشت به خانه
     window.addEventListener('popstate', function(event) {
         const activeScreen = document.querySelector('.screen.active');
         if (!activeScreen) return;
@@ -2483,10 +2604,8 @@
         if (activeId !== 'screen-home' && activeId !== 'screen-splash') {
             goToScreen('screen-home', false);
             pushHistory('screen-home');
-        } else if (activeId === 'screen-home') {
-            openExitModal();
-            pushHistory('screen-home');
         }
+        // در صفحه خانه هیچ کاری نمی‌کنیم - کاربر از برنامه خارج می‌شود
     });
 
     function goToScreen(screenId, addToHistory = true) {
@@ -2498,8 +2617,8 @@
         document.querySelectorAll('.bottom-nav').forEach(nav => {
             const items = nav.querySelectorAll('.bottom-nav-item');
             if (screenId === 'screen-home' && items[0]) items[0].classList.add('active');
-            if (screenId === 'screen-lessons' && items[1]) items[1].classList.add('active');
-            if (screenId === 'screen-reports' && items[2]) items[2].classList.add('active');
+            if (screenId === 'screen-medals' && items[1]) items[1].classList.add('active');
+            if (screenId === 'screen-settings' && items[2]) items[2].classList.add('active');
             if (screenId === 'screen-profile' && items[3]) items[3].classList.add('active');
         });
         
@@ -2516,6 +2635,9 @@
         }
         if (screenId === 'screen-profile') {
             loadProfileData();
+        }
+        if (screenId === 'screen-medals') {
+            loadMedals();
         }
         if (screenId === 'screen-home') {
             typeMotivation();
@@ -2610,6 +2732,36 @@
         document.getElementById('stat-medals').textContent = toPersianNum(medals);
         document.getElementById('stat-completed').textContent = toPersianNum(completedLessons);
         document.getElementById('stat-percent').textContent = toPersianNum(avgPercent) + '%';
+    }
+
+    // ============ مدال‌ها ============
+    function loadMedals() {
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const completedLessons = reports.length;
+        const totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
+        const avgPercent = reports.length > 0 
+            ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length)
+            : 0;
+        
+        const medalsList = [
+            { icon: '🥇', title: 'اولین قدم', desc: 'اولین تکلیف را انجام بده', unlocked: completedLessons >= 1 },
+            { icon: '🎯', title: 'دقیق', desc: 'درصد موفقیت بالای ۸۰%', unlocked: avgPercent >= 80 },
+            { icon: '⭐', title: 'ستاره', desc: 'امتیاز بیش از ۵۰', unlocked: totalPoints >= 50 },
+            { icon: '🏆', title: 'قهرمان', desc: 'امتیاز بیش از ۱۰۰', unlocked: totalPoints >= 100 },
+            { icon: '💎', title: 'الماس', desc: 'تکمیل ۵ تکلیف', unlocked: completedLessons >= 5 },
+            { icon: '🔥', title: 'پیوسته', desc: 'تکمیل ۳ تکلیف', unlocked: completedLessons >= 3 },
+            { icon: '🌟', title: 'درخشان', desc: 'درصد موفقیت ۱۰۰%', unlocked: avgPercent >= 100 },
+            { icon: '👑', title: 'پادشاه', desc: 'تکمیل همه تکالیف', unlocked: completedLessons >= 10 }
+        ];
+        
+        const container = document.getElementById('medals-grid');
+        container.innerHTML = medalsList.map(m => `
+            <div class="medal-card ${m.unlocked ? '' : 'locked'}">
+                <span class="medal-icon">${m.icon}</span>
+                <div class="medal-title">${m.title}</div>
+                <div class="medal-desc">${m.desc}</div>
+            </div>
+        `).join('');
     }
 
     function openEditProfile() {
@@ -2709,10 +2861,10 @@
     function confirmExit() {
         closeExitModal();
         setTimeout(() => {
-            try {
-                window.close();
-                window.open('', '_self', '');
-                window.close();
+            window.close();
+            setTimeout(() => {
+                const win = window.open('', '_self');
+                if (win) win.close();
                 setTimeout(() => {
                     if (window.history.length > 1) {
                         window.history.go(-window.history.length);
@@ -2720,9 +2872,7 @@
                         window.location.href = 'about:blank';
                     }
                 }, 200);
-            } catch(e) {
-                window.location.href = 'about:blank';
-            }
+            }, 200);
         }, 100);
     }
     
