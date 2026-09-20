@@ -68,18 +68,18 @@
         }
         .screen.active { display: flex; }
 
-        /* ============ نوار پایین ============ */
+        /* ============ نوار پایین (بزرگ‌تر شده) ============ */
         .bottom-nav {
             flex-shrink: 0;
             background: #fff;
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding: 5px 8px;
-            padding-bottom: calc(5px + env(safe-area-inset-bottom, 0px));
+            padding: 8px 8px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
             box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
             border-top: 1px solid #e3f2fd;
-            border-radius: 22px 22px 0 0;
+            border-radius: 24px 24px 0 0;
             z-index: 100;
             gap: 4px;
         }
@@ -90,10 +90,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 2px;
+            gap: 4px;
             cursor: pointer;
-            padding: 6px 2px;
-            border-radius: 14px;
+            padding: 9px 2px;
+            border-radius: 16px;
             background: transparent;
             border: none;
             font-family: 'Vazirmatn', sans-serif;
@@ -101,8 +101,8 @@
         }
         
         .bottom-nav-item svg {
-            width: 20px;
-            height: 20px;
+            width: 26px;
+            height: 26px;
             stroke: #90a4ae;
             fill: none;
             stroke-width: 2;
@@ -112,7 +112,7 @@
         }
         
         .bottom-nav-item span {
-            font-size: 9px;
+            font-size: 11px;
             font-weight: bold;
             color: #90a4ae;
             transition: all 0.25s ease;
@@ -162,6 +162,95 @@
             -webkit-overflow-scrolling: touch;
             padding-bottom: 10px;
             position: relative;
+        }
+
+        /* ============ اعلان تکلیف جدید ============ */
+        .new-lesson-notification {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border: 2px solid #ffc107;
+            border-radius: 18px;
+            padding: 14px 16px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
+            z-index: 200;
+            animation: slideDown 0.5s ease;
+        }
+        .new-lesson-notification.show { display: flex; }
+        @keyframes slideDown {
+            from { transform: translateY(-120%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .notification-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+            animation: bellRing 1s ease-in-out infinite;
+        }
+        @keyframes bellRing {
+            0%, 100% { transform: rotate(0); }
+            10% { transform: rotate(15deg); }
+            20% { transform: rotate(-15deg); }
+            30% { transform: rotate(10deg); }
+            40% { transform: rotate(-10deg); }
+            50% { transform: rotate(0); }
+        }
+        .notification-text {
+            flex: 1;
+            text-align: right;
+        }
+        .notification-title {
+            font-size: 14px;
+            font-weight: 900;
+            color: #e65100;
+            margin-bottom: 3px;
+        }
+        .notification-sub {
+            font-size: 12px;
+            color: #bf360c;
+            font-weight: bold;
+        }
+        .notification-btn {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: #fff;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            flex-shrink: 0;
+            box-shadow: 0 3px 10px rgba(245, 124, 0, 0.4);
+        }
+        .notification-btn:active { transform: scale(0.95); }
+        .notification-close {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.1);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #bf360c;
+            font-weight: bold;
         }
 
         .home-top-bar {
@@ -332,14 +421,19 @@
             right: 8px;
             background: linear-gradient(135deg, #f44336, #e53935);
             color: #fff;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
-            padding: 3px 10px;
-            border-radius: 10px;
+            padding: 4px 12px;
+            border-radius: 12px;
             box-shadow: 0 3px 8px rgba(244, 67, 54, 0.5);
             white-space: nowrap;
             z-index: 5;
             pointer-events: none;
+            animation: badgePulse 1.5s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
 
         /* ============ صفحه شروع (Splash) ============ */
@@ -385,7 +479,7 @@
             border: none;
             padding: 16px 25px;
             border-radius: 50px;
-            font-size: 16px;
+            font-size: 17px;
             font-weight: bold;
             cursor: pointer;
             width: 80%;
@@ -765,7 +859,7 @@
             font-weight: bold;
         }
 
-        /* ============ حالت خالی (Empty State) ============ */
+        /* ============ حالت خالی ============ */
         .report-empty {
             display: flex;
             flex-direction: column;
@@ -806,11 +900,17 @@
             box-shadow: 0 4px 12px rgba(25, 118, 210, 0.08);
             border: 2px solid #e3f2fd;
             position: relative;
+            transition: transform 0.2s;
         }
         
         .medal-card.locked {
             opacity: 0.45;
             filter: grayscale(1);
+        }
+        
+        .medal-card:not(.locked) {
+            border-color: #ffc107;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
         }
         
         .medal-icon {
@@ -830,7 +930,223 @@
             font-size: 11px;
             color: #90a4ae;
             font-weight: bold;
+            line-height: 1.5;
         }
+        
+        .medal-lock {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 18px;
+        }
+
+        /* ============ مودال کسب مدال ============ */
+        .medal-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9500;
+            padding: 20px;
+        }
+        .medal-modal-overlay.active { display: flex; }
+        .medal-modal-box {
+            background: linear-gradient(180deg, #fff9c4 0%, #ffffff 50%, #ffffff 100%);
+            border-radius: 28px;
+            padding: 35px 25px 25px 25px;
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            animation: medalPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        @keyframes medalPop {
+            0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .medal-modal-box::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 150px; height: 150px;
+            background: radial-gradient(circle, rgba(255, 235, 59, 0.6) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .medal-modal-box::after {
+            content: '';
+            position: absolute;
+            bottom: -50px; left: -50px;
+            width: 150px; height: 150px;
+            background: radial-gradient(circle, rgba(255, 152, 0, 0.4) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .medal-modal-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #e65100;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        .medal-modal-icon-wrapper {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 20px auto;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid #ffc107;
+            box-shadow: 0 0 40px rgba(255, 193, 7, 0.6), inset 0 0 20px rgba(255, 193, 7, 0.2);
+            position: relative;
+            z-index: 2;
+            animation: medalGlow 2s ease-in-out infinite;
+        }
+        @keyframes medalGlow {
+            0%, 100% { box-shadow: 0 0 40px rgba(255, 193, 7, 0.6), inset 0 0 20px rgba(255, 193, 7, 0.2); }
+            50% { box-shadow: 0 0 60px rgba(255, 193, 7, 0.9), inset 0 0 30px rgba(255, 193, 7, 0.4); }
+        }
+        .medal-modal-icon {
+            font-size: 70px;
+            animation: medalSpin 3s ease-in-out infinite;
+        }
+        @keyframes medalSpin {
+            0%, 100% { transform: rotate(-8deg) scale(1); }
+            50% { transform: rotate(8deg) scale(1.1); }
+        }
+        .medal-modal-name {
+            font-size: 24px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
+        .medal-modal-desc {
+            font-size: 14px;
+            color: #607d8b;
+            font-weight: bold;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+        .medal-modal-btn {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 900;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Vazirmatn', sans-serif;
+            box-shadow: 0 6px 20px rgba(245, 124, 0, 0.4);
+            position: relative;
+            z-index: 2;
+        }
+        .medal-modal-btn:active { transform: scale(0.97); }
+
+        /* ============ مودال تکلیف تکراری ============ */
+        .repeat-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9200;
+            padding: 20px;
+        }
+        .repeat-modal-overlay.active { display: flex; }
+        .repeat-modal-box {
+            background: #fff;
+            border-radius: 24px;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease;
+        }
+        .repeat-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            border: 3px solid #fff;
+            box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+        }
+        .repeat-icon-wrapper svg {
+            width: 40px;
+            height: 40px;
+            stroke: #f57c00;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .repeat-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #e65100;
+            margin-bottom: 12px;
+        }
+        .repeat-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.8;
+            font-weight: bold;
+        }
+        .repeat-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .repeat-btn-cancel {
+            flex: 1;
+            padding: 14px;
+            border-radius: 50px;
+            border: 2px solid #e0e0e0;
+            background: #fff;
+            color: #666;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        .repeat-btn-cancel:active { transform: scale(0.96); }
+        .repeat-btn-confirm {
+            flex: 1;
+            padding: 14px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            box-shadow: 0 4px 12px rgba(245, 124, 0, 0.35);
+        }
+        .repeat-btn-confirm:active { transform: scale(0.96); }
 
         /* ============ صفحه تنظیمات ============ */
         #screen-settings { background: #f0f7ff; }
@@ -1747,6 +2063,21 @@
         .result-details div:last-child { margin-bottom: 0; }
         .result-details span:last-child { font-weight: bold; color: #333; }
 
+        /* پیام حالت تمرین */
+        .practice-banner {
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #e65100;
+            text-align: center;
+            display: none;
+        }
+        .practice-banner.show { display: block; }
+
         /* ============ صفحه کارنامه نهایی ============ */
         .report-view-content {
             flex: 1; overflow-y: auto; padding: 20px;
@@ -1895,12 +2226,48 @@
         </div>
     </div>
 
+    <!-- مودال کسب مدال -->
+    <div class="medal-modal-overlay" id="medal-modal">
+        <div class="medal-modal-box">
+            <div class="medal-modal-title">🎉 مدال جدید گرفتی! 🎉</div>
+            <div class="medal-modal-icon-wrapper">
+                <span class="medal-modal-icon" id="medal-modal-icon">🏆</span>
+            </div>
+            <div class="medal-modal-name" id="medal-modal-name">قهرمان</div>
+            <div class="medal-modal-desc" id="medal-modal-desc">تو یک قهرمان واقعی هستی!</div>
+            <button class="medal-modal-btn" onclick="closeMedalModal()">ادامه</button>
+        </div>
+    </div>
+
+    <!-- مودال تکلیف تکراری -->
+    <div class="repeat-modal-overlay" id="repeat-modal">
+        <div class="repeat-modal-box">
+            <div class="repeat-icon-wrapper">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 8V12"/>
+                    <path d="M12 16H12.01"/>
+                </svg>
+            </div>
+            <div class="repeat-title">قبلاً این تکلیف رو انجام دادی!</div>
+            <div class="repeat-text">
+                شما قبلاً این تکلیف رو انجام دادید. اگه دوباره انجامش بدید، <strong>نمره و امتیاز بهتون تعلق نمی‌گیره</strong> و کارنامه‌ای صادر نمیشه.
+                <br><br>
+                آیا می‌خواید فقط برای <strong>تمرین</strong> انجامش بدید؟
+            </div>
+            <div class="repeat-buttons">
+                <button class="repeat-btn-cancel" onclick="closeRepeatModal()">انصراف</button>
+                <button class="repeat-btn-confirm" onclick="confirmRepeatLesson()">تمرین می‌کنم</button>
+            </div>
+        </div>
+    </div>
+
     <div id="screen-splash" class="screen active">
         <img src="https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png" alt="پس زمینه" class="splash-bg-image">
         <div class="splash-light-glow"></div>
         <div class="splash-content-wrapper">
             <button class="btn-start-splash" onclick="startApp()">
-                بریم برای انجام تکلیف
+                ورود به برنامه
             </button>
         </div>
     </div>
@@ -1932,6 +2299,18 @@
     <!-- صفحه خانه -->
     <div id="screen-home" class="screen">
         <div class="home-scroll-area">
+            
+            <!-- اعلان تکلیف جدید -->
+            <div class="new-lesson-notification" id="new-lesson-notification">
+                <button class="notification-close" onclick="dismissNotification()">✕</button>
+                <div class="notification-icon">🔔</div>
+                <div class="notification-text">
+                    <div class="notification-title">تکلیف جدید دارید!</div>
+                    <div class="notification-sub" id="notification-sub-text">برای مشاهده کلیک کنید</div>
+                </div>
+                <button class="notification-btn" onclick="goToNewLesson()">مشاهده</button>
+            </div>
+            
             <div class="home-top-bar">
                 <button class="home-icon-btn" onclick="showModal('منو', 'این بخش در حال ساخت است.', '🚧')">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2483,15 +2862,20 @@
     <!-- صفحه نتیجه -->
     <div id="screen-result" class="screen">
         <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
-        <h2 style="color: #1565c0; margin-bottom: 20px; font-size: 24px;">تکلیف تمام شد!</h2>
+        <h2 style="color: #1565c0; margin-bottom: 20px; font-size: 24px;" id="result-title">تکلیف تمام شد!</h2>
+        
+        <div class="practice-banner" id="practice-banner">
+            ⚠️ این تکلیف رو قبلاً انجام داده بودی، بنابراین نمره و امتیاز بهت تعلق نگرفت.
+        </div>
+        
         <div class="result-circle" id="final-score-circle">۰</div>
         <div class="result-details">
             <div><span>درصد موفقیت:</span> <span id="final-percent">۰%</span></div>
             <div><span>پاسخ صحیح:</span> <span id="final-correct">۰</span></div>
             <div><span>پاسخ غلط:</span> <span id="final-wrong">۰</span></div>
-            <div><span>امتیاز کل:</span> <span id="final-points">۰</span></div>
+            <div id="final-points-row"><span>امتیاز کل:</span> <span id="final-points">۰</span></div>
         </div>
-        <button class="btn-primary" onclick="showReportCard()" style="max-width: 320px;">دیدن کارنامه</button>
+        <button class="btn-primary" id="report-btn" onclick="showReportCard()" style="max-width: 320px;">دیدن کارنامه</button>
     </div>
 
     <!-- صفحه کارنامه -->
@@ -2594,7 +2978,6 @@
         goToScreen('screen-home', false);
     }
     
-    // حذف پیام خروج - فقط برگشت به خانه
     window.addEventListener('popstate', function(event) {
         const activeScreen = document.querySelector('.screen.active');
         if (!activeScreen) return;
@@ -2605,7 +2988,6 @@
             goToScreen('screen-home', false);
             pushHistory('screen-home');
         }
-        // در صفحه خانه هیچ کاری نمی‌کنیم - کاربر از برنامه خارج می‌شود
     });
 
     function goToScreen(screenId, addToHistory = true) {
@@ -2641,6 +3023,7 @@
         }
         if (screenId === 'screen-home') {
             typeMotivation();
+            checkAndShowNotification();
         }
     }
 
@@ -2726,42 +3109,183 @@
         const avgPercent = reports.length > 0 
             ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length)
             : 0;
-        const medals = Math.min(completedLessons, 10);
+        const stats = getUserStats();
         
         document.getElementById('stat-points').textContent = toPersianNum(totalPoints);
-        document.getElementById('stat-medals').textContent = toPersianNum(medals);
+        document.getElementById('stat-medals').textContent = toPersianNum(stats.unlockedMedals.length);
         document.getElementById('stat-completed').textContent = toPersianNum(completedLessons);
         document.getElementById('stat-percent').textContent = toPersianNum(avgPercent) + '%';
     }
 
-    // ============ مدال‌ها ============
-    function loadMedals() {
+    function getUserStats() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
-        const completedLessons = reports.length;
         const totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
+        const completedLessons = reports.length;
         const avgPercent = reports.length > 0 
             ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length)
             : 0;
+        const perfectScores = reports.filter(r => r.percent === 100).length;
+        const highScores = reports.filter(r => r.percent >= 90).length;
+        const fastLessons = reports.filter(r => r.timeTaken <= 3).length;
         
-        const medalsList = [
-            { icon: '🥇', title: 'اولین قدم', desc: 'اولین تکلیف را انجام بده', unlocked: completedLessons >= 1 },
-            { icon: '🎯', title: 'دقیق', desc: 'درصد موفقیت بالای ۸۰%', unlocked: avgPercent >= 80 },
-            { icon: '⭐', title: 'ستاره', desc: 'امتیاز بیش از ۵۰', unlocked: totalPoints >= 50 },
-            { icon: '🏆', title: 'قهرمان', desc: 'امتیاز بیش از ۱۰۰', unlocked: totalPoints >= 100 },
-            { icon: '💎', title: 'الماس', desc: 'تکمیل ۵ تکلیف', unlocked: completedLessons >= 5 },
-            { icon: '🔥', title: 'پیوسته', desc: 'تکمیل ۳ تکلیف', unlocked: completedLessons >= 3 },
-            { icon: '🌟', title: 'درخشان', desc: 'درصد موفقیت ۱۰۰%', unlocked: avgPercent >= 100 },
-            { icon: '👑', title: 'پادشاه', desc: 'تکمیل همه تکالیف', unlocked: completedLessons >= 10 }
-        ];
+        const activityDates = [...new Set(reports.map(r => r.date))].sort();
+        let streakDays = activityDates.length;
         
+        const dateCounts = {};
+        reports.forEach(r => {
+            dateCounts[r.date] = (dateCounts[r.date] || 0) + 1;
+        });
+        const maxInOneDay = Math.max(0, ...Object.values(dateCounts));
+        
+        return {
+            totalPoints,
+            completedLessons,
+            avgPercent,
+            perfectScores,
+            highScores,
+            fastLessons,
+            streakDays,
+            maxInOneDay,
+            unlockedMedals: getUnlockedMedals({
+                totalPoints, completedLessons, avgPercent,
+                perfectScores, highScores, fastLessons,
+                streakDays, maxInOneDay
+            })
+        };
+    }
+
+    const MEDALS_LIST = [
+        { id: 'first', icon: '🥇', title: 'اولین قدم', desc: 'اولین تکلیف را انجام بده', condition: (s) => s.completedLessons >= 1 },
+        { id: 'diamond', icon: '💎', title: 'الماس', desc: 'تکمیل ۵ تکلیف', condition: (s) => s.completedLessons >= 5 },
+        { id: 'king', icon: '👑', title: 'پادشاه', desc: 'تکمیل ۱۰ تکلیف', condition: (s) => s.completedLessons >= 10 },
+        { id: 'accurate', icon: '🎯', title: 'دقیق', desc: 'میانگین درصد بالای ۸۰%', condition: (s) => s.avgPercent >= 80 && s.completedLessons >= 2 },
+        { id: 'brilliant', icon: '🌟', title: 'درخشان', desc: 'میانگین درصد ۱۰۰%', condition: (s) => s.avgPercent >= 100 && s.completedLessons >= 3 },
+        { id: 'star', icon: '⭐', title: 'ستاره', desc: 'کسب ۱۰۰ امتیاز', condition: (s) => s.totalPoints >= 100 },
+        { id: 'champion', icon: '🏆', title: 'قهرمان', desc: 'کسب ۳۰۰ امتیاز', condition: (s) => s.totalPoints >= 300 },
+        { id: 'genius', icon: '💠', title: 'نابغه', desc: 'کسب ۶۰۰ امتیاز', condition: (s) => s.totalPoints >= 600 },
+        { id: 'rocket', icon: '🚀', title: 'موشک', desc: 'کسب ۱۰۰۰ امتیاز', condition: (s) => s.totalPoints >= 1000 },
+        { id: 'smart', icon: '🧠', title: 'زیرک', desc: '۵ تکلیف با درصد ۱۰۰%', condition: (s) => s.perfectScores >= 5 },
+        { id: 'invincible', icon: '🛡️', title: 'شکست‌ناپذیر', desc: '۱۰ تکلیف با درصد بالای ۹۰%', condition: (s) => s.highScores >= 10 },
+        { id: 'fast', icon: '⚡', title: 'سریع', desc: 'تکمیل تکلیف زیر ۳ دقیقه', condition: (s) => s.fastLessons >= 1 },
+        { id: 'rainbow', icon: '🌈', title: 'رنگین‌کمان', desc: 'تکمیل ۳ تکلیف در یک روز', condition: (s) => s.maxInOneDay >= 3 },
+        { id: 'loyal', icon: '🎖️', title: 'سرباز فداکار', desc: 'فعالیت در ۷ روز مختلف', condition: (s) => s.streakDays >= 7 }
+    ];
+
+    function getUnlockedMedals(stats) {
+        return MEDALS_LIST.filter(m => m.condition(stats)).map(m => m.id);
+    }
+
+    function getMedalsWithStatus() {
+        const stats = getUserStats();
+        const baseStats = {
+            totalPoints: stats.totalPoints,
+            completedLessons: stats.completedLessons,
+            avgPercent: stats.avgPercent,
+            perfectScores: stats.perfectScores,
+            highScores: stats.highScores,
+            fastLessons: stats.fastLessons,
+            streakDays: stats.streakDays,
+            maxInOneDay: stats.maxInOneDay
+        };
+        
+        return MEDALS_LIST.map(m => ({
+            ...m,
+            unlocked: m.condition(baseStats)
+        }));
+    }
+
+    function loadMedals() {
+        const medals = getMedalsWithStatus();
         const container = document.getElementById('medals-grid');
-        container.innerHTML = medalsList.map(m => `
+        container.innerHTML = medals.map(m => `
             <div class="medal-card ${m.unlocked ? '' : 'locked'}">
+                ${m.unlocked ? '' : '<span class="medal-lock">🔒</span>'}
                 <span class="medal-icon">${m.icon}</span>
                 <div class="medal-title">${m.title}</div>
                 <div class="medal-desc">${m.desc}</div>
             </div>
         `).join('');
+    }
+
+    function checkForNewMedals() {
+        const previousMedals = JSON.parse(localStorage.getItem('unlockedMedals') || '[]');
+        const currentStats = getUserStats();
+        const currentMedals = currentStats.unlockedMedals;
+        
+        const newMedals = currentMedals.filter(id => !previousMedals.includes(id));
+        
+        localStorage.setItem('unlockedMedals', JSON.stringify(currentMedals));
+        
+        if (newMedals.length > 0) {
+            const medal = MEDALS_LIST.find(m => m.id === newMedals[0]);
+            setTimeout(() => showMedalModal(medal), 500);
+            return true;
+        }
+        return false;
+    }
+
+    function showMedalModal(medal) {
+        document.getElementById('medal-modal-icon').textContent = medal.icon;
+        document.getElementById('medal-modal-name').textContent = medal.title;
+        document.getElementById('medal-modal-desc').textContent = medal.desc;
+        document.getElementById('medal-modal').classList.add('active');
+        playMedalSound();
+    }
+
+    function closeMedalModal() {
+        document.getElementById('medal-modal').classList.remove('active');
+    }
+
+    function playMedalSound() {
+        if (localStorage.getItem('soundsEnabled') === 'false') return;
+        try {
+            initAudio();
+            const now = audioContext.currentTime;
+            [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, i) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0, now + i * 0.12);
+                gain.gain.linearRampToValueAtTime(0.25, now + i * 0.12 + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.4);
+                osc.connect(gain); gain.connect(audioContext.destination);
+                osc.start(now + i * 0.12); osc.stop(now + i * 0.12 + 0.4);
+            });
+        } catch(e) {}
+    }
+
+    function checkAndShowNotification() {
+        const seenLessons = JSON.parse(localStorage.getItem('seenLessons') || '[]');
+        const allIds = allLessons.map(l => l.id);
+        const newLessons = allIds.filter(id => !seenLessons.includes(id));
+        
+        const notification = document.getElementById('new-lesson-notification');
+        const subText = document.getElementById('notification-sub-text');
+        
+        if (newLessons.length > 0 && allLessons.length > 0) {
+            subText.textContent = `${toPersianNum(newLessons.length)} تکلیف جدید در انتظار شماست`;
+            notification.classList.add('show');
+        } else {
+            notification.classList.remove('show');
+        }
+        
+        checkNewLessons();
+    }
+
+    function dismissNotification() {
+        document.getElementById('new-lesson-notification').classList.remove('show');
+        if (allLessons.length > 0) {
+            const allIds = allLessons.map(l => l.id);
+            localStorage.setItem('seenLessons', JSON.stringify(allIds));
+            const badge = document.getElementById('new-lesson-badge');
+            if (badge) badge.style.display = 'none';
+        }
+    }
+
+    function goToNewLesson() {
+        document.getElementById('new-lesson-notification').classList.remove('show');
+        goToScreen('screen-lessons');
     }
 
     function openEditProfile() {
@@ -2917,6 +3441,8 @@
     let allLessons = [];
     let currentLesson = null;
     let currentFilter = 'all';
+    let isPracticeMode = false; // حالت تمرین (تکلیف تکراری)
+    let pendingLessonId = null; // آیدی تکلیفی که منتظر تأیید کاربریم
     
     async function loadLessonsList() {
         try {
@@ -3036,6 +3562,7 @@
     }
 
     function checkNewLessons() {
+        if (allLessons.length === 0) return;
         const seenLessons = JSON.parse(localStorage.getItem('seenLessons') || '[]');
         const newLessons = allLessons.filter(l => !seenLessons.includes(l.id));
         
@@ -3053,9 +3580,40 @@
         localStorage.setItem('seenLessons', JSON.stringify(allIds));
         const badge = document.getElementById('new-lesson-badge');
         if (badge) badge.style.display = 'none';
+        document.getElementById('new-lesson-notification').classList.remove('show');
     }
 
+    // ============ شروع تکلیف با چک تکراری ============
     async function startLesson(lessonId) {
+        // چک می‌کنیم که قبلاً انجام شده یا نه
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const alreadyDone = reports.some(r => r.lessonId === lessonId);
+        
+        if (alreadyDone) {
+            // نمایش مودال هشدار
+            pendingLessonId = lessonId;
+            document.getElementById('repeat-modal').classList.add('active');
+            return;
+        }
+        
+        // اجرای عادی
+        await runLesson(lessonId, false);
+    }
+    
+    function closeRepeatModal() {
+        document.getElementById('repeat-modal').classList.remove('active');
+        pendingLessonId = null;
+    }
+    
+    async function confirmRepeatLesson() {
+        document.getElementById('repeat-modal').classList.remove('active');
+        if (pendingLessonId) {
+            await runLesson(pendingLessonId, true);
+            pendingLessonId = null;
+        }
+    }
+    
+    async function runLesson(lessonId, practiceMode) {
         try {
             const lessonMeta = allLessons.find(l => l.id === lessonId);
             if (!lessonMeta) return;
@@ -3071,6 +3629,7 @@
             correctCount = 0;
             wrongCount = 0;
             startTime = new Date();
+            isPracticeMode = practiceMode;
             
             document.getElementById('quiz-lesson-title').textContent = currentLesson.title;
             goToScreen('screen-quiz');
@@ -3412,10 +3971,13 @@
         document.getElementById('submit-btn').disabled = true;
         
         if (isCorrect) {
-            score += q.points;
+            // در حالت تمرین، امتیاز اضافه نمی‌شه
+            if (!isPracticeMode) {
+                score += q.points;
+            }
             correctCount++;
             playCorrectSound();
-            showFeedback(true, q.points, q);
+            showFeedback(true, isPracticeMode ? 0 : q.points, q);
         } else {
             wrongCount++;
             playWrongSound();
@@ -3447,8 +4009,15 @@
             title.textContent = 'آفرین!';
             title.style.color = '#4caf50';
             sub.textContent = 'پاسخ شما درست بود.';
-            pts.textContent = `+${toPersianNum(points)} امتیاز`;
-            pts.style.color = '#f57c00';
+            if (isPracticeMode) {
+                pts.textContent = 'حالت تمرین (بدون امتیاز)';
+                pts.style.color = '#999';
+                pts.style.fontSize = '16px';
+            } else {
+                pts.textContent = `+${toPersianNum(points)} امتیاز`;
+                pts.style.color = '#f57c00';
+                pts.style.fontSize = '24px';
+            }
             answerBox.className = 'correct-answer-box';
             answerLabel.textContent = 'پاسخ صحیح شما:';
             answerText.textContent = getCorrectAnswerText(q);
@@ -3460,6 +4029,7 @@
             sub.textContent = 'پاسخ شما اشتباه است.';
             pts.textContent = '۰ امتیاز';
             pts.style.color = '#999';
+            pts.style.fontSize = '24px';
             answerBox.className = 'correct-answer-box wrong-answer';
             answerLabel.textContent = 'پاسخ صحیح:';
             answerText.textContent = getCorrectAnswerText(q);
@@ -3486,11 +4056,35 @@
         document.getElementById('final-correct').textContent = toPersianNum(correctCount);
         document.getElementById('final-wrong').textContent = toPersianNum(wrongCount);
         document.getElementById('final-points').textContent = toPersianNum(score);
+        
+        const practiceBanner = document.getElementById('practice-banner');
+        const reportBtn = document.getElementById('report-btn');
+        const resultTitle = document.getElementById('result-title');
+        const pointsRow = document.getElementById('final-points-row');
+        
+        if (isPracticeMode) {
+            // حالت تمرین
+            practiceBanner.classList.add('show');
+            reportBtn.style.display = 'none';
+            resultTitle.textContent = 'تمرین تمام شد!';
+            pointsRow.style.display = 'none';
+        } else {
+            practiceBanner.classList.remove('show');
+            reportBtn.style.display = 'flex';
+            resultTitle.textContent = 'تکلیف تمام شد!';
+            pointsRow.style.display = 'flex';
+        }
     }
 
     function showReportCard() {
+        // اگه حالت تمرین بود، کارنامه ذخیره نمیشه
+        if (isPracticeMode) {
+            showModal('توجه', 'این تکلیف در حالت تمرین انجام شده و کارنامه‌ای صادر نمی‌شود.', '⚠️');
+            return;
+        }
+        
         const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
-        const timeTaken = Math.round((endTime - startTime) / 60000);
+        const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
         const now = new Date();
         const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
         
@@ -3532,6 +4126,10 @@
         `;
         
         goToScreen('screen-report-view');
+        
+        setTimeout(() => {
+            checkForNewMedals();
+        }, 1500);
     }
 
     function downloadCurrentReport() {
