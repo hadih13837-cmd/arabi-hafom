@@ -1,0 +1,23 @@
+{
+  "lessonId": "lesson3",
+  "title": "درس سوم",
+  "subtitle": "آشنایی با واژگان و عبارات‌ها",
+  "icon": "📚",
+  "questionCount": 12,
+  "estimatedTime": 15,
+  "totalPoints": 100,
+  "questions": [
+    { "type": "multiple", "question": "معنی کلمه \"کِتاب\" چیست؟", "options": ["کتاب", "قلم", "دفتر", "میز"], "correct": 0, "points": 10 },
+    { "type": "fill", "question": "جای خالی را با کلمه مناسب پر کنید:", "sentence": "هذه ______ .", "options": ["طالبة", "طالب"], "correct": 0, "points": 10 },
+    { "type": "match", "question": "ستون‌ها را به هم وصل کنید.", "pairs": [{"fa": "کتاب", "ar": "کتاب"}, {"fa": "قلم", "ar": "قلم"}, {"fa": "مدرسة", "ar": "مدرسه"}, {"fa": "باب", "ar": "در"}], "points": 10 },
+    { "type": "order", "question": "کلمات را به ترتیب درست قرار دهید: (هذه - بنت - مجتهدة)", "options": ["هذه", "بنت", "مجتهدة"], "correct": ["هذه", "بنت", "مجتهدة"], "points": 10 },
+    { "type": "image", "question": "کلمه \"کتاب\" را با تصویر مناسب انتخاب کنید.", "options": ["📚", "✏️", "🏫", "🚪"], "correct": 0, "points": 10 },
+    { "type": "truefalse", "question": "کلمه \"هذا\" برای \"طالب\" استفاده می‌شود.", "correct": true, "points": 10 },
+    { "type": "translation", "question": "ترجمه کلمه زیر را بنویسید: باب", "correct": "در", "points": 10 },
+    { "type": "multiple", "question": "معنی \"قلم\" به عربی چیست؟", "options": ["کتاب", "قلم", "مدرسة", "باب"], "correct": 1, "points": 10 },
+    { "type": "fill", "question": "جای خالی را با کلمه مناسب پر کنید:", "sentence": "______ طالبٌ مجتهدٌ.", "options": ["هذا", "هذه", "هؤلاء", "ذلک"], "correct": 0, "points": 10 },
+    { "type": "truefalse", "question": "کلمه \"مدرسة\" به معنی \"مدرسه\" است.", "correct": true, "points": 10 },
+    { "type": "multiple", "question": "کدام گزینه به معنی \"در\" است؟", "options": ["باب", "کتاب", "قلم", "مدرسة"], "correct": 0, "points": 10 },
+    { "type": "translation", "question": "ترجمه: کِتاب", "correct": "کتاب", "points": 10 }
+  ]
+}
