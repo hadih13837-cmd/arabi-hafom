@@ -12,14 +12,6 @@
     <link rel="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="./icon-512.png">
     
-    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/y058507__.png">
-    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png">
-    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/n50857_IMG__.png">
-    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/f76502_IMG__.png">
-    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/b632041_IMG__.png">
-    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/s432012_IMG__.png">
-    <link rel="preload" as="image" href="https://cdn.imgurl.ir/uploads/x44300_IMG__.png">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
@@ -68,7 +60,7 @@
         }
         .screen.active { display: flex; }
 
-        /* ============ نوار پایین (بزرگ‌تر شده) ============ */
+        /* ============ نوار پایین ============ */
         .bottom-nav {
             flex-shrink: 0;
             background: #fff;
@@ -148,7 +140,7 @@
         .bottom-nav-item.profile-item.active svg { stroke: #2e7d32; fill: #e8f5e9; }
         .bottom-nav-item.profile-item.active span { color: #2e7d32; }
 
-        /* ============ صفحه اصلی (Home) ============ */
+        /* ============ صفحه خانه ============ */
         #screen-home {
             background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
         }
@@ -162,7 +154,6 @@
             position: relative;
         }
 
-        /* ============ اعلان تکلیف جدید ============ */
         .new-lesson-notification {
             position: absolute;
             top: 15px;
@@ -273,9 +264,24 @@
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             border: none;
+            position: relative;
         }
         .home-icon-btn:active { transform: scale(0.95); }
         .home-icon-btn svg { width: 22px; height: 22px; }
+        
+        .notif-badge-dot {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #f44336;
+            border: 2px solid #fff;
+            display: none;
+            animation: badgePulse 1.5s ease-in-out infinite;
+        }
+        .notif-badge-dot.show { display: block; }
 
         .home-header-image {
             width: 100%;
@@ -434,7 +440,7 @@
             50% { transform: scale(1.1); }
         }
 
-        /* ============ صفحه شروع (Splash) ============ */
+        /* ============ صفحه Splash ============ */
         #screen-splash { background: #000; }
         .splash-bg-image {
             position: absolute;
@@ -830,6 +836,11 @@
             border: 1.5px solid #2196f3;
         }
         
+        .status-badge.paused {
+            color: #e65100;
+            border: 1.5px solid #ff9800;
+        }
+        
         .status-badge.check-icon {
             width: 18px;
             height: 18px;
@@ -844,6 +855,9 @@
         
         .status-badge.check-icon.in-progress-icon {
             background: #2196f3;
+        }
+        .status-badge.check-icon.paused-icon {
+            background: #ff9800;
         }
         
         .arrow-back-icon {
@@ -937,6 +951,450 @@
             left: 8px;
             font-size: 18px;
         }
+
+        /* ============ صفحه اعلان‌ها ============ */
+        #screen-notifications { background: #f0f7ff; }
+        
+        .notifications-list {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 15px;
+        }
+        
+        .notif-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.06);
+            border: 1.5px solid #e3f2fd;
+            position: relative;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .notif-card:active { transform: scale(0.98); }
+        
+        .notif-card.unread {
+            border-color: #1976d2;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.15);
+        }
+        .notif-card.unread::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #f44336;
+            animation: badgePulse 1.5s ease-in-out infinite;
+        }
+        
+        .notif-icon-wrapper {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .notif-icon-wrapper svg {
+            width: 28px;
+            height: 28px;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+        
+        .notif-icon-lesson {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+        }
+        .notif-icon-lesson svg { stroke: #e53935; fill: #e53935; }
+        
+        .notif-icon-reminder {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        }
+        .notif-icon-reminder svg { stroke: #1976d2; fill: none; }
+        
+        .notif-icon-message {
+            background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+        }
+        .notif-icon-message svg { stroke: #00897b; fill: none; }
+        
+        .notif-icon-info {
+            background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+        }
+        .notif-icon-info svg { stroke: #e91e63; fill: #e91e63; }
+        
+        .notif-icon-success {
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+        }
+        .notif-icon-success svg { stroke: #f57c00; fill: #f57c00; }
+        
+        .notif-icon-clip {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+        }
+        .notif-icon-clip svg { stroke: #8e24aa; fill: none; }
+        
+        .notif-content {
+            flex: 1;
+            text-align: right;
+            min-width: 0;
+        }
+        
+        .notif-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 6px;
+        }
+        
+        .notif-text {
+            font-size: 13px;
+            color: #607d8b;
+            font-weight: bold;
+            line-height: 1.6;
+            margin-bottom: 6px;
+        }
+        
+        .notif-date {
+            font-size: 11px;
+            color: #90a4ae;
+            font-weight: bold;
+        }
+
+        /* ============ منوی کناری ============ */
+        .side-menu-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 9700;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .side-menu-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+        
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 85%;
+            max-width: 340px;
+            height: 100%;
+            background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
+            z-index: 9800;
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -10px 0 40px rgba(0,0,0,0.2);
+            border-radius: 25px 0 0 25px;
+            overflow: hidden;
+        }
+        .side-menu.active { transform: translateX(0); }
+        
+        .side-menu-header {
+            padding: 25px 20px 20px 20px;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            border-radius: 25px 0 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .side-menu-header::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 150px; height: 150px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .side-menu-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #fff;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .side-menu-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+        }
+        .side-menu-close:active { transform: scale(0.9); }
+        
+        /* ============ کلید حالت شب/روز جدید (چرخشی) ============ */
+        .theme-toggle-wrapper {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .theme-toggle-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #87CEEB 0%, #4FC3F7 100%);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            box-shadow: 
+                0 8px 30px rgba(79, 195, 247, 0.5),
+                inset 0 2px 15px rgba(255, 255, 255, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .theme-toggle-btn:active {
+            transform: scale(0.92);
+        }
+        
+        .theme-toggle-btn.dark {
+            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+            box-shadow: 
+                0 8px 30px rgba(26, 35, 126, 0.6),
+                inset 0 2px 15px rgba(255, 255, 255, 0.1);
+        }
+        
+        .theme-icon {
+            font-size: 50px;
+            line-height: 1;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: rotate(0deg);
+            display: block;
+            position: absolute;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+        }
+        
+        .theme-toggle-btn.dark .theme-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* هاله دور آیکون */
+        .theme-icon-glow {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 235, 59, 0.6) 0%, transparent 70%);
+            animation: themeGlow 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        .theme-toggle-btn.dark .theme-icon-glow {
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, transparent 70%);
+        }
+        
+        @keyframes themeGlow {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.3); opacity: 0.3; }
+        }
+        
+        /* برچسب زیر دکمه */
+        .theme-label {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-top: 12px;
+            transition: color 0.3s;
+        }
+        .theme-label.dark-label { color: #fff; }
+        
+        /* گزینه‌های منو */
+        .side-menu-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 15px 20px 15px;
+        }
+        
+        .side-menu-item {
+            background: #fff;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(25, 118, 210, 0.06);
+            transition: all 0.2s;
+            border: 1.5px solid #e3f2fd;
+        }
+        .side-menu-item:active { 
+            background: #f8fbff;
+            transform: scale(0.98);
+        }
+        
+        .side-menu-item-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .side-menu-item-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .side-menu-item:active .side-menu-item-icon::before {
+            opacity: 1;
+        }
+        
+        .side-menu-item-icon svg {
+            width: 26px;
+            height: 26px;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .menu-icon-home {
+            background: linear-gradient(135deg, #64B5F6 0%, #1976D2 100%);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        }
+        .menu-icon-home svg { stroke: #fff; }
+        
+        .menu-icon-lessons {
+            background: linear-gradient(135deg, #4DB6AC 0%, #00897B 100%);
+            box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
+        }
+        .menu-icon-lessons svg { stroke: #fff; }
+        
+        .menu-icon-reports {
+            background: linear-gradient(135deg, #FFB74D 0%, #F57C00 100%);
+            box-shadow: 0 4px 12px rgba(245, 124, 0, 0.3);
+        }
+        .menu-icon-reports svg { stroke: #fff; }
+        
+        .menu-icon-medals {
+            background: linear-gradient(135deg, #FFD54F 0%, #FFA000 100%);
+            box-shadow: 0 4px 12px rgba(255, 160, 0, 0.3);
+        }
+        .menu-icon-medals svg { stroke: #fff; }
+        
+        .menu-icon-clips {
+            background: linear-gradient(135deg, #BA68C8 0%, #8E24AA 100%);
+            box-shadow: 0 4px 12px rgba(142, 36, 170, 0.3);
+        }
+        .menu-icon-clips svg { stroke: #fff; }
+        
+        .menu-icon-profile {
+            background: linear-gradient(135deg, #81C784 0%, #388E3C 100%);
+            box-shadow: 0 4px 12px rgba(56, 142, 60, 0.3);
+        }
+        .menu-icon-profile svg { stroke: #fff; }
+        
+        .menu-icon-settings {
+            background: linear-gradient(135deg, #90A4AE 0%, #546E7A 100%);
+            box-shadow: 0 4px 12px rgba(84, 110, 122, 0.3);
+        }
+        .menu-icon-settings svg { stroke: #fff; }
+        
+        .menu-icon-about {
+            background: linear-gradient(135deg, #F06292 0%, #C2185B 100%);
+            box-shadow: 0 4px 12px rgba(194, 24, 91, 0.3);
+        }
+        .menu-icon-about svg { stroke: #fff; }
+        
+        .menu-icon-exit {
+            background: linear-gradient(135deg, #EF5350 0%, #C62828 100%);
+            box-shadow: 0 4px 12px rgba(198, 40, 40, 0.3);
+        }
+        .menu-icon-exit svg { stroke: #fff; }
+        
+        .side-menu-item-text {
+            flex: 1;
+            text-align: right;
+        }
+        .side-menu-item-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: #1565c0;
+        }
+        .side-menu-item-desc {
+            font-size: 11px;
+            color: #90a4ae;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+        
+        .side-menu-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e3f2fd, transparent);
+            margin: 15px 0;
+        }
+        
+        .side-menu-exit {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            border: 1.5px solid #ef9a9a;
+        }
+        .side-menu-exit .side-menu-item-title { color: #c62828; }
+        .side-menu-exit .side-menu-item-desc { color: #e57373; }
+        
+        .side-menu-footer {
+            padding: 15px 20px 25px 20px;
+            text-align: center;
+            font-size: 11px;
+            color: #90a4ae;
+            font-weight: bold;
+        }
+        
+        .side-menu-footer .heart { color: #e53935; }
 
         /* ============ مودال کسب مدال ============ */
         .medal-modal-overlay {
@@ -1146,6 +1604,96 @@
         }
         .repeat-btn-confirm:active { transform: scale(0.96); }
 
+        /* ============ مودال ادامه تکلیف ============ */
+        .resume-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9200;
+            padding: 20px;
+        }
+        .resume-modal-overlay.active { display: flex; }
+        .resume-modal-box {
+            background: #fff;
+            border-radius: 24px;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease;
+        }
+        .resume-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            border: 3px solid #fff;
+            box-shadow: 0 8px 20px rgba(25, 118, 210, 0.3);
+        }
+        .resume-icon-wrapper svg {
+            width: 40px;
+            height: 40px;
+            stroke: #1976d2;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .resume-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 12px;
+        }
+        .resume-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.8;
+            font-weight: bold;
+        }
+        .resume-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .resume-btn-restart {
+            flex: 1;
+            padding: 14px;
+            border-radius: 50px;
+            border: 2px solid #e0e0e0;
+            background: #fff;
+            color: #666;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        .resume-btn-restart:active { transform: scale(0.96); }
+        .resume-btn-continue {
+            flex: 1;
+            padding: 14px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
+        }
+        .resume-btn-continue:active { transform: scale(0.96); }
+
         /* ============ صفحه تنظیمات ============ */
         #screen-settings { background: #f0f7ff; }
         .settings-new-list { padding: 15px 15px 30px 15px; }
@@ -1334,6 +1882,146 @@
             border-radius: 50px;
             font-size: 14px;
             font-weight: 900;
+        }
+
+        /* ============ صفحه درباره ما ============ */
+        #screen-about { background: #f0f7ff; }
+        .about-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 15px 30px 15px;
+        }
+        
+        /* وکتور برنامه‌نویس */
+        .about-vector-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+            padding: 10px;
+        }
+        
+        .about-vector-glow {
+            position: absolute;
+            width: 230px;
+            height: 230px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(25, 118, 210, 0.25) 0%, transparent 70%);
+            animation: glowPulseVector 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes glowPulseVector {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 0.3; }
+        }
+        
+        .about-vector-img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            position: relative;
+            z-index: 2;
+            animation: floatVector 3s ease-in-out infinite;
+            filter: drop-shadow(0 10px 20px rgba(25, 118, 210, 0.3));
+        }
+        
+        @keyframes floatVector {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+        
+        .about-name-card {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+        
+        .about-name {
+            font-size: 24px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 8px;
+        }
+        
+        .about-role {
+            display: inline-block;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: #fff;
+            padding: 8px 22px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 900;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
+        }
+        
+        .about-info-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+            border: 1.5px solid #e3f2fd;
+            margin-bottom: 14px;
+        }
+        .about-info-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .about-info-title svg {
+            width: 22px;
+            height: 22px;
+            stroke: #1976d2;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .about-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e3f2fd;
+            font-size: 14px;
+        }
+        .about-info-row:last-child { border-bottom: none; }
+        .about-info-row .label { color: #78909c; font-weight: bold; }
+        .about-info-row .value { color: #1565c0; font-weight: 900; }
+        
+        .about-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .about-feature {
+            background: linear-gradient(135deg, #f0f7ff, #e3f2fd);
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center;
+            border: 1px solid #bbdefb;
+        }
+        .about-feature-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+        .about-feature-text {
+            font-size: 12px;
+            font-weight: 900;
+            color: #1565c0;
+        }
+        
+        .about-version {
+            text-align: center;
+            font-size: 12px;
+            color: #90a4ae;
+            font-weight: bold;
+            margin-top: 20px;
         }
 
         /* ============ صفحه پروفایل ============ */
@@ -1554,6 +2242,187 @@
             color: #c62828;
             font-size: 15px;
             font-weight: 900;
+        }
+
+        /* ============ کارنامه گرافیکی ============ */
+        .report-graphic-container {
+            background: #fff;
+            padding: 25px 20px;
+            border-radius: 20px;
+            direction: rtl;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        
+        .report-header-graphic {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed #e3f2fd;
+        }
+        
+        .report-header-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: #1565c0;
+            margin-bottom: 5px;
+        }
+        
+        .report-header-sub {
+            font-size: 13px;
+            color: #90a4ae;
+            font-weight: bold;
+        }
+        
+        .report-student-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 18px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #90caf9;
+        }
+        
+        .report-student-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.2);
+            flex-shrink: 0;
+        }
+        
+        .report-student-avatar img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        
+        .report-student-info { flex: 1; }
+        .report-student-name {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0d47a1;
+            margin-bottom: 5px;
+        }
+        .report-student-class {
+            font-size: 13px;
+            color: #1565c0;
+            font-weight: bold;
+        }
+        
+        .report-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .report-info-item {
+            background: #f8f9fa;
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1.5px solid #e3f2fd;
+        }
+        
+        .report-info-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .report-info-icon svg {
+            width: 22px; height: 22px;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        
+        .report-info-icon.blue { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
+        .report-info-icon.blue svg { stroke: #1976d2; }
+        .report-info-icon.green { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
+        .report-info-icon.green svg { stroke: #2e7d32; }
+        .report-info-icon.red { background: linear-gradient(135deg, #ffebee, #ffcdd2); }
+        .report-info-icon.red svg { stroke: #c62828; }
+        .report-info-icon.yellow { background: linear-gradient(135deg, #fff8e1, #ffecb3); }
+        .report-info-icon.yellow svg { stroke: #f57c00; }
+        .report-info-icon.purple { background: linear-gradient(135deg, #f3e5f5, #e1bee7); }
+        .report-info-icon.purple svg { stroke: #8e24aa; }
+        .report-info-icon.teal { background: linear-gradient(135deg, #e0f2f1, #b2dfdb); }
+        .report-info-icon.teal svg { stroke: #00897b; }
+        
+        .report-info-content { flex: 1; min-width: 0; }
+        .report-info-label {
+            font-size: 11px;
+            color: #78909c;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .report-info-value {
+            font-size: 15px;
+            font-weight: 900;
+            color: #333;
+        }
+        
+        .report-percent-circle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 8px solid #1976d2;
+            background: #f8f9fa;
+            position: relative;
+        }
+        
+        .report-percent-value {
+            font-size: 36px;
+            font-weight: 900;
+            color: #1976d2;
+        }
+        
+        .report-percent-label {
+            font-size: 12px;
+            color: #78909c;
+            font-weight: bold;
+        }
+        
+        .report-message {
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            border: 2px solid #ffc107;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .report-message-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: #e65100;
+            margin-bottom: 6px;
+        }
+        
+        .report-message-text {
+            font-size: 13px;
+            color: #bf360c;
+            font-weight: bold;
+            line-height: 1.6;
         }
 
         /* ============ کارت‌های کارنامه ============ */
@@ -2259,6 +3128,182 @@
         </div>
     </div>
 
+    <!-- مودال ادامه تکلیف -->
+    <div class="resume-modal-overlay" id="resume-modal">
+        <div class="resume-modal-box">
+            <div class="resume-icon-wrapper">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 3L19 12L5 21V3Z"/>
+                </svg>
+            </div>
+            <div class="resume-title">ادامه تکلیف</div>
+            <div class="resume-text" id="resume-text">
+                شما این تکلیف رو نیمه‌کاره رها کردید. آیا می‌خواید از همون‌جا که بودید ادامه بدید؟
+            </div>
+            <div class="resume-buttons">
+                <button class="resume-btn-restart" onclick="restartLesson()">از اول</button>
+                <button class="resume-btn-continue" onclick="continueLesson()">ادامه</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- منوی کناری -->
+    <div class="side-menu-overlay" id="side-menu-overlay" onclick="closeSideMenu()"></div>
+    <div class="side-menu" id="side-menu">
+        <div class="side-menu-header">
+            <div class="side-menu-title">
+                <span>📚</span>
+                <span>عربی هفتم</span>
+            </div>
+            <button class="side-menu-close" onclick="closeSideMenu()">✕</button>
+        </div>
+        
+        <div class="theme-toggle-wrapper">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleThemeFromMenu()">
+                    <div class="theme-icon-glow"></div>
+                    <span class="theme-icon" id="theme-icon">☀️</span>
+                </button>
+                <div class="theme-label" id="theme-label">حالت روز</div>
+            </div>
+        </div>
+        
+        <div class="side-menu-items">
+            <div class="side-menu-item" onclick="goToScreen('screen-home'); closeSideMenu();">
+                <div class="side-menu-item-icon menu-icon-home">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                </div>
+                <div class="side-menu-item-text">
+                    <div class="side-menu-item-title">خانه</div>
+                    <div class="side-menu-item-desc">صفحه اصلی برنامه</div>
+                </div>
+            </div>
+            
+            <div class="side-menu-item" onclick="goToScreen('screen-lessons'); closeSideMenu();">
+                <div class="side-menu-item-icon menu-icon-lessons">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/>
+                        <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/>
+                        <line x1="9" y1="7" x2="16" y2="7"/>
+                        <line x1="9" y1="11" x2="16" y2="11"/>
+                    </svg>
+                </div>
+                <div class="side-menu-item-text">
+                    <div class="side-menu-item-title">تکالیف من</div>
+                    <div class="side-menu-item-desc">مشاهده و انجام تکالیف</div>
+                </div>
+            </div>
+            
+            <div class="side-menu-item" onclick="goToScreen('screen-reports'); closeSideMenu();">
+                <div class="side-menu-item-icon menu-icon-reports">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="9" y1="13" x2="15" y2="13"/>
+                        <line x1="9" y1="17" x2="15" y2="17"/>
+                    </svg>
+                </div>
+                <div class="side-menu-item-text">
+                    <div class="side-menu-item-title">کارنامه‌ها</div>
+                    <div class="side-menu-item-desc">مشاهده نتایج تکالیف</div>
+                </div>
+            </div>
+            
+            <div class="side-menu-item" onclick="goToScreen('screen-medals'); closeSideMenu();">
+                <div class="side-menu-item-icon menu-icon-medals">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
+                        <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
+                        <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
+                        <path d="M12 16V20"/>
+                        <path d="M8 20H16"/>
+                    </svg>
+                </div>
+                <div class="side-menu-item-text">
+                    <div class="side-menu-item-title">مدال‌ها</div>
+                    <div class="side-menu-item-desc">دستاوردهای شما</div>
+                </div>
+            </div>
+            
+            <div class="side-menu-item" onclick="goToScreen('screen-clips'); closeSideMenu();">
+                <div class="side-menu-item-icon menu-icon-clips">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="23 7 16 12 23 17 23 7"/>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                        <path d="M8 9L11 12L8 15"/>
+                    </svg>
+                </div>
+                <div class="side-menu-item-text">
+                    <div class="side-menu-item-title">کلیپ‌های آموزشی</div>
+                    <div class="side-menu-item-desc">ویدیوهای آموزشی دروس</div>
+                </div>
+            </div>
+            
+            <div class="side-menu-item" onclick="goToScreen('screen-profile'); closeSideMenu();">
+                <div class="side-menu-item-icon menu-icon-profile">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 21C4 17 7 14 12 14C17 14 20 17 20 21"/>
+                    </svg>
+                </div>
+                <div class="side-menu-item-text">
+                    <div class="side-menu-item-title">حساب کاربری</div>
+                    <div class="side-menu-item-desc">اطلاعات شخصی شما</div>
+                </div>
+            </div>
+            
+            <div class="side-menu-item" onclick="goToScreen('screen-settings'); closeSideMenu();">
+                <div class="side-menu-item-icon menu-icon-settings">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </div>
+                <div class="side-menu-item-text">
+                    <div class="side-menu-item-title">تنظیمات</div>
+                    <div class="side-menu-item-desc">تنظیمات برنامه</div>
+                </div>
+            </div>
+            
+            <div class="side-menu-divider"></div>
+            
+            <div class="side-menu-item" onclick="goToScreen('screen-about'); closeSideMenu();">
+                <div class="side-menu-item-icon menu-icon-about">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                </div>
+                <div class="side-menu-item-text">
+                    <div class="side-menu-item-title">درباره ما</div>
+                    <div class="side-menu-item-desc">اطلاعات برنامه و سازنده</div>
+                </div>
+            </div>
+            
+            <div class="side-menu-item side-menu-exit" onclick="openExitModal(); closeSideMenu();">
+                <div class="side-menu-item-icon menu-icon-exit">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"/>
+                        <path d="M16 17L21 12L16 7"/>
+                        <path d="M21 12H9"/>
+                    </svg>
+                </div>
+                <div class="side-menu-item-text">
+                    <div class="side-menu-item-title">خروج از برنامه</div>
+                    <div class="side-menu-item-desc">بستن برنامه</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="side-menu-footer">
+            ساخته شده با <span class="heart">❤</span> توسط محمدهادی حججی
+        </div>
+    </div>
+
     <div id="screen-splash" class="screen active">
         <img src="https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png" alt="پس زمینه" class="splash-bg-image">
         <div class="splash-light-glow"></div>
@@ -2297,7 +3342,6 @@
     <div id="screen-home" class="screen">
         <div class="home-scroll-area">
             
-            <!-- اعلان تکلیف جدید -->
             <div class="new-lesson-notification" id="new-lesson-notification">
                 <button class="notification-close" onclick="dismissNotification()">✕</button>
                 <div class="notification-icon">🔔</div>
@@ -2309,12 +3353,13 @@
             </div>
             
             <div class="home-top-bar">
-                <button class="home-icon-btn" onclick="showModal('منو', 'این بخش در حال ساخت است.', '🚧')">
+                <button class="home-icon-btn" onclick="openSideMenu()">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 6H21M3 12H21M3 18H21" stroke="#1976d2" stroke-width="2.5" stroke-linecap="round"/>
                     </svg>
                 </button>
-                <button class="home-icon-btn" onclick="showModal('اعلان‌ها', 'هیچ اعلان جدیدی ندارید.', '🔔')">
+                <button class="home-icon-btn" onclick="goToScreen('screen-notifications')">
+                    <span class="notif-badge-dot" id="notif-badge-dot"></span>
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="#1976d2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" stroke="#1976d2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2445,6 +3490,19 @@
         </div>
     </div>
 
+    <!-- صفحه اعلان‌ها -->
+    <div id="screen-notifications" class="screen">
+        <div class="page-header">
+            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="page-title">اعلان‌ها</div>
+        </div>
+        <div class="notifications-list" id="notifications-list"></div>
+    </div>
+
     <!-- صفحه کلیپ‌ها -->
     <div id="screen-clips" class="screen">
         <div class="page-header">
@@ -2462,6 +3520,96 @@
                 کلیپ‌های آموزشی درس‌های عربی پایه هفتم به زودی در این بخش بارگذاری خواهد شد.
             </div>
             <div class="clips-soon-badge">📚 در حال آماده‌سازی</div>
+        </div>
+    </div>
+
+    <!-- صفحه درباره ما -->
+    <div id="screen-about" class="screen">
+        <div class="page-header">
+            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="page-title">درباره ما</div>
+        </div>
+        <div class="about-content">
+            <!-- وکتور برنامه‌نویس -->
+            <div class="about-vector-container">
+                <div class="about-vector-glow"></div>
+                <img src="https://cdn.imgurl.ir/uploads/l655746___.png" alt="برنامه‌نویس" class="about-vector-img">
+            </div>
+            
+            <div class="about-name-card">
+                <div class="about-name">محمدهادی حججی</div>
+                <div class="about-role">سازنده برنامه</div>
+            </div>
+            
+            <div class="about-info-card">
+                <div class="about-info-title">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16V12"/>
+                        <path d="M12 8H12.01"/>
+                    </svg>
+                    <span>اطلاعات برنامه</span>
+                </div>
+                <div class="about-info-row">
+                    <span class="label">نام برنامه</span>
+                    <span class="value">عربی هفتم</span>
+                </div>
+                <div class="about-info-row">
+                    <span class="label">نسخه</span>
+                    <span class="value">۱.۰.۰</span>
+                </div>
+                <div class="about-info-row">
+                    <span class="label">پایه تحصیلی</span>
+                    <span class="value">هفتم</span>
+                </div>
+                <div class="about-info-row">
+                    <span class="label">سال تحصیلی</span>
+                    <span class="value">۱۴۰۵-۱۴۰۶</span>
+                </div>
+            </div>
+            
+            <div class="about-info-card">
+                <div class="about-info-title">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    <span>ویژگی‌های برنامه</span>
+                </div>
+                <div class="about-features">
+                    <div class="about-feature">
+                        <div class="about-feature-icon">📚</div>
+                        <div class="about-feature-text">تکالیف تعاملی</div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">📊</div>
+                        <div class="about-feature-text">کارنامه گرافیکی</div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">🏆</div>
+                        <div class="about-feature-text">مدال و امتیاز</div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">🎬</div>
+                        <div class="about-feature-text">کلیپ آموزشی</div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">🌙</div>
+                        <div class="about-feature-text">حالت شب</div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">📱</div>
+                        <div class="about-feature-text">قابل نصب</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="about-version">
+                ساخته شده با ❤️ توسط محمدهادی حججی
+            </div>
         </div>
     </div>
 
@@ -3007,7 +4155,6 @@
         
         if (screenId === 'screen-lessons') {
             loadLessonsList();
-            markLessonsAsSeen();
         }
         if (screenId === 'screen-reports') {
             loadReports();
@@ -3018,40 +4165,158 @@
         if (screenId === 'screen-medals') {
             loadMedals();
         }
+        if (screenId === 'screen-notifications') {
+            loadNotifications();
+        }
         if (screenId === 'screen-home') {
             typeMotivation();
+            if (allLessons.length === 0) {
+                loadLessonsListForNotification().then(() => {
+                    checkAndShowNotification();
+                    updateNotificationBadge();
+                });
+            } else {
+                checkAndShowNotification();
+                updateNotificationBadge();
+            }
+        }
+    }
+
+    // ============ سیستم اعلان‌ها ============
+    function getNotifications() {
+        return JSON.parse(localStorage.getItem('notifications') || '[]');
+    }
+    
+    function saveNotifications(notifs) {
+        localStorage.setItem('notifications', JSON.stringify(notifs));
+    }
+    
+    function addNotification(type, title, text) {
+        const notifs = getNotifications();
+        const now = new Date();
+        const newNotif = {
+            id: 'notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            type: type,
+            title: title,
+            text: text,
+            date: now.toLocaleDateString('fa-IR'),
+            time: now.toLocaleTimeString('fa-IR', {hour: '2-digit', minute: '2-digit'}),
+            timestamp: now.getTime(),
+            read: false
+        };
+        notifs.unshift(newNotif);
+        if (notifs.length > 50) notifs.pop();
+        saveNotifications(notifs);
+        return newNotif;
+    }
+    
+    function updateNotificationBadge() {
+        const notifs = getNotifications();
+        const unread = notifs.filter(n => !n.read);
+        const badge = document.getElementById('notif-badge-dot');
+        if (badge) {
+            if (unread.length > 0) {
+                badge.classList.add('show');
+            } else {
+                badge.classList.remove('show');
+            }
+        }
+    }
+    
+    function getNotifIcon(type) {
+        const icons = {
+            lesson: '<svg viewBox="0 0 24 24"><path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/><path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/></svg>',
+            reminder: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+            message: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+            info: '<svg viewBox="0 0 24 24"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',
+            success: '<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+            clip: '<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
+        };
+        return icons[type] || icons.info;
+    }
+    
+    function loadNotifications() {
+        const notifs = getNotifications();
+        const container = document.getElementById('notifications-list');
+        
+        if (notifs.length === 0) {
+            container.innerHTML = `
+                <div class="report-empty">
+                    <div class="report-empty-icon">🔔</div>
+                    <div class="report-empty-text">هنوز اعلانی ندارید</div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = notifs.map(n => `
+            <div class="notif-card ${n.read ? '' : 'unread'}" onclick="markNotifRead('${n.id}')">
+                <div class="notif-icon-wrapper notif-icon-${n.type}">
+                    ${getNotifIcon(n.type)}
+                </div>
+                <div class="notif-content">
+                    <div class="notif-title">${n.title}</div>
+                    <div class="notif-text">${n.text}</div>
+                    <div class="notif-date">${n.time} - ${n.date}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function markNotifRead(id) {
+        const notifs = getNotifications();
+        const notif = notifs.find(n => n.id === id);
+        if (notif) {
+            notif.read = true;
+            saveNotifications(notifs);
+            loadNotifications();
+            updateNotificationBadge();
+        }
+    }
+
+    // ============ لود تکالیف برای اعلان ============
+    async function loadLessonsListForNotification() {
+        try {
+            const response = await fetch('./lessons/index.json');
+            if (!response.ok) throw new Error('خطا');
+            const data = await response.json();
+            allLessons = data.lessons;
+            checkAndAddLessonNotifications();
+        } catch (error) {
+            console.error('خطا در لود تکالیف:', error);
+            allLessons = [];
+        }
+    }
+    
+    function checkAndAddLessonNotifications() {
+        const seenLessonsForNotif = JSON.parse(localStorage.getItem('seenLessonsForNotif') || '[]');
+        const newLessons = allLessons.filter(l => !seenLessonsForNotif.includes(l.id));
+        
+        newLessons.forEach(lesson => {
+            addNotification(
+                'lesson',
+                'تکلیف جدید',
+                `${lesson.title}${lesson.subtitle ? ' - ' + lesson.subtitle : ''}`
+            );
+        });
+        
+        if (newLessons.length > 0) {
+            const allIds = allLessons.map(l => l.id);
+            localStorage.setItem('seenLessonsForNotif', JSON.stringify(allIds));
         }
     }
 
     async function startApp() {
         const isRegistered = localStorage.getItem('userRegistered') === 'true';
-        
-        // اول لیست تکالیف رو لود کن
-        await preloadLessons();
-        
         if (isRegistered) {
+            await loadLessonsListForNotification();
             goToScreen('screen-home');
-            // بعد از رفتن به صفحه خانه، اعلان رو چک کن
             setTimeout(() => {
                 checkAndShowNotification();
-            }, 500);
+                updateNotificationBadge();
+            }, 400);
         } else {
             goToScreen('screen-welcome');
-        }
-    }
-    
-    // پیش‌بارگذاری لیست تکالیف
-    async function preloadLessons() {
-        try {
-            const response = await fetch('./lessons/index.json');
-            if (!response.ok) throw new Error('خطا در بارگذاری');
-            const data = await response.json();
-            allLessons = data.lessons;
-            // بج رو هم چک کن
-            checkNewLessons();
-        } catch (error) {
-            console.error('خطا در پیش‌بارگذاری:', error);
-            allLessons = [];
         }
     }
 
@@ -3078,11 +4343,6 @@
         
         updateHomeUI();
         goToScreen('screen-home');
-        
-        // بعد از ورود، اعلان رو چک کن
-        setTimeout(() => {
-            checkAndShowNotification();
-        }, 500);
     }
 
     function updateHomeUI() {
@@ -3254,6 +4514,8 @@
         document.getElementById('medal-modal-desc').textContent = medal.desc;
         document.getElementById('medal-modal').classList.add('active');
         playMedalSound();
+        
+        addNotification('success', 'مدال جدید', `شما مدال «${medal.title}» را دریافت کردید!`);
     }
 
     function closeMedalModal() {
@@ -3279,27 +4541,17 @@
         } catch(e) {}
     }
 
+    // ============ اعلان تکلیف ============
     function checkAndShowNotification() {
-        if (allLessons.length === 0) {
-            // اگه لیست خالیه، دوباره لود کن
-            preloadLessons().then(() => {
-                showNotificationIfNeeded();
-            });
-            return;
-        }
-        showNotificationIfNeeded();
-    }
-    
-    function showNotificationIfNeeded() {
-        const seenLessons = JSON.parse(localStorage.getItem('seenLessons') || '[]');
-        const allIds = allLessons.map(l => l.id);
-        const newLessons = allIds.filter(id => !seenLessons.includes(id));
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const completedIds = reports.map(r => r.lessonId);
+        const pendingLessons = allLessons.filter(l => !completedIds.includes(l.id));
         
         const notification = document.getElementById('new-lesson-notification');
         const subText = document.getElementById('notification-sub-text');
         
-        if (newLessons.length > 0 && allLessons.length > 0) {
-            subText.textContent = `${toPersianNum(newLessons.length)} تکلیف جدید در انتظار شماست`;
+        if (pendingLessons.length > 0 && allLessons.length > 0) {
+            subText.textContent = `${toPersianNum(pendingLessons.length)} تکلیف در انتظار شماست`;
             notification.classList.add('show');
         } else {
             notification.classList.remove('show');
@@ -3310,17 +4562,25 @@
 
     function dismissNotification() {
         document.getElementById('new-lesson-notification').classList.remove('show');
-        if (allLessons.length > 0) {
-            const allIds = allLessons.map(l => l.id);
-            localStorage.setItem('seenLessons', JSON.stringify(allIds));
-            const badge = document.getElementById('new-lesson-badge');
-            if (badge) badge.style.display = 'none';
-        }
     }
 
     function goToNewLesson() {
         document.getElementById('new-lesson-notification').classList.remove('show');
         goToScreen('screen-lessons');
+    }
+
+    function checkNewLessons() {
+        if (allLessons.length === 0) return;
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const completedIds = reports.map(r => r.lessonId);
+        const pendingLessons = allLessons.filter(l => !completedIds.includes(l.id));
+        
+        const badge = document.getElementById('new-lesson-badge');
+        if (pendingLessons.length > 0 && badge) {
+            badge.style.display = 'inline-block';
+        } else if (badge) {
+            badge.style.display = 'none';
+        }
     }
 
     function openEditProfile() {
@@ -3419,11 +4679,8 @@
     }
     function confirmExit() {
         closeExitModal();
-        // خروج نرم: برگشت به صفحه قبل یا بستن پنجره
         setTimeout(() => {
-            if (window.history.length > 1) {
-                window.history.go(-1);
-            }
+            window.history.go(-1);
         }, 100);
     }
     
@@ -3441,12 +4698,30 @@
             document.querySelectorAll('img').forEach(img => {
                 img.style.filter = 'invert(1) hue-rotate(180deg)';
             });
+            const toggle = document.getElementById('theme-toggle');
+            if (toggle) toggle.classList.add('dark');
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.textContent = '🌙';
+            const label = document.getElementById('theme-label');
+            if (label) {
+                label.textContent = 'حالت شب';
+                label.classList.add('dark-label');
+            }
         } else {
             localStorage.setItem('darkMode', 'false');
             document.body.style.filter = '';
             document.querySelectorAll('img').forEach(img => {
                 img.style.filter = '';
             });
+            const toggle = document.getElementById('theme-toggle');
+            if (toggle) toggle.classList.remove('dark');
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.textContent = '☀️';
+            const label = document.getElementById('theme-label');
+            if (label) {
+                label.textContent = 'حالت روز';
+                label.classList.remove('dark-label');
+            }
         }
     }
     
@@ -3463,6 +4738,52 @@
     
     function toggleSoundsSetting(el) {
         localStorage.setItem('soundsEnabled', el.checked ? 'true' : 'false');
+    }
+
+    // ============ منوی کناری ============
+    function openSideMenu() {
+        document.getElementById('side-menu-overlay').classList.add('active');
+        document.getElementById('side-menu').classList.add('active');
+    }
+    
+    function closeSideMenu() {
+        document.getElementById('side-menu-overlay').classList.remove('active');
+        document.getElementById('side-menu').classList.remove('active');
+    }
+    
+    function toggleThemeFromMenu() {
+        const toggle = document.getElementById('theme-toggle');
+        const icon = document.getElementById('theme-icon');
+        const label = document.getElementById('theme-label');
+        toggle.classList.toggle('dark');
+        
+        if (toggle.classList.contains('dark')) {
+            localStorage.setItem('darkMode', 'true');
+            document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+            document.querySelectorAll('img').forEach(img => {
+                img.style.filter = 'invert(1) hue-rotate(180deg)';
+            });
+            const settingEl = document.getElementById('setting-dark-mode');
+            if (settingEl) settingEl.checked = true;
+            if (icon) icon.textContent = '🌙';
+            if (label) {
+                label.textContent = 'حالت شب';
+                label.classList.add('dark-label');
+            }
+        } else {
+            localStorage.setItem('darkMode', 'false');
+            document.body.style.filter = '';
+            document.querySelectorAll('img').forEach(img => {
+                img.style.filter = '';
+            });
+            const settingEl = document.getElementById('setting-dark-mode');
+            if (settingEl) settingEl.checked = false;
+            if (icon) icon.textContent = '☀️';
+            if (label) {
+                label.textContent = 'حالت روز';
+                label.classList.remove('dark-label');
+            }
+        }
     }
 
     let allLessons = [];
@@ -3511,12 +4832,15 @@
         
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedLessonIds = reports.map(r => r.lessonId);
+        const currentProgress = getCurrentProgress();
         
         let lessonsToShow = allLessons.map((lesson, index) => {
             const isCompleted = completedLessonIds.includes(lesson.id);
+            const isPaused = currentProgress && currentProgress.lessonId === lesson.id;
             return {
                 ...lesson,
                 isCompleted: isCompleted,
+                isPaused: isPaused,
                 colorIndex: (index % 6) + 1
             };
         });
@@ -3540,7 +4864,35 @@
         const iconBgs = ['#c8e6c9', '#e1bee7', '#bbdefb', '#ffe0b2', '#f8bbd0', '#b2dfdb'];
         
         container.innerHTML = lessonsToShow.map((lesson) => {
-            const progressPercent = lesson.isCompleted ? 100 : 0;
+            let progressPercent = 0;
+            let statusHTML = '';
+            
+            if (lesson.isCompleted) {
+                progressPercent = 100;
+                statusHTML = `
+                    <div class="status-badge completed">
+                        <span>تکمیل شده</span>
+                        <span class="check-icon">✓</span>
+                    </div>
+                `;
+            } else if (lesson.isPaused && currentProgress) {
+                progressPercent = Math.round((currentProgress.questionIndex / currentProgress.totalQuestions) * 100);
+                statusHTML = `
+                    <div class="status-badge paused">
+                        <span>نیمه‌کاره - ادامه بده</span>
+                        <span class="check-icon paused-icon">⏸</span>
+                    </div>
+                `;
+            } else {
+                progressPercent = 0;
+                statusHTML = `
+                    <div class="status-badge in-progress">
+                        <span>در حال انجام</span>
+                        <span class="check-icon in-progress-icon">•</span>
+                    </div>
+                `;
+            }
+            
             const releaseDate = lesson.releaseDate || '۱۴۰۵/۰۹/۱۲';
             const dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
             
@@ -3570,17 +4922,7 @@
                     </div>
                     
                     <div class="lesson-status">
-                        ${lesson.isCompleted ? `
-                            <div class="status-badge completed">
-                                <span>تکمیل شده</span>
-                                <span class="check-icon">✓</span>
-                            </div>
-                        ` : `
-                            <div class="status-badge in-progress">
-                                <span>در حال انجام</span>
-                                <span class="check-icon in-progress-icon">•</span>
-                            </div>
-                        `}
+                        ${statusHTML}
                         <div class="arrow-back-icon">‹</div>
                     </div>
                 </div>
@@ -3588,31 +4930,49 @@
         }).join('');
     }
 
-    function checkNewLessons() {
-        if (allLessons.length === 0) return;
-        const seenLessons = JSON.parse(localStorage.getItem('seenLessons') || '[]');
-        const newLessons = allLessons.filter(l => !seenLessons.includes(l.id));
-        
-        const badge = document.getElementById('new-lesson-badge');
-        if (newLessons.length > 0 && badge) {
-            badge.style.display = 'inline-block';
-        } else if (badge) {
-            badge.style.display = 'none';
+    // ============ ذخیره و بازیابی پیشرفت ============
+    function saveCurrentProgress() {
+        if (!currentLesson) return;
+        const progress = {
+            lessonId: currentLesson.lessonId,
+            questionIndex: currentQuestionIndex,
+            score: score,
+            correctCount: correctCount,
+            wrongCount: wrongCount,
+            isPracticeMode: isPracticeMode,
+            startTime: startTime ? startTime.getTime() : Date.now(),
+            totalQuestions: currentLesson.questions.length,
+            lessonTitle: currentLesson.title
+        };
+        localStorage.setItem('currentLessonProgress', JSON.stringify(progress));
+    }
+    
+    function getCurrentProgress() {
+        const data = localStorage.getItem('currentLessonProgress');
+        if (!data) return null;
+        try {
+            return JSON.parse(data);
+        } catch(e) {
+            return null;
         }
     }
-
-    function markLessonsAsSeen() {
-        if (allLessons.length === 0) return;
-        const allIds = allLessons.map(l => l.id);
-        localStorage.setItem('seenLessons', JSON.stringify(allIds));
-        const badge = document.getElementById('new-lesson-badge');
-        if (badge) badge.style.display = 'none';
-        document.getElementById('new-lesson-notification').classList.remove('show');
+    
+    function clearCurrentProgress() {
+        localStorage.removeItem('currentLessonProgress');
     }
 
     async function startLesson(lessonId) {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const alreadyDone = reports.some(r => r.lessonId === lessonId);
+        
+        const progress = getCurrentProgress();
+        if (progress && progress.lessonId === lessonId && !alreadyDone) {
+            pendingLessonId = lessonId;
+            document.getElementById('resume-text').textContent = 
+                `شما این تکلیف رو نیمه‌کاره رها کردید (سوال ${toPersianNum(progress.questionIndex + 1)} از ${toPersianNum(progress.totalQuestions)}). آیا می‌خواید از همون‌جا ادامه بدید؟`;
+            document.getElementById('resume-modal').classList.add('active');
+            return;
+        }
         
         if (alreadyDone) {
             pendingLessonId = lessonId;
@@ -3620,7 +4980,7 @@
             return;
         }
         
-        await runLesson(lessonId, false);
+        await runLesson(lessonId, false, 0);
     }
     
     function closeRepeatModal() {
@@ -3631,12 +4991,34 @@
     async function confirmRepeatLesson() {
         document.getElementById('repeat-modal').classList.remove('active');
         if (pendingLessonId) {
-            await runLesson(pendingLessonId, true);
+            await runLesson(pendingLessonId, true, 0);
             pendingLessonId = null;
         }
     }
     
-    async function runLesson(lessonId, practiceMode) {
+    function restartLesson() {
+        document.getElementById('resume-modal').classList.remove('active');
+        if (pendingLessonId) {
+            clearCurrentProgress();
+            runLesson(pendingLessonId, false, 0);
+            pendingLessonId = null;
+        }
+    }
+    
+    function continueLesson() {
+        document.getElementById('resume-modal').classList.remove('active');
+        if (pendingLessonId) {
+            const progress = getCurrentProgress();
+            if (progress) {
+                runLesson(pendingLessonId, progress.isPracticeMode, progress.questionIndex);
+            } else {
+                runLesson(pendingLessonId, false, 0);
+            }
+            pendingLessonId = null;
+        }
+    }
+    
+    async function runLesson(lessonId, practiceMode, startFromIndex = 0) {
         try {
             const lessonMeta = allLessons.find(l => l.id === lessonId);
             if (!lessonMeta) return;
@@ -3645,14 +5027,31 @@
             if (!response.ok) throw new Error('خطا در بارگذاری');
             currentLesson = await response.json();
             
-            markLessonsAsSeen();
-            
-            currentQuestionIndex = 0;
-            score = 0;
-            correctCount = 0;
-            wrongCount = 0;
-            startTime = new Date();
-            isPracticeMode = practiceMode;
+            if (startFromIndex > 0 && !practiceMode) {
+                const progress = getCurrentProgress();
+                if (progress && progress.lessonId === lessonId) {
+                    currentQuestionIndex = progress.questionIndex;
+                    score = progress.score;
+                    correctCount = progress.correctCount;
+                    wrongCount = progress.wrongCount;
+                    isPracticeMode = progress.isPracticeMode;
+                    startTime = new Date(progress.startTime);
+                } else {
+                    currentQuestionIndex = 0;
+                    score = 0;
+                    correctCount = 0;
+                    wrongCount = 0;
+                    isPracticeMode = practiceMode;
+                    startTime = new Date();
+                }
+            } else {
+                currentQuestionIndex = startFromIndex;
+                score = 0;
+                correctCount = 0;
+                wrongCount = 0;
+                isPracticeMode = practiceMode;
+                startTime = new Date();
+            }
             
             document.getElementById('quiz-lesson-title').textContent = currentLesson.title;
             goToScreen('screen-quiz');
@@ -3714,35 +5113,124 @@
         localStorage.setItem('reports', JSON.stringify(reports));
     }
 
+    // ============ کارنامه گرافیکی ============
+    function generateGraphicReport(report) {
+        const avatar = localStorage.getItem('userAvatar') || 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
+        const message = report.percent >= 90 ? 'عالی بودی! ادامه بده 🌟' : 
+                        report.percent >= 70 ? 'خوب بود، کمی تلاش بیشتر نیاز داری 💪' : 
+                        report.percent >= 50 ? 'قابل قبول، اما نیاز به تمرین بیشتر داری 📚' : 
+                        'نیاز به تلاش بیشتر داری، ناامید نشو 🌱';
+        
+        return `
+            <div class="report-graphic-container">
+                <div class="report-header-graphic">
+                    <div class="report-header-title">کارنامه تکلیف</div>
+                    <div class="report-header-sub">عربی پایه هفتم</div>
+                </div>
+                
+                <div class="report-student-card">
+                    <div class="report-student-avatar">
+                        <img src="${avatar}" alt="دانش‌آموز">
+                    </div>
+                    <div class="report-student-info">
+                        <div class="report-student-name">${report.studentName}</div>
+                        <div class="report-student-class">کلاس: ${report.studentClass}</div>
+                    </div>
+                </div>
+                
+                <div class="report-info-grid">
+                    <div class="report-info-item">
+                        <div class="report-info-icon blue">
+                            <svg viewBox="0 0 24 24"><path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/><path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/></svg>
+                        </div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">درس</div>
+                            <div class="report-info-value">${report.lessonTitle}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="report-info-item">
+                        <div class="report-info-icon purple">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">تاریخ</div>
+                            <div class="report-info-value">${report.date}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="report-info-item">
+                        <div class="report-info-icon teal">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">زمان</div>
+                            <div class="report-info-value">${toPersianNum(report.timeTaken)} دقیقه</div>
+                        </div>
+                    </div>
+                    
+                    <div class="report-info-item">
+                        <div class="report-info-icon yellow">
+                            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        </div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">امتیاز</div>
+                            <div class="report-info-value">${toPersianNum(report.score)} از ${toPersianNum(report.totalPoints)}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="report-info-item">
+                        <div class="report-info-icon green">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">پاسخ صحیح</div>
+                            <div class="report-info-value">${toPersianNum(report.correct)}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="report-info-item">
+                        <div class="report-info-icon red">
+                            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">پاسخ غلط</div>
+                            <div class="report-info-value">${toPersianNum(report.wrong)}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-percent-circle">
+                    <div class="report-percent-value">${toPersianNum(report.percent)}%</div>
+                    <div class="report-percent-label">درصد موفقیت</div>
+                </div>
+                
+                <div class="report-message">
+                    <div class="report-message-title">پیام برای شما:</div>
+                    <div class="report-message-text">${message}</div>
+                </div>
+            </div>
+        `;
+    }
+
     function downloadReportById(index) {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         const report = reports[index];
         if (report) {
             const element = document.createElement('div');
-            element.style.padding = '30px';
-            element.style.fontFamily = 'Vazirmatn, sans-serif';
+            element.style.padding = '20px';
             element.style.direction = 'rtl';
-            element.innerHTML = `
-                <h1 style="text-align: center; color: #1565c0; margin-bottom: 20px;">کارنامه تکلیف</h1>
-                <div style="background: #f0f7ff; padding: 20px; border-radius: 15px;">
-                    <p style="margin: 10px 0;"><strong>نام دانش‌آموز:</strong> ${report.studentName}</p>
-                    <p style="margin: 10px 0;"><strong>کلاس:</strong> ${report.studentClass}</p>
-                    <p style="margin: 10px 0;"><strong>درس:</strong> ${report.lessonTitle}</p>
-                    <p style="margin: 10px 0;"><strong>تاریخ:</strong> ${report.date}</p>
-                    <p style="margin: 10px 0;"><strong>درصد موفقیت:</strong> ${report.percent}%</p>
-                    <p style="margin: 10px 0;"><strong>پاسخ صحیح:</strong> ${report.correct}</p>
-                    <p style="margin: 10px 0;"><strong>پاسخ غلط:</strong> ${report.wrong}</p>
-                    <p style="margin: 10px 0;"><strong>امتیاز:</strong> ${report.score} از ${report.totalPoints}</p>
-                </div>
-            `;
+            element.style.background = '#f0f7ff';
+            element.style.fontFamily = 'Vazirmatn, sans-serif';
+            element.innerHTML = generateGraphicReport(report);
             
             const opt = {
-                margin: 0.5,
+                margin: 0.3,
                 filename: `کارنامه_${report.lessonTitle}_${report.date.replace(/\//g, '-')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'a5', orientation: 'portrait' }
+                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#f0f7ff' },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
             
             html2pdf().set(opt).from(element).save().then(() => {
@@ -3786,6 +5274,8 @@
         matchedPairs = 0;
         submitBtn.disabled = false;
         submitBtn.textContent = 'بررسی سوال';
+        
+        saveCurrentProgress();
         
         let html = '';
         
@@ -4005,6 +5495,8 @@
             playWrongSound();
             showFeedback(false, 0, q);
         }
+        
+        saveCurrentProgress();
     }
 
     function getCorrectAnswerText(q) {
@@ -4062,6 +5554,7 @@
     function nextQuestion() {
         currentQuestionIndex++;
         if (currentQuestionIndex < currentLesson.questions.length) {
+            saveCurrentProgress();
             goToScreen('screen-quiz');
             renderQuestion();
         } else {
@@ -4095,6 +5588,8 @@
             resultTitle.textContent = 'تکلیف تمام شد!';
             pointsRow.style.display = 'flex';
         }
+        
+        clearCurrentProgress();
     }
 
     function showReportCard() {
@@ -4125,18 +5620,8 @@
         saveReport(report);
         
         const container = document.getElementById('report-view-content');
-        container.innerHTML = `
-            <div class="report-view-card">
-                <div class="report-view-row"><span class="label">نام دانش‌آموز:</span><span class="value">${report.studentName}</span></div>
-                <div class="report-view-row"><span class="label">کلاس:</span><span class="value">${report.studentClass}</span></div>
-                <div class="report-view-row"><span class="label">درس:</span><span class="value">${report.lessonTitle}</span></div>
-                <div class="report-view-row"><span class="label">تاریخ:</span><span class="value">${report.date}</span></div>
-                <div class="report-view-row"><span class="label">پاسخ صحیح:</span><span class="value green">${toPersianNum(report.correct)}</span></div>
-                <div class="report-view-row"><span class="label">پاسخ غلط:</span><span class="value red">${toPersianNum(report.wrong)}</span></div>
-                <div class="report-view-row"><span class="label">امتیاز:</span><span class="value blue">${toPersianNum(report.score)} از ${toPersianNum(report.totalPoints)}</span></div>
-                <div class="report-view-row"><span class="label">درصد موفقیت:</span><span class="value blue">${toPersianNum(report.percent)}%</span></div>
-                <div class="report-view-row"><span class="label">زمان:</span><span class="value">${toPersianNum(report.timeTaken)} دقیقه</span></div>
-            </div>
+        container.innerHTML = generateGraphicReport(report);
+        container.innerHTML += `
             <button class="btn-primary" onclick="downloadCurrentReport()" style="margin-top: 15px;">
                 دانلود کارنامه (PDF)
             </button>
@@ -4147,20 +5632,45 @@
         
         goToScreen('screen-report-view');
         
+        addNotification('message', 'پیام معلم', `بازخورد تکلیف شما ثبت شد. آفرین!`);
+        
         setTimeout(() => {
             checkForNewMedals();
         }, 1500);
     }
 
     function downloadCurrentReport() {
-        const element = document.getElementById('report-view-content').querySelector('.report-view-card');
-        const studentName = localStorage.getItem('userName');
+        const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
+        const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        
+        const report = {
+            studentName: localStorage.getItem('userName'),
+            studentClass: localStorage.getItem('userClass'),
+            lessonTitle: currentLesson.title,
+            date: dateStr,
+            percent: percent,
+            correct: correctCount,
+            wrong: wrongCount,
+            score: score,
+            totalPoints: currentLesson.totalPoints,
+            timeTaken: timeTaken
+        };
+        
+        const element = document.createElement('div');
+        element.style.padding = '20px';
+        element.style.direction = 'rtl';
+        element.style.background = '#f0f7ff';
+        element.style.fontFamily = 'Vazirmatn, sans-serif';
+        element.innerHTML = generateGraphicReport(report);
+        
         const opt = {
-            margin: 0.5,
-            filename: `کارنامه_${currentLesson.title}_${studentName}.pdf`,
+            margin: 0.3,
+            filename: `کارنامه_${currentLesson.title}_${dateStr.replace(/\//g, '-')}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'a5', orientation: 'portrait' }
+            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#f0f7ff' },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
         
         html2pdf().set(opt).from(element).save().then(() => {
@@ -4302,11 +5812,21 @@
             document.getElementById('setting-music').checked = false;
         }
         if (localStorage.getItem('darkMode') === 'true') {
-            document.getElementById('setting-dark-mode').checked = true;
+            const settingEl = document.getElementById('setting-dark-mode');
+            if (settingEl) settingEl.checked = true;
             document.body.style.filter = 'invert(1) hue-rotate(180deg)';
             document.querySelectorAll('img').forEach(img => {
                 img.style.filter = 'invert(1) hue-rotate(180deg)';
             });
+            const toggle = document.getElementById('theme-toggle');
+            if (toggle) toggle.classList.add('dark');
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.textContent = '🌙';
+            const label = document.getElementById('theme-label');
+            if (label) {
+                label.textContent = 'حالت شب';
+                label.classList.add('dark-label');
+            }
         }
         
         pushHistory('screen-splash');
