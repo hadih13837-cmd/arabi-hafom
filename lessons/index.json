@@ -19,6 +19,15 @@
       "releaseDate": "۱۴۰۵/۰۹/۲۰",
       "dueDate": "۱۴۰۵/۰۹/۲۳",
       "file": "lesson2.json"
-    }
+   },
+   {
+      "id": "lesson3",
+      "title": "درس سوم",
+      "subtitle": "آشنایی با واژگان و عبارات‌ها",
+      "icon": "📚",
+      "version": "1.0",
+      "releaseDate": "۱۴۰۵/۰۹/۲۰",
+      "dueDate": "۱۴۰۵/۰۹/۲۳",
+      "file": "lesson3.json"  
   ]
 }
