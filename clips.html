@@ -97,49 +97,42 @@
             padding: 15px 15px 30px 15px;
         }
 
-        /* ============ کارت عربینو ============ */
+        /* ============ کارت عربینو (سفید یکدست) ============ */
         .arabino-card {
-            background: linear-gradient(135deg, #fff9c4 0%, #ffffff 50%, #fff3e0 100%);
+            background: #fff;
             border-radius: 24px;
             padding: 25px 20px;
             margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
-            border: 2px solid #ffc107;
+            box-shadow: 0 6px 25px rgba(25, 118, 210, 0.12);
+            border: 2px solid #e3f2fd;
             text-align: center;
             position: relative;
             overflow: hidden;
         }
 
-        .arabino-card::before {
-            content: '';
-            position: absolute;
-            top: -60px; right: -60px;
-            width: 180px; height: 180px;
-            background: radial-gradient(circle, rgba(255, 193, 7, 0.3) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .arabino-card::after {
-            content: '';
-            position: absolute;
-            bottom: -60px; left: -60px;
-            width: 180px; height: 180px;
-            background: radial-gradient(circle, rgba(255, 152, 0, 0.2) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
+        /* انیمیشن وکتور عربینو */
         .arabino-logo-wrapper {
             display: inline-block;
             background: #fff;
             border-radius: 20px;
             padding: 15px 25px;
             margin-bottom: 18px;
-            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.35);
-            border: 3px solid #ffc107;
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.15);
+            border: 2px solid #e3f2fd;
             position: relative;
             z-index: 2;
+            animation: arabinoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes arabinoFloat {
+            0%, 100% { 
+                transform: translateY(0); 
+                box-shadow: 0 6px 20px rgba(25, 118, 210, 0.15);
+            }
+            50% { 
+                transform: translateY(-8px); 
+                box-shadow: 0 12px 30px rgba(25, 118, 210, 0.25);
+            }
         }
 
         .arabino-logo-wrapper img {
@@ -152,7 +145,7 @@
         .arabino-title {
             font-size: 20px;
             font-weight: 900;
-            color: #e65100;
+            color: #1565c0;
             margin-bottom: 12px;
             position: relative;
             z-index: 2;
@@ -165,7 +158,7 @@
         .arabino-title svg {
             width: 26px;
             height: 26px;
-            stroke: #f57c00;
+            stroke: #1976d2;
             fill: none;
             stroke-width: 2;
             stroke-linecap: round;
@@ -174,7 +167,7 @@
 
         .arabino-desc {
             font-size: 14px;
-            color: #5d4037;
+            color: #455a64;
             font-weight: bold;
             line-height: 2;
             text-align: center;
@@ -183,47 +176,8 @@
         }
 
         .arabino-desc strong {
-            color: #e65100;
-            font-weight: 900;
-        }
-
-        /* ============ کارت به زودی ============ */
-        .clips-soon-card {
-            background: #fff;
-            border-radius: 22px;
-            padding: 40px 20px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
-            border: 1.5px solid #e3f2fd;
-            margin-bottom: 20px;
-        }
-
-        .clips-soon-icon {
-            font-size: 70px;
-            margin-bottom: 15px;
-            display: block;
-            animation: floatIcon 2.5s ease-in-out infinite;
-        }
-
-        @keyframes floatIcon {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .clips-soon-title {
-            font-size: 22px;
-            font-weight: 900;
             color: #1565c0;
-            margin-bottom: 10px;
-        }
-
-        .clips-soon-text {
-            font-size: 14px;
-            color: #607d8b;
-            font-weight: bold;
-            line-height: 1.9;
-            max-width: 320px;
-            margin: 0 auto;
+            font-weight: 900;
         }
 
         /* ============ کارت ویدیو ============ */
@@ -248,7 +202,8 @@
             overflow: hidden;
         }
 
-        .video-thumbnail img {
+        .video-thumbnail img,
+        .video-thumbnail video {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -260,26 +215,27 @@
             bottom: 0;
             right: 0;
             left: 0;
-            padding: 30px 16px 14px 16px;
-            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, transparent 100%);
+            padding: 40px 16px 16px 16px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);
             color: #fff;
             text-align: right;
             pointer-events: none;
         }
 
         .video-title-overlay h3 {
-            font-size: 15px;
+            font-size: 17px;
             font-weight: 900;
             margin-bottom: 4px;
             color: #fff;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.5);
-            line-height: 1.4;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+            line-height: 1.5;
         }
 
         .video-title-overlay p {
-            font-size: 11px;
+            font-size: 12px;
             color: rgba(255, 255, 255, 0.9);
             font-weight: bold;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
         }
 
         .video-play-btn {
@@ -287,20 +243,32 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 70px;
-            height: 70px;
+            width: 75px;
+            height: 75px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.95);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
             pointer-events: none;
+            animation: playBtnPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes playBtnPulse {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.08);
+                box-shadow: 0 8px 40px rgba(25, 118, 210, 0.6);
+            }
         }
 
         .video-play-btn svg {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             fill: #1976d2;
             margin-right: -4px;
             stroke: none;
@@ -310,11 +278,11 @@
             position: absolute;
             top: 12px;
             left: 12px;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.8);
             color: #fff;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 900;
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
@@ -329,8 +297,8 @@
         }
 
         .video-meta-icon {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 10px;
             background: linear-gradient(135deg, #e3f2fd, #bbdefb);
             display: flex;
@@ -340,8 +308,8 @@
         }
 
         .video-meta-icon svg {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             stroke: #1976d2;
             fill: none;
             stroke-width: 2;
@@ -355,7 +323,7 @@
         }
 
         .video-meta-title {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 900;
             color: #1565c0;
             margin-bottom: 3px;
@@ -525,7 +493,7 @@
     <!-- محتوا -->
     <div class="clips-content">
         
-        <!-- کارت عربینو -->
+        <!-- کارت عربینو (سفید یکدست با انیمیشن) -->
         <div class="arabino-card">
             <div class="arabino-logo-wrapper">
                 <img src="https://cdn.imgurl.ir/uploads/x99593_InShot_20260909_143524520.png" alt="عربینو">
@@ -542,51 +510,22 @@
         </div>
         
         <!-- ═══════════════════════════════════════════════════════
-             📌 اینجا ویدیوها رو اضافه کن (کپی کن و ویرایش کن)
-             ═══════════════════════════════════════════════════════
-             
-             برای هر ویدیو یه بلوک از کد زیر رو کپی کن:
-             
-             <div class="video-card" onclick="openVideoModal('لینک_ویدیو', 'عنوان_ویدیو', 'توضیحات_ویدیو')">
-                 <div class="video-thumbnail">
-                     <img src="لینک_تصویر_بند_انگشتی" alt="عنوان ویدیو">
-                     <div class="video-duration-badge">۱۰:۳۰</div>
-                     <div class="video-play-btn">
-                         <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                     </div>
-                     <div class="video-title-overlay">
-                         <h3>عنوان ویدیو</h3>
-                         <p>توضیح کوتاه</p>
-                     </div>
-                 </div>
-                 <div class="video-meta">
-                     <div class="video-meta-icon">
-                         <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-                     </div>
-                     <div class="video-meta-info">
-                         <div class="video-meta-title">عنوان ویدیو</div>
-                         <div class="video-meta-sub">عربینو • درس اول</div>
-                     </div>
-                 </div>
-             </div>
-             
+             📌 ویدیوها
              ═══════════════════════════════════════════════════════ -->
         
-        <!-- لیست ویدیوها -->
         <div id="video-list-container">
             
-            <!-- ⚠️ نمونه ویدیو (این رو حذف کن و ویدیوهای خودت رو بذار) -->
-            <!-- 
-            <div class="video-card" onclick="openVideoModal('https://example.com/video.mp4', 'درس اول - آشنایی با واژگان', 'در این ویدیو با واژگان درس اول آشنا می‌شوید.')">
+            <!-- ویدیو اول -->
+            <div class="video-card" onclick="openVideoModal('https://cdn.imgurl.ir/uploads/m58893_InShot_20260911_233658709.mp4', 'کلمه در زبان عربی چطوریه؟🤔', 'آشنایی با ساختار کلمات در زبان عربی - موشن گرافیک عربینو')">
                 <div class="video-thumbnail">
-                    <img src="https://example.com/thumb.jpg" alt="درس اول">
-                    <div class="video-duration-badge">۵:۳۰</div>
+                    <video src="https://cdn.imgurl.ir/uploads/m58893_InShot_20260911_233658709.mp4" preload="metadata" muted playsinline></video>
+                    <div class="video-duration-badge">موشن گرافیک</div>
                     <div class="video-play-btn">
                         <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                     </div>
                     <div class="video-title-overlay">
-                        <h3>درس اول - آشنایی با واژگان</h3>
-                        <p>موشن گرافیک درس اول</p>
+                        <h3>کلمه در زبان عربی چطوریه؟🤔</h3>
+                        <p>موشن گرافیک آموزشی عربینو</p>
                     </div>
                 </div>
                 <div class="video-meta">
@@ -594,22 +533,39 @@
                         <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                     </div>
                     <div class="video-meta-info">
-                        <div class="video-meta-title">درس اول - آشنایی با واژگان</div>
+                        <div class="video-meta-title">کلمه در زبان عربی چطوریه؟🤔</div>
+                        <div class="video-meta-sub">عربینو • موشن گرافیک</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 
+            📌 برای اضافه کردن ویدیو جدید، این بلوک رو کپی کن:
+            
+            <div class="video-card" onclick="openVideoModal('لینک_ویدیو', 'عنوان', 'توضیحات')">
+                <div class="video-thumbnail">
+                    <video src="لینک_ویدیو" preload="metadata" muted playsinline></video>
+                    <div class="video-duration-badge">موشن گرافیک</div>
+                    <div class="video-play-btn">
+                        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </div>
+                    <div class="video-title-overlay">
+                        <h3>عنوان ویدیو</h3>
+                        <p>توضیح کوتاه</p>
+                    </div>
+                </div>
+                <div class="video-meta">
+                    <div class="video-meta-icon">
+                        <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                    </div>
+                    <div class="video-meta-info">
+                        <div class="video-meta-title">عنوان ویدیو</div>
                         <div class="video-meta-sub">عربینو • موشن گرافیک</div>
                     </div>
                 </div>
             </div>
             -->
             
-        </div>
-        
-        <!-- کارت به زودی (اگه ویدیویی نیست) -->
-        <div class="clips-soon-card" id="clips-soon-card">
-            <span class="clips-soon-icon">🎬</span>
-            <div class="clips-soon-title">به زودی...</div>
-            <div class="clips-soon-text">
-                کلیپ‌های آموزشی موشن گرافیک در حال آماده‌سازی هستند و به زودی در این بخش بارگذاری خواهند شد.
-            </div>
         </div>
         
     </div>
@@ -648,22 +604,10 @@
 </div>
 
 <script>
-    // ============ بازگشت به برنامه اصلی ============
+    // ============ بازگشت به برنامه اصلی (صفحه خانه) ============
     function goBackToApp() {
-        window.location.href = './index.html';
-    }
-    
-    // ============ بررسی وجود ویدیو ============
-    function checkVideoList() {
-        const container = document.getElementById('video-list-container');
-        const soonCard = document.getElementById('clips-soon-card');
-        
-        // اگه ویدیویی داخل container هست
-        if (container.children.length > 0) {
-            soonCard.style.display = 'none';
-        } else {
-            soonCard.style.display = 'block';
-        }
+        // انتقال به index.html با هش #home که صفحه خانه رو باز کنه
+        window.location.href = './index.html#home';
     }
     
     // ============ ویدیو پلیر ============
@@ -764,11 +708,6 @@
                 closeVideoModal();
             }
         }
-    });
-    
-    // ============ راه‌اندازی ============
-    window.addEventListener('load', () => {
-        checkVideoList();
     });
     
     // ============ بستن مودال با کلیک روی پس‌زمینه ============
