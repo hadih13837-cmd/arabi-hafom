@@ -154,7 +154,6 @@
             position: relative;
         }
 
-        /* ============ اعلان تکلیف جدید (با قابلیت swipe) ============ */
         .new-lesson-notification {
             position: absolute;
             top: 15px;
@@ -251,7 +250,6 @@
             color: #bf360c;
             font-weight: bold;
         }
-        /* راهنمای swipe */
         .notification-swipe-hint {
             position: absolute;
             bottom: 4px;
@@ -522,25 +520,48 @@
         }
         .btn-start-splash:active { transform: scale(0.98); }
 
-        /* ============ صفحه خوش‌آمد ============ */
+        /* ============ صفحه خوش‌آمد (ثبت‌نام) ============ */
         #screen-welcome {
             background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
-            justify-content: center;
             align-items: center;
             text-align: center;
             padding: 30px 25px;
             overflow-y: auto;
         }
+        
+        /* ویدیو دایره‌ای */
+        .welcome-video-wrapper {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 20px auto;
+            position: relative;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .welcome-video-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            mix-blend-mode: multiply;
+        }
+        
         .welcome-title {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 900;
             color: #1565c0;
             margin-bottom: 10px;
         }
         .welcome-sub {
-            font-size: 15px;
+            font-size: 14px;
             color: #546e7a;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             line-height: 1.6;
         }
         .welcome-input {
@@ -621,7 +642,7 @@
             padding: 20px;
         }
 
-        /* ============ صفحه تکالیف ============ */
+        /* ============ صفحه تکالیف (لیست) ============ */
         #screen-lessons { background: #f0f7ff; }
         
         .lessons-header {
@@ -645,30 +666,6 @@
             font-size: 20px;
             font-weight: 900;
             color: #1565c0;
-        }
-        
-        .calendar-icon-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: #e3f2fd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-            flex-shrink: 0;
-            margin-left: auto;
-        }
-        .calendar-icon-btn:active { transform: scale(0.92); }
-        .calendar-icon-btn svg {
-            width: 22px;
-            height: 22px;
-            stroke: #1976d2;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
         }
         
         .lessons-tabs {
@@ -710,186 +707,327 @@
             padding: 12px 15px 20px 15px;
         }
         
-        .lesson-item {
-            border-radius: 22px;
-            padding: 18px;
-            margin-bottom: 14px;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.15s ease;
-        }
-        .lesson-item:active { transform: scale(0.98); }
-        
-        .lesson-item.color-1 {
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            border: 1.5px solid #a5d6a7;
-        }
-        .lesson-item.color-2 {
-            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
-            border: 1.5px solid #ce93d8;
-        }
-        .lesson-item.color-3 {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border: 1.5px solid #90caf9;
-        }
-        .lesson-item.color-4 {
-            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-            border: 1.5px solid #ffcc80;
-        }
-        .lesson-item.color-5 {
-            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
-            border: 1.5px solid #f48fb1;
-        }
-        .lesson-item.color-6 {
-            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
-            border: 1.5px solid #80cbc4;
-        }
-        
-        .lesson-content {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-        
-        .lesson-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
+        /* کارت تکلیف (طراحی جدید) */
+        .lesson-card {
             background: #fff;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+            border: 1.5px solid #e3f2fd;
+            position: relative;
+            transition: transform 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .lesson-card:active { transform: scale(0.98); }
+        
+        .lesson-card-book {
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
-            flex-shrink: 0;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.06);
         }
         
-        .lesson-text-area {
+        .lesson-card-book img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.15));
+        }
+        
+        .lesson-card-info {
             flex: 1;
             text-align: right;
+            min-width: 0;
         }
         
-        .lesson-title {
+        .lesson-card-title {
             font-size: 15px;
             font-weight: 900;
-            color: #00695c;
-            margin-bottom: 8px;
-        }
-        
-        .lesson-item.color-2 .lesson-title { color: #4a148c; }
-        .lesson-item.color-3 .lesson-title { color: #0d47a1; }
-        .lesson-item.color-4 .lesson-title { color: #e65100; }
-        .lesson-item.color-5 .lesson-title { color: #880e4f; }
-        .lesson-item.color-6 .lesson-title { color: #004d40; }
-        
-        .lesson-dates {
-            font-size: 11px;
-            color: #555;
-            line-height: 1.9;
-            font-weight: bold;
-        }
-        
-        .lesson-dates .date-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .lesson-dates .date-label {
-            color: #78909c;
-        }
-        
-        .lesson-dates .date-value {
-            color: #333;
-            font-weight: 900;
-        }
-        
-        .progress-bar-lesson {
-            width: 100%;
-            height: 8px;
-            background: rgba(255,255,255,0.7);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 4px;
-            margin-bottom: 8px;
-        }
-        
-        .progress-fill-lesson {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
-        
-        .color-1 .progress-fill-lesson { background: linear-gradient(90deg, #4caf50, #81c784); }
-        .color-2 .progress-fill-lesson { background: linear-gradient(90deg, #9c27b0, #ba68c8); }
-        .color-3 .progress-fill-lesson { background: linear-gradient(90deg, #2196f3, #64b5f6); }
-        .color-4 .progress-fill-lesson { background: linear-gradient(90deg, #ff9800, #ffb74d); }
-        .color-5 .progress-fill-lesson { background: linear-gradient(90deg, #e91e63, #f06292); }
-        .color-6 .progress-fill-lesson { background: linear-gradient(90deg, #009688, #4db6ac); }
-        
-        .lesson-status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-        }
-        
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 900;
-            background: rgba(255,255,255,0.9);
-        }
-        
-        .status-badge.completed {
-            color: #2e7d32;
-            border: 1.5px solid #4caf50;
-        }
-        
-        .status-badge.in-progress {
             color: #1565c0;
-            border: 1.5px solid #2196f3;
+            margin-bottom: 6px;
+            line-height: 1.4;
         }
         
-        .status-badge.paused {
-            color: #e65100;
-            border: 1.5px solid #ff9800;
+        .lesson-card-deadline {
+            font-size: 11px;
+            color: #78909c;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         
-        .status-badge.check-icon {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #4caf50;
+        .lesson-card-deadline svg {
+            width: 14px;
+            height: 14px;
+            stroke: #f57c00;
+            fill: none;
+            stroke-width: 2;
+        }
+        
+        /* دکمه مشاهده */
+        .lesson-view-btn {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease;
+        }
+        .lesson-view-btn:active { transform: scale(0.95); }
+        
+        .lesson-view-btn.completed {
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+        }
+        
+        .lesson-view-btn.paused {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            box-shadow: 0 4px 12px rgba(245, 124, 0, 0.3);
+        }
+        
+        /* دایره درصد پیشرفت */
+        .lesson-progress-circle {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+            position: relative;
+        }
+        
+        .lesson-progress-circle svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        
+        .lesson-progress-bg {
+            fill: none;
+            stroke: #e3f2fd;
+            stroke-width: 5;
+        }
+        
+        .lesson-progress-bar {
+            fill: none;
+            stroke: #4caf50;
+            stroke-width: 5;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        
+        .lesson-progress-bar.paused {
+            stroke: #ff9800;
+        }
+        
+        .lesson-progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: 900;
+            color: #1565c0;
+        }
+
+        /* ============ صفحه جزئیات تکلیف ============ */
+        #screen-lesson-detail { background: #f0f7ff; }
+        
+        .lesson-detail-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 15px;
+        }
+        
+        /* بنر بالای صفحه جزئیات */
+        .lesson-detail-banner {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 22px;
+            padding: 25px 20px;
+            margin-bottom: 18px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #90caf9;
+            min-height: 160px;
             display: flex;
             align-items: center;
             justify-content: center;
+            text-align: center;
+        }
+        
+        .lesson-detail-banner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://cdn.imgurl.ir/uploads/y058507__.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+        }
+        
+        .lesson-detail-banner-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .lesson-detail-book {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .lesson-detail-book img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));
+        }
+        
+        .lesson-detail-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #0d47a1;
+            margin-bottom: 4px;
+        }
+        
+        .lesson-detail-subtitle {
+            font-size: 13px;
+            color: #1565c0;
+            font-weight: bold;
+        }
+        
+        /* کارت اطلاعات تکلیف */
+        .lesson-info-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+            border: 1.5px solid #e3f2fd;
+        }
+        
+        .lesson-info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px dashed #e3f2fd;
+            font-size: 14px;
+        }
+        
+        .lesson-info-row:last-child { border-bottom: none; }
+        
+        .lesson-info-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #546e7a;
+            font-weight: bold;
+        }
+        
+        .lesson-info-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .lesson-info-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        
+        .lesson-info-icon.blue { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
+        .lesson-info-icon.blue svg { stroke: #1976d2; }
+        
+        .lesson-info-icon.orange { background: linear-gradient(135deg, #fff3e0, #ffe0b2); }
+        .lesson-info-icon.orange svg { stroke: #f57c00; }
+        
+        .lesson-info-icon.purple { background: linear-gradient(135deg, #f3e5f5, #e1bee7); }
+        .lesson-info-icon.purple svg { stroke: #8e24aa; }
+        
+        .lesson-info-value {
+            color: #1565c0;
+            font-weight: 900;
+            font-size: 15px;
+        }
+        
+        /* توضیحات */
+        .lesson-description {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+            border: 1.5px solid #e3f2fd;
+            text-align: right;
+            line-height: 2;
+            color: #455a64;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .lesson-description::before {
+            content: '📖';
+            font-size: 20px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        /* دکمه شروع تکلیف */
+        .lesson-start-btn {
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
             color: #fff;
-            font-size: 12px;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 900;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            width: 100%;
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            transition: transform 0.15s ease;
         }
+        .lesson-start-btn:active { transform: scale(0.97); }
         
-        .status-badge.check-icon.in-progress-icon {
-            background: #2196f3;
-        }
-        .status-badge.check-icon.paused-icon {
-            background: #ff9800;
-        }
-        
-        .arrow-back-icon {
+        .lesson-start-btn svg {
             width: 24px;
             height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #555;
-            font-size: 20px;
-            font-weight: bold;
+            fill: #fff;
+            stroke: none;
         }
 
         /* ============ حالت خالی ============ */
@@ -1177,88 +1315,11 @@
         }
         .side-menu-close:active { transform: scale(0.9); }
         
-        /* ============ کلید حالت شب/روز (خورشید/ماه چرخشی) ============ */
-        .theme-toggle-wrapper {
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .theme-toggle-btn {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: #FFF8E1;
-            position: relative;
-            cursor: pointer;
-            transition: background 0.6s ease, box-shadow 0.6s ease;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(255, 179, 0, 0.3);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .theme-toggle-btn.dark {
-            background: #1A237E;
-            box-shadow: 0 4px 20px rgba(26, 35, 126, 0.5);
-        }
-        
-        .theme-icon-wrapper {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: rotate(0deg);
-        }
-        
-        .theme-toggle-btn.dark .theme-icon-wrapper {
-            transform: rotate(360deg);
-        }
-        
-        .theme-icon-svg {
-            width: 60px;
-            height: 60px;
-            transition: opacity 0.4s ease;
-        }
-        
-        /* خورشید */
-        .sun-icon {
-            opacity: 1;
-        }
-        .theme-toggle-btn.dark .sun-icon {
-            opacity: 0;
-        }
-        
-        /* ماه */
-        .moon-icon {
-            position: absolute;
-            opacity: 0;
-        }
-        .theme-toggle-btn.dark .moon-icon {
-            opacity: 1;
-        }
-        
-        /* برچسب زیر دکمه */
-        .theme-label {
-            text-align: center;
-            font-size: 13px;
-            font-weight: 900;
-            color: #1565c0;
-            margin-top: 12px;
-            transition: color 0.3s;
-        }
-        .theme-label.dark-label { color: #fff; }
-        
         /* گزینه‌های منو */
         .side-menu-items {
             flex: 1;
             overflow-y: auto;
-            padding: 10px 15px 20px 15px;
+            padding: 20px 15px 20px 15px;
         }
         
         .side-menu-item {
@@ -1290,22 +1351,6 @@
             position: relative;
             overflow: hidden;
             transition: all 0.3s;
-        }
-        
-        .side-menu-item-icon::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 60%);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .side-menu-item:active .side-menu-item-icon::before {
-            opacity: 1;
         }
         
         .side-menu-item-icon svg {
@@ -3051,37 +3096,6 @@
             <button class="side-menu-close" onclick="closeSideMenu()">✕</button>
         </div>
         
-        <div class="theme-toggle-wrapper">
-            <div style="display: flex; flex-direction: column; align-items: center;">
-                <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleThemeFromMenu()">
-                    <div class="theme-icon-wrapper">
-                        <!-- خورشید -->
-                        <svg class="theme-icon-svg sun-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="50" cy="50" r="20" fill="#FFB300"/>
-                            <g stroke="#FFB300" stroke-width="5" stroke-linecap="round">
-                                <line x1="50" y1="15" x2="50" y2="25"/>
-                                <line x1="50" y1="75" x2="50" y2="85"/>
-                                <line x1="15" y1="50" x2="25" y2="50"/>
-                                <line x1="75" y1="50" x2="85" y2="50"/>
-                                <line x1="25" y1="25" x2="32" y2="32"/>
-                                <line x1="68" y1="68" x2="75" y2="75"/>
-                                <line x1="75" y1="25" x2="68" y2="32"/>
-                                <line x1="32" y1="68" x2="25" y2="75"/>
-                            </g>
-                        </svg>
-                        <!-- ماه -->
-                        <svg class="theme-icon-svg moon-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M 50 25 A 25 25 0 1 0 50 75 A 20 20 0 1 1 50 25 Z" fill="#64B5F6"/>
-                            <circle cx="60" cy="40" r="3" fill="#BBDEFB" opacity="0.5"/>
-                            <circle cx="55" cy="55" r="4" fill="#BBDEFB" opacity="0.4"/>
-                            <circle cx="65" cy="60" r="2" fill="#BBDEFB" opacity="0.5"/>
-                        </svg>
-                    </div>
-                </button>
-                <div class="theme-label" id="theme-label">حالت روز</div>
-            </div>
-        </div>
-        
         <div class="side-menu-items">
             <div class="side-menu-item" onclick="goToScreen('screen-home'); closeSideMenu();">
                 <div class="side-menu-item-icon menu-icon-home">
@@ -3228,7 +3242,19 @@
         </div>
     </div>
 
+    <!-- صفحه خوش‌آمد (ثبت‌نام) با ویدیو -->
     <div id="screen-welcome" class="screen">
+        <div class="welcome-video-wrapper">
+            <video 
+                src="https://cdn.imgurl.ir/uploads/j02258_InShot_20260921_091848739.mp4" 
+                autoplay 
+                loop 
+                muted 
+                playsinline
+                preload="auto">
+            </video>
+        </div>
+        
         <h1 class="welcome-title">سلام! خوش آمدی 👋</h1>
         <p class="welcome-sub">برای شروع، لطفاً نام و کلاس خودت را وارد کن:</p>
         
@@ -3346,7 +3372,7 @@
         </div>
     </div>
 
-    <!-- صفحه تکالیف -->
+    <!-- صفحه تکالیف (لیست) -->
     <div id="screen-lessons" class="screen">
         <div class="lessons-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -3355,12 +3381,6 @@
                 </svg>
             </button>
             <div class="page-title">تکالیف من</div>
-            <button class="calendar-icon-btn" onclick="showModal('تقویم', 'تقویم تکالیف به زودی اضافه می‌شود.', '📅')">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="3" y="4" width="18" height="18" rx="2"/>
-                    <path d="M16 2V6M8 2V6M3 10H21"/>
-                </svg>
-            </button>
         </div>
         
         <div class="lessons-tabs">
@@ -3402,6 +3422,22 @@
                 </svg>
                 <span>حساب کاربری</span>
             </button>
+        </div>
+    </div>
+
+    <!-- صفحه جزئیات تکلیف -->
+    <div id="screen-lesson-detail" class="screen">
+        <div class="page-header">
+            <button class="page-back" onclick="goToScreen('screen-lessons')" title="بازگشت">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="page-title">جزئیات تکلیف</div>
+        </div>
+        
+        <div class="lesson-detail-content" id="lesson-detail-content">
+            <!-- محتوا به صورت داینامیک اضافه می‌شه -->
         </div>
     </div>
 
@@ -3605,24 +3641,6 @@
                     <svg class="setting-arrow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M15 18L9 12L15 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
                     </svg>
-                </div>
-                
-                <div class="setting-card">
-                    <div class="setting-card-content">
-                        <div class="setting-card-icon icon-purple">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
-                            </svg>
-                        </div>
-                        <div class="setting-card-text">
-                            <div class="setting-card-title">حالت شب</div>
-                            <div class="setting-card-desc">تغییر حالت نمایش برنامه</div>
-                        </div>
-                    </div>
-                    <label class="switch-card">
-                        <input type="checkbox" id="setting-dark-mode" onchange="toggleDarkMode(this)">
-                        <span class="slider-card"></span>
-                    </label>
                 </div>
                 
                 <div class="setting-card">
@@ -3966,6 +3984,16 @@
 </div>
 
 <script>
+    // ============ وکتورهای کتاب ============
+    const BOOK_VECTORS = [
+        'https://cdn.imgurl.ir/uploads/r97389_IMG__.png',  // آبی
+        'https://cdn.imgurl.ir/uploads/l915585_IMG__.png', // بنفش
+        'https://cdn.imgurl.ir/uploads/g095601_IMG__.png', // صورتی
+        'https://cdn.imgurl.ir/uploads/s308692_IMG__.png', // نارنجی
+        'https://cdn.imgurl.ir/uploads/e26605_IMG__.png',  // سبز
+        'https://cdn.imgurl.ir/uploads/x194208_IMG__.png'  // زرد
+    ];
+
     function toPersianNum(num) {
         const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
         return num.toString().replace(/\d/g, x => persianDigits[parseInt(x)]);
@@ -4137,7 +4165,6 @@
         }
     }
     
-    // ============ آیکون‌های اعلان‌ها ============
     function getNotifIcon(type) {
         const icons = {
             lesson: '<svg viewBox="0 0 24 24"><path d="M18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z"/><path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21"/></svg>',
@@ -4476,8 +4503,6 @@
     }
 
     function dismissNotification() {
-        document.getElementById('new-lesson-notification').classList.remove('show');
-        // با animation
         const notif = document.getElementById('new-lesson-notification');
         notif.classList.add('swiping');
         notif.style.transform = 'translateY(-200%)';
@@ -4493,7 +4518,6 @@
     let notifSwipeStartX = 0;
     let notifSwipeStartY = 0;
     let notifCurrentX = 0;
-    let notifCurrentY = 0;
     let notifIsDragging = false;
     let notifSwipeDirection = null;
     
@@ -4504,8 +4528,6 @@
         notif.addEventListener('touchstart', handleNotifTouchStart, { passive: true });
         notif.addEventListener('touchmove', handleNotifTouchMove, { passive: false });
         notif.addEventListener('touchend', handleNotifTouchEnd, { passive: true });
-        
-        // برای دسکتاپ
         notif.addEventListener('mousedown', handleNotifMouseDown);
     }
     
@@ -4515,7 +4537,6 @@
         notifSwipeStartX = touch.clientX;
         notifSwipeStartY = touch.clientY;
         notifCurrentX = 0;
-        notifCurrentY = 0;
         notifIsDragging = true;
         notifSwipeDirection = null;
         const notif = document.getElementById('new-lesson-notification');
@@ -4529,7 +4550,6 @@
         const diffX = touch.clientX - notifSwipeStartX;
         const diffY = touch.clientY - notifSwipeStartY;
         
-        // تشخیص جهت
         if (!notifSwipeDirection) {
             if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
                 if (Math.abs(diffX) > Math.abs(diffY)) {
@@ -4540,16 +4560,13 @@
             }
         }
         
-        // فقط اگه افقی بود، swipe کن
         if (notifSwipeDirection === 'horizontal') {
             e.preventDefault();
             notifCurrentX = diffX;
-            notifCurrentY = diffY;
             const notif = document.getElementById('new-lesson-notification');
             notif.style.transform = `translate(${diffX}px, ${diffY * 0.3}px)`;
             notif.style.opacity = Math.max(0.3, 1 - Math.abs(diffX) / 300);
         } else if (notifSwipeDirection === 'vertical') {
-            // اگه عمودی بود، لغو کن
             notifIsDragging = false;
             const notif = document.getElementById('new-lesson-notification');
             notif.classList.remove('dragging');
@@ -4565,7 +4582,6 @@
         notif.classList.remove('dragging');
         
         if (notifSwipeDirection === 'horizontal' && Math.abs(notifCurrentX) > 80) {
-            // برو بیرون
             notif.classList.add('swiping');
             const direction = notifCurrentX > 0 ? 1 : -1;
             notif.style.transform = `translate(${direction * 400}px, 0)`;
@@ -4574,7 +4590,6 @@
                 notif.classList.remove('show', 'swiping');
                 notif.style.transform = '';
                 notif.style.opacity = '';
-                // علامت‌گذاری به عنوان دیده‌شده
                 if (allLessons.length > 0) {
                     const allIds = allLessons.map(l => l.id);
                     localStorage.setItem('seenLessons', JSON.stringify(allIds));
@@ -4583,7 +4598,6 @@
                 }
             }, 300);
         } else {
-            // برگرد سر جاش
             notif.classList.add('swiping');
             notif.style.transform = '';
             notif.style.opacity = '';
@@ -4593,7 +4607,6 @@
         }
         
         notifCurrentX = 0;
-        notifCurrentY = 0;
         notifSwipeDirection = null;
     }
     
@@ -4629,7 +4642,6 @@
         
         if (notifSwipeDirection === 'horizontal') {
             notifCurrentX = diffX;
-            notifCurrentY = diffY;
             const notif = document.getElementById('new-lesson-notification');
             notif.style.transform = `translate(${diffX}px, ${diffY * 0.3}px)`;
             notif.style.opacity = Math.max(0.3, 1 - Math.abs(diffX) / 300);
@@ -4733,16 +4745,10 @@
         document.getElementById('reset-settings-modal').classList.remove('active');
     }
     function confirmResetSettings() {
-        localStorage.removeItem('darkMode');
         localStorage.removeItem('soundsEnabled');
         localStorage.removeItem('musicEnabled');
-        document.getElementById('setting-dark-mode').checked = false;
         document.getElementById('setting-sounds').checked = true;
         document.getElementById('setting-music').checked = true;
-        document.body.style.filter = '';
-        document.querySelectorAll('img').forEach(img => {
-            img.style.filter = '';
-        });
         bgMusic.volume = 0.9;
         if (!isMuted) bgMusic.play().catch(e => console.log(e));
         closeResetSettingsModal();
@@ -4767,36 +4773,6 @@
         const cls = localStorage.getItem('userClass') || 'تعیین نشده';
         const school = localStorage.getItem('userSchool') || 'تعیین نشده';
         showModal('اطلاعات حساب کاربری', `نام: ${name}\nکلاس: ${cls}\nمدرسه: ${school}`, '👤');
-    }
-    
-    function toggleDarkMode(el) {
-        if (el.checked) {
-            localStorage.setItem('darkMode', 'true');
-            document.body.style.filter = 'invert(1) hue-rotate(180deg)';
-            document.querySelectorAll('img').forEach(img => {
-                img.style.filter = 'invert(1) hue-rotate(180deg)';
-            });
-            const toggle = document.getElementById('theme-toggle');
-            if (toggle) toggle.classList.add('dark');
-            const label = document.getElementById('theme-label');
-            if (label) {
-                label.textContent = 'حالت شب';
-                label.classList.add('dark-label');
-            }
-        } else {
-            localStorage.setItem('darkMode', 'false');
-            document.body.style.filter = '';
-            document.querySelectorAll('img').forEach(img => {
-                img.style.filter = '';
-            });
-            const toggle = document.getElementById('theme-toggle');
-            if (toggle) toggle.classList.remove('dark');
-            const label = document.getElementById('theme-label');
-            if (label) {
-                label.textContent = 'حالت روز';
-                label.classList.remove('dark-label');
-            }
-        }
     }
     
     function toggleMusicSetting(el) {
@@ -4824,44 +4800,13 @@
         document.getElementById('side-menu-overlay').classList.remove('active');
         document.getElementById('side-menu').classList.remove('active');
     }
-    
-    function toggleThemeFromMenu() {
-        const toggle = document.getElementById('theme-toggle');
-        const label = document.getElementById('theme-label');
-        toggle.classList.toggle('dark');
-        
-        if (toggle.classList.contains('dark')) {
-            localStorage.setItem('darkMode', 'true');
-            document.body.style.filter = 'invert(1) hue-rotate(180deg)';
-            document.querySelectorAll('img').forEach(img => {
-                img.style.filter = 'invert(1) hue-rotate(180deg)';
-            });
-            const settingEl = document.getElementById('setting-dark-mode');
-            if (settingEl) settingEl.checked = true;
-            if (label) {
-                label.textContent = 'حالت شب';
-                label.classList.add('dark-label');
-            }
-        } else {
-            localStorage.setItem('darkMode', 'false');
-            document.body.style.filter = '';
-            document.querySelectorAll('img').forEach(img => {
-                img.style.filter = '';
-            });
-            const settingEl = document.getElementById('setting-dark-mode');
-            if (settingEl) settingEl.checked = false;
-            if (label) {
-                label.textContent = 'حالت روز';
-                label.classList.remove('dark-label');
-            }
-        }
-    }
 
     let allLessons = [];
     let currentLesson = null;
     let currentFilter = 'all';
     let isPracticeMode = false;
     let pendingLessonId = null;
+    let selectedLessonId = null;
     
     async function loadLessonsList() {
         try {
@@ -4889,6 +4834,7 @@
         renderLessonsList();
     }
 
+    // ============ رندر لیست تکالیف (طراحی جدید) ============
     function renderLessonsList() {
         const container = document.getElementById('lessons-list');
         if (allLessons.length === 0) {
@@ -4912,7 +4858,7 @@
                 ...lesson,
                 isCompleted: isCompleted,
                 isPaused: isPaused,
-                colorIndex: (index % 6) + 1
+                colorIndex: index % 6
             };
         });
         
@@ -4932,73 +4878,153 @@
             return;
         }
         
-        const iconBgs = ['#c8e6c9', '#e1bee7', '#bbdefb', '#ffe0b2', '#f8bbd0', '#b2dfdb'];
-        
         container.innerHTML = lessonsToShow.map((lesson) => {
             let progressPercent = 0;
-            let statusHTML = '';
+            let btnClass = '';
+            let btnText = 'مشاهده';
             
             if (lesson.isCompleted) {
                 progressPercent = 100;
-                statusHTML = `
-                    <div class="status-badge completed">
-                        <span>تکمیل شده</span>
-                        <span class="check-icon">✓</span>
-                    </div>
-                `;
+                btnClass = 'completed';
+                btnText = 'مشاهده';
             } else if (lesson.isPaused && currentProgress) {
                 progressPercent = Math.round((currentProgress.questionIndex / currentProgress.totalQuestions) * 100);
-                statusHTML = `
-                    <div class="status-badge paused">
-                        <span>نیمه‌کاره - ادامه بده</span>
-                        <span class="check-icon paused-icon">⏸</span>
-                    </div>
-                `;
+                btnClass = 'paused';
+                btnText = 'ادامه';
             } else {
                 progressPercent = 0;
-                statusHTML = `
-                    <div class="status-badge in-progress">
-                        <span>در حال انجام</span>
-                        <span class="check-icon in-progress-icon">•</span>
-                    </div>
-                `;
+                btnText = 'مشاهده';
             }
             
-            const releaseDate = lesson.releaseDate || '۱۴۰۵/۰۹/۱۲';
             const dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+            const circumference = 2 * Math.PI * 20; // r=20
+            const dashOffset = circumference * (1 - progressPercent / 100);
             
             return `
-                <div class="lesson-item color-${lesson.colorIndex}" onclick="startLesson('${lesson.id}')">
-                    <div class="lesson-content">
-                        <div class="lesson-icon" style="background:${iconBgs[lesson.colorIndex - 1] || '#fff'};">
-                            ${lesson.icon || '📖'}
-                        </div>
-                        <div class="lesson-text-area">
-                            <div class="lesson-title">${lesson.title}${lesson.subtitle ? ' - ' + lesson.subtitle : ''}</div>
-                            <div class="lesson-dates">
-                                <div class="date-row">
-                                    <span class="date-label">تاریخ ارسال:</span>
-                                    <span class="date-value">${releaseDate}</span>
-                                </div>
-                                <div class="date-row">
-                                    <span class="date-label">مهلت انجام:</span>
-                                    <span class="date-value">${dueDate}</span>
-                                </div>
-                            </div>
-                        </div>
+                <div class="lesson-card">
+                    <div class="lesson-card-book">
+                        <img src="${BOOK_VECTORS[lesson.colorIndex]}" alt="کتاب">
                     </div>
-                    
-                    <div class="progress-bar-lesson">
-                        <div class="progress-fill-lesson" style="width: ${progressPercent}%;"></div>
+                    <div class="lesson-card-info">
+                        <div class="lesson-card-title">${lesson.title}${lesson.subtitle ? ' - ' + lesson.subtitle : ''}</div>
+                        <div class="lesson-card-deadline">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span>مهلت: ${dueDate}</span>
+                        </div>
+                        <button class="lesson-view-btn ${btnClass}" onclick="event.stopPropagation(); openLessonDetail('${lesson.id}')">
+                            ${btnText}
+                        </button>
                     </div>
-                    
-                    <div class="lesson-status">
-                        ${statusHTML}
-                        <div class="arrow-back-icon">‹</div>
+                    <div class="lesson-progress-circle">
+                        <svg viewBox="0 0 50 50">
+                            <circle class="lesson-progress-bg" cx="25" cy="25" r="20"></circle>
+                            <circle class="lesson-progress-bar ${lesson.isPaused ? 'paused' : ''}" cx="25" cy="25" r="20" 
+                                stroke-dasharray="${circumference}" 
+                                stroke-dashoffset="${dashOffset}">
+                            </circle>
+                        </svg>
+                        <div class="lesson-progress-text">${toPersianNum(progressPercent)}%</div>
                     </div>
                 </div>
             `;
         }).join('');
+    }
+
+    // ============ باز کردن صفحه جزئیات تکلیف ============
+    function openLessonDetail(lessonId) {
+        const lesson = allLessons.find(l => l.id === lessonId);
+        if (!lesson) return;
+        
+        selectedLessonId = lessonId;
+        const lessonIndex = allLessons.findIndex(l => l.id === lessonId);
+        const colorIndex = lessonIndex % 6;
+        
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const isCompleted = reports.some(r => r.lessonId === lessonId);
+        const currentProgress = getCurrentProgress();
+        const isPaused = currentProgress && currentProgress.lessonId === lessonId;
+        
+        const dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+        const activityCount = lesson.activityCount || 12;
+        const estimatedTime = lesson.estimatedTime || 10;
+        const description = lesson.description || 'در این تکلیف، با واژگان جدید، ترجمه و عبارات مهم درس اول آشنا می‌شوید. موفق باشید!';
+        
+        let startBtnHTML = '';
+        if (isCompleted) {
+            startBtnHTML = `
+                <button class="lesson-start-btn" style="background: linear-gradient(135deg, #1976d2, #1565c0); box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);" onclick="startLesson('${lessonId}')">
+                    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span>مشاهده دوباره (تمرین)</span>
+                </button>
+            `;
+        } else if (isPaused) {
+            startBtnHTML = `
+                <button class="lesson-start-btn" style="background: linear-gradient(135deg, #ff9800, #f57c00); box-shadow: 0 6px 20px rgba(245, 124, 0, 0.4);" onclick="startLesson('${lessonId}')">
+                    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span>ادامه تکلیف</span>
+                </button>
+            `;
+        } else {
+            startBtnHTML = `
+                <button class="lesson-start-btn" onclick="startLesson('${lessonId}')">
+                    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span>شروع تکلیف</span>
+                </button>
+            `;
+        }
+        
+        const content = document.getElementById('lesson-detail-content');
+        content.innerHTML = `
+            <div class="lesson-detail-banner">
+                <div class="lesson-detail-banner-content">
+                    <div class="lesson-detail-book">
+                        <img src="${BOOK_VECTORS[colorIndex]}" alt="کتاب">
+                    </div>
+                    <div class="lesson-detail-title">${lesson.title}</div>
+                    <div class="lesson-detail-subtitle">${lesson.subtitle || ''}</div>
+                </div>
+            </div>
+            
+            <div class="lesson-info-card">
+                <div class="lesson-info-row">
+                    <div class="lesson-info-right">
+                        <div class="lesson-info-icon purple">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <span>تعداد فعالیت‌ها:</span>
+                    </div>
+                    <span class="lesson-info-value">${toPersianNum(activityCount)}</span>
+                </div>
+                
+                <div class="lesson-info-row">
+                    <div class="lesson-info-right">
+                        <div class="lesson-info-icon orange">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <span>مدت زمان تقریبی:</span>
+                    </div>
+                    <span class="lesson-info-value">${toPersianNum(estimatedTime)} دقیقه</span>
+                </div>
+                
+                <div class="lesson-info-row">
+                    <div class="lesson-info-right">
+                        <div class="lesson-info-icon blue">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <span>مهلت انجام:</span>
+                    </div>
+                    <span class="lesson-info-value">${dueDate}</span>
+                </div>
+            </div>
+            
+            <div class="lesson-description">
+                ${description}
+            </div>
+            
+            ${startBtnHTML}
+        `;
+        
+        goToScreen('screen-lesson-detail');
     }
 
     // ============ ذخیره و بازیابی پیشرفت ============
@@ -5032,15 +5058,13 @@
         localStorage.removeItem('currentLessonProgress');
     }
 
-    // ============ شروع تکلیف (بدون پرسیدن ادامه) ============
+    // ============ شروع تکلیف ============
     async function startLesson(lessonId) {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const alreadyDone = reports.some(r => r.lessonId === lessonId);
         
-        // چک کن اگه نیمه‌کاره است - مستقیم ادامه بده بدون پرسیدن
         const progress = getCurrentProgress();
         if (progress && progress.lessonId === lessonId && !alreadyDone) {
-            // مستقیم ادامه بده
             await runLesson(lessonId, progress.isPracticeMode, progress.questionIndex);
             return;
         }
@@ -5162,7 +5186,7 @@
         localStorage.setItem('reports', JSON.stringify(reports));
     }
 
-    // ============ کارنامه گرافیکی (با SVG inline) ============
+    // ============ کارنامه گرافیکی ============
     function generateGraphicReport(report) {
         const avatar = localStorage.getItem('userAvatar') || 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
         const message = report.percent >= 90 ? 'عالی بودی! ادامه بده 🌟' : 
@@ -5170,7 +5194,6 @@
                         report.percent >= 50 ? 'قابل قبول، اما نیاز به تمرین بیشتر داری 📚' : 
                         'نیاز به تلاش بیشتر داری، ناامید نشو 🌱';
         
-        // SVG icons با inline styles برای سازگاری با html2canvas
         const bookIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1976d2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/><path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/></svg>';
         const calendarIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8e24aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
         const clockIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#00897b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
@@ -5179,92 +5202,80 @@
         const xIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#c62828" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
         
         return `
-            <div class="report-graphic-container" style="background:#fff;padding:25px 20px;border-radius:20px;direction:rtl;font-family:'Vazirmatn',sans-serif;">
-                <div class="report-header-graphic" style="text-align:center;margin-bottom:20px;padding-bottom:15px;border-bottom:2px dashed #e3f2fd;">
-                    <div class="report-header-title" style="font-size:24px;font-weight:900;color:#1565c0;margin-bottom:5px;">کارنامه تکلیف</div>
-                    <div class="report-header-sub" style="font-size:13px;color:#90a4ae;font-weight:bold;">عربی پایه هفتم</div>
+            <div class="report-graphic-container">
+                <div class="report-header-graphic">
+                    <div class="report-header-title">کارنامه تکلیف</div>
+                    <div class="report-header-sub">عربی پایه هفتم</div>
                 </div>
                 
-                <div class="report-student-card" style="background:#e3f2fd;border-radius:18px;padding:18px;display:flex;align-items:center;gap:15px;margin-bottom:20px;border:2px solid #90caf9;">
-                    <div class="report-student-avatar" style="width:70px;height:70px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 15px rgba(25,118,210,0.2);flex-shrink:0;">
-                        <img src="${avatar}" alt="دانش‌آموز" style="width:100%;height:100%;object-fit:cover;">
+                <div class="report-student-card">
+                    <div class="report-student-avatar">
+                        <img src="${avatar}" alt="دانش‌آموز">
                     </div>
-                    <div class="report-student-info" style="flex:1;">
-                        <div class="report-student-name" style="font-size:18px;font-weight:900;color:#0d47a1;margin-bottom:5px;">${report.studentName}</div>
-                        <div class="report-student-class" style="font-size:13px;color:#1565c0;font-weight:bold;">کلاس: ${report.studentClass}</div>
+                    <div class="report-student-info">
+                        <div class="report-student-name">${report.studentName}</div>
+                        <div class="report-student-class">کلاس: ${report.studentClass}</div>
                     </div>
                 </div>
                 
-                <div class="report-info-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
-                    <div class="report-info-item" style="background:#f8f9fa;border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;border:1.5px solid #e3f2fd;">
-                        <div class="report-info-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#e3f2fd;">
-                            ${bookIcon}
-                        </div>
-                        <div class="report-info-content" style="flex:1;min-width:0;">
-                            <div class="report-info-label" style="font-size:11px;color:#78909c;font-weight:bold;margin-bottom:3px;">درس</div>
-                            <div class="report-info-value" style="font-size:15px;font-weight:900;color:#333;">${report.lessonTitle}</div>
+                <div class="report-info-grid">
+                    <div class="report-info-item">
+                        <div class="report-info-icon blue">${bookIcon}</div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">درس</div>
+                            <div class="report-info-value">${report.lessonTitle}</div>
                         </div>
                     </div>
                     
-                    <div class="report-info-item" style="background:#f8f9fa;border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;border:1.5px solid #e3f2fd;">
-                        <div class="report-info-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#f3e5f5;">
-                            ${calendarIcon}
-                        </div>
-                        <div class="report-info-content" style="flex:1;min-width:0;">
-                            <div class="report-info-label" style="font-size:11px;color:#78909c;font-weight:bold;margin-bottom:3px;">تاریخ</div>
-                            <div class="report-info-value" style="font-size:15px;font-weight:900;color:#333;">${report.date}</div>
+                    <div class="report-info-item">
+                        <div class="report-info-icon purple">${calendarIcon}</div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">تاریخ</div>
+                            <div class="report-info-value">${report.date}</div>
                         </div>
                     </div>
                     
-                    <div class="report-info-item" style="background:#f8f9fa;border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;border:1.5px solid #e3f2fd;">
-                        <div class="report-info-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#e0f2f1;">
-                            ${clockIcon}
-                        </div>
-                        <div class="report-info-content" style="flex:1;min-width:0;">
-                            <div class="report-info-label" style="font-size:11px;color:#78909c;font-weight:bold;margin-bottom:3px;">زمان</div>
-                            <div class="report-info-value" style="font-size:15px;font-weight:900;color:#333;">${toPersianNum(report.timeTaken)} دقیقه</div>
+                    <div class="report-info-item">
+                        <div class="report-info-icon teal">${clockIcon}</div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">زمان</div>
+                            <div class="report-info-value">${toPersianNum(report.timeTaken)} دقیقه</div>
                         </div>
                     </div>
                     
-                    <div class="report-info-item" style="background:#f8f9fa;border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;border:1.5px solid #e3f2fd;">
-                        <div class="report-info-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff8e1;">
-                            ${starIcon}
-                        </div>
-                        <div class="report-info-content" style="flex:1;min-width:0;">
-                            <div class="report-info-label" style="font-size:11px;color:#78909c;font-weight:bold;margin-bottom:3px;">امتیاز</div>
-                            <div class="report-info-value" style="font-size:15px;font-weight:900;color:#333;">${toPersianNum(report.score)} از ${toPersianNum(report.totalPoints)}</div>
+                    <div class="report-info-item">
+                        <div class="report-info-icon yellow">${starIcon}</div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">امتیاز</div>
+                            <div class="report-info-value">${toPersianNum(report.score)} از ${toPersianNum(report.totalPoints)}</div>
                         </div>
                     </div>
                     
-                    <div class="report-info-item" style="background:#f8f9fa;border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;border:1.5px solid #e3f2fd;">
-                        <div class="report-info-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#e8f5e9;">
-                            ${checkIcon}
-                        </div>
-                        <div class="report-info-content" style="flex:1;min-width:0;">
-                            <div class="report-info-label" style="font-size:11px;color:#78909c;font-weight:bold;margin-bottom:3px;">پاسخ صحیح</div>
-                            <div class="report-info-value" style="font-size:15px;font-weight:900;color:#333;">${toPersianNum(report.correct)}</div>
+                    <div class="report-info-item">
+                        <div class="report-info-icon green">${checkIcon}</div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">پاسخ صحیح</div>
+                            <div class="report-info-value">${toPersianNum(report.correct)}</div>
                         </div>
                     </div>
                     
-                    <div class="report-info-item" style="background:#f8f9fa;border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;border:1.5px solid #e3f2fd;">
-                        <div class="report-info-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#ffebee;">
-                            ${xIcon}
-                        </div>
-                        <div class="report-info-content" style="flex:1;min-width:0;">
-                            <div class="report-info-label" style="font-size:11px;color:#78909c;font-weight:bold;margin-bottom:3px;">پاسخ غلط</div>
-                            <div class="report-info-value" style="font-size:15px;font-weight:900;color:#333;">${toPersianNum(report.wrong)}</div>
+                    <div class="report-info-item">
+                        <div class="report-info-icon red">${xIcon}</div>
+                        <div class="report-info-content">
+                            <div class="report-info-label">پاسخ غلط</div>
+                            <div class="report-info-value">${toPersianNum(report.wrong)}</div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="report-percent-circle" style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin:20px auto;width:140px;height:140px;border-radius:50%;border:8px solid #1976d2;background:#f8f9fa;position:relative;">
-                    <div class="report-percent-value" style="font-size:36px;font-weight:900;color:#1976d2;">${toPersianNum(report.percent)}%</div>
-                    <div class="report-percent-label" style="font-size:12px;color:#78909c;font-weight:bold;">درصد موفقیت</div>
+                <div class="report-percent-circle">
+                    <div class="report-percent-value">${toPersianNum(report.percent)}%</div>
+                    <div class="report-percent-label">درصد موفقیت</div>
                 </div>
                 
-                <div class="report-message" style="background:#fff8e1;border:2px solid #ffc107;border-radius:16px;padding:16px;text-align:center;margin-top:20px;">
-                    <div class="report-message-title" style="font-size:15px;font-weight:900;color:#e65100;margin-bottom:6px;">پیام برای شما:</div>
-                    <div class="report-message-text" style="font-size:13px;color:#bf360c;font-weight:bold;line-height:1.6;">${message}</div>
+                <div class="report-message">
+                    <div class="report-message-title">پیام برای شما:</div>
+                    <div class="report-message-text">${message}</div>
                 </div>
             </div>
         `;
@@ -5867,21 +5878,6 @@
         }
         if (localStorage.getItem('musicEnabled') === 'false') {
             document.getElementById('setting-music').checked = false;
-        }
-        if (localStorage.getItem('darkMode') === 'true') {
-            const settingEl = document.getElementById('setting-dark-mode');
-            if (settingEl) settingEl.checked = true;
-            document.body.style.filter = 'invert(1) hue-rotate(180deg)';
-            document.querySelectorAll('img').forEach(img => {
-                img.style.filter = 'invert(1) hue-rotate(180deg)';
-            });
-            const toggle = document.getElementById('theme-toggle');
-            if (toggle) toggle.classList.add('dark');
-            const label = document.getElementById('theme-label');
-            if (label) {
-                label.textContent = 'حالت شب';
-                label.classList.add('dark-label');
-            }
         }
         
         // راه‌اندازی swipe اعلان
