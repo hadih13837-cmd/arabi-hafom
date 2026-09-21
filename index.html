@@ -1958,16 +1958,36 @@
         }
         .edit-btn-save:active { transform: scale(0.96); }
 
-        /* ============ صفحه سوالات ============ */
-        #screen-quiz { background: #fff; }
+        /* ============ صفحه سوالات (با پس‌زمینه) ============ */
+        #screen-quiz { 
+            background: url('https://cdn.imgurl.ir/uploads/c3352_ChatGPT_Image_Sep_21_2026_09_21_08_PM.png') center center / cover no-repeat fixed;
+            position: relative;
+        }
+        
+        #screen-quiz::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.75);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        #screen-quiz > * {
+            position: relative;
+            z-index: 1;
+        }
+        
         .quiz-header-area {
-            flex-shrink: 0; padding: 20px 20px 10px 20px;
-            background: #fff;
+            flex-shrink: 0; 
+            padding: 40px 20px 20px 20px;
+            background: transparent;
+            margin-top: 10px;
         }
         .quiz-header {
             display: flex; justify-content: space-between;
             align-items: center; font-size: 16px;
-            font-weight: bold; color: #333; margin-bottom: 8px;
+            font-weight: bold; color: #333; margin-bottom: 14px;
         }
         .score-badge {
             display: flex; align-items: center; gap: 5px;
@@ -1987,23 +2007,27 @@
         .quiz-scroll-area {
             flex: 1; overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            padding: 0 20px 15px 20px;
+            padding: 10px 20px 15px 20px;
         }
         .quiz-footer {
             flex-shrink: 0;
             padding: 10px 20px 20px 20px;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.9);
             border-top: 1px solid rgba(0,0,0,0.05);
         }
         .question-text {
             font-size: 20px; font-weight: 900; color: #1565c0;
             text-align: center; margin-bottom: 18px; line-height: 1.6;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 12px 16px; border-radius: 14px;
         }
         .fill-blank-sentence {
             font-size: 24px; font-weight: bold; color: #333;
             margin-bottom: 18px; direction: rtl;
             display: flex; align-items: center; justify-content: center;
             gap: 5px; text-align: center; flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 12px 16px; border-radius: 14px;
         }
         .fill-blank-sentence .blank {
             display: inline-block; min-width: 100px;
@@ -2017,7 +2041,8 @@
             flex-direction: column; gap: 10px;
         }
         .option-btn {
-            background: #fff; border: 1.5px solid #e0e0e0;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1.5px solid #e0e0e0;
             padding: 16px; border-radius: 50px;
             font-size: 17px; font-weight: bold; color: #333;
             cursor: pointer; text-align: center;
@@ -2029,7 +2054,8 @@
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
         }
         .image-option {
-            background: #fff; border: 2px solid #e0e0e0;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #e0e0e0;
             border-radius: 18px;
             display: flex; align-items: center; justify-content: center;
             height: 110px; font-size: 46px; cursor: pointer;
@@ -2044,7 +2070,7 @@
             flex: 1; padding: 20px; border-radius: 50px;
             border: 2px solid #e0e0e0;
             font-size: 18px; font-weight: bold; cursor: pointer;
-            background: #fff; color: #333;
+            background: rgba(255, 255, 255, 0.95); color: #333;
         }
         .tf-btn.selected-true {
             background: #e8f5e9; border-color: #4caf50; color: #2e7d32;
@@ -2060,7 +2086,8 @@
             gap: 8px; width: 48%;
         }
         .matching-item {
-            background: #fff; border: 1.5px solid #e0e0e0;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1.5px solid #e0e0e0;
             padding: 14px; border-radius: 12px;
             font-size: 16px; font-weight: bold; color: #333;
             cursor: pointer; text-align: center;
@@ -2073,7 +2100,8 @@
             flex-wrap: wrap; margin-bottom: 15px;
         }
         .order-item {
-            background: #fff; border: 2px solid #e0e0e0;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #e0e0e0;
             padding: 12px 22px; border-radius: 15px;
             font-size: 17px; font-weight: bold; color: #333;
             cursor: pointer;
@@ -2083,7 +2111,8 @@
             border-radius: 15px;
             display: flex; gap: 8px; justify-content: center;
             align-items: center;
-            padding: 10px; color: #888; background: #fafafa;
+            padding: 10px; color: #888;
+            background: rgba(250, 250, 250, 0.95);
             flex-wrap: wrap;
         }
         .order-result span {
@@ -2110,12 +2139,29 @@
             font-family: 'Vazirmatn', sans-serif;
         }
 
-        /* ============ صفحه بازخورد ============ */
+        /* ============ صفحه بازخورد (با پس‌زمینه) ============ */
         #screen-feedback {
             justify-content: center; align-items: center;
-            text-align: center; background: #fff;
+            text-align: center;
+            background: url('https://cdn.imgurl.ir/uploads/c3352_ChatGPT_Image_Sep_21_2026_09_21_08_PM.png') center center / cover no-repeat fixed;
             padding: 30px 20px;
+            position: relative;
         }
+        
+        #screen-feedback::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        #screen-feedback > * {
+            position: relative;
+            z-index: 1;
+        }
+        
         .feedback-icon { font-size: 70px; margin-bottom: 15px; }
         .feedback-title { font-size: 26px; font-weight: 900; margin-bottom: 10px; }
         .feedback-sub { font-size: 16px; color: #666; margin-bottom: 15px; }
@@ -2141,21 +2187,38 @@
         .correct-answer-box.wrong-answer .answer-label { color: #c62828; }
         .correct-answer-box.wrong-answer .answer-text { color: #b71c1c; }
 
-        /* ============ صفحه پایان ============ */
+        /* ============ صفحه پایان (با پس‌زمینه) ============ */
         #screen-result {
             justify-content: center; align-items: center;
-            text-align: center; background: #fff;
+            text-align: center;
+            background: url('https://cdn.imgurl.ir/uploads/c3352_ChatGPT_Image_Sep_21_2026_09_21_08_PM.png') center center / cover no-repeat fixed;
             padding: 30px 20px; overflow-y: auto;
+            position: relative;
         }
+        
+        #screen-result::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        #screen-result > * {
+            position: relative;
+            z-index: 1;
+        }
+        
         .result-circle {
             width: 130px; height: 130px; border-radius: 50%;
             border: 8px solid #1976d2;
             display: flex; align-items: center; justify-content: center;
             font-size: 38px; font-weight: 900; color: #1976d2;
-            margin: 0 auto 20px auto; background: #f8f9fa;
+            margin: 0 auto 20px auto; background: rgba(248, 249, 250, 0.95);
         }
         .result-details {
-            width: 100%; background: #f8f9fa;
+            width: 100%; background: rgba(248, 249, 250, 0.95);
             padding: 20px; border-radius: 15px;
             margin-bottom: 20px; font-size: 15px;
             border: 1px solid #eee;
@@ -2521,7 +2584,7 @@
         </div>
     </div>
 
-    <!-- صفحه خوش‌آمد (ثبت‌نام) -->
+    <!-- صفحه خوش‌آمد -->
     <div id="screen-welcome" class="screen">
         <div class="welcome-video-wrapper">
             <video 
@@ -2561,7 +2624,6 @@
     <div id="screen-home" class="screen">
         <div class="home-scroll-area">
             
-            <!-- اعلان بنفش ویدیو جدید -->
             <div class="video-notification" id="video-notification">
                 <button class="video-notification-close" onclick="dismissVideoNotification()">✕</button>
                 <div class="video-notification-icon">🎬</div>
@@ -2572,7 +2634,6 @@
                 <button class="video-notification-btn" onclick="goToClipsFromNotification()">مشاهده</button>
             </div>
             
-            <!-- اعلان تکلیف جدید -->
             <div class="new-lesson-notification" id="new-lesson-notification">
                 <button class="notification-close" onclick="dismissNotification()">✕</button>
                 <div class="notification-icon">🔔</div>
@@ -2894,7 +2955,6 @@
         <div class="page-scroll-content">
             <div class="settings-new-list">
                 
-                <!-- حالت شب -->
                 <div class="setting-card">
                     <div class="setting-card-content">
                         <div class="setting-card-icon icon-purple">
@@ -2913,7 +2973,6 @@
                     </label>
                 </div>
                 
-                <!-- موسیقی -->
                 <div class="setting-card">
                     <div class="setting-card-content">
                         <div class="setting-card-icon icon-teal">
@@ -2934,7 +2993,6 @@
                     </label>
                 </div>
                 
-                <!-- صدا -->
                 <div class="setting-card">
                     <div class="setting-card-content">
                         <div class="setting-card-icon icon-teal">
@@ -3156,11 +3214,11 @@
         </div>
     </div>
 
-    <!-- صفحه سوالات -->
+    <!-- صفحه سوالات (با پس‌زمینه) -->
     <div id="screen-quiz" class="screen">
         <div class="quiz-header-area">
             <div class="quiz-header">
-                <span id="quiz-lesson-title">درس</span>
+                <span id="quiz-lesson-title">تکلیف</span>
                 <span id="question-counter">سوال ۱ از ۱۲</span>
                 <span class="score-badge">
                     <span class="star-icon">★</span>
@@ -3175,7 +3233,7 @@
         </div>
     </div>
 
-    <!-- صفحه بازخورد -->
+    <!-- صفحه بازخورد (با پس‌زمینه) -->
     <div id="screen-feedback" class="screen">
         <div class="feedback-icon" id="fb-icon">⭐</div>
         <div class="feedback-title" id="fb-title">آفرین!</div>
@@ -3188,7 +3246,7 @@
         <button class="btn-primary" onclick="nextQuestion()" style="margin-top: 20px; width: 100%; max-width: 320px;">سوال بعدی</button>
     </div>
 
-    <!-- صفحه نتیجه -->
+    <!-- صفحه نتیجه (با پس‌زمینه) -->
     <div id="screen-result" class="screen">
         <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
         <h2 style="color: #1565c0; margin-bottom: 20px; font-size: 24px;" id="result-title">تکلیف تمام شد!</h2>
@@ -3246,6 +3304,20 @@
         { url: 'https://cdn.imgurl.ir/uploads/x194208_IMG__.png', color: '#fbc02d', colorLight: 'rgba(251, 192, 45, 0.12)' }
     ];
 
+    // ============ لیست تکالیف ============
+    const LESSON_TITLES = [
+        'تکلیف اول',
+        'تکلیف دوم',
+        'تکلیف سوم',
+        'تکلیف چهارم',
+        'تکلیف پنجم',
+        'تکلیف ششم',
+        'تکلیف هفتم',
+        'تکلیف هشتم',
+        'تکلیف نهم',
+        'تکلیف دهم'
+    ];
+
     function toPersianNum(num) {
         const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
         return num.toString().replace(/\d/g, x => persianDigits[parseInt(x)]);
@@ -3271,7 +3343,6 @@
 
     // ============ باز کردن صفحه کلیپ‌ها ============
     function openClipsPage() {
-        // علامت‌گذاری که از صفحه کلیپ داریم برمی‌گردیم
         sessionStorage.setItem('cameFromClips', 'true');
         window.location.href = './clips.html';
     }
@@ -3483,7 +3554,6 @@
         }
     }
 
-    // ============ لود تکالیف برای اعلان ============
     async function loadLessonsListForNotification() {
         try {
             const response = await fetch('./lessons/index.json');
@@ -3515,7 +3585,6 @@
         }
     }
 
-    // ============ اعلان ویدیو جدید (بنفش) ============
     function checkVideoNotification() {
         const seenVideos = JSON.parse(localStorage.getItem('seenVideos') || '[]');
         const currentVideos = ['video_1'];
@@ -3793,7 +3862,6 @@
         } catch(e) {}
     }
 
-    // ============ اعلان تکلیف ============
     function checkAndShowNotification() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
@@ -3824,7 +3892,6 @@
         }, 300);
     }
 
-    // ============ Swipe اعلان ============
     let notifSwipeStartX = 0;
     let notifSwipeStartY = 0;
     let notifCurrentX = 0;
@@ -4091,7 +4158,6 @@
         showModal('اطلاعات حساب کاربری', `نام: ${name}\nکلاس: ${cls}\nمدرسه: ${school}`, '👤');
     }
     
-    // ============ حالت شب ============
     function toggleDarkMode(el) {
         if (el.checked) {
             localStorage.setItem('darkMode', 'true');
@@ -4123,7 +4189,6 @@
         localStorage.setItem('soundsEnabled', el.checked ? 'true' : 'false');
     }
 
-    // ============ منوی کناری ============
     function openSideMenu() {
         document.getElementById('side-menu-overlay').classList.add('active');
         document.getElementById('side-menu').classList.add('active');
@@ -4190,7 +4255,8 @@
                 ...lesson,
                 isCompleted: isCompleted,
                 isPaused: isPaused,
-                colorIndex: index % 6
+                colorIndex: index % 6,
+                taskTitle: LESSON_TITLES[index] || `تکلیف ${toPersianNum(index + 1)}`
             };
         });
         
@@ -4239,7 +4305,7 @@
                         <img src="${bookData.url}" alt="کتاب">
                     </div>
                     <div class="lesson-card-info">
-                        <div class="lesson-card-title">${lesson.title}${lesson.subtitle ? ' - ' + lesson.subtitle : ''}</div>
+                        <div class="lesson-card-title">${lesson.taskTitle}${lesson.subtitle ? ' - ' + lesson.subtitle : ''}</div>
                         <div class="lesson-card-deadline">
                             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                             <span>مهلت: ${dueDate}</span>
@@ -4271,6 +4337,7 @@
         const lessonIndex = allLessons.findIndex(l => l.id === lessonId);
         const colorIndex = lessonIndex % 6;
         const bookData = BOOK_VECTORS[colorIndex];
+        const taskTitle = LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
         
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const isCompleted = reports.some(r => r.lessonId === lessonId);
@@ -4313,7 +4380,7 @@
                     <div class="lesson-detail-book">
                         <img src="${bookData.url}" alt="کتاب">
                     </div>
-                    <div class="lesson-detail-title" style="color: ${bookData.color};">${lesson.title}</div>
+                    <div class="lesson-detail-title" style="color: ${bookData.color};">${taskTitle}</div>
                     <div class="lesson-detail-subtitle" style="color: ${bookData.color};">${lesson.subtitle || ''}</div>
                 </div>
             </div>
@@ -4431,6 +4498,9 @@
             if (!response.ok) throw new Error('خطا در بارگذاری');
             currentLesson = await response.json();
             
+            const lessonIndex = allLessons.findIndex(l => l.id === lessonId);
+            const taskTitle = LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
+            
             if (startFromIndex > 0 && !practiceMode) {
                 const progress = getCurrentProgress();
                 if (progress && progress.lessonId === lessonId) {
@@ -4457,7 +4527,7 @@
                 startTime = new Date();
             }
             
-            document.getElementById('quiz-lesson-title').textContent = currentLesson.title;
+            document.getElementById('quiz-lesson-title').textContent = taskTitle;
             goToScreen('screen-quiz');
             renderQuestion();
         } catch (error) {
@@ -4552,7 +4622,7 @@
                     <div class="report-info-item">
                         <div class="report-info-icon blue">${bookIcon}</div>
                         <div class="report-info-content">
-                            <div class="report-info-label">درس</div>
+                            <div class="report-info-label">تکلیف</div>
                             <div class="report-info-value">${report.lessonTitle}</div>
                         </div>
                     </div>
@@ -4731,7 +4801,7 @@
                          </div>`;
             }
             else if (q.type === 'translation') {
-                html += `<input type="text" id="translation-answer" placeholder="ترجمه را وارد کنید..." style="width:100%;padding:16px;border:2px solid #cfd8dc;border-radius:50px;text-align:center;font-size:17px;outline:none;margin-bottom:15px;font-family:'Vazirmatn',sans-serif;">`;
+                html += `<input type="text" id="translation-answer" placeholder="ترجمه را وارد کنید..." style="width:100%;padding:16px;border:2px solid #cfd8dc;border-radius:50px;text-align:center;font-size:17px;outline:none;margin-bottom:15px;font-family:'Vazirmatn',sans-serif;background:rgba(255,255,255,0.95);">`;
             }
         }
         
@@ -5001,11 +5071,14 @@
         const now = new Date();
         const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
         
+        const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
+        const taskTitle = LESSON_TITLES[lessonIndex] || currentLesson.title;
+        
         const report = {
             studentName: localStorage.getItem('userName'),
             studentClass: localStorage.getItem('userClass'),
             lessonId: currentLesson.lessonId,
-            lessonTitle: currentLesson.title,
+            lessonTitle: taskTitle,
             date: dateStr,
             timestamp: now.toISOString(),
             percent: percent,
@@ -5043,10 +5116,13 @@
         const now = new Date();
         const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
         
+        const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
+        const taskTitle = LESSON_TITLES[lessonIndex] || currentLesson.title;
+        
         const report = {
             studentName: localStorage.getItem('userName'),
             studentClass: localStorage.getItem('userClass'),
-            lessonTitle: currentLesson.title,
+            lessonTitle: taskTitle,
             date: dateStr,
             percent: percent,
             correct: correctCount,
@@ -5065,7 +5141,7 @@
         
         const opt = {
             margin: 0.3,
-            filename: `کارنامه_${currentLesson.title}_${dateStr.replace(/\//g, '-')}.pdf`,
+            filename: `کارنامه_${taskTitle}_${dateStr.replace(/\//g, '-')}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true, backgroundColor: '#f0f7ff' },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -5190,7 +5266,6 @@
         localStorage.setItem('installBannerDismissed', 'true');
     });
 
-    // ============ راه‌اندازی ============
     window.addEventListener('load', () => {
         loadUserInfo();
         
@@ -5211,9 +5286,7 @@
         
         initNotificationSwipe();
         
-        // ═══════════════════════════════════════════════════════
-        // 🔑 رفع مشکل برگشت از clips.html: مستقیم برو صفحه خانه
-        // ═══════════════════════════════════════════════════════
+        // رفع مشکل برگشت از clips.html
         const cameFromClips = sessionStorage.getItem('cameFromClips') === 'true';
         const isRegistered = localStorage.getItem('userRegistered') === 'true';
         
@@ -5222,9 +5295,7 @@
             history.replaceState({screen: 'screen-home'}, '', '');
             
             if (isRegistered) {
-                // مستقیم برو به صفحه خانه
                 goToScreen('screen-home', false);
-                // بعد از رفتن به خانه، اعلان‌ها رو چک کن
                 setTimeout(() => {
                     if (allLessons.length === 0) {
                         loadLessonsListForNotification().then(() => {
@@ -5241,7 +5312,6 @@
                 goToScreen('screen-welcome', false);
             }
         } else {
-            // مسیر معمول: از splash شروع کن
             pushHistory('screen-splash');
             setTimeout(typeMotivation, 500);
         }
