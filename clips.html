@@ -49,7 +49,8 @@
             flex-shrink: 0;
             display: flex;
             align-items: center;
-            gap: 18px;
+            justify-content: center;
+            gap: 12px;
             padding: 18px 20px;
             background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
             box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
@@ -57,26 +58,24 @@
             border-bottom: 2px solid #e3f2fd;
         }
         
-        .page-back {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+        .clips-header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
             box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
-            border: none;
             flex-shrink: 0;
         }
-        .page-back:active { transform: scale(0.92); }
-        .page-back svg {
-            width: 24px;
-            height: 24px;
+        
+        .clips-header-icon svg {
+            width: 22px;
+            height: 22px;
             stroke: #fff;
-            stroke-width: 2.5;
             fill: none;
+            stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
@@ -85,8 +84,6 @@
             font-size: 20px;
             font-weight: 900;
             color: #1565c0;
-            flex: 1;
-            margin-right: 5px;
         }
 
         /* ============ محتوا ============ */
@@ -97,58 +94,45 @@
             padding: 15px 15px 30px 15px;
         }
 
-        /* ============ کارت عربینو (سفید یکدست) ============ */
+        /* ============ کارت عربینو ============ */
         .arabino-card {
             background: #fff;
             border-radius: 24px;
-            padding: 25px 20px;
-            margin-bottom: 20px;
+            padding: 22px 20px;
+            margin-bottom: 18px;
             box-shadow: 0 6px 25px rgba(25, 118, 210, 0.12);
             border: 2px solid #e3f2fd;
             text-align: center;
-            position: relative;
-            overflow: hidden;
         }
 
-        /* انیمیشن وکتور عربینو */
         .arabino-logo-wrapper {
             display: inline-block;
             background: #fff;
             border-radius: 20px;
-            padding: 15px 25px;
-            margin-bottom: 18px;
+            padding: 12px 22px;
+            margin-bottom: 14px;
             box-shadow: 0 6px 20px rgba(25, 118, 210, 0.15);
             border: 2px solid #e3f2fd;
-            position: relative;
-            z-index: 2;
             animation: arabinoFloat 3s ease-in-out infinite;
         }
 
         @keyframes arabinoFloat {
-            0%, 100% { 
-                transform: translateY(0); 
-                box-shadow: 0 6px 20px rgba(25, 118, 210, 0.15);
-            }
-            50% { 
-                transform: translateY(-8px); 
-                box-shadow: 0 12px 30px rgba(25, 118, 210, 0.25);
-            }
+            0%, 100% { transform: translateY(0); box-shadow: 0 6px 20px rgba(25, 118, 210, 0.15); }
+            50% { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(25, 118, 210, 0.25); }
         }
 
         .arabino-logo-wrapper img {
-            width: 180px;
+            width: 160px;
             max-width: 100%;
             height: auto;
             display: block;
         }
 
         .arabino-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 900;
             color: #1565c0;
-            margin-bottom: 12px;
-            position: relative;
-            z-index: 2;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -156,8 +140,8 @@
         }
 
         .arabino-title svg {
-            width: 26px;
-            height: 26px;
+            width: 24px;
+            height: 24px;
             stroke: #1976d2;
             fill: none;
             stroke-width: 2;
@@ -166,13 +150,11 @@
         }
 
         .arabino-desc {
-            font-size: 14px;
+            font-size: 13px;
             color: #455a64;
             font-weight: bold;
-            line-height: 2;
+            line-height: 1.9;
             text-align: center;
-            position: relative;
-            z-index: 2;
         }
 
         .arabino-desc strong {
@@ -180,299 +162,359 @@
             font-weight: 900;
         }
 
-        /* ============ کارت ویدیو ============ */
-        .video-card {
+        /* ============ آکاردئون ویدیو ============ */
+        .video-accordion {
             background: #fff;
-            border-radius: 22px;
-            overflow: hidden;
-            margin-bottom: 18px;
-            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.12);
+            border-radius: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 3px 12px rgba(25, 118, 210, 0.08);
             border: 1.5px solid #e3f2fd;
-            transition: transform 0.15s ease;
-            cursor: pointer;
-        }
-
-        .video-card:active { transform: scale(0.99); }
-
-        .video-thumbnail {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background: #000;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
 
-        .video-thumbnail img,
-        .video-thumbnail video {
+        .video-accordion.open {
+            box-shadow: 0 8px 30px rgba(25, 118, 210, 0.2);
+            border-color: #1976d2;
+        }
+
+        /* هدر آکاردئون */
+        .video-accordion-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .video-accordion-header:active {
+            background: #f8fbff;
+        }
+
+        /* عکس کوچک */
+        .video-accordion-thumb {
+            width: 90px;
+            height: 70px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+            background: #e3f2fd;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .video-accordion-thumb img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
         }
 
-        .video-title-overlay {
+        /* بج مدت زمان */
+        .video-accordion-duration {
             position: absolute;
-            bottom: 0;
-            right: 0;
-            left: 0;
-            padding: 40px 16px 16px 16px;
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);
-            color: #fff;
-            text-align: right;
-            pointer-events: none;
-        }
-
-        .video-title-overlay h3 {
-            font-size: 17px;
-            font-weight: 900;
-            margin-bottom: 4px;
-            color: #fff;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
-            line-height: 1.5;
-        }
-
-        .video-title-overlay p {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: bold;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-        }
-
-        .video-play-btn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 75px;
-            height: 75px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
-            pointer-events: none;
-            animation: playBtnPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes playBtnPulse {
-            0%, 100% { 
-                transform: translate(-50%, -50%) scale(1);
-                box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
-            }
-            50% { 
-                transform: translate(-50%, -50%) scale(1.08);
-                box-shadow: 0 8px 40px rgba(25, 118, 210, 0.6);
-            }
-        }
-
-        .video-play-btn svg {
-            width: 32px;
-            height: 32px;
-            fill: #1976d2;
-            margin-right: -4px;
-            stroke: none;
-        }
-
-        .video-duration-badge {
-            position: absolute;
-            top: 12px;
-            left: 12px;
+            bottom: 5px;
+            left: 5px;
             background: rgba(0, 0, 0, 0.8);
             color: #fff;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 9px;
             font-weight: 900;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-        }
-
-        .video-meta {
-            padding: 14px 16px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: #fff;
+            gap: 3px;
         }
 
-        .video-meta-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        .video-accordion-duration svg {
+            width: 8px;
+            height: 8px;
+            fill: #fff;
+        }
+
+        /* اطلاعات وسط */
+        .video-accordion-info {
+            flex: 1;
+            text-align: right;
+            min-width: 0;
+        }
+
+        /* بج رنگی دسته‌بندی */
+        .video-accordion-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+
+        .video-accordion-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: #1a237e;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .video-accordion-desc {
+            font-size: 11px;
+            color: #78909c;
+            font-weight: bold;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* فلش پایین/بالا */
+        .video-accordion-action {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            gap: 4px;
             flex-shrink: 0;
         }
 
-        .video-meta-icon svg {
-            width: 22px;
-            height: 22px;
+        .video-accordion-arrow {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .video-accordion.open .video-accordion-arrow {
+            transform: rotate(180deg);
+            background: #1976d2;
+        }
+
+        .video-accordion-arrow svg {
+            width: 16px;
+            height: 16px;
             stroke: #1976d2;
             fill: none;
-            stroke-width: 2;
+            stroke-width: 2.5;
             stroke-linecap: round;
             stroke-linejoin: round;
+            transition: stroke 0.3s ease;
         }
 
-        .video-meta-info {
-            flex: 1;
-            text-align: right;
+        .video-accordion.open .video-accordion-arrow svg {
+            stroke: #fff;
         }
 
-        .video-meta-title {
-            font-size: 14px;
-            font-weight: 900;
-            color: #1565c0;
-            margin-bottom: 3px;
-        }
-
-        .video-meta-sub {
-            font-size: 11px;
-            color: #90a4ae;
-            font-weight: bold;
-        }
-
-        /* ============ مودال پخش ویدیو ============ */
-        .video-modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 9999;
-            display: none;
-            flex-direction: column;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .video-modal-overlay.active { display: flex; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .video-modal-header {
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 15px 18px;
-            background: rgba(0, 0, 0, 0.6);
-            position: relative;
-            z-index: 2;
-        }
-
-        .video-modal-close {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            color: #fff;
-            font-size: 22px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            flex-shrink: 0;
-        }
-
-        .video-modal-close:active { transform: scale(0.9); }
-
-        .video-modal-title {
-            flex: 1;
-            color: #fff;
-            font-size: 15px;
-            font-weight: 900;
-            text-align: right;
+        /* بدنه آکاردئون */
+        .video-accordion-body {
+            max-height: 0;
             overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .video-modal-body {
-            flex: 1;
+        .video-accordion.open .video-accordion-body {
+            max-height: 2000px;
+        }
+
+        .video-accordion-inner {
+            padding: 0 12px 16px 12px;
+        }
+
+        /* کادر ویدیو */
+        .video-frame {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 14px;
+        }
+
+        .video-frame video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 16px;
+        }
+
+        /* ============ کادر گرافیکی اطلاعات کلیپ ============ */
+        .video-info-card {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
+            border-radius: 16px;
+            padding: 16px;
+            border: 2px solid #bbdefb;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-info-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: -30px;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(25, 118, 210, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* کادر عنوان گرافیکی */
+        .video-info-title-box {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
-            position: relative;
-            background: #000;
-        }
-
-        .video-modal-body video {
-            width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            background: #000;
-        }
-
-        .video-modal-info {
-            flex-shrink: 0;
-            padding: 15px 18px 20px 18px;
-            background: rgba(0, 0, 0, 0.85);
-            color: #fff;
-            text-align: right;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .video-modal-info-title {
-            font-size: 16px;
-            font-weight: 900;
-            margin-bottom: 8px;
-            color: #fff;
-        }
-
-        .video-modal-info-desc {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.75);
-            font-weight: bold;
-            line-height: 1.7;
-        }
-
-        .video-modal-actions {
-            display: flex;
             gap: 8px;
-            margin-top: 12px;
-            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+            position: relative;
+            z-index: 1;
         }
 
-        .video-action-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            padding: 8px 14px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            font-family: 'Vazirmatn', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: background 0.2s ease;
-        }
-
-        .video-action-btn:active {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(0.96);
-        }
-
-        .video-action-btn svg {
-            width: 14px;
-            height: 14px;
+        .video-info-title-box svg {
+            width: 20px;
+            height: 20px;
             stroke: #fff;
             fill: none;
             stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
+            flex-shrink: 0;
+        }
+
+        .video-info-title-text {
+            font-size: 15px;
+            font-weight: 900;
+            color: #fff;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        /* اطلاعات با آیکون */
+        .video-info-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .video-info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 10px 12px;
+            border: 1px solid #bbdefb;
+        }
+
+        .video-info-item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .video-info-item-icon.purple {
+            background: linear-gradient(135deg, #e1bee7, #ce93d8);
+        }
+        .video-info-item-icon.purple svg { stroke: #6a1b9a; }
+
+        .video-info-item-icon.blue {
+            background: linear-gradient(135deg, #bbdefb, #90caf9);
+        }
+        .video-info-item-icon.blue svg { stroke: #0d47a1; }
+
+        .video-info-item-icon.green {
+            background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+        }
+        .video-info-item-icon.green svg { stroke: #1b5e20; }
+
+        .video-info-item-icon.orange {
+            background: linear-gradient(135deg, #ffe0b2, #ffcc80);
+        }
+        .video-info-item-icon.orange svg { stroke: #e65100; }
+
+        .video-info-item-icon.yellow {
+            background: linear-gradient(135deg, #fff9c4, #fff176);
+        }
+        .video-info-item-icon.yellow svg { stroke: #f57f17; }
+
+        .video-info-item-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .video-info-item-content {
+            flex: 1;
+            text-align: right;
+            min-width: 0;
+        }
+
+        .video-info-item-label {
+            font-size: 11px;
+            color: #78909c;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .video-info-item-value {
+            font-size: 13px;
+            color: #1a237e;
+            font-weight: 900;
+            line-height: 1.6;
+        }
+
+        /* ============ رنگ‌های بج ============ */
+        .badge-purple {
+            background: linear-gradient(135deg, #e1bee7, #ce93d8);
+            color: #6a1b9a;
+        }
+        .badge-blue {
+            background: linear-gradient(135deg, #bbdefb, #90caf9);
+            color: #0d47a1;
+        }
+        .badge-green {
+            background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+            color: #1b5e20;
+        }
+        .badge-orange {
+            background: linear-gradient(135deg, #ffe0b2, #ffcc80);
+            color: #e65100;
+        }
+        .badge-red {
+            background: linear-gradient(135deg, #ffcdd2, #ef9a9a);
+            color: #b71c1c;
+        }
+        .badge-teal {
+            background: linear-gradient(135deg, #b2dfdb, #80cbc4);
+            color: #004d40;
+        }
+        .badge-pink {
+            background: linear-gradient(135deg, #f8bbd0, #f48fb1);
+            color: #880e4f;
+        }
+        .badge-yellow {
+            background: linear-gradient(135deg, #fff9c4, #fff176);
+            color: #f57f17;
         }
     </style>
 </head>
@@ -482,18 +524,16 @@
     
     <!-- هدر -->
     <div class="clips-header">
-        <button class="page-back" onclick="goBackToApp()" title="بازگشت">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </button>
+        <div class="clips-header-icon">
+            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
         <div class="page-title">کلیپ‌های آموزشی</div>
     </div>
     
     <!-- محتوا -->
     <div class="clips-content">
         
-        <!-- کارت عربینو (سفید یکدست با انیمیشن) -->
+        <!-- کارت عربینو -->
         <div class="arabino-card">
             <div class="arabino-logo-wrapper">
                 <img src="https://cdn.imgurl.ir/uploads/x99593_InShot_20260909_143524520.png" alt="عربینو">
@@ -515,52 +555,205 @@
         
         <div id="video-list-container">
             
-            <!-- ویدیو اول -->
-            <div class="video-card" onclick="openVideoModal('https://cdn.imgurl.ir/uploads/m58893_InShot_20260911_233658709.mp4', 'کلمه در زبان عربی چطوریه؟🤔', 'آشنایی با ساختار کلمات در زبان عربی - موشن گرافیک عربینو')">
-                <div class="video-thumbnail">
-                    <video src="https://cdn.imgurl.ir/uploads/m58893_InShot_20260911_233658709.mp4" preload="metadata" muted playsinline></video>
-                    <div class="video-duration-badge">موشن گرافیک</div>
-                    <div class="video-play-btn">
-                        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <!-- ویدیو: قواعد (بنفش) -->
+            <div class="video-accordion" onclick="toggleAccordion(this, event)">
+                <div class="video-accordion-header">
+                    <div class="video-accordion-thumb">
+                        <img src="https://cdn.imgurl.ir/uploads/l9330_ChatGPT_Image______.png" alt="کلمه در زبان عربی" onerror="this.src='https://cdn.imgurl.ir/uploads/x99593_InShot_20260909_143524520.png'">
+                        <div class="video-accordion-duration">
+                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span>01:06</span>
+                        </div>
                     </div>
-                    <div class="video-title-overlay">
-                        <h3>کلمه در زبان عربی چطوریه؟🤔</h3>
-                        <p>موشن گرافیک آموزشی عربینو</p>
+                    
+                    <div class="video-accordion-info">
+                        <div class="video-accordion-badge badge-purple">قواعد</div>
+                        <div class="video-accordion-title">کلمه در زبان عربی چطوریه؟🤔</div>
+                        <div class="video-accordion-desc">آشنایی با ساختار کلمات در زبان عربی</div>
+                    </div>
+                    
+                    <div class="video-accordion-action">
+                        <div class="video-accordion-arrow">
+                            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
                     </div>
                 </div>
-                <div class="video-meta">
-                    <div class="video-meta-icon">
-                        <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-                    </div>
-                    <div class="video-meta-info">
-                        <div class="video-meta-title">کلمه در زبان عربی چطوریه؟🤔</div>
-                        <div class="video-meta-sub">عربینو • موشن گرافیک</div>
+                
+                <div class="video-accordion-body">
+                    <div class="video-accordion-inner">
+                        <div class="video-frame">
+                            <video 
+                                controls 
+                                playsinline 
+                                preload="metadata"
+                                controlsList="nodownload"
+                                poster="https://cdn.imgurl.ir/uploads/l9330_ChatGPT_Image______.png">
+                                <source src="https://cdn.imgurl.ir/uploads/m58893_InShot_20260911_233658709.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        
+                        <!-- کادر گرافیکی اطلاعات کلیپ -->
+                        <div class="video-info-card">
+                            <div class="video-info-title-box">
+                                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                                <div class="video-info-title-text">کلمه در زبان عربی چطوریه؟🤔</div>
+                            </div>
+                            
+                            <div class="video-info-items">
+                                <!-- توضیحات کلیپ -->
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon purple">
+                                        <svg viewBox="0 0 24 24"><path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">توضیحات کلیپ</div>
+                                        <div class="video-info-item-value">کلمه در زبان عربی به سه قسمت اسم، فعل و حرف تقسیم میشه...</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- موضوع کلیپ -->
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon purple">
+                                        <svg viewBox="0 0 24 24"><path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/><path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">موضوع کلیپ</div>
+                                        <div class="video-info-item-value">قواعد - ساختار کلمات</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- مدت زمان -->
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon blue">
+                                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">مدت زمان</div>
+                                        <div class="video-info-item-value">۱ دقیقه و ۶ ثانیه</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- در این کلیپ یاد می‌گیری -->
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon green">
+                                        <svg viewBox="0 0 24 24"><path d="M9 11L12 14L22 4"/><path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">در این کلیپ یاد می‌گیری</div>
+                                        <div class="video-info-item-value">تشخیص اسم، فعل و حرف در زبان عربی</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- ویژه -->
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon orange">
+                                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">ویژه</div>
+                                        <div class="video-info-item-value">دانش‌آموزان پایه هفتم</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <!-- 
+            ═══════════════════════════════════════════════════════
             📌 برای اضافه کردن ویدیو جدید، این بلوک رو کپی کن:
             
-            <div class="video-card" onclick="openVideoModal('لینک_ویدیو', 'عنوان', 'توضیحات')">
-                <div class="video-thumbnail">
-                    <video src="لینک_ویدیو" preload="metadata" muted playsinline></video>
-                    <div class="video-duration-badge">موشن گرافیک</div>
-                    <div class="video-play-btn">
-                        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            رنگ بج‌ها:
+            - قواعد → badge-purple (بنفش)
+            - ترجمه → badge-green (سبز)
+            - کلاس مجازی → badge-yellow (زرد)
+            - واژگان → badge-blue (آبی)
+            - نکات مهم → badge-orange (نارنجی)
+            - تمرین → badge-red (قرمز)
+            - مکالمه → badge-teal (فیروزه‌ای)
+            - داستان → badge-pink (صورتی)
+            
+            <div class="video-accordion" onclick="toggleAccordion(this, event)">
+                <div class="video-accordion-header">
+                    <div class="video-accordion-thumb">
+                        <img src="لینک_عکس" alt="عنوان">
+                        <div class="video-accordion-duration">
+                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span>01:06</span>
+                        </div>
                     </div>
-                    <div class="video-title-overlay">
-                        <h3>عنوان ویدیو</h3>
-                        <p>توضیح کوتاه</p>
+                    
+                    <div class="video-accordion-info">
+                        <div class="video-accordion-badge badge-purple">قواعد</div>
+                        <div class="video-accordion-title">عنوان کلیپ</div>
+                        <div class="video-accordion-desc">توضیح مختصر</div>
+                    </div>
+                    
+                    <div class="video-accordion-action">
+                        <div class="video-accordion-arrow">
+                            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
                     </div>
                 </div>
-                <div class="video-meta">
-                    <div class="video-meta-icon">
-                        <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-                    </div>
-                    <div class="video-meta-info">
-                        <div class="video-meta-title">عنوان ویدیو</div>
-                        <div class="video-meta-sub">عربینو • موشن گرافیک</div>
+                
+                <div class="video-accordion-body">
+                    <div class="video-accordion-inner">
+                        <div class="video-frame">
+                            <video controls playsinline preload="metadata" controlsList="nodownload" poster="لینک_عکس">
+                                <source src="لینک_ویدیو" type="video/mp4">
+                            </video>
+                        </div>
+                        
+                        <div class="video-info-card">
+                            <div class="video-info-title-box">
+                                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                                <div class="video-info-title-text">عنوان کلیپ</div>
+                            </div>
+                            
+                            <div class="video-info-items">
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon purple">
+                                        <svg viewBox="0 0 24 24"><path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">توضیحات کلیپ</div>
+                                        <div class="video-info-item-value">توضیحات کامل...</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon purple">
+                                        <svg viewBox="0 0 24 24"><path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/><path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">موضوع کلیپ</div>
+                                        <div class="video-info-item-value">قواعد - عنوان</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon blue">
+                                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">مدت زمان</div>
+                                        <div class="video-info-item-value">۱ دقیقه و ۶ ثانیه</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon green">
+                                        <svg viewBox="0 0 24 24"><path d="M9 11L12 14L22 4"/><path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">در این کلیپ یاد می‌گیری</div>
+                                        <div class="video-info-item-value">توضیحات کامل</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -572,150 +765,41 @@
     
 </div>
 
-<!-- مودال پخش ویدیو -->
-<div class="video-modal-overlay" id="video-modal">
-    <div class="video-modal-header">
-        <button class="video-modal-close" onclick="closeVideoModal()">✕</button>
-        <div class="video-modal-title" id="video-modal-title">عنوان ویدیو</div>
-    </div>
-    <div class="video-modal-body">
-        <video id="video-player" controls playsinline preload="metadata" controlsList="nodownload">
-            Your browser does not support the video tag.
-        </video>
-    </div>
-    <div class="video-modal-info">
-        <div class="video-modal-info-title" id="video-modal-info-title">عنوان ویدیو</div>
-        <div class="video-modal-info-desc" id="video-modal-info-desc">توضیحات ویدیو</div>
-        <div class="video-modal-actions">
-            <button class="video-action-btn" onclick="toggleVideoFullscreen()">
-                <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-                <span>تمام صفحه</span>
-            </button>
-            <button class="video-action-btn" onclick="toggleVideoPlayPause()">
-                <svg viewBox="0 0 24 24" id="play-pause-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                <span id="play-pause-text">توقف</span>
-            </button>
-            <button class="video-action-btn" onclick="restartVideo()">
-                <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-                <span>شروع دوباره</span>
-            </button>
-        </div>
-    </div>
-</div>
-
 <script>
-    // ============ بازگشت به برنامه اصلی (صفحه خانه) ============
-    function goBackToApp() {
-        // انتقال به index.html با هش #home که صفحه خانه رو باز کنه
-        window.location.href = './index.html#home';
-    }
-    
-    // ============ ویدیو پلیر ============
-    function openVideoModal(videoUrl, title, description) {
-        const modal = document.getElementById('video-modal');
-        const player = document.getElementById('video-player');
-        const titleEl = document.getElementById('video-modal-title');
-        const infoTitleEl = document.getElementById('video-modal-info-title');
-        const infoDescEl = document.getElementById('video-modal-info-desc');
-        
-        // تنظیم عنوان و توضیحات
-        titleEl.textContent = title || 'ویدیو آموزشی';
-        infoTitleEl.textContent = title || 'ویدیو آموزشی';
-        infoDescEl.textContent = description || 'توضیحات ویدیو';
-        
-        // تنظیم منبع ویدیو
-        if (videoUrl) {
-            player.src = videoUrl;
-            player.load();
+    // ============ باز کردن / بستن آکاردئون ============
+    function toggleAccordion(element, event) {
+        // اگه روی خود ویدیو یا کنترل‌هاش کلیک شد، آکاردئون رو نبند
+        if (event && event.target) {
+            const tag = event.target.tagName;
+            if (tag === 'VIDEO' || event.target.closest('video') || event.target.closest('.video-frame')) {
+                return;
+            }
         }
         
-        // باز کردن مودال
-        modal.classList.add('active');
+        const isOpen = element.classList.contains('open');
         
-        // پخش خودکار
-        setTimeout(() => {
-            player.play().catch(e => console.log('Autoplay prevented:', e));
-        }, 100);
+        // بستن همه آکاردئون‌های دیگه
+        document.querySelectorAll('.video-accordion').forEach(acc => {
+            if (acc !== element) {
+                acc.classList.remove('open');
+                const v = acc.querySelector('video');
+                if (v && !v.paused) {
+                    v.pause();
+                }
+            }
+        });
         
-        // قفل اسکرول
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeVideoModal() {
-        const modal = document.getElementById('video-modal');
-        const player = document.getElementById('video-player');
-        
-        // توقف ویدیو
-        if (player) {
-            player.pause();
-            player.currentTime = 0;
-            player.src = '';
-        }
-        
-        modal.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-    
-    function toggleVideoPlayPause() {
-        const player = document.getElementById('video-player');
-        const icon = document.getElementById('play-pause-icon');
-        const text = document.getElementById('play-pause-text');
-        
-        if (!player) return;
-        
-        if (player.paused) {
-            player.play();
-            icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-            text.textContent = 'توقف';
+        // toggle
+        if (isOpen) {
+            element.classList.remove('open');
+            const v = element.querySelector('video');
+            if (v && !v.paused) {
+                v.pause();
+            }
         } else {
-            player.pause();
-            icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-            text.textContent = 'پخش';
+            element.classList.add('open');
         }
     }
-    
-    function toggleVideoFullscreen() {
-        const player = document.getElementById('video-player');
-        if (!player) return;
-        
-        if (player.requestFullscreen) {
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else {
-                player.requestFullscreen();
-            }
-        } else if (player.webkitRequestFullscreen) {
-            if (document.webkitFullscreenElement) {
-                document.webkitExitFullscreen();
-            } else {
-                player.webkitRequestFullscreen();
-            }
-        }
-    }
-    
-    function restartVideo() {
-        const player = document.getElementById('video-player');
-        if (!player) return;
-        player.currentTime = 0;
-        player.play();
-    }
-    
-    // ============ بستن مودال با دکمه Esc ============
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            const modal = document.getElementById('video-modal');
-            if (modal.classList.contains('active')) {
-                closeVideoModal();
-            }
-        }
-    });
-    
-    // ============ بستن مودال با کلیک روی پس‌زمینه ============
-    document.getElementById('video-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'video-modal') {
-            closeVideoModal();
-        }
-    });
 </script>
 
 </body>
