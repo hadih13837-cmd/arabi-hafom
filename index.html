@@ -651,6 +651,8 @@
             transform: translate(-50%, -50%);
             font-size: 11px; font-weight: 900; color: var(--primary);
         }
+        /* عدد پیشرفت 100% = سبز */
+        .lesson-progress-text.full-progress { color: #2e7d32 !important; }
 
         /* جزئیات تکلیف */
         #screen-lesson-detail { background: #f0f7ff; }
@@ -1971,7 +1973,7 @@
             flex: 1; overflow-y: auto; padding: 20px;
         }
 
-        /* ============ صفحه تقویم جدید ============ */
+        /* ============ صفحه تقویم ============ */
         #screen-calendar {
             background: #f0f7ff;
             transition: background 0.5s ease;
@@ -1986,7 +1988,6 @@
             padding: 15px 15px 30px 15px;
         }
         
-        /* بنر فصل */
         .calendar-season-banner {
             border-radius: 24px;
             padding: 22px 20px;
@@ -2039,7 +2040,6 @@
             text-shadow: 0 1px 4px rgba(0,0,0,0.2);
         }
         
-        /* کارت ماه */
         .calendar-month-card {
             background: #fff;
             border-radius: 24px;
@@ -2062,9 +2062,6 @@
             margin-bottom: 14px;
             padding-bottom: 10px;
             border-bottom: 2px dashed #e0e0e0;
-        }
-        .calendar-month-nav {
-            display: flex; align-items: center; gap: 10px;
         }
         .calendar-nav-btn {
             width: 36px; height: 36px; border-radius: 50%;
@@ -2330,12 +2327,12 @@
             100% { transform: scale(0.1) translate(0, 400px); opacity: 0; }
         }
 
-        /* ============ راهنمای برنامه ============ */
+        /* ============ راهنما ============ */
         .guide-overlay {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.6);
             z-index: 9900;
             display: none;
         }
@@ -2344,11 +2341,14 @@
         .guide-highlight {
             position: fixed;
             border-radius: 20px;
-            box-shadow: 0 0 0 9999px rgba(0,0,0,0.75), 0 0 30px rgba(255,255,255,0.8);
             z-index: 9901;
             pointer-events: none;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 3px solid #fff;
+            border: 3px solid rgba(255,255,255,0.95);
+            box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.3),
+                        0 0 25px 8px rgba(25, 118, 210, 0.6),
+                        0 0 60px 15px rgba(25, 118, 210, 0.3);
+            background: transparent;
         }
         
         .guide-tooltip {
@@ -2358,7 +2358,7 @@
             padding: 20px;
             max-width: 320px;
             width: calc(100% - 40px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 2px rgba(25, 118, 210, 0.15);
             z-index: 9902;
             animation: guidePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
@@ -3109,7 +3109,7 @@
     <!-- ============ صفحه جزئیات تکلیف ============ -->
     <div id="screen-lesson-detail" class="screen">
         <div class="page-header">
-            <button class="page-back" onclick="goToScreen('screen-lessons')" title="بازگشت">
+            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -3133,7 +3133,7 @@
         <div class="notifications-list" id="notifications-list"></div>
     </div>
 
-    <!-- ============ صفحه تقویم (تک‌ماهه با فلش) ============ -->
+    <!-- ============ صفحه تقویم ============ -->
     <div id="screen-calendar" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -3625,13 +3625,14 @@
 </div>
 <script>
     // ============ ثابت‌ها ============
+    // ترتیب وکتور کتاب‌ها: بنفش → قرمز → آبی → زرد → سبز → فیروزه‌ای
     const BOOK_VECTORS = [
-        { url: 'https://cdn.imgurl.ir/uploads/l915585_IMG__.png', color: '#8e24aa', colorLight: 'rgba(142, 36, 170, 0.08)' }, // ۱: بنفش
-        { url: 'https://cdn.imgurl.ir/uploads/g095601_IMG__.png', color: '#e53935', colorLight: 'rgba(229, 57, 53, 0.08)' }, // ۲: قرمز
-        { url: 'https://cdn.imgurl.ir/uploads/r97389_IMG__.png', color: '#1976d2', colorLight: 'rgba(25, 118, 210, 0.08)' }, // ۳: آبی
-        { url: 'https://cdn.imgurl.ir/uploads/x194208_IMG__.png', color: '#fbc02d', colorLight: 'rgba(251, 192, 45, 0.12)' }, // ۴: زرد
-        { url: 'https://cdn.imgurl.ir/uploads/e26605_IMG__.png', color: '#2e7d32', colorLight: 'rgba(46, 125, 50, 0.08)' }, // ۵: سبز
-        { url: 'https://cdn.imgurl.ir/uploads/s308692_IMG__.png', color: '#00acc1', colorLight: 'rgba(0, 172, 193, 0.08)' } // ۶: فیروزه‌ای
+        { url: 'https://cdn.imgurl.ir/uploads/l915585_IMG__.png', color: '#8e24aa', colorLight: 'rgba(142, 36, 170, 0.08)' }, // ۰: بنفش
+        { url: 'https://cdn.imgurl.ir/uploads/g095601_IMG__.png', color: '#e53935', colorLight: 'rgba(229, 57, 53, 0.08)' },  // ۱: قرمز
+        { url: 'https://cdn.imgurl.ir/uploads/r97389_IMG__.png', color: '#1976d2', colorLight: 'rgba(25, 118, 210, 0.08)' }, // ۲: آبی
+        { url: 'https://cdn.imgurl.ir/uploads/x194208_IMG__.png', color: '#fbc02d', colorLight: 'rgba(251, 192, 45, 0.12)' },// ۳: زرد
+        { url: 'https://cdn.imgurl.ir/uploads/e26605_IMG__.png', color: '#2e7d32', colorLight: 'rgba(46, 125, 50, 0.08)' },  // ۴: سبز
+        { url: 'https://cdn.imgurl.ir/uploads/s308692_IMG__.png', color: '#00acc1', colorLight: 'rgba(0, 172, 193, 0.08)' } // ۵: فیروزه‌ای
     ];
 
     const LESSON_TITLES = [
@@ -3650,7 +3651,7 @@
         image: { class: 'qti-image', svg: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' }
     };
 
-    // ============ اعداد فارسی ============
+    // ============ توابع کمکی اعداد ============
     function toPersianNum(num) {
         const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
         return num.toString().replace(/\d/g, x => persianDigits[parseInt(x)]);
@@ -3664,27 +3665,21 @@
     function getPersianDate() {
         return new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
     }
-
     function getPersianDateFull() {
         return new Intl.DateTimeFormat('fa-IR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date());
     }
-
     function getPersianWeekday() {
         return new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(new Date());
     }
-
     function getPersianMonth() {
         return new Intl.DateTimeFormat('fa-IR', { month: 'long' }).format(new Date());
     }
-
     function getPersianYear() {
         return new Intl.DateTimeFormat('fa-IR', { year: 'numeric' }).format(new Date());
     }
-
     function getPersianDay() {
         return new Intl.DateTimeFormat('fa-IR', { day: 'numeric' }).format(new Date());
     }
-
     function getPersianMonthNum() {
         const num = new Intl.DateTimeFormat('fa-IR', { month: 'numeric' }).format(new Date());
         return parseInt(fromPersianNum(num));
@@ -3697,7 +3692,6 @@
         if (parts.length !== 3) return 0;
         return parseInt(parts[0]) * 10000 + parseInt(parts[1]) * 100 + parseInt(parts[2]);
     }
-
     function isExpired(dueDate) {
         if (!dueDate) return false;
         return persianDateToNumber(getPersianDate()) > persianDateToNumber(dueDate);
@@ -3858,8 +3852,8 @@
         }, 800);
     }
 
-    // ============ تقویم تک‌ماهه با فلش ============
-    let calendarCurrentMonth = null; // {year, month}
+    // ============ تقویم ============
+    let calendarCurrentMonth = null;
     
     function initCalendarMonth() {
         if (calendarCurrentMonth) return;
@@ -3868,9 +3862,7 @@
         calendarCurrentMonth = { year: y, month: m };
     }
 
-    // تبدیل تاریخ شمسی به میلادی برای محاسبه روز هفته
     function persianToGregorianJS(jy, jm, jd) {
-        // الگوریتم تبدیل شمسی به میلادی
         jy += 1595;
         let days = -355668 + (365 * jy) + (~~(jy / 33) * 8) + ~~(((jy % 33) + 3) / 4) + jd + ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
         let gy = 400 * ~~(days / 146097);
@@ -3895,10 +3887,7 @@
 
     function getFirstDayOfWeek(year, month) {
         const gDate = persianToGregorianJS(year, month, 1);
-        const jsDay = gDate.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
-        // تبدیل: در تقویم ایرانی شنبه=0، یکشنبه=1، دوشنبه=2، سه‌شنبه=3، چهارشنبه=4، پنج‌شنبه=5، جمعه=6
-        // jsDay: 0=یکشنبه، 1=دوشنبه، 2=سه‌شنبه، 3=چهارشنبه، 4=پنج‌شنبه، 5=جمعه، 6=شنبه
-        // ایرانی: 6→0, 0→1, 1→2, 2→3, 3→4, 4→5, 5→6
+        const jsDay = gDate.getDay();
         const map = { 6: 0, 0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 };
         return map[jsDay];
     }
@@ -3912,8 +3901,6 @@
         
         const today = getPersianDate();
         const todayNum = persianDateToNumber(today);
-        const todayNorm = fromPersianNum(today);
-        const [todayY, todayM, todayD] = todayNorm.split('/').map(Number);
         
         const visitedDates = getVisitedDates();
         const visitedNums = visitedDates.map(d => persianDateToNumber(d));
@@ -3923,16 +3910,14 @@
         const season = monthInfo.season;
         const seasonInfo = SEASONS_INFO[season];
         
-        // اعمال فصل روی صفحه
         screen.classList.remove('season-spring', 'season-summer', 'season-autumn', 'season-winter');
         screen.classList.add(`season-${season}`);
         
         const daysInMonth = monthInfo.days;
         const firstDayOfWeek = getFirstDayOfWeek(year, month);
         
-        // بررسی اینکه آیا می‌تونیم بریم ماه بعد/قبل
-        const canGoPrev = !(year === 1405 && month === 7); // مهر ۱۴۰۵ = شروع
-        const canGoNext = !(year === 1406 && month === 3); // خرداد ۱۴۰۶ = پایان
+        const canGoPrev = !(year === 1405 && month === 7);
+        const canGoNext = !(year === 1406 && month === 3);
         
         let html = `
             <div class="calendar-season-banner ${season}">
@@ -3975,12 +3960,10 @@
                 <div class="calendar-days-grid">
         `;
         
-        // روزهای خالی اول
         for (let i = 0; i < firstDayOfWeek; i++) {
             html += `<div class="calendar-day empty"></div>`;
         }
         
-        // روزهای ماه
         for (let d = 1; d <= daysInMonth; d++) {
             const dayNum = year * 10000 + month * 100 + d;
             const isToday = (dayNum === todayNum);
@@ -4016,11 +3999,9 @@
         if (!calendarCurrentMonth) initCalendarMonth();
         let { year, month } = calendarCurrentMonth;
         month += delta;
-        
         if (month > 12) { month = 1; year += 1; }
         if (month < 1) { month = 12; year -= 1; }
         
-        // محدودیت: مهر ۱۴۰۵ تا خرداد ۱۴۰۶
         const startNum = 1405 * 100 + 7;
         const endNum = 1406 * 100 + 3;
         const currentNum = year * 100 + month;
@@ -4073,7 +4054,6 @@
         
         const step = GUIDE_STEPS[currentGuideStep];
         
-        // اگه توی صفحه خانه نیستیم، بریم
         const activeScreen = document.querySelector('.screen.active');
         if (activeScreen && activeScreen.id !== 'screen-home') {
             goToScreen('screen-home', false);
@@ -4090,38 +4070,71 @@
         
         nextBtn.textContent = (currentGuideStep === GUIDE_STEPS.length - 1) ? 'تمام! 🎉' : 'فهمیدم!';
         
-        // نشانگر
         let indicatorHTML = '';
         for (let i = 0; i < GUIDE_STEPS.length; i++) {
             indicatorHTML += `<div class="guide-step-dot ${i === currentGuideStep ? 'active' : ''}"></div>`;
         }
         indicator.innerHTML = indicatorHTML;
         
-        // هایلایت
         if (step.element) {
             const el = document.getElementById(step.element);
             if (el) {
-                // اسکرول به عنصر
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
                 setTimeout(() => {
                     const rect = el.getBoundingClientRect();
-                    highlight.style.display = 'block';
-                    highlight.style.top = (rect.top - 6) + 'px';
-                    highlight.style.left = (rect.left - 6) + 'px';
-                    highlight.style.width = (rect.width + 12) + 'px';
-                    highlight.style.height = (rect.height + 12) + 'px';
+                    const padding = 8;
                     
+                    const holeLeft = rect.left - padding;
+                    const holeTop = rect.top - padding;
+                    const holeRight = rect.right + padding;
+                    const holeBottom = rect.bottom + padding;
+                    
+                    highlight.style.display = 'block';
+                    highlight.style.top = holeTop + 'px';
+                    highlight.style.left = holeLeft + 'px';
+                    highlight.style.width = (rect.width + padding * 2) + 'px';
+                    highlight.style.height = (rect.height + padding * 2) + 'px';
+                    
+                    applyClipPathHole(overlay, holeLeft, holeTop, holeRight, holeBottom, 20);
                     positionGuideTooltip(rect);
-                }, 300);
+                }, 400);
             } else {
                 highlight.style.display = 'none';
+                clearClipPath(overlay);
                 positionCenterTooltip();
             }
         } else {
             highlight.style.display = 'none';
+            clearClipPath(overlay);
             positionCenterTooltip();
         }
+    }
+
+    function applyClipPathHole(overlay, left, top, right, bottom, radius) {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const outerPath = `M 0 0 L ${vw} 0 L ${vw} ${vh} L 0 ${vh} Z`;
+        const r = Math.min(radius, (right - left) / 2, (bottom - top) / 2);
+        const innerPath = `
+            M ${left + r} ${top}
+            L ${right - r} ${top}
+            Q ${right} ${top} ${right} ${top + r}
+            L ${right} ${bottom - r}
+            Q ${right} ${bottom} ${right - r} ${bottom}
+            L ${left + r} ${bottom}
+            Q ${left} ${bottom} ${left} ${bottom - r}
+            L ${left} ${top + r}
+            Q ${left} ${top} ${left + r} ${top}
+            Z
+        `;
+        overlay.style.clipPath = `path(evenodd, "${outerPath} ${innerPath}")`;
+        overlay.style.webkitClipPath = `path(evenodd, "${outerPath} ${innerPath}")`;
+    }
+
+    function clearClipPath(overlay) {
+        overlay.style.clipPath = '';
+        overlay.style.webkitClipPath = '';
     }
 
     function positionCenterTooltip() {
@@ -4143,7 +4156,6 @@
         
         let top, left;
         
-        // اولویت: پایین
         if (rect.bottom + tooltipHeight + padding < viewportH) {
             top = rect.bottom + padding;
         } else if (rect.top - tooltipHeight - padding > 0) {
@@ -4152,7 +4164,6 @@
             top = viewportH / 2 - tooltipHeight / 2;
         }
         
-        // افقی وسط
         left = rect.left + rect.width / 2 - tooltipWidth / 2;
         if (left < 15) left = 15;
         if (left + tooltipWidth > viewportW - 15) left = viewportW - tooltipWidth - 15;
@@ -4175,7 +4186,9 @@
     }
 
     function endGuide() {
-        document.getElementById('guide-overlay').classList.remove('active');
+        const overlay = document.getElementById('guide-overlay');
+        overlay.classList.remove('active');
+        clearClipPath(overlay);
         document.getElementById('guide-highlight').style.display = 'none';
         document.getElementById('guide-tooltip').style.display = 'none';
         localStorage.setItem('guideCompleted', 'true');
@@ -4254,6 +4267,7 @@
     
     function goBackToHome() {
         goToScreen('screen-home', false);
+        pushHistory('screen-home');
     }
     
     window.addEventListener('popstate', function(event) {
@@ -4262,35 +4276,7 @@
         
         const activeId = activeScreen.id;
         
-        // از جزئیات تکلیف → تکالیف
-        if (activeId === 'screen-lesson-detail') {
-            goToScreen('screen-lessons', false);
-            pushHistory('screen-lessons');
-            return;
-        }
-        
-        // از تکالیف → خانه
-        if (activeId === 'screen-lessons') {
-            goToScreen('screen-home', false);
-            pushHistory('screen-home');
-            return;
-        }
-        
-        // از کارنامه نهایی → خانه (نه back)
-        if (activeId === 'screen-report-view') {
-            goToScreen('screen-home', false);
-            pushHistory('screen-home');
-            return;
-        }
-        
-        // از سوالات/بازخورد/نتیجه → خانه
-        if (['screen-quiz', 'screen-feedback', 'screen-result'].includes(activeId)) {
-            goToScreen('screen-home', false);
-            pushHistory('screen-home');
-            return;
-        }
-        
-        // از بقیه صفحات → خانه
+        // از همه صفحات داخلی → خانه
         if (activeId !== 'screen-home' && activeId !== 'screen-splash' && activeId !== 'screen-welcome') {
             goToScreen('screen-home', false);
             pushHistory('screen-home');
@@ -4361,11 +4347,9 @@
     function getNotifications() {
         return JSON.parse(localStorage.getItem('notifications') || '[]');
     }
-    
     function saveNotifications(notifs) {
         localStorage.setItem('notifications', JSON.stringify(notifs));
     }
-    
     function addNotification(type, title, text) {
         const notifs = getNotifications();
         const now = new Date();
@@ -4382,7 +4366,6 @@
         saveNotifications(notifs);
         return newNotif;
     }
-    
     function updateNotificationBadge() {
         const notifs = getNotifications();
         const unread = notifs.filter(n => !n.read);
@@ -4392,7 +4375,6 @@
             else badge.classList.remove('show');
         }
     }
-    
     function getNotifIcon(type) {
         const icons = {
             lesson: '<svg viewBox="0 0 24 24"><path d="M18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z"/><path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21"/></svg>',
@@ -4404,7 +4386,6 @@
         };
         return icons[type] || icons.info;
     }
-    
     function loadNotifications() {
         const notifs = getNotifications();
         const container = document.getElementById('notifications-list');
@@ -4423,7 +4404,6 @@
             </div>
         `).join('');
     }
-    
     function markNotifRead(id) {
         const notifs = getNotifications();
         const notif = notifs.find(n => n.id === id);
@@ -4447,7 +4427,6 @@
             allLessons = [];
         }
     }
-    
     function checkAndAddLessonNotifications() {
         const seenLessonsForNotif = JSON.parse(localStorage.getItem('seenLessonsForNotif') || '[]');
         const newLessons = allLessons.filter(l => !seenLessonsForNotif.includes(l.id));
@@ -4459,7 +4438,6 @@
             localStorage.setItem('seenLessonsForNotif', JSON.stringify(allIds));
         }
     }
-
     function checkVideoNotification() {
         const seenVideos = JSON.parse(localStorage.getItem('seenVideos') || '[]');
         const currentVideos = ['video_1'];
@@ -4487,7 +4465,6 @@
             notification.classList.remove('show');
         }
     }
-
     function dismissVideoNotification() {
         const notif = document.getElementById('video-notification');
         if (!notif) return;
@@ -4501,12 +4478,10 @@
             localStorage.setItem('seenVideos', JSON.stringify(['video_1']));
         }, 300);
     }
-
     function goToClipsFromNotification() {
         dismissVideoNotification();
         setTimeout(() => openClipsPage(), 200);
     }
-
     function checkAndShowNotification() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
@@ -4531,7 +4506,6 @@
         }
         checkNewLessons();
     }
-
     function dismissNotification() {
         const notif = document.getElementById('new-lesson-notification');
         notif.classList.add('swiping');
@@ -4547,6 +4521,19 @@
             }
         }, 300);
     }
+    function goToNewLesson() {
+        document.getElementById('new-lesson-notification').classList.remove('show');
+        goToScreen('screen-lessons');
+    }
+    function checkNewLessons() {
+        if (allLessons.length === 0) return;
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const completedIds = reports.map(r => r.lessonId);
+        const pendingLessons = allLessons.filter(l => !completedIds.includes(l.id));
+        const badge = document.getElementById('new-lesson-badge');
+        if (pendingLessons.length > 0 && badge) badge.style.display = 'inline-block';
+        else if (badge) badge.style.display = 'none';
+    }
 
     // ============ Swipe اعلان‌ها ============
     let notifSwipeStartX = 0, notifSwipeStartY = 0, notifCurrentX = 0;
@@ -4560,12 +4547,9 @@
             notif.addEventListener('touchstart', (e) => handleNotifTouchStart(e, id), { passive: true });
             notif.addEventListener('touchmove', handleNotifTouchMove, { passive: false });
             notif.addEventListener('touchend', handleNotifTouchEnd, { passive: true });
-            
-            // برای دسکتاپ
             notif.addEventListener('mousedown', (e) => handleNotifMouseDown(e, id));
         });
     }
-    
     function handleNotifTouchStart(e, id) {
         if (!e.touches || e.touches.length === 0) return;
         const touch = e.touches[0];
@@ -4579,7 +4563,6 @@
         notif.classList.add('dragging');
         notif.classList.remove('swiping');
     }
-    
     function handleNotifTouchMove(e) {
         if (!notifIsDragging || !currentSwipeNotifId) return;
         const touch = e.touches[0];
@@ -4591,7 +4574,6 @@
                 notifSwipeDirection = Math.abs(diffX) > Math.abs(diffY) ? 'horizontal' : 'vertical';
             }
         }
-        
         if (notifSwipeDirection === 'horizontal') {
             e.preventDefault();
             notifCurrentX = diffX;
@@ -4606,7 +4588,6 @@
             notif.style.opacity = '';
         }
     }
-    
     function handleNotifTouchEnd() {
         if (!notifIsDragging || !currentSwipeNotifId) return;
         notifIsDragging = false;
@@ -4655,7 +4636,6 @@
         notifSwipeDirection = null;
         currentSwipeNotifId = null;
     }
-    
     function handleNotifMouseDown(e, id) {
         if (e.target.closest('.notification-btn') || e.target.closest('.notification-close')) return;
         notifSwipeStartX = e.clientX;
@@ -4671,43 +4651,24 @@
             if (!notifIsDragging) return;
             const diffX = ev.clientX - notifSwipeStartX;
             const diffY = ev.clientY - notifSwipeStartY;
-            
             if (!notifSwipeDirection) {
                 if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
                     notifSwipeDirection = Math.abs(diffX) > Math.abs(diffY) ? 'horizontal' : 'vertical';
                 }
             }
-            
             if (notifSwipeDirection === 'horizontal') {
                 notifCurrentX = diffX;
                 notif.style.transform = `translate(${diffX}px, ${diffY * 0.3}px)`;
                 notif.style.opacity = Math.max(0.3, 1 - Math.abs(diffX) / 300);
             }
         };
-        
         const onUp = () => {
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onUp);
             handleNotifTouchEnd();
         };
-        
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
-    }
-
-    function goToNewLesson() {
-        document.getElementById('new-lesson-notification').classList.remove('show');
-        goToScreen('screen-lessons');
-    }
-
-    function checkNewLessons() {
-        if (allLessons.length === 0) return;
-        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
-        const completedIds = reports.map(r => r.lessonId);
-        const pendingLessons = allLessons.filter(l => !completedIds.includes(l.id));
-        const badge = document.getElementById('new-lesson-badge');
-        if (pendingLessons.length > 0 && badge) badge.style.display = 'inline-block';
-        else if (badge) badge.style.display = 'none';
     }
 
     // ============ شروع برنامه ============
@@ -4858,7 +4819,6 @@
     function getUnlockedMedals(stats) {
         return MEDALS_LIST.filter(m => m.condition(stats)).map(m => m.id);
     }
-
     function getMedalsWithStatus() {
         const stats = getUserStats();
         const baseStats = {
@@ -4869,7 +4829,6 @@
         };
         return MEDALS_LIST.map(m => ({ ...m, unlocked: m.condition(baseStats) }));
     }
-
     function loadMedals() {
         const medals = getMedalsWithStatus();
         const container = document.getElementById('medals-grid');
@@ -4882,7 +4841,6 @@
             </div>
         `).join('');
     }
-
     function checkForNewMedals() {
         const previousMedals = JSON.parse(localStorage.getItem('unlockedMedals') || '[]');
         const currentStats = getUserStats();
@@ -4895,10 +4853,8 @@
         }
         return false;
     }
-
     let medalsQueue = [];
     let currentMedalIndex = 0;
-
     function showMedalsSequence(medalIds) {
         medalsQueue = medalIds.map(id => MEDALS_LIST.find(m => m.id === id)).filter(Boolean);
         currentMedalIndex = 0;
@@ -4908,7 +4864,6 @@
             setTimeout(() => showMedalModal(medalsQueue[currentMedalIndex]), 500);
         }
     }
-
     function showMedalModal(medal) {
         document.getElementById('medal-modal-icon').textContent = medal.icon;
         document.getElementById('medal-modal-name').textContent = medal.title;
@@ -4918,7 +4873,6 @@
         addNotification('success', 'مدال جدید', `شما مدال «${medal.title}» را دریافت کردید!`);
         updateNotificationBadge();
     }
-
     function closeMedalModal() {
         document.getElementById('medal-modal').classList.remove('active');
         currentMedalIndex++;
@@ -4933,7 +4887,6 @@
             currentMedalIndex = 0;
         }
     }
-
     function playMedalSound() {
         if (localStorage.getItem('soundsEnabled') === 'false') return;
         try {
@@ -4960,16 +4913,13 @@
         document.getElementById('edit-year').value = '۱۴۰۵-۱۴۰۶';
         document.getElementById('edit-profile-modal').classList.add('active');
     }
-    
     function closeEditProfile() {
         document.getElementById('edit-profile-modal').classList.remove('active');
     }
-    
     function saveProfileChanges() {
         const newName = document.getElementById('edit-name').value.trim();
         const newClass = document.getElementById('edit-class').value;
         const newSchool = document.getElementById('edit-school').value.trim();
-        
         if (!newName) { showModal('خطا', 'لطفاً نام خود را وارد کنید.', '⚠️'); return; }
         
         localStorage.setItem('userName', newName);
@@ -4981,7 +4931,6 @@
         closeEditProfile();
         showModal('موفق', 'اطلاعات شما با موفقیت ذخیره شد.', '✅');
     }
-
     function changeAvatar(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -4995,7 +4944,6 @@
         };
         reader.readAsDataURL(file);
     }
-
     function openDeleteAccountModal() { document.getElementById('delete-account-modal').classList.add('active'); }
     function closeDeleteAccountModal() { document.getElementById('delete-account-modal').classList.remove('active'); }
     function confirmDeleteAccount() {
@@ -5004,7 +4952,6 @@
         closeDeleteAccountModal();
         setTimeout(() => location.reload(), 300);
     }
-
     function openResetSettingsModal() { document.getElementById('reset-settings-modal').classList.add('active'); }
     function closeResetSettingsModal() { document.getElementById('reset-settings-modal').classList.remove('active'); }
     function confirmResetSettings() {
@@ -5022,14 +4969,12 @@
         closeResetSettingsModal();
         showModal('موفق', 'تنظیمات به حالت اولیه بازگشت.', '✅');
     }
-
     function openExitModal() { document.getElementById('exit-modal').classList.add('active'); }
     function closeExitModal() { document.getElementById('exit-modal').classList.remove('active'); }
     function confirmExit() {
         closeExitModal();
         setTimeout(() => window.history.go(-1), 100);
     }
-    
     function toggleDarkMode(el) {
         if (el.checked) {
             localStorage.setItem('darkMode', 'true');
@@ -5039,7 +4984,6 @@
             document.body.classList.remove('dark-mode');
         }
     }
-    
     function toggleMusicSetting(el) {
         if (el.checked) {
             localStorage.setItem('musicEnabled', 'true');
@@ -5053,7 +4997,6 @@
             bgMusic.pause();
         }
     }
-    
     function toggleSoundsSetting(el) {
         localStorage.setItem('soundsEnabled', el.checked ? 'true' : 'false');
     }
@@ -5062,7 +5005,6 @@
         document.getElementById('side-menu-overlay').classList.add('active');
         document.getElementById('side-menu').classList.add('active');
     }
-    
     function closeSideMenu() {
         document.getElementById('side-menu-overlay').classList.remove('active');
         document.getElementById('side-menu').classList.remove('active');
@@ -5170,6 +5112,10 @@
             const borderColor = bookData.color + '44';
             const bgColor = bookData.colorLight;
             
+            // اگر 100% بود، متن عدد سبز بشه (مستقل از رنگ کتاب)
+            const progressTextColor = progressPercent === 100 ? '#2e7d32' : bookData.color;
+            const progressTextClass = progressPercent === 100 ? 'full-progress' : '';
+            
             return `
                 <div class="lesson-card" style="border-color: ${borderColor};">
                     <div class="lesson-card-book" style="background: ${bgColor}; border: 1.5px solid ${borderColor};">
@@ -5192,7 +5138,7 @@
                             <circle class="lesson-progress-bar ${lesson.isCompleted ? 'completed' : (lesson.isPaused ? 'paused' : '')}" cx="25" cy="25" r="20" 
                                 stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"></circle>
                         </svg>
-                        <div class="lesson-progress-text" style="color: ${bookData.color};">${toPersianNum(progressPercent)}%</div>
+                        <div class="lesson-progress-text ${progressTextClass}" style="color: ${progressTextColor};">${toPersianNum(progressPercent)}%</div>
                     </div>
                 </div>
             `;
@@ -5330,13 +5276,11 @@
         };
         localStorage.setItem('currentLessonProgress', JSON.stringify(progress));
     }
-    
     function getCurrentProgress() {
         const data = localStorage.getItem('currentLessonProgress');
         if (!data) return null;
         try { return JSON.parse(data); } catch(e) { return null; }
     }
-    
     function clearCurrentProgress() {
         localStorage.removeItem('currentLessonProgress');
     }
@@ -5364,12 +5308,10 @@
         
         await runLesson(lessonId, false, 0);
     }
-    
     function closeRepeatModal() {
         document.getElementById('repeat-modal').classList.remove('active');
         pendingLessonId = null;
     }
-    
     async function confirmRepeatLesson() {
         document.getElementById('repeat-modal').classList.remove('active');
         if (pendingLessonId) {
@@ -5442,13 +5384,11 @@
             </div>
         `).join('');
     }
-
     function saveReport(report) {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         reports.push(report);
         localStorage.setItem('reports', JSON.stringify(reports));
     }
-
     function generateGraphicReport(report) {
         const avatar = localStorage.getItem('userAvatar') || 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
         const message = report.percent >= 90 ? 'عالی بودی! ادامه بده 🌟' : 
@@ -5495,7 +5435,6 @@
             </div>
         `;
     }
-
     function downloadReportById(index) {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -5627,7 +5566,6 @@
         el.classList.add('selected');
         selectedOptionIndex = index;
     }
-
     function selectFillOption(el, word, index) {
         if (isAnswered) return;
         vibrate(15);
@@ -5636,7 +5574,6 @@
         selectedOptionIndex = index;
         document.getElementById('blank-slot').textContent = word;
     }
-
     function selectTF(el, value) {
         if (isAnswered) return;
         vibrate(15);
@@ -5644,11 +5581,9 @@
         el.classList.add(value === 1 ? 'selected-true' : 'selected-false');
         selectedOptionIndex = value;
     }
-
     function selectMatch(el, type) {
         if (isAnswered) return;
         if (el.classList.contains('correct') || el.classList.contains('wrong')) return;
-        
         vibrate(15);
         
         if (type === 'fa') {
@@ -5700,7 +5635,6 @@
             }
         }
     }
-
     function selectOrder(el, word) {
         if (isAnswered) return;
         if (orderSelected.includes(word)) return;
@@ -5792,7 +5726,6 @@
             vibrate([50, 30, 50]);
             showFeedback(false, 0, q);
         }
-        
         saveCurrentProgress();
     }
 
@@ -5897,7 +5830,6 @@
             showModal('توجه', 'این تکلیف در حالت تمرین انجام شده و کارنامه‌ای صادر نمی‌شود.', '⚠️');
             return;
         }
-        
         const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
         const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
         const now = new Date();
@@ -5979,7 +5911,7 @@
         });
     }
 
-    // ============ موسیقی ============
+    // ============ موسیقی و صدا ============
     const bgMusic = document.getElementById('bg-music');
     let musicStarted = false;
     let isMuted = false;
@@ -5990,7 +5922,6 @@
         bgMusic.volume = 0.9;
         bgMusic.play().then(() => { musicStarted = true; }).catch(e => console.log(e));
     }
-
     document.addEventListener('click', () => { if (!isMuted) startMusic(); }, { once: true });
     document.addEventListener('touchstart', () => { if (!isMuted) startMusic(); }, { once: true });
 
@@ -5999,7 +5930,6 @@
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         if (audioContext.state === 'suspended') audioContext.resume();
     }
-
     function playCorrectSound() {
         if (localStorage.getItem('soundsEnabled') === 'false') return;
         try {
@@ -6017,7 +5947,6 @@
             });
         } catch(e) {}
     }
-
     function playWrongSound() {
         if (localStorage.getItem('soundsEnabled') === 'false') return;
         try {
@@ -6054,21 +5983,17 @@
         "مثل یه نهال رشد کن و ثمر بده!",
         "تو با ارزش‌تر از اون هستی که فکر می‌کنی!"
     ];
-
     let motivationTimer = null;
-    
     function typeMotivation() {
         const el = document.getElementById('home-motivation-text');
         if (!el) return;
         if (motivationTimer) clearTimeout(motivationTimer);
-        
         const text = motivations[Math.floor(Math.random() * motivations.length)];
         let index = 0;
         el.innerHTML = '';
         const cursor = document.createElement('span');
         cursor.className = 'cursor-blink';
         el.appendChild(cursor);
-        
         function type() {
             if (index < text.length) {
                 cursor.before(document.createTextNode(text[index]));
@@ -6089,10 +6014,8 @@
             navigator.serviceWorker.register('./service-worker.js').catch(e => console.log(e));
         });
     }
-
     let deferredPrompt = null;
     const installBanner = document.getElementById('install-banner');
-    
     function isAppInstalled() {
         return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     }
@@ -6103,7 +6026,6 @@
         installBanner.classList.remove('show');
         localStorage.setItem('installBannerDismissed', 'true');
     }
-    
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
@@ -6111,13 +6033,11 @@
             setTimeout(() => installBanner.classList.add('show'), 3000);
         }
     });
-    
     setTimeout(() => {
         if (!isAppInstalled() && !wasDismissed() && !deferredPrompt) {
             installBanner.classList.add('show');
         }
     }, 3000);
-    
     async function installApp() {
         if (deferredPrompt) {
             deferredPrompt.prompt();
@@ -6134,7 +6054,6 @@
                 : 'برای نصب:\n\nمنوی مرورگر → Add to home screen یا نصب برنامه');
         }
     }
-    
     window.addEventListener('appinstalled', () => {
         installBanner.classList.remove('show');
         localStorage.setItem('installBannerDismissed', 'true');
