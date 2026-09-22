@@ -66,7 +66,7 @@
             --primary-gradient: linear-gradient(135deg, #c2185b 0%, #ad1457 100%);
         }
 
-        /* ============ حالت شب بهبود یافته ============ */
+        /* ============ حالت شب ============ */
         body.dark-mode {
             background: #0f1419;
             color: #e0e0e0;
@@ -350,7 +350,6 @@
             position: relative;
         }
 
-        /* اعلان تکلیف جدید - بالا */
         .new-lesson-notification {
             position: absolute;
             top: 15px;
@@ -371,7 +370,6 @@
         }
         .new-lesson-notification.show { display: flex; }
 
-        /* اعلان بنفش ویدیو جدید - پایین‌تر */
         .video-notification {
             position: absolute;
             top: 90px;
@@ -392,7 +390,6 @@
         }
         .video-notification.show { display: flex; }
 
-        /* وقتی هر دو هستن، تکلیف بالاتر میره */
         .new-lesson-notification.show ~ .video-notification.show {
             top: 95px;
         }
@@ -507,7 +504,6 @@
             min-height: 18px; line-height: 1.4;
         }
 
-        /* استریک روزانه */
         .streak-badge {
             display: flex;
             align-items: center;
@@ -858,7 +854,6 @@
             position: relative;
         }
 
-        /* بج وضعیت - تکمیل شده سبز */
         .lesson-completed-badge {
             position: absolute;
             top: -4px;
@@ -884,7 +879,6 @@
             stroke-linejoin: round;
         }
 
-        /* بج منقضی شده */
         .lesson-expired-badge {
             position: absolute;
             top: -4px;
@@ -984,7 +978,6 @@
         
         .lesson-progress-bar.paused { stroke: #ff9800; }
 
-        /* نوار پیشرفت سبز برای تکمیل شده */
         .lesson-progress-bar.completed { 
             stroke: #2e7d32 !important;
             stroke-width: 5;
@@ -1040,7 +1033,6 @@
             font-size: 13px; color: var(--primary); font-weight: bold;
         }
 
-        /* هشدار مهلت گذشته */
         .expired-warning {
             background: linear-gradient(135deg, #ffebee, #ffcdd2);
             border: 2px solid #ef5350;
@@ -1704,7 +1696,6 @@
         .switch-card input:checked + .slider-card { background-color: var(--primary); }
         .switch-card input:checked + .slider-card::before { right: calc(100% - 25px); }
 
-        /* انتخابگر تم */
         .theme-picker {
             display: flex;
             gap: 10px;
@@ -2395,7 +2386,6 @@
         }
         body.dark-mode .quiz-header { color: #e0e0e0; }
 
-        /* آیکون نوع سوال */
         .question-type-icon {
             display: inline-flex;
             align-items: center;
@@ -2573,15 +2563,38 @@
             font-size: 16px; font-weight: bold; color: #333;
             cursor: pointer; text-align: center;
             box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
         }
         body.dark-mode .matching-item {
             background: rgba(26, 35, 50, 0.95);
             color: #e0e0e0;
             border-color: #2a3444;
         }
-        .matching-item.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
-        .matching-item.correct { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; }
-        .matching-item.wrong { border-color: #ef5350; background: #ffebee; color: #c62828; }
+        .matching-item.selected { 
+            border-color: var(--primary); 
+            background: var(--primary-light); 
+            color: var(--primary);
+            transform: scale(1.03);
+        }
+        .matching-item.correct { 
+            border-color: #4caf50; 
+            background: #e8f5e9; 
+            color: #2e7d32;
+            pointer-events: none;
+            cursor: default;
+            opacity: 0.75;
+        }
+        .matching-item.wrong { 
+            border-color: #ef5350; 
+            background: #ffebee; 
+            color: #c62828;
+            pointer-events: none;
+            cursor: default;
+        }
+        .matching-item.matched {
+            pointer-events: none;
+            cursor: default;
+        }
         .order-container {
             display: flex; gap: 10px; justify-content: center;
             flex-wrap: wrap; margin-bottom: 15px;
@@ -2888,7 +2901,6 @@
         </div>
     </div>
 
-    <!-- مودال کسب مدال -->
     <div class="medal-modal-overlay" id="medal-modal">
         <div class="medal-modal-box">
             <div class="medal-modal-title">🎉 مدال جدید گرفتی! 🎉</div>
@@ -2901,7 +2913,6 @@
         </div>
     </div>
 
-    <!-- مودال تکلیف تکراری -->
     <div class="repeat-modal-overlay" id="repeat-modal">
         <div class="repeat-modal-box">
             <div class="repeat-icon-wrapper">
@@ -2924,7 +2935,6 @@
         </div>
     </div>
 
-    <!-- منوی کناری -->
     <div class="side-menu-overlay" id="side-menu-overlay" onclick="closeSideMenu()"></div>
     <div class="side-menu" id="side-menu">
         <div class="side-menu-header">
@@ -3081,7 +3091,6 @@
         </div>
     </div>
 
-    <!-- صفحه خوش‌آمد -->
     <div id="screen-welcome" class="screen">
         <div class="welcome-video-wrapper">
             <video 
@@ -3117,11 +3126,9 @@
         </button>
     </div>
 
-    <!-- صفحه خانه -->
     <div id="screen-home" class="screen">
         <div class="home-scroll-area">
             
-            <!-- اعلان تکلیف جدید - بالا -->
             <div class="new-lesson-notification" id="new-lesson-notification">
                 <button class="notification-close" onclick="dismissNotification()">✕</button>
                 <div class="notification-icon">🔔</div>
@@ -3133,7 +3140,6 @@
                 <div class="notification-swipe-hint"></div>
             </div>
 
-            <!-- اعلان ویدیو جدید - پایین -->
             <div class="video-notification" id="video-notification">
                 <button class="notification-close" onclick="dismissVideoNotification()">✕</button>
                 <div class="notification-icon">🎬</div>
@@ -3228,7 +3234,6 @@
         </div>
     </div>
 
-    <!-- صفحه تکالیف -->
     <div id="screen-lessons" class="screen">
         <div class="lessons-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -3239,7 +3244,6 @@
             <div class="page-title">تکالیف من</div>
         </div>
         
-        <!-- سرچ بار -->
         <div class="search-bar-wrapper">
             <div class="search-bar">
                 <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -3289,7 +3293,6 @@
         </div>
     </div>
 
-    <!-- صفحه جزئیات تکلیف -->
     <div id="screen-lesson-detail" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="goToScreen('screen-lessons')" title="بازگشت">
@@ -3303,7 +3306,6 @@
         <div class="lesson-detail-content" id="lesson-detail-content"></div>
     </div>
 
-    <!-- صفحه اعلان‌ها -->
     <div id="screen-notifications" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -3316,7 +3318,6 @@
         <div class="notifications-list" id="notifications-list"></div>
     </div>
 
-    <!-- صفحه درباره ما -->
     <div id="screen-about" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -3405,7 +3406,6 @@
         </div>
     </div>
 
-    <!-- صفحه مدال‌ها -->
     <div id="screen-medals" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -3454,7 +3454,6 @@
         </div>
     </div>
 
-    <!-- صفحه تنظیمات -->
     <div id="screen-settings" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -3467,7 +3466,6 @@
         <div class="page-scroll-content">
             <div class="settings-new-list">
                 
-                <!-- تم رنگی -->
                 <div class="setting-card" style="flex-direction: column; align-items: stretch; cursor: default;">
                     <div class="setting-card-content" style="width: 100%;">
                         <div class="setting-card-icon icon-purple">
@@ -3490,7 +3488,6 @@
                     </div>
                 </div>
                 
-                <!-- حالت شب -->
                 <div class="setting-card">
                     <div class="setting-card-content">
                         <div class="setting-card-icon icon-purple">
@@ -3509,7 +3506,6 @@
                     </label>
                 </div>
                 
-                <!-- موسیقی -->
                 <div class="setting-card">
                     <div class="setting-card-content">
                         <div class="setting-card-icon icon-teal">
@@ -3530,7 +3526,6 @@
                     </label>
                 </div>
                 
-                <!-- صدا -->
                 <div class="setting-card">
                     <div class="setting-card-content">
                         <div class="setting-card-icon icon-teal">
@@ -3595,7 +3590,6 @@
         </div>
     </div>
 
-    <!-- صفحه پروفایل -->
     <div id="screen-profile" class="screen">
         <div class="profile-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -3752,7 +3746,6 @@
         </div>
     </div>
 
-    <!-- صفحه سوالات -->
     <div id="screen-quiz" class="screen">
         <div class="quiz-header-area">
             <div class="quiz-header">
@@ -3771,7 +3764,6 @@
         </div>
     </div>
 
-    <!-- صفحه بازخورد -->
     <div id="screen-feedback" class="screen">
         <div class="feedback-icon" id="fb-icon">⭐</div>
         <div class="feedback-title" id="fb-title">آفرین!</div>
@@ -3784,7 +3776,6 @@
         <button class="btn-primary" onclick="nextQuestion()" style="margin-top: 20px; width: 100%; max-width: 320px;">سوال بعدی</button>
     </div>
 
-    <!-- صفحه نتیجه -->
     <div id="screen-result" class="screen">
         <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
         <h2 style="color: var(--primary); margin-bottom: 20px; font-size: 24px;" id="result-title">تکلیف تمام شد!</h2>
@@ -3803,7 +3794,6 @@
         <button class="btn-primary" id="report-btn" onclick="showReportCard()" style="max-width: 320px;">دیدن کارنامه</button>
     </div>
 
-    <!-- صفحه کارنامه -->
     <div id="screen-report-view" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -3816,7 +3806,6 @@
         <div class="report-view-content" id="report-view-content"></div>
     </div>
 
-    <!-- صفحه کارنامه‌ها -->
     <div id="screen-reports" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -3832,7 +3821,7 @@
 </div>
 
 <script>
-    // ============ وکتورهای کتاب با رنگ ============
+    // ============ وکتورهای کتاب ============
     const BOOK_VECTORS = [
         { url: 'https://cdn.imgurl.ir/uploads/r97389_IMG__.png', color: '#1976d2', colorLight: 'rgba(25, 118, 210, 0.08)' },
         { url: 'https://cdn.imgurl.ir/uploads/l915585_IMG__.png', color: '#8e24aa', colorLight: 'rgba(142, 36, 170, 0.08)' },
@@ -3848,7 +3837,6 @@
         'تکلیف نهم', 'تکلیف دهم'
     ];
 
-    // آیکون‌های نوع سوال
     const QUESTION_ICONS = {
         multiple: { class: 'qti-test', svg: '<svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' },
         fill: { class: 'qti-blank', svg: '<svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="21" y2="12"/><line x1="10" y1="8" x2="14" y2="16"/></svg>' },
@@ -3887,10 +3875,8 @@
         return formatter.format(now);
     }
 
-    // تبدیل تاریخ شمسی به عدد برای مقایسه
     function persianDateToNumber(dateStr) {
         if (!dateStr) return 0;
-        // فرمت: ۱۴۰۵/۰۹/۱۵ یا 1405/09/15
         const normalized = dateStr.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
         const parts = normalized.split(/[\/\-]/);
         if (parts.length !== 3) return 0;
@@ -3950,24 +3936,20 @@
         let streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         
         if (!streakData.lastDate) {
-            // اولین بار
             streakData = {
                 lastDate: today,
                 count: 1,
                 dates: [today]
             };
         } else if (streakData.lastDate === today) {
-            // امروز قبلاً وارد شده - هیچ کاری نکن
+            // امروز قبلاً وارد شده
         } else {
-            // چک کن آیا روز قبلی بوده یا نه
             const lastDateNum = persianDateToNumber(streakData.lastDate);
             const todayNum = persianDateToNumber(today);
             
-            // اگه یه روز فاصله بوده (روز متوالی)
             if (todayNum - lastDateNum === 1) {
                 streakData.count += 1;
             } else if (todayNum - lastDateNum > 1) {
-                // استریک شکسته
                 streakData.count = 1;
             }
             
@@ -4001,7 +3983,6 @@
         document.body.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
         
-        // آپدیت کلاس active
         document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
         if (element) element.classList.add('active');
         
@@ -4098,7 +4079,6 @@
         
         const activeId = activeScreen.id;
         
-        // اگه توی جزئیات تکلیف بودیم → برو به تکالیف
         if (activeId === 'screen-lesson-detail') {
             goToScreen('screen-lessons', false);
             pushHistory('screen-lessons');
@@ -4129,13 +4109,11 @@
             pushHistory(screenId);
         }
         
-        // قطع موسیقی در صفحه سوالات، بازخورد و نتیجه
         if (screenId === 'screen-quiz' || screenId === 'screen-feedback' || screenId === 'screen-result') {
             if (bgMusic && !bgMusic.paused) {
                 bgMusic.pause();
             }
         } else {
-            // پخش موسیقی در بقیه صفحه‌ها
             if (musicStarted && !isMuted && localStorage.getItem('musicEnabled') !== 'false') {
                 bgMusic.play().catch(e => console.log(e));
             }
@@ -4315,7 +4293,6 @@
         if (newVideos.length > 0 && notification) {
             subText.textContent = `${toPersianNum(newVideos.length)} ویدیوی جدید در انتظار شماست`;
             
-            // اگه اعلان تکلیف هم هست، ویدیو رو پایین‌تر بذار
             const lessonNotif = document.getElementById('new-lesson-notification');
             if (lessonNotif && lessonNotif.classList.contains('show')) {
                 notification.style.top = '95px';
@@ -4327,7 +4304,6 @@
                 notification.classList.add('show');
             }, 800);
             
-            // اضافه کردن اعلان کلیپ جدید به لیست اعلان‌ها
             const notifs = getNotifications();
             const videoNotifExists = notifs.some(n => n.type === 'clip' && n.title.includes('ویدیوی جدید'));
             
@@ -4564,7 +4540,6 @@
         localStorage.setItem('unlockedMedals', JSON.stringify(currentMedals));
         
         if (newMedals.length > 0) {
-            // نمایش همه مدال‌های جدید یکی بعد از دیگری
             showMedalsSequence(newMedals);
             return true;
         }
@@ -4601,7 +4576,6 @@
         
         currentMedalIndex++;
         if (currentMedalIndex < medalsQueue.length) {
-            // نمایش مدال بعدی
             setTimeout(() => {
                 showConfetti();
                 vibrate([30, 50, 30]);
@@ -4644,7 +4618,6 @@
             subText.textContent = `${toPersianNum(pendingLessons.length)} تکلیف در انتظار شماست`;
             notification.classList.add('show');
             
-            // اگه اعلان ویدیو هم هست، اون رو پایین‌تر بذار
             const videoNotif = document.getElementById('video-notification');
             if (videoNotif && videoNotif.classList.contains('show')) {
                 videoNotif.style.top = '95px';
@@ -4652,7 +4625,6 @@
         } else {
             notification.classList.remove('show');
             
-            // اگه اعلان تکلیف نیست، ویدیو رو بالا بذار
             const videoNotif = document.getElementById('video-notification');
             if (videoNotif && videoNotif.classList.contains('show')) {
                 videoNotif.style.top = '15px';
@@ -4672,7 +4644,6 @@
             notif.style.transform = '';
             notif.style.opacity = '';
             
-            // اعلان ویدیو رو بیار بالا
             const videoNotif = document.getElementById('video-notification');
             if (videoNotif && videoNotif.classList.contains('show')) {
                 videoNotif.style.top = '15px';
@@ -4938,13 +4909,6 @@
         }, 100);
     }
     
-    function openInfoModal() {
-        const name = localStorage.getItem('userName') || 'تعیین نشده';
-        const cls = localStorage.getItem('userClass') || 'تعیین نشده';
-        const school = localStorage.getItem('userSchool') || 'تعیین نشده';
-        showModal('اطلاعات حساب کاربری', `نام: ${name}\nکلاس: ${cls}\nمدرسه: ${school}`, '👤');
-    }
-    
     function toggleDarkMode(el) {
         if (el.checked) {
             localStorage.setItem('darkMode', 'true');
@@ -4959,7 +4923,6 @@
         if (el.checked) {
             localStorage.setItem('musicEnabled', 'true');
             bgMusic.volume = 0.9;
-            // فقط اگه توی صفحه سوالات نیستیم، پخش کن
             const activeScreen = document.querySelector('.screen.active');
             if (activeScreen && !['screen-quiz', 'screen-feedback', 'screen-result'].includes(activeScreen.id)) {
                 bgMusic.play().catch(e => console.log(e));
@@ -5050,14 +5013,12 @@
             };
         });
         
-        // اعمال فیلتر
         if (currentFilter === 'completed') {
             lessonsToShow = lessonsToShow.filter(l => l.isCompleted);
         } else if (currentFilter === 'in-progress') {
             lessonsToShow = lessonsToShow.filter(l => !l.isCompleted);
         }
         
-        // اعمال سرچ
         if (searchQuery) {
             lessonsToShow = lessonsToShow.filter(l => 
                 l.taskTitle.toLowerCase().includes(searchQuery) ||
@@ -5101,7 +5062,6 @@
             const dashOffset = circumference * (1 - progressPercent / 100);
             const bookData = BOOK_VECTORS[lesson.colorIndex];
             
-            // بج تکمیل شده
             let badgeHTML = '';
             if (lesson.isCompleted) {
                 badgeHTML = `
@@ -5169,7 +5129,6 @@
         const estimatedTime = lesson.estimatedTime || 10;
         const description = lesson.description || 'در این تکلیف، با واژگان جدید، ترجمه و عبارات مهم درس اول آشنا می‌شوید. موفق باشید!';
         
-        // اگه منقضی شده، هشدار نشون بده
         let expiredWarningHTML = '';
         if (expired && !isCompleted) {
             expiredWarningHTML = `
@@ -5308,7 +5267,6 @@
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const alreadyDone = reports.some(r => r.lessonId === lessonId);
         
-        // اگه منقضی شده و انجام نشده، مستقیم برو (حالت تمرینی اجباری)
         if (expired && !alreadyDone) {
             await runLesson(lessonId, true, 0, true);
             return;
@@ -5569,9 +5527,11 @@
     let selectedOptionIndex = -1;
     let selectedMatchFa = null;
     let selectedMatchAr = null;
+    let matchedPairs = 0;
+    let matchedFaIdx = null;
+    let matchedArIdx = null;
     let orderSelected = [];
     let isAnswered = false;
-    let matchedPairs = 0;
     let shuffledMatchAr = [];
     let shuffledOrderOptions = [];
 
@@ -5590,15 +5550,16 @@
         selectedOptionIndex = -1;
         selectedMatchFa = null;
         selectedMatchAr = null;
+        matchedPairs = 0;
+        matchedFaIdx = null;
+        matchedArIdx = null;
         orderSelected = [];
         isAnswered = false;
-        matchedPairs = 0;
         submitBtn.disabled = false;
         submitBtn.textContent = 'بررسی سوال';
         
         saveCurrentProgress();
         
-        // آیکون نوع سوال
         const qType = q.type || 'multiple';
         const iconData = QUESTION_ICONS[qType] || QUESTION_ICONS.multiple;
         
@@ -5671,6 +5632,14 @@
         container.innerHTML = html;
     }
 
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
     function selectOption(el, index) {
         if (isAnswered) return;
         vibrate(15);
@@ -5700,41 +5669,64 @@
 
     function selectMatch(el, type) {
         if (isAnswered) return;
-        if (el.classList.contains('correct')) return;
+        if (el.classList.contains('correct') || el.classList.contains('wrong')) return;
         
         vibrate(15);
         
         if (type === 'fa') {
+            // اگه همین آیتم دوباره کلیک شد، لغو انتخاب کن
+            if (selectedMatchFa === el) {
+                el.classList.remove('selected');
+                selectedMatchFa = null;
+                return;
+            }
             if (selectedMatchFa) selectedMatchFa.classList.remove('selected');
             selectedMatchFa = el;
         } else {
+            if (selectedMatchAr === el) {
+                el.classList.remove('selected');
+                selectedMatchAr = null;
+                return;
+            }
             if (selectedMatchAr) selectedMatchAr.classList.remove('selected');
             selectedMatchAr = el;
         }
         el.classList.add('selected');
         
         if (selectedMatchFa && selectedMatchAr) {
-            if (selectedMatchFa.dataset.idx === selectedMatchAr.dataset.idx) {
-                selectedMatchFa.classList.add('correct');
-                selectedMatchAr.classList.add('correct');
-                selectedMatchFa.classList.remove('selected');
-                selectedMatchAr.classList.remove('selected');
+            const faIdx = selectedMatchFa.dataset.idx;
+            const arIdx = selectedMatchAr.dataset.idx;
+            
+            if (faIdx === arIdx) {
+                // جفت درست
+                const faEl = selectedMatchFa;
+                const arEl = selectedMatchAr;
+                
+                faEl.classList.remove('selected');
+                arEl.classList.remove('selected');
+                faEl.classList.add('correct', 'matched');
+                arEl.classList.add('correct', 'matched');
+                
                 selectedMatchFa = null;
                 selectedMatchAr = null;
                 matchedPairs++;
                 vibrate(30);
             } else {
+                // جفت اشتباه
                 const faEl = selectedMatchFa;
                 const arEl = selectedMatchAr;
+                
                 faEl.classList.add('wrong');
                 arEl.classList.add('wrong');
                 vibrate([50, 30, 50]);
+                
+                selectedMatchFa = null;
+                selectedMatchAr = null;
+                
                 setTimeout(() => {
                     faEl.classList.remove('wrong', 'selected');
                     arEl.classList.remove('wrong', 'selected');
                 }, 800);
-                selectedMatchFa = null;
-                selectedMatchAr = null;
             }
         }
     }
@@ -5918,7 +5910,6 @@
         const resultTitle = document.getElementById('result-title');
         const pointsRow = document.getElementById('final-points-row');
         
-        // چک کن که مهلت گذشته یا نه
         const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
         const lesson = allLessons[lessonIndex];
         const dueDate = lesson ? (lesson.dueDate || '۱۴۰۵/۰۹/۱۵') : null;
@@ -5939,7 +5930,6 @@
             resultTitle.textContent = 'تکلیف تمام شد!';
             pointsRow.style.display = 'flex';
             
-            // کانفتی اگه درصد بالا بود
             if (percent >= 80) {
                 showConfetti();
             }
@@ -5962,7 +5952,6 @@
         const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
         const taskTitle = LESSON_TITLES[lessonIndex] || currentLesson.title;
         
-        // چک مهلت
         const lesson = allLessons[lessonIndex];
         const dueDate = lesson ? (lesson.dueDate || '۱۴۰۵/۰۹/۱۵') : null;
         const expired = isExpired(dueDate);
