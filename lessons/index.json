@@ -6,59 +6,35 @@
       "subtitle": "آشنایی با واژگان و عبارات",
       "icon": "📖",
       "file": "lesson1.json",
-      "releaseDate": "۱۴۰۵/۰۶/۱۲",
+      "releaseDate": "۱۴۰۵/۰۶/۲۵",
       "dueDate": "۱۴۰۵/۰۶/۳۱",
-      "activityCount": 12,
+      "activityCount": 8,
       "estimatedTime": 10,
       "description": "در این تکلیف، با واژگان جدید، ترجمه و عبارات مهم درس اول آشنا می‌شوید. موفق باشید!"
     },
     {
       "id": "lesson2",
       "title": "درس دوم",
-      "subtitle": "ضمایر اشاره و تمرین",
+      "subtitle": "قواعد و تمرین",
       "icon": "📚",
       "file": "lesson2.json",
       "releaseDate": "۱۴۰۵/۰۷/۰۵",
-      "dueDate": "۱۴۰۵/۰۷/۲۰",
-      "activityCount": 15,
+      "dueDate": "۱۴۰۵/۰۷/۱۲",
+      "activityCount": 8,
       "estimatedTime": 12,
-      "description": "در این تکلیف، با ضمایر اشاره (هذا، هذه، ذلک، تلک) و کاربرد آن‌ها در جملات عربی آشنا می‌شوید."
+      "description": "در این تکلیف با قواعد درس دوم و تمرین‌های متنوع آشنا می‌شوید."
     },
     {
       "id": "lesson3",
       "title": "درس سوم",
-      "subtitle": "ترجمه و متن",
+      "subtitle": "ترجمه و درک مطلب",
       "icon": "📕",
       "file": "lesson3.json",
       "releaseDate": "۱۴۰۵/۰۷/۱۵",
-      "dueDate": "۱۴۰۵/۰۸/۰۱",
-      "activityCount": 10,
-      "estimatedTime": 8,
-      "description": "در این تکلیف، متن‌های عربی را ترجمه می‌کنید و با ساختار جمله‌های عربی بیشتر آشنا می‌شوید."
-    },
-    {
-      "id": "lesson4",
-      "title": "درس چهارم",
-      "subtitle": "قواعد و تمرین",
-      "icon": "📗",
-      "file": "lesson4.json",
-      "releaseDate": "۱۴۰۵/۰۸/۰۵",
-      "dueDate": "۱۴۰۵/۰۸/۲۰",
-      "activityCount": 12,
-      "estimatedTime": 10,
-      "description": "در این تکلیف، قواعد مهم درس چهارم را تمرین می‌کنید و مهارت خود را تقویت می‌کنید."
-    },
-    {
-      "id": "lesson5",
-      "title": "درس پنجم",
-      "subtitle": "مفرد و جمع",
-      "icon": "📘",
-      "file": "lesson5.json",
-      "releaseDate": "۱۴۰۵/۰۸/۲۵",
-      "dueDate": "۱۴۰۵/۰۹/۱۰",
-      "activityCount": 14,
-      "estimatedTime": 12,
-      "description": "در این تکلیف، با انواع جمع در زبان عربی (جمع مکسر و جمع سالم) آشنا می‌شوید."
+      "dueDate": "۱۴۰۵/۰۷/۲۲",
+      "activityCount": 8,
+      "estimatedTime": 15,
+      "description": "در این تکلیف با ترجمه متون و درک مطلب درس سوم آشنا می‌شوید."
     }
   ]
 }
