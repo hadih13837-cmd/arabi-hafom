@@ -128,7 +128,6 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* کانفتی */
         .confetti-container {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -145,7 +144,6 @@
             100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
 
-        /* نوار پایین */
         .bottom-nav {
             flex-shrink: 0; background: #fff;
             display: flex; justify-content: space-around; align-items: center;
@@ -186,7 +184,6 @@
         .bottom-nav-item.profile-item.active svg { stroke: #2e7d32; fill: #e8f5e9; }
         .bottom-nav-item.profile-item.active span { color: #2e7d32; }
 
-        /* صفحه خانه */
         #screen-home { background: linear-gradient(180deg, var(--primary-light) 0%, #ffffff 100%); }
         .home-scroll-area {
             flex: 1; overflow-y: auto; overflow-x: hidden;
@@ -215,7 +212,6 @@
             touch-action: pan-y; cursor: grab;
         }
         .video-notification.show { display: flex; }
-        /* اعلان هشدار مهلت */
         .deadline-notification {
             position: absolute; top: 165px; left: 15px; right: 15px;
             background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
@@ -422,7 +418,6 @@
             animation: badgePulse 1.5s ease-in-out infinite;
         }
 
-        /* Splash */
         #screen-splash { background: #000; }
         .splash-bg-image {
             position: absolute; top: 0; left: 0;
@@ -464,7 +459,6 @@
             50% { transform: scale(1.05); }
         }
 
-        /* Welcome */
         #screen-welcome {
             background: linear-gradient(180deg, var(--primary-light) 0%, #ffffff 100%);
             align-items: center; text-align: center;
@@ -507,7 +501,6 @@
         }
         .welcome-btn:active { transform: scale(0.98); }
 
-        /* صفحات داخلی */
         .page-header {
             flex-shrink: 0; display: flex; align-items: center;
             gap: 18px; padding: 18px 20px;
@@ -537,7 +530,6 @@
             flex: 1; overflow-y: auto; padding: 20px;
         }
 
-        /* سرچ */
         .search-bar-wrapper {
             padding: 12px 18px 6px 18px;
             background: #f0f7ff;
@@ -562,7 +554,6 @@
         }
         .search-bar input::placeholder { color: #90a4ae; }
 
-        /* تکالیف */
         #screen-lessons { background: #f0f7ff; }
         .lessons-header {
             flex-shrink: 0; display: flex; align-items: center;
@@ -632,7 +623,6 @@
             stroke: #fff; fill: none; stroke-width: 3;
             stroke-linecap: round; stroke-linejoin: round;
         }
-        /* بج هشدار نزدیک به مهلت */
         .lesson-warning-badge {
             position: absolute; top: -4px; right: -4px;
             width: 24px; height: 24px; border-radius: 50%;
@@ -704,7 +694,6 @@
         }
         .lesson-progress-text.full-progress { color: #2e7d32 !important; }
 
-        /* جزئیات تکلیف */
         #screen-lesson-detail { background: #f0f7ff; }
         .lesson-detail-content {
             flex: 1; overflow-y: auto; padding: 15px;
@@ -751,7 +740,6 @@
             font-size: 12px; color: #b71c1c;
             font-weight: bold; line-height: 1.6;
         }
-        /* هشدار نزدیک به مهلت */
         .deadline-warning-box {
             background: linear-gradient(135deg, #fff3e0, #ffe0b2);
             border: 2px solid #ff9800;
@@ -837,7 +825,6 @@
         .lesson-start-btn:active { transform: scale(0.97); }
         .lesson-start-btn svg { width: 24px; height: 24px; fill: #fff; stroke: none; }
 
-        /* حالت خالی */
         .report-empty {
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
@@ -849,7 +836,6 @@
             line-height: 1.7;
         }
 
-        /* مدال‌ها */
         #screen-medals { background: #f0f7ff; }
         .medals-grid {
             display: grid; grid-template-columns: 1fr 1fr;
@@ -878,7 +864,6 @@
         }
         .medal-lock { position: absolute; top: 8px; left: 8px; font-size: 18px; }
 
-        /* اعلان‌ها */
         #screen-notifications { background: #f0f7ff; }
         .notifications-list {
             flex: 1; overflow-y: auto; padding: 15px;
@@ -937,7 +922,6 @@
         }
         .notif-date { font-size: 11px; color: #90a4ae; font-weight: bold; }
 
-        /* منوی کناری */
         .side-menu-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -1053,7 +1037,6 @@
         }
         .side-menu-footer .heart { color: #e53935; }
 
-        /* مدال مودال */
         .medal-modal-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -1127,7 +1110,6 @@
         }
         .medal-modal-btn:active { transform: scale(0.97); }
 
-        /* تکرار */
         .repeat-modal-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -1186,7 +1168,6 @@
         }
         .repeat-btn-confirm:active { transform: scale(0.96); }
 
-        /* تنظیمات */
         #screen-settings { background: #f0f7ff; }
         .settings-new-list { padding: 15px 15px 30px 15px; }
         .setting-card {
@@ -1287,7 +1268,6 @@
         }
         .reset-settings-btn span { color: #fff; font-size: 16px; font-weight: 900; }
 
-        /* درباره */
         #screen-about { background: #f0f7ff; }
         .about-content {
             flex: 1; overflow-y: auto;
@@ -1370,7 +1350,6 @@
             color: #90a4ae; font-weight: bold; margin-top: 20px;
         }
 
-        /* پروفایل */
         #screen-profile { background: #f0f7ff; }
         .profile-header {
             flex-shrink: 0; display: flex; align-items: center;
@@ -1503,7 +1482,6 @@
         }
         .delete-account-btn span { color: #c62828; font-size: 15px; font-weight: 900; }
 
-        /* کارنامه گرافیکی */
         .report-graphic-container {
             background: #fff; padding: 25px 20px;
             border-radius: 20px; direction: rtl;
@@ -1579,7 +1557,6 @@
         .report-message-title { font-size: 15px; font-weight: 900; color: #e65100; margin-bottom: 6px; }
         .report-message-text { font-size: 13px; color: #bf360c; font-weight: bold; line-height: 1.6; }
 
-        /* کارت‌های کارنامه */
         .report-card {
             background: #fff; border-radius: 18px;
             padding: 16px; margin-bottom: 14px;
@@ -1624,7 +1601,6 @@
             color: #fff;
         }
 
-        /* بنر نصب */
         .install-banner {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: var(--primary-gradient);
@@ -1661,7 +1637,6 @@
             opacity: 0.8;
         }
 
-        /* مودال */
         .modal-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -1689,7 +1664,6 @@
             font-family: 'Vazirmatn', sans-serif;
         }
 
-        /* خروج */
         .exit-modal-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -1769,7 +1743,6 @@
             cursor: pointer; font-family: 'Vazirmatn', sans-serif;
         }
 
-        /* سوالات */
         #screen-quiz { 
             background: url('https://cdn.imgurl.ir/uploads/c3352_ChatGPT_Image_Sep_21_2026_09_21_08_PM.png') center center / cover no-repeat fixed;
             position: relative;
@@ -1965,7 +1938,6 @@
             font-family: 'Vazirmatn', sans-serif;
         }
 
-        /* بازخورد */
         #screen-feedback {
             justify-content: center; align-items: center;
             text-align: center;
@@ -2005,7 +1977,6 @@
         .correct-answer-box.wrong-answer .answer-label { color: #c62828; }
         .correct-answer-box.wrong-answer .answer-text { color: #b71c1c; }
 
-        /* نتیجه */
         #screen-result {
             justify-content: center; align-items: center;
             text-align: center;
@@ -2052,7 +2023,6 @@
             flex: 1; overflow-y: auto; padding: 20px;
         }
 
-        /* ============ صفحه تقویم ============ */
         #screen-calendar {
             background: #f0f7ff;
             transition: background 0.5s ease;
@@ -2284,7 +2254,6 @@
             border: 2px solid #90a4ae;
         }
 
-        /* ============ پیام استریک ============ */
         .streak-message-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -2406,7 +2375,6 @@
             100% { transform: scale(0.1) translate(0, 400px); opacity: 0; }
         }
 
-        /* ============ راهنما ============ */
         .guide-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -2512,7 +2480,6 @@
             border-radius: 4px;
         }
 
-        /* ============ پیام خوش‌آمد ============ */
         .welcome-graphic-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -3041,7 +3008,6 @@
                 <div class="notification-swipe-hint"></div>
             </div>
 
-            <!-- اعلان هشدار مهلت -->
             <div class="deadline-notification" id="deadline-notification">
                 <button class="notification-close" onclick="dismissDeadlineNotification()">✕</button>
                 <div class="notification-icon">⚠️</div>
@@ -3716,13 +3682,12 @@
 </div>
 <script>
     // ============ ثابت‌ها ============
-    // ترتیب وکتور کتاب‌ها طبق تصاویر: ۱-بنفش ۲-سبز ۳-آبی ۴-زرد ۵-سبز(تیره) ۶-فیروزه‌ای
     const BOOK_VECTORS = [
         { url: 'https://cdn.imgurl.ir/uploads/m31567_IMG__.png', color: '#8e24aa', colorLight: 'rgba(142, 36, 170, 0.08)' }, // ۰: بنفش
         { url: 'https://cdn.imgurl.ir/uploads/p313911_IMG__.png', color: '#2e7d32', colorLight: 'rgba(46, 125, 50, 0.08)' },  // ۱: سبز
         { url: 'https://cdn.imgurl.ir/uploads/f058661_IMG__.png', color: '#1976d2', colorLight: 'rgba(25, 118, 210, 0.08)' }, // ۲: آبی
         { url: 'https://cdn.imgurl.ir/uploads/k1280_IMG__.png',   color: '#fbc02d', colorLight: 'rgba(251, 192, 45, 0.12)' }, // ۳: زرد
-        { url: 'https://cdn.imgurl.ir/uploads/q178853_IMG__.png', color: '#388e3c', colorLight: 'rgba(56, 142, 60, 0.08)' },  // ۴: سبز (تیره‌تر)
+        { url: 'https://cdn.imgurl.ir/uploads/q178853_IMG__.png', color: '#388e3c', colorLight: 'rgba(56, 142, 60, 0.08)' },  // ۴: سبز تیره
         { url: 'https://cdn.imgurl.ir/uploads/a3501_IMG__.png',   color: '#00acc1', colorLight: 'rgba(0, 172, 193, 0.08)' }   // ۵: فیروزه‌ای
     ];
 
@@ -3742,7 +3707,7 @@
         image: { class: 'qti-image', svg: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' }
     };
 
-    // ============ توابع کمکی اعداد ============
+    // ============ توابع کمکی ============
     function toPersianNum(num) {
         const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
         return num.toString().replace(/\d/g, x => persianDigits[parseInt(x)]);
@@ -3785,15 +3750,13 @@
         if (!dueDate) return false;
         return persianDateToNumber(getPersianDate()) > persianDateToNumber(dueDate);
     }
-    // چک کردن نزدیک بودن مهلت (مثلاً ۱ روز مونده یا کمتر)
     function isDeadlineNear(dueDate) {
         if (!dueDate) return false;
         const due = persianDateToNumber(dueDate);
         const today = persianDateToNumber(getPersianDate());
         const diff = due - today;
-        return diff >= 0 && diff <= 1; // امروز یا فردا
+        return diff >= 0 && diff <= 1;
     }
-    // محاسبه اختلاف روز با تاریخ
     function getDaysDiff(dueDate) {
         if (!dueDate) return 999;
         const due = persianDateToNumber(dueDate);
@@ -3951,6 +3914,8 @@
         setTimeout(() => {
             overlay.classList.remove('active');
             card.classList.remove('shrinking');
+            // بعد از بستن پیام استریک، اعلان‌ها نمایش داده میشن
+            showNotificationsAfterGuide();
         }, 800);
     }
 
@@ -4236,7 +4201,17 @@
         document.getElementById('guide-tooltip').style.display = 'none';
         localStorage.setItem('guideCompleted', 'true');
         currentGuideStep = 0;
-        setTimeout(() => { showStreakMessage(); }, 500);
+        
+        // بعد از راهنما، پیام استریک یا اعلان‌ها
+        setTimeout(() => {
+            const today = getPersianDate();
+            const lastShown = localStorage.getItem('lastStreakMessageShown');
+            if (lastShown !== today) {
+                showStreakMessage();
+            } else {
+                showNotificationsAfterGuide();
+            }
+        }, 500);
     }
 
     function restartGuide() {
@@ -4298,7 +4273,12 @@
     function goBackToHome() {
         goToScreen('screen-home', false);
         pushHistory('screen-home');
+        setTimeout(() => {
+            const homeScroll = document.querySelector('.home-scroll-area');
+            if (homeScroll) homeScroll.scrollTop = 0;
+        }, 100);
     }
+    
     window.addEventListener('popstate', function(event) {
         const activeScreen = document.querySelector('.screen.active');
         if (!activeScreen) return;
@@ -4306,6 +4286,10 @@
         if (activeId !== 'screen-home' && activeId !== 'screen-splash' && activeId !== 'screen-welcome') {
             goToScreen('screen-home', false);
             pushHistory('screen-home');
+            setTimeout(() => {
+                const homeScroll = document.querySelector('.home-scroll-area');
+                if (homeScroll) homeScroll.scrollTop = 0;
+            }, 100);
         }
     });
 
@@ -4345,14 +4329,24 @@
             typeMotivation();
             if (allLessons.length === 0) {
                 loadLessonsListForNotification().then(() => {
-                    checkAndShowNotification();
-                    updateNotificationBadge();
-                    checkDeadlineWarning();
+                    const guideDone = localStorage.getItem('guideCompleted') === 'true';
+                    const today = getPersianDate();
+                    const streakDone = localStorage.getItem('lastStreakMessageShown') === today;
+                    if (guideDone && streakDone) {
+                        checkAndShowNotification();
+                        checkDeadlineWarning();
+                        updateNotificationBadge();
+                    }
                 });
             } else {
-                checkAndShowNotification();
-                updateNotificationBadge();
-                checkDeadlineWarning();
+                const guideDone = localStorage.getItem('guideCompleted') === 'true';
+                const today = getPersianDate();
+                const streakDone = localStorage.getItem('lastStreakMessageShown') === today;
+                if (guideDone && streakDone) {
+                    checkAndShowNotification();
+                    checkDeadlineWarning();
+                    updateNotificationBadge();
+                }
             }
             checkVideoNotification();
             displayStreak();
@@ -4448,7 +4442,6 @@
         }
     }
     
-    // فقط تکالیف معتبر (منقضی نشده و انجام نشده) رو برای اعلان در نظر بگیر
     function checkAndAddLessonNotifications() {
         const seenLessonsForNotif = JSON.parse(localStorage.getItem('seenLessonsForNotif') || '[]');
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -4458,7 +4451,7 @@
             if (seenLessonsForNotif.includes(l.id)) return false;
             if (completedIds.includes(l.id)) return false;
             const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
-            if (isExpired(dueDate)) return false; // منقضی شده
+            if (isExpired(dueDate)) return false;
             return true;
         });
         
@@ -4517,12 +4510,10 @@
         setTimeout(() => openClipsPage(), 200);
     }
 
-    // ============ اعلان تکلیف جدید (فقط معتبر) ============
     function checkAndShowNotification() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
         
-        // فقط تکالیفی که منقضی نشدن و انجام ندادیم
         const pendingLessons = allLessons.filter(l => {
             if (completedIds.includes(l.id)) return false;
             const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
@@ -4542,12 +4533,10 @@
         checkNewLessons();
     }
 
-    // ============ اعلان هشدار مهلت ============
     function checkDeadlineWarning() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
         
-        // تکالیفی که نزدیک مهلت هستن و انجام نشدن
         const urgentLessons = allLessons.filter(l => {
             if (completedIds.includes(l.id)) return false;
             const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
@@ -4560,7 +4549,6 @@
         if (urgentLessons.length > 0 && deadlineNotif) {
             subText.textContent = `${toPersianNum(urgentLessons.length)} تکلیف مهلتش داره تموم میشه!`;
             
-            // موقعیت‌دهی بر اساس اعلان‌های دیگه
             const lessonNotif = document.getElementById('new-lesson-notification');
             let topPos = 15;
             if (lessonNotif && lessonNotif.classList.contains('show')) topPos = 95;
@@ -4568,7 +4556,6 @@
             
             setTimeout(() => deadlineNotif.classList.add('show'), 600);
             
-            // اضافه کردن اعلان هشدار به لیست اعلان‌ها (فقط یک بار در روز)
             const today = getPersianDate();
             const lastDeadlineNotifDate = localStorage.getItem('lastDeadlineNotifDate');
             if (lastDeadlineNotifDate !== today) {
@@ -4612,18 +4599,7 @@
             notif.classList.remove('show', 'swiping');
             notif.style.transform = '';
             notif.style.opacity = '';
-            
-            // جابجایی اعلان‌های دیگه
-            const deadlineNotif = document.getElementById('deadline-notification');
-            const videoNotif = document.getElementById('video-notification');
-            let topPos = 15;
-            if (deadlineNotif && deadlineNotif.classList.contains('show')) {
-                deadlineNotif.style.top = topPos + 'px';
-                topPos = 95;
-            }
-            if (videoNotif && videoNotif.classList.contains('show')) {
-                videoNotif.style.top = topPos + 'px';
-            }
+            repositionNotifications();
         }, 300);
     }
     
@@ -4636,7 +4612,6 @@
         if (allLessons.length === 0) return;
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
-        // تکالیف معتبر (منقضی نشده و انجام نشده)
         const pendingLessons = allLessons.filter(l => {
             if (completedIds.includes(l.id)) return false;
             const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
@@ -4728,8 +4703,6 @@
                 } else if (id === 'video-notification') {
                     localStorage.setItem('seenVideos', JSON.stringify(['video_1']));
                 }
-                
-                // جابجایی اعلان‌های باقی‌مونده
                 repositionNotifications();
             }, 300);
         } else {
@@ -4797,6 +4770,17 @@
         document.addEventListener('mouseup', onUp);
     }
 
+    // ============ تابع نمایش اعلان‌ها بعد از راهنما ============
+    function showNotificationsAfterGuide() {
+        setTimeout(() => {
+            checkAndShowNotification();
+            checkDeadlineWarning();
+            updateNotificationBadge();
+            checkVideoNotification();
+            repositionNotifications();
+        }, 400);
+    }
+
     // ============ شروع برنامه ============
     async function startApp() {
         const isRegistered = localStorage.getItem('userRegistered') === 'true';
@@ -4804,17 +4788,25 @@
             updateStreak();
             await loadLessonsListForNotification();
             goToScreen('screen-home');
+            
             setTimeout(() => {
-                checkAndShowNotification();
-                checkDeadlineWarning();
-                updateNotificationBadge();
-                checkVideoNotification();
+                // مرحله ۱: راهنما
                 if (localStorage.getItem('guideCompleted') !== 'true') {
                     currentGuideStep = 0;
                     showGuideStep();
-                } else {
-                    showStreakMessage();
+                    return;
                 }
+                
+                // مرحله ۲: پیام استریک
+                const today = getPersianDate();
+                const lastShown = localStorage.getItem('lastStreakMessageShown');
+                if (lastShown !== today) {
+                    showStreakMessage();
+                    return;
+                }
+                
+                // مرحله ۳: اعلان‌ها
+                showNotificationsAfterGuide();
             }, 500);
         } else {
             goToScreen('screen-welcome');
@@ -4898,23 +4890,18 @@
         const dateCounts = {};
         reports.forEach(r => { dateCounts[r.date] = (dateCounts[r.date] || 0) + 1; });
         const maxInOneDay = Math.max(0, ...Object.values(dateCounts));
-        
-        // چک کردن اینکه کاربر تکلیف با درصد 100 در اولین تلاش داشته
-        const firstTryPerfect = reports.filter(r => r.percent === 100).length;
-        
         return {
             totalPoints, completedLessons, avgPercent,
             perfectScores, highScores, fastLessons,
-            streakDays, maxInOneDay, firstTryPerfect,
+            streakDays, maxInOneDay,
             unlockedMedals: getUnlockedMedals({
                 totalPoints, completedLessons, avgPercent,
                 perfectScores, highScores, fastLessons,
-                streakDays, maxInOneDay, firstTryPerfect
+                streakDays, maxInOneDay
             })
         };
     }
 
-    // ============ مدال‌ها (بدون رنگین‌کمان، با مدال‌های جدید) ============
     const MEDALS_LIST = [
         { id: 'first', icon: '🥇', title: 'اولین قدم', desc: 'اولین تکلیف را انجام بده', condition: (s) => s.completedLessons >= 1 },
         { id: 'diamond', icon: '💎', title: 'الماس', desc: 'تکمیل ۵ تکلیف', condition: (s) => s.completedLessons >= 5 },
@@ -4929,7 +4916,6 @@
         { id: 'invincible', icon: '🛡️', title: 'شکست‌ناپذیر', desc: '۱۰ تکلیف با درصد بالای ۹۰%', condition: (s) => s.highScores >= 10 },
         { id: 'fast', icon: '⚡', title: 'سریع', desc: 'تکمیل تکلیف زیر ۳ دقیقه', condition: (s) => s.fastLessons >= 1 },
         { id: 'loyal', icon: '🎖️', title: 'سرباز فداکار', desc: 'فعالیت در ۷ روز مختلف', condition: (s) => s.streakDays >= 7 },
-        // مدال‌های جدید
         { id: 'beginner', icon: '🌱', title: 'تازه‌کار', desc: 'اولین امتیازت رو بگیر', condition: (s) => s.totalPoints >= 10 },
         { id: 'diligent', icon: '📚', title: 'کوشا', desc: 'تکمیل ۳ تکلیف', condition: (s) => s.completedLessons >= 3 },
         { id: 'expert', icon: '🎓', title: 'متخصص', desc: 'تکمیل ۷ تکلیف', condition: (s) => s.completedLessons >= 7 },
@@ -5090,10 +5076,55 @@
     }
     function openExitModal() { document.getElementById('exit-modal').classList.add('active'); }
     function closeExitModal() { document.getElementById('exit-modal').classList.remove('active'); }
+    
     function confirmExit() {
         closeExitModal();
-        setTimeout(() => window.history.go(-1), 100);
+        
+        setTimeout(() => {
+            // تلاش برای بستن پنجره
+            window.close();
+            
+            // اگه window.close کار نکرد، کاربر رو به یه صفحه خالی ببر
+            setTimeout(() => {
+                try {
+                    window.open('', '_self', '');
+                    window.close();
+                } catch(e) {}
+                
+                // روش ۲: اگه هنوز باز بود، به یه صفحه "خداحافظی" برو
+                setTimeout(() => {
+                    document.body.innerHTML = `
+                        <div style="
+                            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+                            display: flex; flex-direction: column;
+                            justify-content: center; align-items: center;
+                            color: white; font-family: Vazirmatn, sans-serif;
+                            text-align: center; padding: 20px;
+                            direction: rtl;
+                        ">
+                            <div style="font-size: 80px; margin-bottom: 20px;">👋</div>
+                            <div style="font-size: 24px; font-weight: 900; margin-bottom: 12px;">
+                                از برنامه خارج شدی!
+                            </div>
+                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 30px;">
+                                برای ورود مجدد، دکمه زیر رو بزن
+                            </div>
+                            <button onclick="location.reload()" style="
+                                background: white; color: #1976d2;
+                                border: none; padding: 16px 40px;
+                                border-radius: 50px; font-size: 16px;
+                                font-weight: 900; cursor: pointer;
+                                font-family: Vazirmatn, sans-serif;
+                                box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+                            ">ورود مجدد به برنامه</button>
+                        </div>
+                    `;
+                }, 300);
+            }, 100);
+        }, 100);
     }
+    
     function toggleDarkMode(el) {
         if (el.checked) { localStorage.setItem('darkMode', 'true'); document.body.classList.add('dark-mode'); }
         else { localStorage.setItem('darkMode', 'false'); document.body.classList.remove('dark-mode'); }
@@ -5231,7 +5262,6 @@
             const progressTextColor = progressPercent === 100 ? '#2e7d32' : bookData.color;
             const progressTextClass = progressPercent === 100 ? 'full-progress' : '';
             
-            // برای مهلت نزدیک، رنگ نارنجی
             let deadlineClass = '';
             let deadlineText = `مهلت: ${lesson.dueDate}`;
             if (lesson.isExpired && !lesson.isCompleted) {
@@ -5387,6 +5417,13 @@
     function clearCurrentProgress() { localStorage.removeItem('currentLessonProgress'); }
 
     async function startLesson(lessonId) {
+        const savedTimerLesson = localStorage.getItem('quizTimerLesson');
+        if (savedTimerLesson && savedTimerLesson !== lessonId) {
+            localStorage.removeItem('quizTimerEnd');
+            localStorage.removeItem('quizTimerTotal');
+            localStorage.removeItem('quizTimerLesson');
+        }
+        
         const lesson = allLessons.find(l => l.id === lessonId);
         const dueDate = lesson ? (lesson.dueDate || '۱۴۰۵/۰۹/۱۵') : null;
         const expired = isExpired(dueDate);
@@ -6027,23 +6064,38 @@
         if (cameFromClips || window.location.hash === '#home') {
             sessionStorage.removeItem('cameFromClips');
             history.replaceState({screen: 'screen-home'}, '', '');
+            if (window.location.hash) {
+                history.replaceState(null, '', window.location.pathname);
+            }
             if (isRegistered) {
                 updateStreak();
                 goToScreen('screen-home', false);
                 setTimeout(() => {
+                    const homeScroll = document.querySelector('.home-scroll-area');
+                    if (homeScroll) homeScroll.scrollTop = 0;
+                }, 100);
+                setTimeout(() => {
+                    const guideDone = localStorage.getItem('guideCompleted') === 'true';
+                    const today = getPersianDate();
+                    const streakDone = localStorage.getItem('lastStreakMessageShown') === today;
+                    
                     if (allLessons.length === 0) {
                         loadLessonsListForNotification().then(() => {
+                            if (guideDone && streakDone) {
+                                checkAndShowNotification();
+                                checkDeadlineWarning();
+                                updateNotificationBadge();
+                            }
+                        });
+                    } else {
+                        if (guideDone && streakDone) {
                             checkAndShowNotification();
                             checkDeadlineWarning();
                             updateNotificationBadge();
-                        });
-                    } else {
-                        checkAndShowNotification();
-                        checkDeadlineWarning();
-                        updateNotificationBadge();
+                        }
                     }
                     checkVideoNotification();
-                    setTimeout(() => showStreakMessage(), 800);
+                    displayStreak();
                 }, 300);
             } else {
                 goToScreen('screen-welcome', false);
