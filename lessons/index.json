@@ -2,14 +2,14 @@
   "lessons": [
     {
       "id": "lesson1",
-      "title": "درس اول",
+      "title": "اَلدَّرْسُ الأَوَّل (فِي الصَّفِ)",
       "subtitle": "آشنایی با واژگان و عبارات",
       "icon": "📖",
       "file": "lesson1.json",
       "releaseDate": "۱۴۰۵/۰۶/۲۵",
-      "dueDate": "۱۴۰۶/۰۳/۳۱",
-      "activityCount": 8,
-      "estimatedTime": 10,
+      "dueDate": "۱۴۰۶/۰۳/۳۰",
+      "activityCount": 10,
+      "estimatedTime": 15,
       "description": "در این تکلیف، با واژگان جدید، ترجمه و عبارات مهم درس اول آشنا می‌شوید. موفق باشید!"
     }
   ]
