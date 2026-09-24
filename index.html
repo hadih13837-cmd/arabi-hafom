@@ -215,7 +215,6 @@
             touch-action: pan-y; cursor: grab;
         }
         .video-notification.show { display: flex; }
-        /* اعلان هشدار مهلت */
         .deadline-notification {
             position: absolute; top: 165px; left: 15px; right: 15px;
             background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
@@ -632,7 +631,6 @@
             stroke: #fff; fill: none; stroke-width: 3;
             stroke-linecap: round; stroke-linejoin: round;
         }
-        /* بج هشدار نزدیک به مهلت */
         .lesson-warning-badge {
             position: absolute; top: -4px; right: -4px;
             width: 24px; height: 24px; border-radius: 50%;
@@ -751,7 +749,6 @@
             font-size: 12px; color: #b71c1c;
             font-weight: bold; line-height: 1.6;
         }
-        /* هشدار نزدیک به مهلت */
         .deadline-warning-box {
             background: linear-gradient(135deg, #fff3e0, #ffe0b2);
             border: 2px solid #ff9800;
@@ -1816,6 +1813,8 @@
         .qti-audio svg { stroke: #0277bd; }
         .qti-error { background: linear-gradient(135deg, #fce4ec, #f8bbd0); }
         .qti-error svg { stroke: #ad1457; }
+        .qti-survey { background: linear-gradient(135deg, #f3e5f5, #e1bee7); }
+        .qti-survey svg { stroke: #6a1b9a; }
         
         .score-badge {
             display: flex; align-items: center; gap: 5px;
@@ -2009,15 +2008,12 @@
         }
         .audio-btn:active {
             transform: scale(0.95);
-            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
         }
-        /* حالت برجسته‌سازی (وقتی داره پخش میشه) */
         .audio-btn.playing {
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             border-color: var(--primary);
             transform: scale(1.08);
-            box-shadow: 0 0 0 5px rgba(25, 118, 210, 0.25), 
-                        0 8px 25px rgba(25, 118, 210, 0.4);
+            animation: audioPulse 1.5s ease-in-out infinite;
         }
         .audio-btn.playing::before {
             width: 200px;
@@ -2027,16 +2023,11 @@
             0%, 100% { box-shadow: 0 0 0 5px rgba(25, 118, 210, 0.25), 0 8px 25px rgba(25, 118, 210, 0.4); }
             50% { box-shadow: 0 0 0 12px rgba(25, 118, 210, 0.15), 0 8px 30px rgba(25, 118, 210, 0.6); }
         }
-        .audio-btn.playing {
-            animation: audioPulse 1.5s ease-in-out infinite;
-        }
-        /* حالت انتخاب شده (بعد از کلیک) */
         .audio-btn.selected {
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.3);
         }
-        /* حالت سبز (بعد از تطبیق درست) */
         .audio-btn.correct-match {
             background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
             border-color: #2e7d32;
@@ -2063,7 +2054,7 @@
             color: var(--primary-dark);
         }
 
-        /* کارت کلمه فارسی (وسط) */
+        /* کارت کلمه فارسی */
         .audio-word-card {
             background: #fff;
             border-radius: 24px;
@@ -2104,7 +2095,6 @@
         .audio-word-card.matched .audio-word-label {
             color: #4caf50;
         }
-        /* علامت تیک سبز */
         .audio-match-check {
             position: absolute;
             top: 12px;
@@ -2136,8 +2126,6 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
-
-        /* راهنمای کوچک */
         .audio-hint {
             text-align: center;
             font-size: 12px;
@@ -2190,7 +2178,6 @@
             box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.3);
             transform: scale(1.05);
         }
-        /* کلمه اشتباه با خط قرمز */
         .find-error-word.wrong-picked {
             background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
             border-color: #e53935;
@@ -2211,7 +2198,6 @@
             0% { width: 0%; }
             100% { width: 80%; }
         }
-        /* کلمه اشتباه با خط قرمز (وقتی پاسخ اشتباه داده) */
         .find-error-word.show-correct {
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             border-color: #4caf50;
@@ -2233,7 +2219,6 @@
             border-radius: 2px;
             animation: strikeThrough 0.5s ease forwards;
         }
-        /* نمایش تصحیح زیر جمله */
         .find-error-correction {
             background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
             border: 2px solid #66bb6a;
@@ -2290,6 +2275,83 @@
             background: rgba(255, 255, 255, 0.7);
             padding: 12px;
             border-radius: 12px;
+        }
+
+        /* ============ سوال چیدن کلمات (word-build) ============ */
+        .word-build-result {
+            min-height: 80px;
+            border: 2.5px dashed #bbdefb;
+            border-radius: 16px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            color: #90a4ae;
+            background: rgba(255, 255, 255, 0.85);
+            flex-wrap: wrap;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .word-build-result span {
+            background: var(--primary-gradient);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 17px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(25, 118, 210, 0.35);
+        }
+        .word-build-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .word-build-item {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #e0e0e0;
+            padding: 12px 22px;
+            border-radius: 15px;
+            font-size: 17px;
+            font-weight: 900;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .word-build-item:active {
+            transform: scale(0.95);
+        }
+
+        /* ============ سوال نظرسنجی (survey) ============ */
+        .survey-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .survey-textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 18px;
+            border: 2.5px solid #e3f2fd;
+            border-radius: 18px;
+            font-size: 15px;
+            font-family: 'Vazirmatn', sans-serif;
+            background: rgba(255, 255, 255, 0.95);
+            outline: none;
+            resize: vertical;
+            line-height: 1.7;
+            text-align: right;
+            color: #333;
+            transition: border-color 0.2s;
+        }
+        .survey-textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.15);
+        }
+        .survey-textarea::placeholder {
+            color: #90a4ae;
         }
 
         /* بازخورد */
@@ -4059,7 +4121,7 @@
     ];
 
     const LESSON_TITLES = [
-        'تکلیف اول', 'تکلیف دوم', 'تکلیف سوم', 'تکلیف چهارم',
+        'اَلدَّرْسُ الأَوَّل', 'اَلدَّرْسُ الثّانی', 'اَلدَّرْسُ الثّالِث', 'تکلیف چهارم',
         'تکلیف پنجم', 'تکلیف ششم', 'تکلیف هفتم', 'تکلیف هشتم',
         'تکلیف نهم', 'تکلیف دهم'
     ];
@@ -4073,7 +4135,9 @@
         order: { class: 'qti-order', svg: '<svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>' },
         image: { class: 'qti-image', svg: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' },
         'audio-match': { class: 'qti-audio', svg: '<svg viewBox="0 0 24 24"><path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53"/><path d="M19.07 4.93C20.9447 6.80528 21.9979 9.34836 21.9979 12C21.9979 14.6516 20.9447 17.1947 19.07 19.07"/></svg>' },
-        'find-error': { class: 'qti-error', svg: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><line x1="8" y1="11" x2="14" y2="11"/></svg>' }
+        'find-error': { class: 'qti-error', svg: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><line x1="8" y1="11" x2="14" y2="11"/></svg>' },
+        'word-build': { class: 'qti-order', svg: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="13" width="7" height="7" rx="1"/><rect x="14" y="13" width="7" height="7" rx="1"/></svg>' },
+        'survey': { class: 'qti-survey', svg: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/></svg>' }
     };
 
     // ============ توابع کمکی اعداد ============
@@ -5398,7 +5462,7 @@
             return {
                 ...lesson, isCompleted, isPaused, isExpired: expired, isNearDeadline,
                 colorIndex: index % 6,
-                taskTitle: LESSON_TITLES[index] || `تکلیف ${toPersianNum(index + 1)}`,
+                taskTitle: lesson.title || LESSON_TITLES[index] || `تکلیف ${toPersianNum(index + 1)}`,
                 dueDate: lessonDueDate
             };
         });
@@ -5489,7 +5553,7 @@
         const lessonIndex = allLessons.findIndex(l => l.id === lessonId);
         const colorIndex = lessonIndex % 6;
         const bookData = BOOK_VECTORS[colorIndex];
-        const taskTitle = LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
+        const taskTitle = lesson.title || LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const isCompleted = reports.some(r => r.lessonId === lessonId);
         const currentProgress = getCurrentProgress();
@@ -5497,7 +5561,7 @@
         const dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
         const expired = isExpired(dueDate);
         const isNearDeadline = !expired && !isCompleted && isDeadlineNear(dueDate);
-        const activityCount = lesson.activityCount || 12;
+        const activityCount = lesson.activityCount || 10;
         const estimatedTime = lesson.estimatedTime || 10;
         const description = lesson.description || 'در این تکلیف، با واژگان جدید، ترجمه و عبارات مهم درس اول آشنا می‌شوید. موفق باشید!';
         let expiredWarningHTML = '';
@@ -5629,7 +5693,7 @@
             if (!response.ok) throw new Error('خطا در بارگذاری');
             currentLesson = await response.json();
             const lessonIndex = allLessons.findIndex(l => l.id === lessonId);
-            const taskTitle = LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
+            const taskTitle = lessonMeta.title || LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
             if (startFromIndex > 0 && !practiceMode) {
                 const progress = getCurrentProgress();
                 if (progress && progress.lessonId === lessonId) {
@@ -5766,13 +5830,9 @@
     let isAnswered = false;
     let shuffledMatchAr = [];
     let shuffledOrderOptions = [];
-
-    // متغیرهای سوال audio-match
     let selectedAudioIndex = -1;
     let playingAudioIndex = -1;
-    let matchedAudioPairs = []; // [{audioIdx, faWord}]
-
-    // متغیرهای سوال find-error
+    let matchedAudioPairs = [];
     let selectedErrorWord = null;
 
     function shuffleArray(array) {
@@ -5787,23 +5847,16 @@
     function playAudioFromVideo(videoUrl, btnElement) {
         const video = document.getElementById('audio-video-player');
         if (!video) return;
-        
-        // پاک کردن حالت playing از همه دکمه‌ها
         document.querySelectorAll('.audio-btn.playing').forEach(el => el.classList.remove('playing'));
-        
         video.pause();
         video.src = videoUrl;
         video.currentTime = 0;
-        
-        // اضافه کردن کلاس playing به دکمه
         if (btnElement) {
             btnElement.classList.add('playing');
             playingAudioIndex = parseInt(btnElement.dataset.audioIdx);
             vibrate(15);
         }
-        
         video.play().then(() => {
-            // وقتی پخش تموم شد
             video.onended = () => {
                 if (btnElement) btnElement.classList.remove('playing');
                 playingAudioIndex = -1;
@@ -5849,65 +5902,73 @@
             q.options.forEach((opt, index) => { html += `<div class="option-btn" onclick="selectFillOption(this, '${opt}', ${index})">${opt}</div>`; });
             html += `</div>`;
         } else if (q.type === 'audio-match') {
-            // ============ سوال جدید: تطبیق صدا و کلمه ============
             html += `<div class="question-text">
                 <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
                 <div class="question-text-text">${q.question}</div>
             </div>`;
-            
             html += `<div class="audio-match-container">`;
-            
-            // دکمه‌های صدا (بالا)
             html += `<div class="audio-buttons-row">`;
             q.audios.forEach((audio, index) => {
-                html += `
-                    <div class="audio-btn" data-audio-idx="${index}" onclick="selectAudio(${index})">
-                        <img src="${SOUND_VECTOR_URL}" alt="صدا" class="audio-btn-icon">
-                        <span class="audio-btn-num">${toPersianNum(index + 1)}</span>
-                    </div>
-                `;
+                html += `<div class="audio-btn" data-audio-idx="${index}" onclick="selectAudio(${index})">
+                    <img src="${SOUND_VECTOR_URL}" alt="صدا" class="audio-btn-icon">
+                    <span class="audio-btn-num">${toPersianNum(index + 1)}</span>
+                </div>`;
             });
             html += `</div>`;
-            
-            // کارت کلمه فارسی (وسط) - اولین کلمه‌ای که تطبیق داده نشده
             html += `<div class="audio-word-card" id="audio-word-card">
-                <div class="audio-match-check">
-                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
+                <div class="audio-match-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
                 <div class="audio-word-label">کلمه مورد نظر:</div>
                 <div class="audio-word-text" id="audio-word-display">-</div>
             </div>`;
-            
-            // کارت‌های انتخاب فارسی (پایین)
             html += `<div class="options-grid">`;
             q.faOptions.forEach((opt, index) => {
                 html += `<div class="option-btn" onclick="selectFaWord(this, '${opt}', ${index})">${opt}</div>`;
             });
             html += `</div>`;
-            
-            // راهنما
-            html += `<div class="audio-hint">👆 اول روی <span class="highlight">دکمه صدا</span> بزن تا کلمه عربی رو بشنوی، بعد <span class="highlight">معنی فارسی</span> رو انتخاب کن</div>`;
-            
+            html += `<div class="audio-hint">👆 اول روی <span class="highlight">دکمه صدا</span> بزن، بعد <span class="highlight">معنی فارسی</span> رو انتخاب کن</div>`;
             html += `</div>`;
         } else if (q.type === 'find-error') {
-            // ============ سوال جدید: پیدا کردن اشتباه ============
             html += `<div class="question-text">
                 <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
                 <div class="question-text-text">${q.question}</div>
             </div>`;
-            
             html += `<div class="find-error-container">`;
-            
-            // جمله با کلمات قابل کلیک
             html += `<div class="find-error-sentence" id="find-error-sentence">`;
             q.words.forEach((word, index) => {
                 html += `<div class="find-error-word" data-idx="${index}" onclick="selectErrorWord(this, ${index})">${word.text}</div>`;
             });
             html += `</div>`;
-            
-            // راهنما
             html += `<div class="audio-hint">👆 روی کلمه‌ای که فکر می‌کنی <span class="highlight">اشتباه</span> است، کلیک کن</div>`;
-            
+            html += `</div>`;
+        } else if (q.type === 'word-build') {
+            html += `<div class="question-text">
+                <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+                <div class="question-text-text">${q.question}</div>
+            </div>`;
+            html += `<div class="audio-match-container">`;
+            html += `<div class="audio-buttons-row">`;
+            html += `<div class="audio-btn" data-audio-idx="0" onclick="playWordBuildAudio(this)">
+                <img src="${SOUND_VECTOR_URL}" alt="صدا" class="audio-btn-icon">
+                <span class="audio-btn-num">🔊</span>
+            </div>`;
+            html += `</div>`;
+            html += `<div class="word-build-result" id="word-build-result">کلمات رو اینجا بچین (برای برگرداندن کلیک کن)</div>`;
+            html += `<div class="word-build-options" id="word-build-options">`;
+            const shuffledWB = shuffleArray([...q.words]);
+            shuffledWB.forEach((word, index) => {
+                html += `<div class="word-build-item" onclick="selectWordBuild(this, '${word}')">${word}</div>`;
+            });
+            html += `</div>`;
+            html += `<div class="audio-hint">👆 اول روی <span class="highlight">دکمه صدا</span> بزن، بعد کلمات رو به ترتیب بچین</div>`;
+            html += `</div>`;
+        } else if (q.type === 'survey') {
+            html += `<div class="question-text">
+                <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+                <div class="question-text-text">${q.question}</div>
+            </div>`;
+            html += `<div class="survey-container">`;
+            html += `<textarea id="survey-answer" class="survey-textarea" placeholder="${q.placeholder || 'نظرت رو اینجا بنویس...'}"></textarea>`;
+            html += `<div class="audio-hint">💬 نظرت برامون مهمه! هرچی بنویسی قبوله ✨</div>`;
             html += `</div>`;
         } else {
             html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
@@ -5946,18 +6007,11 @@
         const q = currentLesson.questions[currentQuestionIndex];
         const audio = q.audios[index];
         if (!audio) return;
-        
         const btnElement = document.querySelector(`.audio-btn[data-audio-idx="${index}"]`);
-        
-        // پخش صدا
         playAudioFromVideo(audio.videoUrl, btnElement);
-        
-        // انتخاب دکمه
         document.querySelectorAll('.audio-btn').forEach(b => b.classList.remove('selected'));
         if (btnElement) btnElement.classList.add('selected');
         selectedAudioIndex = index;
-        
-        // نشون دادن کلمه فارسی مربوطه
         const wordDisplay = document.getElementById('audio-word-display');
         const wordCard = document.getElementById('audio-word-card');
         if (wordDisplay && wordCard) {
@@ -5965,64 +6019,36 @@
             wordCard.classList.remove('matched');
         }
     }
-    
     function selectFaWord(el, word, index) {
         if (isAnswered) return;
         if (selectedAudioIndex === -1) {
-            // اگه هنوز دکمه صدا رو نزده
             vibrate([50, 30, 50]);
-            // افکت لرزش
             el.style.animation = 'none';
-            setTimeout(() => {
-                el.style.animation = 'shakeWarning 0.3s ease';
-            }, 10);
+            setTimeout(() => { el.style.animation = 'shakeWarning 0.3s ease'; }, 10);
             return;
         }
-        
         vibrate(15);
         const q = currentLesson.questions[currentQuestionIndex];
         const selectedAudio = q.audios[selectedAudioIndex];
         const wordCard = document.getElementById('audio-word-card');
-        
         if (selectedAudio.correctFa === word) {
-            // ✅ تطبیق درست
             el.classList.add('selected');
-            
-            // سبز کردن دکمه صدا و کارت کلمه
             const audioBtn = document.querySelector(`.audio-btn[data-audio-idx="${selectedAudioIndex}"]`);
-            if (audioBtn) {
-                audioBtn.classList.add('correct-match');
-                audioBtn.classList.remove('selected');
-            }
-            if (wordCard) {
-                wordCard.classList.add('matched');
-            }
-            
-            // اضافه به لیست تطبیق‌ها
+            if (audioBtn) { audioBtn.classList.add('correct-match'); audioBtn.classList.remove('selected'); }
+            if (wordCard) wordCard.classList.add('matched');
             matchedAudioPairs.push({ audioIdx: selectedAudioIndex, faWord: word });
-            
-            // علامت زدن که جفت درست شده
             el.style.background = 'linear-gradient(135deg, #e8f5e9, #c8e6c9)';
             el.style.borderColor = '#4caf50';
             el.style.color = '#1b5e20';
             el.style.pointerEvents = 'none';
-            
             vibrate([30, 50, 30]);
-            
-            // ریست انتخاب برای جفت بعدی
             selectedAudioIndex = -1;
-            
-            // اگه همه جفت‌ها تطبیق داده شدن، مستقیم چک کن
             if (matchedAudioPairs.length === q.audios.length) {
-                setTimeout(() => {
-                    checkAnswer();
-                }, 800);
+                setTimeout(() => { checkAnswer(); }, 800);
             }
         } else {
-            // ❌ تطبیق اشتباه
             el.classList.add('wrong');
             vibrate([50, 30, 50]);
-            
             setTimeout(() => {
                 el.classList.remove('wrong');
                 el.style.background = '';
@@ -6036,11 +6062,44 @@
     function selectErrorWord(el, index) {
         if (isAnswered) return;
         vibrate(15);
-        
-        // حذف انتخاب قبلی
         document.querySelectorAll('.find-error-word').forEach(w => w.classList.remove('selected'));
         el.classList.add('selected');
         selectedErrorWord = index;
+    }
+
+    // ============ انتخاب‌های سوال word-build ============
+    function playWordBuildAudio(el) {
+        if (isAnswered) return;
+        const q = currentLesson.questions[currentQuestionIndex];
+        if (!q.audioUrl) return;
+        playAudioFromVideo(q.audioUrl, el);
+    }
+    function selectWordBuild(el, word) {
+        if (isAnswered) return;
+        if (orderSelected.includes(word)) return;
+        vibrate(15);
+        orderSelected.push(word);
+        el.style.display = 'none';
+        const resultDiv = document.getElementById('word-build-result');
+        if (orderSelected.length === 1) resultDiv.innerHTML = '';
+        const wordSpan = document.createElement('span');
+        wordSpan.textContent = word;
+        wordSpan.style.cursor = 'pointer';
+        wordSpan.onclick = function() {
+            if (isAnswered) return;
+            const idx = orderSelected.indexOf(word);
+            if (idx > -1) {
+                orderSelected.splice(idx, 1);
+                document.querySelectorAll('#word-build-options .word-build-item').forEach(item => {
+                    if (item.textContent === word) item.style.display = 'block';
+                });
+                this.remove();
+                if (orderSelected.length === 0) {
+                    resultDiv.innerHTML = 'کلمات رو اینجا بچین (برای برگرداندن کلیک کن)';
+                }
+            }
+        };
+        resultDiv.appendChild(wordSpan);
     }
 
     // ============ توابع انتخاب سوالات عادی ============
@@ -6159,6 +6218,26 @@
                 const errorIdx = q.words.findIndex(w => w.isError);
                 if (selectedErrorWord === errorIdx) isCorrect = true;
             }
+        } else if (q.type === 'word-build') {
+            if (orderSelected.length > 0) {
+                answerGiven = true;
+                if (JSON.stringify(orderSelected) === JSON.stringify(q.correct)) isCorrect = true;
+                else {
+                    showModal('خطا', 'جمله اشتباهه. دوباره تلاش کن.', '❌');
+                    orderSelected = [];
+                    renderQuestion();
+                    return;
+                }
+            }
+        } else if (q.type === 'survey') {
+            const ans = document.getElementById('survey-answer').value.trim();
+            if (ans.length >= (q.minLength || 2)) {
+                answerGiven = true;
+                isCorrect = true;
+            } else {
+                showModal('توجه', 'لطفاً نظرت رو بنویس.', '⚠️');
+                return;
+            }
         }
         
         if (!answerGiven) {
@@ -6189,12 +6268,18 @@
         if (q.type === 'truefalse') return q.correct ? 'درست ✓' : 'غلط ✗';
         if (q.type === 'translation') return q.correct;
         if (q.type === 'match') return 'همه جفت‌ها به درستی وصل شدند.';
-        if (q.type === 'order') return q.correct.join(' - ');
+        if (q.type === 'order') return q.correct.join(' ');
         if (q.type === 'audio-match') {
             return q.audios.map((a, i) => `${toPersianNum(i+1)}: ${a.correctFa}`).join(' | ');
         }
         if (q.type === 'find-error') {
             return q.correctFix ? `${q.correctFix.wrong} → ${q.correctFix.correct}` : '-';
+        }
+        if (q.type === 'word-build') {
+            return q.correct.join(' ');
+        }
+        if (q.type === 'survey') {
+            return '✅ نظر شما ثبت شد. ممنون!';
         }
         return '-';
     }
@@ -6210,7 +6295,6 @@
         const answerText = document.getElementById('answer-text');
         const findErrorBox = document.getElementById('find-error-feedback-box');
         
-        // ریست
         findErrorBox.style.display = 'none';
         findErrorBox.innerHTML = '';
         
@@ -6225,7 +6309,6 @@
             answerLabel.textContent = 'پاسخ صحیح شما:';
             answerText.textContent = getCorrectAnswerText(q);
             
-            // برای find-error، کادر ویژه نشون بده
             if (q.type === 'find-error' && q.correctedSentence) {
                 answerBox.style.display = 'none';
                 findErrorBox.style.display = 'block';
@@ -6329,7 +6412,7 @@
         const now = new Date();
         const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
         const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
-        const taskTitle = LESSON_TITLES[lessonIndex] || currentLesson.title;
+        const taskTitle = allLessons[lessonIndex] ? allLessons[lessonIndex].title : currentLesson.title;
         const lesson = allLessons[lessonIndex];
         const dueDate = lesson ? (lesson.dueDate || '۱۴۰۵/۰۹/۱۵') : null;
         const expired = isExpired(dueDate);
@@ -6362,7 +6445,7 @@
         const now = new Date();
         const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
         const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
-        const taskTitle = LESSON_TITLES[lessonIndex] || currentLesson.title;
+        const taskTitle = allLessons[lessonIndex] ? allLessons[lessonIndex].title : currentLesson.title;
         const report = {
             studentName: localStorage.getItem('userName'),
             studentClass: localStorage.getItem('userClass'),
