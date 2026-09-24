@@ -1873,9 +1873,23 @@
             padding: 16px; border-radius: 50px;
             font-size: 17px; font-weight: bold; color: #333;
             cursor: pointer; text-align: center;
+            transition: all 0.2s ease;
         }
         .option-btn.selected { 
             border-color: var(--primary); background: var(--primary-light); color: var(--primary);
+        }
+        .option-btn.correct-match {
+            border-color: #4caf50;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            color: #1b5e20;
+            pointer-events: none;
+            opacity: 0.85;
+        }
+        .option-btn.wrong {
+            border-color: #ef5350;
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            color: #c62828;
+            animation: shakeWarning 0.3s ease;
         }
         .image-options-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
@@ -1966,179 +1980,111 @@
             font-family: 'Vazirmatn', sans-serif;
         }
 
-        /* ============ سوال صدای فیلم (audio-match) ============ */
-        .audio-match-container {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-        .audio-buttons-row {
-            display: flex;
-            justify-content: center;
+        /* ============ سوال audio-match — طراحی جدید شبکه دو ستونی ============ */
+        .audio-match-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
-            flex-wrap: wrap;
+            width: 100%;
         }
-        .audio-btn {
-            width: 90px;
-            height: 90px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
-            border: 2.5px solid #bbdefb;
+        .audio-match-cell {
+            min-height: 75px;
+            border-radius: 18px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.15);
+            padding: 12px 16px;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
             position: relative;
             overflow: hidden;
         }
-        .audio-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 0; height: 0;
-            background: radial-gradient(circle, rgba(25, 118, 210, 0.2) 0%, transparent 70%);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.4s, height 0.4s;
-            pointer-events: none;
+        /* سلول کلمه فارسی */
+        .audio-match-cell.word-cell {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            color: #1a237e;
+            font-size: 18px;
+            font-weight: 900;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        .audio-btn:active {
-            transform: scale(0.95);
-        }
-        .audio-btn.playing {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        .audio-match-cell.word-cell.selected {
             border-color: var(--primary);
-            transform: scale(1.08);
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: scale(1.03);
+            box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.2);
+        }
+        .audio-match-cell.word-cell.correct-match {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-color: #4caf50;
+            color: #1b5e20;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+        .audio-match-cell.word-cell.wrong {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            border-color: #ef5350;
+            color: #c62828;
+            animation: shakeWarning 0.35s ease;
+        }
+        /* سلول دکمه صدا */
+        .audio-match-cell.audio-cell {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .audio-match-cell.audio-cell.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.2);
+        }
+        .audio-match-cell.audio-cell.playing {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            transform: scale(1.05);
             animation: audioPulse 1.5s ease-in-out infinite;
         }
-        .audio-btn.playing::before {
-            width: 200px;
-            height: 200px;
-        }
         @keyframes audioPulse {
-            0%, 100% { box-shadow: 0 0 0 5px rgba(25, 118, 210, 0.25), 0 8px 25px rgba(25, 118, 210, 0.4); }
-            50% { box-shadow: 0 0 0 12px rgba(25, 118, 210, 0.15), 0 8px 30px rgba(25, 118, 210, 0.6); }
+            0%, 100% { box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.25), 0 6px 20px rgba(25, 118, 210, 0.3); }
+            50% { box-shadow: 0 0 0 10px rgba(25, 118, 210, 0.1), 0 6px 25px rgba(25, 118, 210, 0.5); }
         }
-        .audio-btn.selected {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.3);
+        .audio-match-cell.audio-cell.correct-match {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-color: #4caf50;
+            pointer-events: none;
+            opacity: 0.9;
         }
-        .audio-btn.correct-match {
-            background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
-            border-color: #2e7d32;
-            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.35);
+        .audio-match-cell.audio-cell.wrong {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            border-color: #ef5350;
+            animation: shakeWarning 0.35s ease;
         }
-        .audio-btn-icon {
-            width: 42px;
+        .audio-match-wave {
+            width: 100%;
             height: 42px;
             object-fit: contain;
             display: block;
             pointer-events: none;
             transition: transform 0.25s ease;
         }
-        .audio-btn.playing .audio-btn-icon {
-            transform: scale(1.15);
-        }
-        .audio-btn-num {
-            font-size: 11px;
-            font-weight: 900;
-            color: var(--primary);
-            pointer-events: none;
-        }
-        .audio-btn.playing .audio-btn-num {
-            color: var(--primary-dark);
-        }
-
-        /* کارت کلمه فارسی */
-        .audio-word-card {
-            background: #fff;
-            border-radius: 24px;
-            padding: 30px 20px;
-            text-align: center;
-            box-shadow: 0 6px 25px rgba(25, 118, 210, 0.15);
-            border: 2.5px solid #e3f2fd;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        .audio-word-card.matched {
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            border-color: #4caf50;
-            box-shadow: 0 6px 25px rgba(76, 175, 80, 0.4);
-            animation: matchPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        @keyframes matchPop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-            100% { transform: scale(1); }
-        }
-        .audio-word-label {
-            font-size: 13px;
-            color: #90a4ae;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        .audio-word-text {
-            font-size: 32px;
-            font-weight: 900;
-            color: #1a237e;
-            line-height: 1.3;
-            transition: color 0.3s ease;
-        }
-        .audio-word-card.matched .audio-word-text {
-            color: #2e7d32;
-        }
-        .audio-word-card.matched .audio-word-label {
-            color: #4caf50;
-        }
-        .audio-match-check {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #4caf50, #2e7d32);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.5);
-            animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .audio-word-card.matched .audio-match-check {
-            display: flex;
-        }
-        @keyframes checkPop {
-            0% { transform: scale(0) rotate(-45deg); }
-            70% { transform: scale(1.2) rotate(10deg); }
-            100% { transform: scale(1) rotate(0deg); }
-        }
-        .audio-match-check svg {
-            width: 18px;
-            height: 18px;
-            stroke: #fff;
-            fill: none;
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+        .audio-match-cell.audio-cell.playing .audio-match-wave {
+            transform: scale(1.1);
         }
         .audio-hint {
             text-align: center;
             font-size: 12px;
             color: #90a4ae;
             font-weight: bold;
-            padding: 8px;
+            padding: 12px 8px 0 8px;
         }
         .audio-hint .highlight {
             color: var(--primary);
             font-weight: 900;
         }
 
-        /* ============ سوال پیدا کردن اشتباه (find-error) ============ */
+        /* ============ سوال find-error ============ */
         .find-error-container {
             display: flex;
             flex-direction: column;
@@ -2178,32 +2124,6 @@
             box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.3);
             transform: scale(1.05);
         }
-        .find-error-word.wrong-picked {
-            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-            border-color: #e53935;
-            color: #b71c1c;
-            position: relative;
-        }
-        .find-error-word.wrong-picked::after {
-            content: '';
-            position: absolute;
-            top: 50%; right: 10%;
-            height: 3px;
-            background: #e53935;
-            border-radius: 2px;
-            animation: strikeThrough 0.5s ease forwards;
-            box-shadow: 0 0 8px rgba(229, 57, 53, 0.6);
-        }
-        @keyframes strikeThrough {
-            0% { width: 0%; }
-            100% { width: 80%; }
-        }
-        .find-error-word.show-correct {
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            border-color: #4caf50;
-            color: #1b5e20;
-            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
-        }
         .find-error-word.show-error {
             background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
             border-color: #e53935;
@@ -2218,6 +2138,10 @@
             background: #e53935;
             border-radius: 2px;
             animation: strikeThrough 0.5s ease forwards;
+        }
+        @keyframes strikeThrough {
+            0% { width: 0%; }
+            100% { width: 80%; }
         }
         .find-error-correction {
             background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
@@ -2277,7 +2201,30 @@
             border-radius: 12px;
         }
 
-        /* ============ سوال چیدن کلمات (word-build) ============ */
+        /* ============ سوال word-build ============ */
+        .word-build-audio-only {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+        .word-build-audio-only img {
+            width: 110px;
+            height: 80px;
+            object-fit: contain;
+            transition: transform 0.25s ease;
+        }
+        .word-build-audio-only:active img {
+            transform: scale(0.95);
+        }
+        .word-build-audio-only.playing img {
+            animation: audioPulseSimple 1.5s ease-in-out infinite;
+        }
+        @keyframes audioPulseSimple {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.12); }
+        }
         .word-build-result {
             min-height: 80px;
             border: 2.5px dashed #bbdefb;
@@ -2292,6 +2239,7 @@
             flex-wrap: wrap;
             font-size: 14px;
             font-weight: bold;
+            margin-top: 16px;
         }
         .word-build-result span {
             background: var(--primary-gradient);
@@ -2308,6 +2256,7 @@
             flex-wrap: wrap;
             gap: 10px;
             justify-content: center;
+            margin-top: 16px;
         }
         .word-build-item {
             background: rgba(255, 255, 255, 0.95);
@@ -2324,7 +2273,7 @@
             transform: scale(0.95);
         }
 
-        /* ============ سوال نظرسنجی (survey) ============ */
+        /* ============ سوال survey ============ */
         .survey-container {
             display: flex;
             flex-direction: column;
@@ -3357,7 +3306,6 @@
 <div id="app-container">
     
     <audio id="bg-music" src="https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3" loop preload="none"></audio>
-    <!-- ویدیوی مخفی برای پخش صدا -->
     <video id="audio-video-player" style="display:none;" preload="auto"></video>
 
     <!-- ============ صفحه Splash ============ -->
@@ -4056,7 +4004,6 @@
             <div class="answer-label" id="answer-label">پاسخ صحیح:</div>
             <div class="answer-text" id="answer-text">-</div>
         </div>
-        <!-- کادر ویژه سوال find-error -->
         <div id="find-error-feedback-box" style="display: none; width: 100%; max-width: 380px; margin: 15px auto;"></div>
         <button class="btn-primary" onclick="nextQuestion()" style="margin-top: 20px; width: 100%; max-width: 320px;">سوال بعدی</button>
     </div>
@@ -4140,7 +4087,7 @@
         'survey': { class: 'qti-survey', svg: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/></svg>' }
     };
 
-    // ============ توابع کمکی اعداد ============
+    // ============ توابع کمکی ============
     function toPersianNum(num) {
         const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
         return num.toString().replace(/\d/g, x => persianDigits[parseInt(x)]);
@@ -4212,20 +4159,17 @@
         { num: 11, name: 'بهمن', season: 'winter', icon: '⛄', days: 30 },
         { num: 12, name: 'اسفند', season: 'winter', icon: '🌨️', days: 29 }
     ];
-
     const SEASONS_INFO = {
         spring: { name: 'بهار', icon: '🌸', desc: 'فصل شکوفه‌ها و زیبایی', emoji: '🌷' },
         summer: { name: 'تابستان', icon: '☀️', desc: 'فصل گرما و تعطیلات', emoji: '🏖️' },
         autumn: { name: 'پاییز', icon: '🍂', desc: 'فصل برگ‌های رنگارنگ', emoji: '🍁' },
         winter: { name: 'زمستان', icon: '❄️', desc: 'فصل سرما و برف', emoji: '⛄' }
     };
-
     function getCurrentSeason() {
         const m = getPersianMonthNum();
         const info = MONTHS_INFO.find(mi => mi.num === m);
         return info ? info.season : 'spring';
     }
-
     function vibrate(pattern = 30) {
         if (navigator.vibrate) navigator.vibrate(pattern);
     }
@@ -4274,7 +4218,6 @@
         localStorage.setItem('streakData', JSON.stringify(streakData));
         displayStreak();
     }
-
     function displayStreak() {
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         const badge = document.getElementById('streak-badge');
@@ -4286,7 +4229,6 @@
             badge.style.display = 'flex';
         }
     }
-
     function getVisitedDates() {
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         return streakData.dates || [];
@@ -4332,7 +4274,6 @@
         overlay.classList.add('active');
         vibrate([30, 50, 30]);
     }
-
     function closeStreakMessage() {
         const overlay = document.getElementById('streak-message-overlay');
         const card = document.getElementById('streak-message-card');
@@ -4483,7 +4424,6 @@
         { element: 'guide-settings-btn', title: 'تنظیمات ⚙️', text: 'از اینجا می‌تونی تم رنگی، حالت شب، موسیقی و صداها رو تنظیم کنی.', icon: '⚙️' },
         { element: 'guide-profile-btn', title: 'پروفایل سریع 👤', text: 'این دکمه هم مثل آواتار بالای صفحه، تو رو به پروفایلت می‌بره.', icon: '👤' }
     ];
-
     function startGuide() {
         document.getElementById('welcome-graphic-modal').classList.remove('active');
         localStorage.setItem('welcomeShown', 'true');
@@ -5121,7 +5061,6 @@
             goToScreen('screen-welcome');
         }
     }
-
     function saveUserInfo() {
         const name = document.getElementById('welcome-name').value.trim();
         const cls = document.getElementById('welcome-class').value;
@@ -5847,13 +5786,13 @@
     function playAudioFromVideo(videoUrl, btnElement) {
         const video = document.getElementById('audio-video-player');
         if (!video) return;
-        document.querySelectorAll('.audio-btn.playing').forEach(el => el.classList.remove('playing'));
+        document.querySelectorAll('.audio-match-cell.audio-cell.playing').forEach(el => el.classList.remove('playing'));
+        document.querySelectorAll('.word-build-audio-only.playing').forEach(el => el.classList.remove('playing'));
         video.pause();
         video.src = videoUrl;
         video.currentTime = 0;
         if (btnElement) {
             btnElement.classList.add('playing');
-            playingAudioIndex = parseInt(btnElement.dataset.audioIdx);
             vibrate(15);
         }
         video.play().then(() => {
@@ -5906,27 +5845,31 @@
                 <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
                 <div class="question-text-text">${q.question}</div>
             </div>`;
-            html += `<div class="audio-match-container">`;
-            html += `<div class="audio-buttons-row">`;
-            q.audios.forEach((audio, index) => {
-                html += `<div class="audio-btn" data-audio-idx="${index}" onclick="selectAudio(${index})">
-                    <img src="${SOUND_VECTOR_URL}" alt="صدا" class="audio-btn-icon">
-                    <span class="audio-btn-num">${toPersianNum(index + 1)}</span>
+            // چیدمان جدید: شبکه دو ستونی نامرتب
+            // ساخت آرایه نامرتب از کلمات فارسی و صداها
+            const faWords = q.faOptions.map((word, idx) => ({ word, originalIdx: idx }));
+            const shuffledFaWords = shuffleArray([...faWords]);
+            const audiosWithIdx = q.audios.map((audio, idx) => ({ audio, originalIdx: idx }));
+            const shuffledAudios = shuffleArray([...audiosWithIdx]);
+            
+            html += `<div class="audio-match-grid">`;
+            for (let i = 0; i < q.audios.length; i++) {
+                const faItem = shuffledFaWords[i];
+                const audioItem = shuffledAudios[i];
+                // سلول کلمه فارسی
+                html += `<div class="audio-match-cell word-cell" 
+                    data-word-orig="${faItem.originalIdx}" 
+                    data-current-audio=""
+                    onclick="selectFaWord(this, '${faItem.word}', ${faItem.originalIdx})">${faItem.word}</div>`;
+                // سلول دکمه صدا
+                html += `<div class="audio-match-cell audio-cell" 
+                    data-audio-idx="${audioItem.originalIdx}" 
+                    onclick="selectAudio(this, ${audioItem.originalIdx})">
+                    <img src="${SOUND_VECTOR_URL}" alt="صدا" class="audio-match-wave">
                 </div>`;
-            });
+            }
             html += `</div>`;
-            html += `<div class="audio-word-card" id="audio-word-card">
-                <div class="audio-match-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-                <div class="audio-word-label">کلمه مورد نظر:</div>
-                <div class="audio-word-text" id="audio-word-display">-</div>
-            </div>`;
-            html += `<div class="options-grid">`;
-            q.faOptions.forEach((opt, index) => {
-                html += `<div class="option-btn" onclick="selectFaWord(this, '${opt}', ${index})">${opt}</div>`;
-            });
-            html += `</div>`;
-            html += `<div class="audio-hint">👆 اول روی <span class="highlight">دکمه صدا</span> بزن، بعد <span class="highlight">معنی فارسی</span> رو انتخاب کن</div>`;
-            html += `</div>`;
+            html += `<div class="audio-hint">👆 اول روی <span class="highlight">دکمه صدا</span> بزن، بعد <span class="highlight">کلمه فارسی</span> متناظرش رو انتخاب کن</div>`;
         } else if (q.type === 'find-error') {
             html += `<div class="question-text">
                 <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -5945,13 +5888,10 @@
                 <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
                 <div class="question-text-text">${q.question}</div>
             </div>`;
-            html += `<div class="audio-match-container">`;
-            html += `<div class="audio-buttons-row">`;
-            html += `<div class="audio-btn" data-audio-idx="0" onclick="playWordBuildAudio(this)">
-                <img src="${SOUND_VECTOR_URL}" alt="صدا" class="audio-btn-icon">
-                <span class="audio-btn-num">🔊</span>
+            // فقط وکتور صدا - بدون کادر
+            html += `<div class="word-build-audio-only" onclick="playWordBuildAudio(this)">
+                <img src="${SOUND_VECTOR_URL}" alt="صدا">
             </div>`;
-            html += `</div>`;
             html += `<div class="word-build-result" id="word-build-result">کلمات رو اینجا بچین (برای برگرداندن کلیک کن)</div>`;
             html += `<div class="word-build-options" id="word-build-options">`;
             const shuffledWB = shuffleArray([...q.words]);
@@ -5960,7 +5900,6 @@
             });
             html += `</div>`;
             html += `<div class="audio-hint">👆 اول روی <span class="highlight">دکمه صدا</span> بزن، بعد کلمات رو به ترتیب بچین</div>`;
-            html += `</div>`;
         } else if (q.type === 'survey') {
             html += `<div class="question-text">
                 <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -6002,59 +5941,71 @@
     }
 
     // ============ انتخاب‌های سوال audio-match ============
-    function selectAudio(index) {
+    function selectAudio(el, audioIdx) {
         if (isAnswered) return;
         const q = currentLesson.questions[currentQuestionIndex];
-        const audio = q.audios[index];
+        const audio = q.audios[audioIdx];
         if (!audio) return;
-        const btnElement = document.querySelector(`.audio-btn[data-audio-idx="${index}"]`);
-        playAudioFromVideo(audio.videoUrl, btnElement);
-        document.querySelectorAll('.audio-btn').forEach(b => b.classList.remove('selected'));
-        if (btnElement) btnElement.classList.add('selected');
-        selectedAudioIndex = index;
-        const wordDisplay = document.getElementById('audio-word-display');
-        const wordCard = document.getElementById('audio-word-card');
-        if (wordDisplay && wordCard) {
-            wordDisplay.textContent = audio.correctFa;
-            wordCard.classList.remove('matched');
+        // پخش صدا
+        playAudioFromVideo(audio.videoUrl, el);
+        // پاک کردن انتخاب قبلی از همه
+        document.querySelectorAll('.audio-match-cell.audio-cell.selected').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.audio-match-cell.word-cell.selected').forEach(c => c.classList.remove('selected'));
+        // این سلول رو انتخاب کن
+        if (!el.classList.contains('correct-match')) {
+            el.classList.add('selected');
         }
+        selectedAudioIndex = audioIdx;
     }
-    function selectFaWord(el, word, index) {
+    
+    function selectFaWord(el, word, faOrigIdx) {
         if (isAnswered) return;
+        if (el.classList.contains('correct-match')) return;
         if (selectedAudioIndex === -1) {
             vibrate([50, 30, 50]);
             el.style.animation = 'none';
-            setTimeout(() => { el.style.animation = 'shakeWarning 0.3s ease'; }, 10);
+            setTimeout(() => { el.style.animation = 'shakeWarning 0.35s ease'; }, 10);
             return;
         }
         vibrate(15);
         const q = currentLesson.questions[currentQuestionIndex];
         const selectedAudio = q.audios[selectedAudioIndex];
-        const wordCard = document.getElementById('audio-word-card');
+        
         if (selectedAudio.correctFa === word) {
-            el.classList.add('selected');
-            const audioBtn = document.querySelector(`.audio-btn[data-audio-idx="${selectedAudioIndex}"]`);
-            if (audioBtn) { audioBtn.classList.add('correct-match'); audioBtn.classList.remove('selected'); }
-            if (wordCard) wordCard.classList.add('matched');
+            // ✅ درست
+            el.classList.add('correct-match');
+            el.classList.remove('selected');
+            
+            // دکمه صدا رو هم سبز کن
+            const audioBtn = document.querySelector(`.audio-match-cell.audio-cell[data-audio-idx="${selectedAudioIndex}"]`);
+            if (audioBtn) {
+                audioBtn.classList.add('correct-match');
+                audioBtn.classList.remove('selected', 'playing');
+            }
+            
             matchedAudioPairs.push({ audioIdx: selectedAudioIndex, faWord: word });
-            el.style.background = 'linear-gradient(135deg, #e8f5e9, #c8e6c9)';
-            el.style.borderColor = '#4caf50';
-            el.style.color = '#1b5e20';
-            el.style.pointerEvents = 'none';
             vibrate([30, 50, 30]);
             selectedAudioIndex = -1;
+            
             if (matchedAudioPairs.length === q.audios.length) {
                 setTimeout(() => { checkAnswer(); }, 800);
             }
         } else {
+            // ❌ غلط
             el.classList.add('wrong');
+            const audioBtn = document.querySelector(`.audio-match-cell.audio-cell[data-audio-idx="${selectedAudioIndex}"]`);
+            if (audioBtn) {
+                audioBtn.classList.add('wrong');
+                audioBtn.classList.remove('selected', 'playing');
+            }
             vibrate([50, 30, 50]);
+            const wrongEl = el;
+            const wrongAudio = audioBtn;
             setTimeout(() => {
-                el.classList.remove('wrong');
-                el.style.background = '';
-                el.style.borderColor = '';
-                el.style.color = '';
+                wrongEl.classList.remove('wrong');
+                if (wrongAudio) wrongAudio.classList.remove('wrong');
             }, 800);
+            selectedAudioIndex = -1;
         }
     }
 
