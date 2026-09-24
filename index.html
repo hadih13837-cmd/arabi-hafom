@@ -943,7 +943,6 @@
             width: 100%; height: 100%;
             background: rgba(0,0,0,0.5);
             backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
             z-index: 9700; display: none;
             opacity: 0; transition: opacity 0.3s ease;
         }
@@ -1813,6 +1812,11 @@
         .qti-order svg { stroke: #00897b; }
         .qti-image { background: linear-gradient(135deg, #fff8e1, #ffecb3); }
         .qti-image svg { stroke: #f57f17; }
+        .qti-audio { background: linear-gradient(135deg, #e1f5fe, #b3e5fc); }
+        .qti-audio svg { stroke: #0277bd; }
+        .qti-error { background: linear-gradient(135deg, #fce4ec, #f8bbd0); }
+        .qti-error svg { stroke: #ad1457; }
+        
         .score-badge {
             display: flex; align-items: center; gap: 5px;
             color: #f57c00; background: #fff3e0;
@@ -1907,9 +1911,7 @@
             transition: all 0.2s ease;
         }
         .matching-item.selected { 
-            border-color: var(--primary); 
-            background: var(--primary-light); 
-            color: var(--primary);
+            border-color: var(--primary); background: var(--primary-light); color: var(--primary);
             transform: scale(1.03);
         }
         .matching-item.correct { 
@@ -1963,6 +1965,331 @@
             width: 100%; display: flex; align-items: center;
             justify-content: center; gap: 10px;
             font-family: 'Vazirmatn', sans-serif;
+        }
+
+        /* ============ سوال صدای فیلم (audio-match) ============ */
+        .audio-match-container {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .audio-buttons-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .audio-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+            border: 2.5px solid #bbdefb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.15);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .audio-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            background: radial-gradient(circle, rgba(25, 118, 210, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+            pointer-events: none;
+        }
+        .audio-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+        }
+        /* حالت برجسته‌سازی (وقتی داره پخش میشه) */
+        .audio-btn.playing {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-color: var(--primary);
+            transform: scale(1.08);
+            box-shadow: 0 0 0 5px rgba(25, 118, 210, 0.25), 
+                        0 8px 25px rgba(25, 118, 210, 0.4);
+        }
+        .audio-btn.playing::before {
+            width: 200px;
+            height: 200px;
+        }
+        @keyframes audioPulse {
+            0%, 100% { box-shadow: 0 0 0 5px rgba(25, 118, 210, 0.25), 0 8px 25px rgba(25, 118, 210, 0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(25, 118, 210, 0.15), 0 8px 30px rgba(25, 118, 210, 0.6); }
+        }
+        .audio-btn.playing {
+            animation: audioPulse 1.5s ease-in-out infinite;
+        }
+        /* حالت انتخاب شده (بعد از کلیک) */
+        .audio-btn.selected {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.3);
+        }
+        /* حالت سبز (بعد از تطبیق درست) */
+        .audio-btn.correct-match {
+            background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.35);
+        }
+        .audio-btn-icon {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+            transition: transform 0.25s ease;
+        }
+        .audio-btn.playing .audio-btn-icon {
+            transform: scale(1.15);
+        }
+        .audio-btn-num {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--primary);
+            pointer-events: none;
+        }
+        .audio-btn.playing .audio-btn-num {
+            color: var(--primary-dark);
+        }
+
+        /* کارت کلمه فارسی (وسط) */
+        .audio-word-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 6px 25px rgba(25, 118, 210, 0.15);
+            border: 2.5px solid #e3f2fd;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .audio-word-card.matched {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-color: #4caf50;
+            box-shadow: 0 6px 25px rgba(76, 175, 80, 0.4);
+            animation: matchPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes matchPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+        .audio-word-label {
+            font-size: 13px;
+            color: #90a4ae;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .audio-word-text {
+            font-size: 32px;
+            font-weight: 900;
+            color: #1a237e;
+            line-height: 1.3;
+            transition: color 0.3s ease;
+        }
+        .audio-word-card.matched .audio-word-text {
+            color: #2e7d32;
+        }
+        .audio-word-card.matched .audio-word-label {
+            color: #4caf50;
+        }
+        /* علامت تیک سبز */
+        .audio-match-check {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.5);
+            animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .audio-word-card.matched .audio-match-check {
+            display: flex;
+        }
+        @keyframes checkPop {
+            0% { transform: scale(0) rotate(-45deg); }
+            70% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .audio-match-check svg {
+            width: 18px;
+            height: 18px;
+            stroke: #fff;
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* راهنمای کوچک */
+        .audio-hint {
+            text-align: center;
+            font-size: 12px;
+            color: #90a4ae;
+            font-weight: bold;
+            padding: 8px;
+        }
+        .audio-hint .highlight {
+            color: var(--primary);
+            font-weight: 900;
+        }
+
+        /* ============ سوال پیدا کردن اشتباه (find-error) ============ */
+        .find-error-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .find-error-sentence {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 24px 16px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 6px 25px rgba(25, 118, 210, 0.1);
+            border: 2px solid #e3f2fd;
+            direction: rtl;
+        }
+        .find-error-word {
+            background: rgba(227, 242, 253, 0.6);
+            border: 2.5px solid #bbdefb;
+            padding: 12px 22px;
+            border-radius: 14px;
+            font-size: 22px;
+            font-weight: 900;
+            color: #1a237e;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            user-select: none;
+        }
+        .find-error-word:active {
+            transform: scale(0.95);
+        }
+        .find-error-word.selected {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-color: #ff9800;
+            box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.3);
+            transform: scale(1.05);
+        }
+        /* کلمه اشتباه با خط قرمز */
+        .find-error-word.wrong-picked {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-color: #e53935;
+            color: #b71c1c;
+            position: relative;
+        }
+        .find-error-word.wrong-picked::after {
+            content: '';
+            position: absolute;
+            top: 50%; right: 10%;
+            height: 3px;
+            background: #e53935;
+            border-radius: 2px;
+            animation: strikeThrough 0.5s ease forwards;
+            box-shadow: 0 0 8px rgba(229, 57, 53, 0.6);
+        }
+        @keyframes strikeThrough {
+            0% { width: 0%; }
+            100% { width: 80%; }
+        }
+        /* کلمه اشتباه با خط قرمز (وقتی پاسخ اشتباه داده) */
+        .find-error-word.show-correct {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-color: #4caf50;
+            color: #1b5e20;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
+        }
+        .find-error-word.show-error {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-color: #e53935;
+            color: #b71c1c;
+            position: relative;
+        }
+        .find-error-word.show-error::after {
+            content: '';
+            position: absolute;
+            top: 50%; right: 10%;
+            height: 3px;
+            background: #e53935;
+            border-radius: 2px;
+            animation: strikeThrough 0.5s ease forwards;
+        }
+        /* نمایش تصحیح زیر جمله */
+        .find-error-correction {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+            border: 2px solid #66bb6a;
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-top: 12px;
+            text-align: center;
+            animation: correctionPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes correctionPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .find-error-correction-title {
+            font-size: 13px;
+            color: #2e7d32;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .find-error-correction-sentence {
+            font-size: 24px;
+            font-weight: 900;
+            color: #1b5e20;
+            direction: rtl;
+            line-height: 1.5;
+        }
+        .find-error-correction-sentence .fixed-word {
+            color: #2e7d32;
+            background: rgba(76, 175, 80, 0.2);
+            padding: 2px 10px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .find-error-correction-sentence .fixed-word::after {
+            content: '✓';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-size: 14px;
+            color: #2e7d32;
+            font-weight: 900;
+        }
+        .find-error-explanation {
+            font-size: 13px;
+            color: #33691e;
+            font-weight: bold;
+            line-height: 1.8;
+            margin-top: 12px;
+            text-align: right;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 12px;
+            border-radius: 12px;
         }
 
         /* بازخورد */
@@ -2968,6 +3295,8 @@
 <div id="app-container">
     
     <audio id="bg-music" src="https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3" loop preload="none"></audio>
+    <!-- ویدیوی مخفی برای پخش صدا -->
+    <video id="audio-video-player" style="display:none;" preload="auto"></video>
 
     <!-- ============ صفحه Splash ============ -->
     <div id="screen-splash" class="screen active">
@@ -3665,6 +3994,8 @@
             <div class="answer-label" id="answer-label">پاسخ صحیح:</div>
             <div class="answer-text" id="answer-text">-</div>
         </div>
+        <!-- کادر ویژه سوال find-error -->
+        <div id="find-error-feedback-box" style="display: none; width: 100%; max-width: 380px; margin: 15px auto;"></div>
         <button class="btn-primary" onclick="nextQuestion()" style="margin-top: 20px; width: 100%; max-width: 320px;">سوال بعدی</button>
     </div>
 
@@ -3716,14 +4047,15 @@
 </div>
 <script>
     // ============ ثابت‌ها ============
-    // ترتیب وکتور کتاب‌ها طبق تصاویر: ۱-بنفش ۲-سبز ۳-آبی ۴-زرد ۵-سبز(تیره) ۶-فیروزه‌ای
+    const SOUND_VECTOR_URL = 'https://cdn.imgurl.ir/uploads/i392811_file_000000004034822fab3dfb7fe4276696.png';
+
     const BOOK_VECTORS = [
-        { url: 'https://cdn.imgurl.ir/uploads/m31567_IMG__.png', color: '#8e24aa', colorLight: 'rgba(142, 36, 170, 0.08)' }, // ۰: بنفش
-        { url: 'https://cdn.imgurl.ir/uploads/p313911_IMG__.png', color: '#2e7d32', colorLight: 'rgba(46, 125, 50, 0.08)' },  // ۱: سبز
-        { url: 'https://cdn.imgurl.ir/uploads/f058661_IMG__.png', color: '#1976d2', colorLight: 'rgba(25, 118, 210, 0.08)' }, // ۲: آبی
-        { url: 'https://cdn.imgurl.ir/uploads/k1280_IMG__.png',   color: '#fbc02d', colorLight: 'rgba(251, 192, 45, 0.12)' }, // ۳: زرد
-        { url: 'https://cdn.imgurl.ir/uploads/q178853_IMG__.png', color: '#388e3c', colorLight: 'rgba(56, 142, 60, 0.08)' },  // ۴: سبز (تیره‌تر)
-        { url: 'https://cdn.imgurl.ir/uploads/a3501_IMG__.png',   color: '#00acc1', colorLight: 'rgba(0, 172, 193, 0.08)' }   // ۵: فیروزه‌ای
+        { url: 'https://cdn.imgurl.ir/uploads/m31567_IMG__.png', color: '#8e24aa', colorLight: 'rgba(142, 36, 170, 0.08)' },
+        { url: 'https://cdn.imgurl.ir/uploads/p313911_IMG__.png', color: '#2e7d32', colorLight: 'rgba(46, 125, 50, 0.08)' },
+        { url: 'https://cdn.imgurl.ir/uploads/f058661_IMG__.png', color: '#1976d2', colorLight: 'rgba(25, 118, 210, 0.08)' },
+        { url: 'https://cdn.imgurl.ir/uploads/k1280_IMG__.png',   color: '#fbc02d', colorLight: 'rgba(251, 192, 45, 0.12)' },
+        { url: 'https://cdn.imgurl.ir/uploads/q178853_IMG__.png', color: '#388e3c', colorLight: 'rgba(56, 142, 60, 0.08)' },
+        { url: 'https://cdn.imgurl.ir/uploads/a3501_IMG__.png',   color: '#00acc1', colorLight: 'rgba(0, 172, 193, 0.08)' }
     ];
 
     const LESSON_TITLES = [
@@ -3739,7 +4071,9 @@
         match: { class: 'qti-match', svg: '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>' },
         truefalse: { class: 'qti-tf', svg: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' },
         order: { class: 'qti-order', svg: '<svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>' },
-        image: { class: 'qti-image', svg: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' }
+        image: { class: 'qti-image', svg: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' },
+        'audio-match': { class: 'qti-audio', svg: '<svg viewBox="0 0 24 24"><path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53"/><path d="M19.07 4.93C20.9447 6.80528 21.9979 9.34836 21.9979 12C21.9979 14.6516 20.9447 17.1947 19.07 19.07"/></svg>' },
+        'find-error': { class: 'qti-error', svg: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><line x1="8" y1="11" x2="14" y2="11"/></svg>' }
     };
 
     // ============ توابع کمکی اعداد ============
@@ -3785,15 +4119,13 @@
         if (!dueDate) return false;
         return persianDateToNumber(getPersianDate()) > persianDateToNumber(dueDate);
     }
-    // چک کردن نزدیک بودن مهلت (مثلاً ۱ روز مونده یا کمتر)
     function isDeadlineNear(dueDate) {
         if (!dueDate) return false;
         const due = persianDateToNumber(dueDate);
         const today = persianDateToNumber(getPersianDate());
         const diff = due - today;
-        return diff >= 0 && diff <= 1; // امروز یا فردا
+        return diff >= 0 && diff <= 1;
     }
-    // محاسبه اختلاف روز با تاریخ
     function getDaysDiff(dueDate) {
         if (!dueDate) return 999;
         const due = persianDateToNumber(dueDate);
@@ -3830,7 +4162,6 @@
         return info ? info.season : 'spring';
     }
 
-    // ============ ویبره ============
     function vibrate(pattern = 30) {
         if (navigator.vibrate) navigator.vibrate(pattern);
     }
@@ -3902,22 +4233,18 @@
         const today = getPersianDate();
         const lastShown = localStorage.getItem('lastStreakMessageShown');
         if (lastShown === today) return;
-        
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         const count = streakData.count || 1;
         const season = getCurrentSeason();
         const seasonInfo = SEASONS_INFO[season];
-        
         const overlay = document.getElementById('streak-message-overlay');
         const card = document.getElementById('streak-message-card');
         const emoji = document.getElementById('streak-emoji');
         const title = document.getElementById('streak-title');
         const text = document.getElementById('streak-text');
         const countBadge = document.getElementById('streak-count-badge');
-        
         card.classList.remove('spring', 'summer', 'autumn', 'winter');
         card.classList.add(season);
-        
         let titleText = '';
         let textMain = '';
         if (count === 1) {
@@ -3933,12 +4260,10 @@
             titleText = `${seasonInfo.icon} قهرمان!`;
             textMain = `تو یه قهرمان واقعی هستی! ${toPersianNum(count)} روز متوالیه که داری یاد می‌گیری. بهت افتخار می‌کنیم! 👑`;
         }
-        
         emoji.textContent = seasonInfo.emoji;
         title.textContent = titleText;
         text.innerHTML = textMain + `<br><br>${seasonInfo.name}ه و ${seasonInfo.desc} ${seasonInfo.icon}`;
         countBadge.textContent = `🔥 ${toPersianNum(count)} روز متوالی`;
-        
         localStorage.setItem('lastStreakMessageShown', today);
         overlay.classList.add('active');
         vibrate([30, 50, 30]);
@@ -3956,14 +4281,12 @@
 
     // ============ تقویم ============
     let calendarCurrentMonth = null;
-    
     function initCalendarMonth() {
         if (calendarCurrentMonth) return;
         const y = parseInt(fromPersianNum(getPersianYear()));
         const m = getPersianMonthNum();
         calendarCurrentMonth = { year: y, month: m };
     }
-
     function persianToGregorianJS(jy, jm, jd) {
         jy += 1595;
         let days = -355668 + (365 * jy) + (~~(jy / 33) * 8) + ~~(((jy % 33) + 3) / 4) + jd + ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
@@ -3986,38 +4309,31 @@
         for (gm = 0; gm < 13 && gd > sal_a[gm]; gm++) gd -= sal_a[gm];
         return new Date(gy, gm - 1, gd);
     }
-
     function getFirstDayOfWeek(year, month) {
         const gDate = persianToGregorianJS(year, month, 1);
         const jsDay = gDate.getDay();
         const map = { 6: 0, 0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 };
         return map[jsDay];
     }
-
     function renderCalendar() {
         const container = document.getElementById('calendar-content');
         const screen = document.getElementById('screen-calendar');
         if (!container) return;
-        
         initCalendarMonth();
         const today = getPersianDate();
         const todayNum = persianDateToNumber(today);
         const visitedDates = getVisitedDates();
         const visitedNums = visitedDates.map(d => persianDateToNumber(d));
-        
         const { year, month } = calendarCurrentMonth;
         const monthInfo = MONTHS_INFO.find(mi => mi.num === month);
         const season = monthInfo.season;
         const seasonInfo = SEASONS_INFO[season];
-        
         screen.classList.remove('season-spring', 'season-summer', 'season-autumn', 'season-winter');
         screen.classList.add(`season-${season}`);
-        
         const daysInMonth = monthInfo.days;
         const firstDayOfWeek = getFirstDayOfWeek(year, month);
         const canGoPrev = !(year === 1405 && month === 7);
         const canGoNext = !(year === 1406 && month === 3);
-        
         let html = `
             <div class="calendar-season-banner ${season}">
                 <div class="calendar-season-icon">${seasonInfo.icon}</div>
@@ -4053,7 +4369,6 @@
                 </div>
                 <div class="calendar-days-grid">
         `;
-        
         for (let i = 0; i < firstDayOfWeek; i++) html += `<div class="calendar-day empty"></div>`;
         for (let d = 1; d <= daysInMonth; d++) {
             const dayNum = year * 10000 + month * 100 + d;
@@ -4064,7 +4379,6 @@
             if (isVisited) classes += ' visited';
             html += `<div class="${classes}"><span>${toPersianNum(d)}</span></div>`;
         }
-        
         html += `
                 </div>
             </div>
@@ -4075,7 +4389,6 @@
         `;
         container.innerHTML = html;
     }
-
     function changeCalendarMonth(delta) {
         if (!calendarCurrentMonth) initCalendarMonth();
         let { year, month } = calendarCurrentMonth;
@@ -4112,7 +4425,6 @@
         localStorage.setItem('welcomeShown', 'true');
         setTimeout(() => { currentGuideStep = 0; showGuideStep(); }, 400);
     }
-
     function showGuideStep() {
         const overlay = document.getElementById('guide-overlay');
         const tooltip = document.getElementById('guide-tooltip');
@@ -4122,30 +4434,25 @@
         const text = document.getElementById('guide-text');
         const indicator = document.getElementById('guide-indicator');
         const nextBtn = document.getElementById('guide-next-btn');
-        
         if (currentGuideStep >= GUIDE_STEPS.length) { endGuide(); return; }
         const step = GUIDE_STEPS[currentGuideStep];
-        
         const activeScreen = document.querySelector('.screen.active');
         if (activeScreen && activeScreen.id !== 'screen-home') {
             goToScreen('screen-home', false);
             setTimeout(() => showGuideStep(), 400);
             return;
         }
-        
         overlay.classList.add('active');
         tooltip.style.display = 'block';
         icon.textContent = step.icon;
         title.textContent = step.title;
         text.textContent = step.text;
         nextBtn.textContent = (currentGuideStep === GUIDE_STEPS.length - 1) ? 'تمام! 🎉' : 'فهمیدم!';
-        
         let indicatorHTML = '';
         for (let i = 0; i < GUIDE_STEPS.length; i++) {
             indicatorHTML += `<div class="guide-step-dot ${i === currentGuideStep ? 'active' : ''}"></div>`;
         }
         indicator.innerHTML = indicatorHTML;
-        
         if (step.element) {
             const el = document.getElementById(step.element);
             if (el) {
@@ -4157,13 +4464,11 @@
                     const holeTop = rect.top - padding;
                     const holeRight = rect.right + padding;
                     const holeBottom = rect.bottom + padding;
-                    
                     highlight.style.display = 'block';
                     highlight.style.top = holeTop + 'px';
                     highlight.style.left = holeLeft + 'px';
                     highlight.style.width = (rect.width + padding * 2) + 'px';
                     highlight.style.height = (rect.height + padding * 2) + 'px';
-                    
                     applyClipPathHole(overlay, holeLeft, holeTop, holeRight, holeBottom, 20);
                     positionGuideTooltip(rect);
                 }, 400);
@@ -4178,7 +4483,6 @@
             positionCenterTooltip();
         }
     }
-
     function applyClipPathHole(overlay, left, top, right, bottom, radius) {
         const vw = window.innerWidth;
         const vh = window.innerHeight;
@@ -4188,19 +4492,16 @@
         overlay.style.clipPath = `path(evenodd, "${outerPath} ${innerPath}")`;
         overlay.style.webkitClipPath = `path(evenodd, "${outerPath} ${innerPath}")`;
     }
-
     function clearClipPath(overlay) {
         overlay.style.clipPath = '';
         overlay.style.webkitClipPath = '';
     }
-
     function positionCenterTooltip() {
         const tooltip = document.getElementById('guide-tooltip');
         tooltip.style.top = '50%';
         tooltip.style.left = '50%';
         tooltip.style.transform = 'translate(-50%, -50%)';
     }
-
     function positionGuideTooltip(rect) {
         const tooltip = document.getElementById('guide-tooltip');
         tooltip.style.transform = 'none';
@@ -4219,15 +4520,12 @@
         tooltip.style.top = top + 'px';
         tooltip.style.left = left + 'px';
     }
-
     function nextGuideStep() {
         currentGuideStep++;
         if (currentGuideStep >= GUIDE_STEPS.length) endGuide();
         else showGuideStep();
     }
-
     function skipGuide() { endGuide(); }
-
     function endGuide() {
         const overlay = document.getElementById('guide-overlay');
         overlay.classList.remove('active');
@@ -4238,14 +4536,11 @@
         currentGuideStep = 0;
         setTimeout(() => { showStreakMessage(); }, 500);
     }
-
     function restartGuide() {
         currentGuideStep = 0;
         goToScreen('screen-home');
         setTimeout(() => showGuideStep(), 400);
     }
-
-    // ============ راهنمای تکالیف ============
     function showLessonsGuide() {
         const lessonsGuideShown = localStorage.getItem('lessonsGuideShown');
         if (lessonsGuideShown === 'true') return;
@@ -4434,7 +4729,6 @@
             updateNotificationBadge();
         }
     }
-
     async function loadLessonsListForNotification() {
         try {
             const response = await fetch('./lessons/index.json');
@@ -4447,48 +4741,35 @@
             allLessons = [];
         }
     }
-    
-    // فقط تکالیف معتبر (منقضی نشده و انجام نشده) رو برای اعلان در نظر بگیر
     function checkAndAddLessonNotifications() {
         const seenLessonsForNotif = JSON.parse(localStorage.getItem('seenLessonsForNotif') || '[]');
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
-        
         const newLessons = allLessons.filter(l => {
             if (seenLessonsForNotif.includes(l.id)) return false;
             if (completedIds.includes(l.id)) return false;
             const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
-            if (isExpired(dueDate)) return false; // منقضی شده
+            if (isExpired(dueDate)) return false;
             return true;
         });
-        
         newLessons.forEach(lesson => {
             addNotification('lesson', 'تکلیف جدید', `${lesson.title}${lesson.subtitle ? ' - ' + lesson.subtitle : ''}`);
         });
-        
         if (newLessons.length > 0) {
             const allIds = allLessons.map(l => l.id);
             localStorage.setItem('seenLessonsForNotif', JSON.stringify(allIds));
         }
     }
-
     function checkVideoNotification() {
         const seenVideos = JSON.parse(localStorage.getItem('seenVideos') || '[]');
         const currentVideos = ['video_1'];
         const newVideos = currentVideos.filter(id => !seenVideos.includes(id));
         const notification = document.getElementById('video-notification');
         const subText = document.getElementById('video-notification-sub-text');
-        
         if (newVideos.length > 0 && notification) {
             subText.textContent = `${toPersianNum(newVideos.length)} ویدیوی جدید در انتظار شماست`;
-            const lessonNotif = document.getElementById('new-lesson-notification');
-            const deadlineNotif = document.getElementById('deadline-notification');
-            let topPos = 15;
-            if (lessonNotif && lessonNotif.classList.contains('show')) topPos = 95;
-            if (deadlineNotif && deadlineNotif.classList.contains('show')) topPos = topPos === 15 ? 95 : 175;
-            notification.style.top = topPos + 'px';
+            repositionNotifications();
             setTimeout(() => notification.classList.add('show'), 800);
-            
             const notifs = getNotifications();
             const videoNotifExists = notifs.some(n => n.type === 'clip' && n.title.includes('ویدیوی جدید'));
             if (!videoNotifExists) {
@@ -4510,29 +4791,24 @@
             notif.style.transform = '';
             notif.style.opacity = '';
             localStorage.setItem('seenVideos', JSON.stringify(['video_1']));
+            repositionNotifications();
         }, 300);
     }
     function goToClipsFromNotification() {
         dismissVideoNotification();
         setTimeout(() => openClipsPage(), 200);
     }
-
-    // ============ اعلان تکلیف جدید (فقط معتبر) ============
     function checkAndShowNotification() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
-        
-        // فقط تکالیفی که منقضی نشدن و انجام ندادیم
         const pendingLessons = allLessons.filter(l => {
             if (completedIds.includes(l.id)) return false;
             const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
             if (isExpired(dueDate)) return false;
             return true;
         });
-        
         const notification = document.getElementById('new-lesson-notification');
         const subText = document.getElementById('notification-sub-text');
-        
         if (pendingLessons.length > 0 && allLessons.length > 0) {
             subText.textContent = `${toPersianNum(pendingLessons.length)} تکلیف در انتظار شماست`;
             notification.classList.add('show');
@@ -4541,34 +4817,19 @@
         }
         checkNewLessons();
     }
-
-    // ============ اعلان هشدار مهلت ============
     function checkDeadlineWarning() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
-        
-        // تکالیفی که نزدیک مهلت هستن و انجام نشدن
         const urgentLessons = allLessons.filter(l => {
             if (completedIds.includes(l.id)) return false;
             const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
             return isDeadlineNear(dueDate);
         });
-        
         const deadlineNotif = document.getElementById('deadline-notification');
         const subText = document.getElementById('deadline-notification-sub-text');
-        
         if (urgentLessons.length > 0 && deadlineNotif) {
             subText.textContent = `${toPersianNum(urgentLessons.length)} تکلیف مهلتش داره تموم میشه!`;
-            
-            // موقعیت‌دهی بر اساس اعلان‌های دیگه
-            const lessonNotif = document.getElementById('new-lesson-notification');
-            let topPos = 15;
-            if (lessonNotif && lessonNotif.classList.contains('show')) topPos = 95;
-            deadlineNotif.style.top = topPos + 'px';
-            
             setTimeout(() => deadlineNotif.classList.add('show'), 600);
-            
-            // اضافه کردن اعلان هشدار به لیست اعلان‌ها (فقط یک بار در روز)
             const today = getPersianDate();
             const lastDeadlineNotifDate = localStorage.getItem('lastDeadlineNotifDate');
             if (lastDeadlineNotifDate !== today) {
@@ -4583,8 +4844,8 @@
         } else if (deadlineNotif) {
             deadlineNotif.classList.remove('show');
         }
+        repositionNotifications();
     }
-
     function dismissDeadlineNotification() {
         const notif = document.getElementById('deadline-notification');
         if (!notif) return;
@@ -4595,14 +4856,13 @@
             notif.classList.remove('show', 'swiping');
             notif.style.transform = '';
             notif.style.opacity = '';
+            repositionNotifications();
         }, 300);
     }
-    
     function goToDeadlineLesson() {
         dismissDeadlineNotification();
         setTimeout(() => goToScreen('screen-lessons'), 200);
     }
-
     function dismissNotification() {
         const notif = document.getElementById('new-lesson-notification');
         notif.classList.add('swiping');
@@ -4612,31 +4872,17 @@
             notif.classList.remove('show', 'swiping');
             notif.style.transform = '';
             notif.style.opacity = '';
-            
-            // جابجایی اعلان‌های دیگه
-            const deadlineNotif = document.getElementById('deadline-notification');
-            const videoNotif = document.getElementById('video-notification');
-            let topPos = 15;
-            if (deadlineNotif && deadlineNotif.classList.contains('show')) {
-                deadlineNotif.style.top = topPos + 'px';
-                topPos = 95;
-            }
-            if (videoNotif && videoNotif.classList.contains('show')) {
-                videoNotif.style.top = topPos + 'px';
-            }
+            repositionNotifications();
         }, 300);
     }
-    
     function goToNewLesson() {
         document.getElementById('new-lesson-notification').classList.remove('show');
         goToScreen('screen-lessons');
     }
-    
     function checkNewLessons() {
         if (allLessons.length === 0) return;
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
-        // تکالیف معتبر (منقضی نشده و انجام نشده)
         const pendingLessons = allLessons.filter(l => {
             if (completedIds.includes(l.id)) return false;
             const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
@@ -4647,12 +4893,28 @@
         if (pendingLessons.length > 0 && badge) badge.style.display = 'inline-block';
         else if (badge) badge.style.display = 'none';
     }
+    function repositionNotifications() {
+        const lessonNotif = document.getElementById('new-lesson-notification');
+        const deadlineNotif = document.getElementById('deadline-notification');
+        const videoNotif = document.getElementById('video-notification');
+        let topPos = 15;
+        if (lessonNotif && lessonNotif.classList.contains('show')) {
+            lessonNotif.style.top = topPos + 'px';
+            topPos += 80;
+        }
+        if (deadlineNotif && deadlineNotif.classList.contains('show')) {
+            deadlineNotif.style.top = topPos + 'px';
+            topPos += 80;
+        }
+        if (videoNotif && videoNotif.classList.contains('show')) {
+            videoNotif.style.top = topPos + 'px';
+        }
+    }
 
     // ============ Swipe اعلان‌ها ============
     let notifSwipeStartX = 0, notifSwipeStartY = 0, notifCurrentX = 0;
     let notifIsDragging = false, notifSwipeDirection = null;
     let currentSwipeNotifId = null;
-    
     function initNotificationSwipe() {
         ['new-lesson-notification', 'video-notification', 'deadline-notification'].forEach(id => {
             const notif = document.getElementById(id);
@@ -4707,7 +4969,6 @@
         if (!notif) return;
         notif.classList.remove('dragging');
         const id = currentSwipeNotifId;
-        
         if (notifSwipeDirection === 'horizontal' && Math.abs(notifCurrentX) > 80) {
             notif.classList.add('swiping');
             const direction = notifCurrentX > 0 ? 1 : -1;
@@ -4717,7 +4978,6 @@
                 notif.classList.remove('show', 'swiping');
                 notif.style.transform = '';
                 notif.style.opacity = '';
-                
                 if (id === 'new-lesson-notification') {
                     if (allLessons.length > 0) {
                         const allIds = allLessons.map(l => l.id);
@@ -4728,8 +4988,6 @@
                 } else if (id === 'video-notification') {
                     localStorage.setItem('seenVideos', JSON.stringify(['video_1']));
                 }
-                
-                // جابجایی اعلان‌های باقی‌مونده
                 repositionNotifications();
             }, 300);
         } else {
@@ -4738,31 +4996,10 @@
             notif.style.opacity = '';
             setTimeout(() => notif.classList.remove('swiping'), 300);
         }
-        
         notifCurrentX = 0;
         notifSwipeDirection = null;
         currentSwipeNotifId = null;
     }
-    
-    function repositionNotifications() {
-        const lessonNotif = document.getElementById('new-lesson-notification');
-        const deadlineNotif = document.getElementById('deadline-notification');
-        const videoNotif = document.getElementById('video-notification');
-        
-        let topPos = 15;
-        if (lessonNotif && lessonNotif.classList.contains('show')) {
-            lessonNotif.style.top = topPos + 'px';
-            topPos += 80;
-        }
-        if (deadlineNotif && deadlineNotif.classList.contains('show')) {
-            deadlineNotif.style.top = topPos + 'px';
-            topPos += 80;
-        }
-        if (videoNotif && videoNotif.classList.contains('show')) {
-            videoNotif.style.top = topPos + 'px';
-        }
-    }
-    
     function handleNotifMouseDown(e, id) {
         if (e.target.closest('.notification-btn') || e.target.closest('.notification-close')) return;
         notifSwipeStartX = e.clientX;
@@ -4839,7 +5076,6 @@
             document.getElementById('welcome-graphic-modal').classList.add('active');
         }, 400);
     }
-
     function updateHomeUI() {
         const name = localStorage.getItem('userName');
         if (name) {
@@ -4860,7 +5096,6 @@
             }
         }
     }
-
     function loadProfileData() {
         const name = localStorage.getItem('userName') || 'دانش‌آموز';
         const cls = localStorage.getItem('userClass') || 'هفتم';
@@ -4884,7 +5119,6 @@
         document.getElementById('stat-completed').textContent = toPersianNum(completedLessons);
         document.getElementById('stat-percent').textContent = toPersianNum(avgPercent) + '%';
     }
-
     function getUserStats() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
@@ -4898,23 +5132,17 @@
         const dateCounts = {};
         reports.forEach(r => { dateCounts[r.date] = (dateCounts[r.date] || 0) + 1; });
         const maxInOneDay = Math.max(0, ...Object.values(dateCounts));
-        
-        // چک کردن اینکه کاربر تکلیف با درصد 100 در اولین تلاش داشته
-        const firstTryPerfect = reports.filter(r => r.percent === 100).length;
-        
         return {
             totalPoints, completedLessons, avgPercent,
             perfectScores, highScores, fastLessons,
-            streakDays, maxInOneDay, firstTryPerfect,
+            streakDays, maxInOneDay,
             unlockedMedals: getUnlockedMedals({
                 totalPoints, completedLessons, avgPercent,
                 perfectScores, highScores, fastLessons,
-                streakDays, maxInOneDay, firstTryPerfect
+                streakDays, maxInOneDay
             })
         };
     }
-
-    // ============ مدال‌ها (بدون رنگین‌کمان، با مدال‌های جدید) ============
     const MEDALS_LIST = [
         { id: 'first', icon: '🥇', title: 'اولین قدم', desc: 'اولین تکلیف را انجام بده', condition: (s) => s.completedLessons >= 1 },
         { id: 'diamond', icon: '💎', title: 'الماس', desc: 'تکمیل ۵ تکلیف', condition: (s) => s.completedLessons >= 5 },
@@ -4929,7 +5157,6 @@
         { id: 'invincible', icon: '🛡️', title: 'شکست‌ناپذیر', desc: '۱۰ تکلیف با درصد بالای ۹۰%', condition: (s) => s.highScores >= 10 },
         { id: 'fast', icon: '⚡', title: 'سریع', desc: 'تکمیل تکلیف زیر ۳ دقیقه', condition: (s) => s.fastLessons >= 1 },
         { id: 'loyal', icon: '🎖️', title: 'سرباز فداکار', desc: 'فعالیت در ۷ روز مختلف', condition: (s) => s.streakDays >= 7 },
-        // مدال‌های جدید
         { id: 'beginner', icon: '🌱', title: 'تازه‌کار', desc: 'اولین امتیازت رو بگیر', condition: (s) => s.totalPoints >= 10 },
         { id: 'diligent', icon: '📚', title: 'کوشا', desc: 'تکمیل ۳ تکلیف', condition: (s) => s.completedLessons >= 3 },
         { id: 'expert', icon: '🎓', title: 'متخصص', desc: 'تکمیل ۷ تکلیف', condition: (s) => s.completedLessons >= 7 },
@@ -4938,7 +5165,6 @@
         { id: 'dedicated', icon: '💪', title: 'با اراده', desc: 'فعالیت در ۱۵ روز مختلف', condition: (s) => s.streakDays >= 15 },
         { id: 'legend', icon: '🌈', title: 'افسانه', desc: 'کسب ۲۰۰۰ امتیاز', condition: (s) => s.totalPoints >= 2000 }
     ];
-
     function getUnlockedMedals(stats) {
         return MEDALS_LIST.filter(m => m.condition(stats)).map(m => m.id);
     }
@@ -5148,14 +5374,12 @@
             `;
         }
     }
-
     function filterLessons(filter, btn) {
         currentFilter = filter;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         renderLessonsList();
     }
-
     function renderLessonsList() {
         const container = document.getElementById('lessons-list');
         if (allLessons.length === 0) {
@@ -5165,7 +5389,6 @@
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedLessonIds = reports.map(r => r.lessonId);
         const currentProgress = getCurrentProgress();
-        
         let lessonsToShow = allLessons.map((lesson, index) => {
             const isCompleted = completedLessonIds.includes(lesson.id);
             const isPaused = currentProgress && currentProgress.lessonId === lesson.id;
@@ -5179,27 +5402,22 @@
                 dueDate: lessonDueDate
             };
         });
-        
         if (currentFilter === 'completed') lessonsToShow = lessonsToShow.filter(l => l.isCompleted);
         else if (currentFilter === 'in-progress') lessonsToShow = lessonsToShow.filter(l => !l.isCompleted);
-        
         if (searchQuery) {
             lessonsToShow = lessonsToShow.filter(l => 
                 l.taskTitle.toLowerCase().includes(searchQuery) ||
                 (l.subtitle && l.subtitle.toLowerCase().includes(searchQuery))
             );
         }
-        
         if (lessonsToShow.length === 0) {
             container.innerHTML = `<div class="report-empty"><div class="report-empty-icon">🔍</div><div class="report-empty-text">موردی یافت نشد</div></div>`;
             return;
         }
-        
         container.innerHTML = lessonsToShow.map((lesson) => {
             let progressPercent = 0;
             let btnClass = '';
             let btnText = 'مشاهده';
-            
             if (lesson.isCompleted) {
                 progressPercent = 100; btnClass = 'completed'; btnText = 'مشاهده';
             } else if (lesson.isPaused && currentProgress) {
@@ -5212,11 +5430,9 @@
             } else {
                 progressPercent = 0; btnText = 'مشاهده';
             }
-            
             const circumference = 2 * Math.PI * 20;
             const dashOffset = circumference * (1 - progressPercent / 100);
             const bookData = BOOK_VECTORS[lesson.colorIndex];
-            
             let badgeHTML = '';
             if (lesson.isCompleted) {
                 badgeHTML = `<div class="lesson-completed-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
@@ -5225,13 +5441,10 @@
             } else if (lesson.isNearDeadline) {
                 badgeHTML = `<div class="lesson-warning-badge"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>`;
             }
-            
             const borderColor = bookData.color + '44';
             const bgColor = bookData.colorLight;
             const progressTextColor = progressPercent === 100 ? '#2e7d32' : bookData.color;
             const progressTextClass = progressPercent === 100 ? 'full-progress' : '';
-            
-            // برای مهلت نزدیک، رنگ نارنجی
             let deadlineClass = '';
             let deadlineText = `مهلت: ${lesson.dueDate}`;
             if (lesson.isExpired && !lesson.isCompleted) {
@@ -5242,7 +5455,6 @@
                 const daysLeft = getDaysDiff(lesson.dueDate);
                 deadlineText = daysLeft === 0 ? `⏰ مهلت امروز!` : `⏰ فقط ${toPersianNum(daysLeft)} روز مونده!`;
             }
-            
             return `
                 <div class="lesson-card" style="border-color: ${borderColor};">
                     <div class="lesson-card-book" style="background: ${bgColor}; border: 1.5px solid ${borderColor};">
@@ -5271,7 +5483,6 @@
             `;
         }).join('');
     }
-
     function openLessonDetail(lessonId) {
         const lesson = allLessons.find(l => l.id === lessonId);
         if (!lesson) return;
@@ -5279,7 +5490,6 @@
         const colorIndex = lessonIndex % 6;
         const bookData = BOOK_VECTORS[colorIndex];
         const taskTitle = LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
-        
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const isCompleted = reports.some(r => r.lessonId === lessonId);
         const currentProgress = getCurrentProgress();
@@ -5290,7 +5500,6 @@
         const activityCount = lesson.activityCount || 12;
         const estimatedTime = lesson.estimatedTime || 10;
         const description = lesson.description || 'در این تکلیف، با واژگان جدید، ترجمه و عبارات مهم درس اول آشنا می‌شوید. موفق باشید!';
-        
         let expiredWarningHTML = '';
         if (expired && !isCompleted) {
             expiredWarningHTML = `
@@ -5315,7 +5524,6 @@
                 </div>
             `;
         }
-        
         let startBtnHTML = '';
         if (isCompleted) {
             startBtnHTML = `<button class="lesson-start-btn" style="background: linear-gradient(135deg, ${bookData.color}, ${bookData.color}dd); box-shadow: 0 6px 20px ${bookData.color}66;" onclick="startLesson('${lessonId}')"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>مشاهده دوباره (تمرین)</span></button>`;
@@ -5326,7 +5534,6 @@
         } else {
             startBtnHTML = `<button class="lesson-start-btn" style="background: linear-gradient(135deg, ${bookData.color}, ${bookData.color}dd); box-shadow: 0 6px 20px ${bookData.color}66;" onclick="startLesson('${lessonId}')"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>شروع تکلیف</span></button>`;
         }
-        
         const content = document.getElementById('lesson-detail-content');
         content.innerHTML = `
             <div class="lesson-detail-banner" style="background: ${bookData.colorLight}; border: 2px solid ${bookData.color}44;">
@@ -5365,7 +5572,6 @@
         `;
         goToScreen('screen-lesson-detail');
     }
-
     function saveCurrentProgress() {
         if (!currentLesson) return;
         const progress = {
@@ -5385,14 +5591,12 @@
         try { return JSON.parse(data); } catch(e) { return null; }
     }
     function clearCurrentProgress() { localStorage.removeItem('currentLessonProgress'); }
-
     async function startLesson(lessonId) {
         const lesson = allLessons.find(l => l.id === lessonId);
         const dueDate = lesson ? (lesson.dueDate || '۱۴۰۵/۰۹/۱۵') : null;
         const expired = isExpired(dueDate);
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const alreadyDone = reports.some(r => r.lessonId === lessonId);
-        
         if (expired && !alreadyDone) { await runLesson(lessonId, true, 0, true); return; }
         const progress = getCurrentProgress();
         if (progress && progress.lessonId === lessonId && !alreadyDone) {
@@ -5563,6 +5767,14 @@
     let shuffledMatchAr = [];
     let shuffledOrderOptions = [];
 
+    // متغیرهای سوال audio-match
+    let selectedAudioIndex = -1;
+    let playingAudioIndex = -1;
+    let matchedAudioPairs = []; // [{audioIdx, faWord}]
+
+    // متغیرهای سوال find-error
+    let selectedErrorWord = null;
+
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -5571,6 +5783,39 @@
         return array;
     }
 
+    // ============ پخش صدا از فیلم ============
+    function playAudioFromVideo(videoUrl, btnElement) {
+        const video = document.getElementById('audio-video-player');
+        if (!video) return;
+        
+        // پاک کردن حالت playing از همه دکمه‌ها
+        document.querySelectorAll('.audio-btn.playing').forEach(el => el.classList.remove('playing'));
+        
+        video.pause();
+        video.src = videoUrl;
+        video.currentTime = 0;
+        
+        // اضافه کردن کلاس playing به دکمه
+        if (btnElement) {
+            btnElement.classList.add('playing');
+            playingAudioIndex = parseInt(btnElement.dataset.audioIdx);
+            vibrate(15);
+        }
+        
+        video.play().then(() => {
+            // وقتی پخش تموم شد
+            video.onended = () => {
+                if (btnElement) btnElement.classList.remove('playing');
+                playingAudioIndex = -1;
+            };
+        }).catch(e => {
+            console.log('خطا در پخش صدا:', e);
+            if (btnElement) btnElement.classList.remove('playing');
+            playingAudioIndex = -1;
+        });
+    }
+
+    // ============ رندر سوال ============
     function renderQuestion() {
         const q = currentLesson.questions[currentQuestionIndex];
         const container = document.getElementById('question-area');
@@ -5583,21 +5828,90 @@
         scoreDisplay.textContent = toPersianNum(score);
         selectedOptionIndex = -1;
         selectedMatchFa = null; selectedMatchAr = null;
-        matchedPairs = 0; orderSelected = []; isAnswered = false;
+        matchedPairs = 0;
+        orderSelected = [];
+        isAnswered = false;
+        selectedAudioIndex = -1;
+        playingAudioIndex = -1;
+        matchedAudioPairs = [];
+        selectedErrorWord = null;
         submitBtn.disabled = false;
         submitBtn.textContent = 'بررسی سوال';
         saveCurrentProgress();
         const qType = q.type || 'multiple';
         const iconData = QUESTION_ICONS[qType] || QUESTION_ICONS.multiple;
         let html = '';
+        
         if (q.type === 'fill') {
             html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
             html += `<div class="fill-blank-sentence">${q.sentence.replace('______', '<span class="blank" id="blank-slot"></span>')}</div>`;
             html += `<div class="options-grid">`;
             q.options.forEach((opt, index) => { html += `<div class="option-btn" onclick="selectFillOption(this, '${opt}', ${index})">${opt}</div>`; });
             html += `</div>`;
+        } else if (q.type === 'audio-match') {
+            // ============ سوال جدید: تطبیق صدا و کلمه ============
+            html += `<div class="question-text">
+                <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+                <div class="question-text-text">${q.question}</div>
+            </div>`;
+            
+            html += `<div class="audio-match-container">`;
+            
+            // دکمه‌های صدا (بالا)
+            html += `<div class="audio-buttons-row">`;
+            q.audios.forEach((audio, index) => {
+                html += `
+                    <div class="audio-btn" data-audio-idx="${index}" onclick="selectAudio(${index})">
+                        <img src="${SOUND_VECTOR_URL}" alt="صدا" class="audio-btn-icon">
+                        <span class="audio-btn-num">${toPersianNum(index + 1)}</span>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            
+            // کارت کلمه فارسی (وسط) - اولین کلمه‌ای که تطبیق داده نشده
+            html += `<div class="audio-word-card" id="audio-word-card">
+                <div class="audio-match-check">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="audio-word-label">کلمه مورد نظر:</div>
+                <div class="audio-word-text" id="audio-word-display">-</div>
+            </div>`;
+            
+            // کارت‌های انتخاب فارسی (پایین)
+            html += `<div class="options-grid">`;
+            q.faOptions.forEach((opt, index) => {
+                html += `<div class="option-btn" onclick="selectFaWord(this, '${opt}', ${index})">${opt}</div>`;
+            });
+            html += `</div>`;
+            
+            // راهنما
+            html += `<div class="audio-hint">👆 اول روی <span class="highlight">دکمه صدا</span> بزن تا کلمه عربی رو بشنوی، بعد <span class="highlight">معنی فارسی</span> رو انتخاب کن</div>`;
+            
+            html += `</div>`;
+        } else if (q.type === 'find-error') {
+            // ============ سوال جدید: پیدا کردن اشتباه ============
+            html += `<div class="question-text">
+                <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+                <div class="question-text-text">${q.question}</div>
+            </div>`;
+            
+            html += `<div class="find-error-container">`;
+            
+            // جمله با کلمات قابل کلیک
+            html += `<div class="find-error-sentence" id="find-error-sentence">`;
+            q.words.forEach((word, index) => {
+                html += `<div class="find-error-word" data-idx="${index}" onclick="selectErrorWord(this, ${index})">${word.text}</div>`;
+            });
+            html += `</div>`;
+            
+            // راهنما
+            html += `<div class="audio-hint">👆 روی کلمه‌ای که فکر می‌کنی <span class="highlight">اشتباه</span> است، کلیک کن</div>`;
+            
+            html += `</div>`;
         } else {
             html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
+            
             if (q.type === 'multiple') {
                 html += `<div class="options-grid">`;
                 q.options.forEach((opt, index) => { html += `<div class="option-btn" onclick="selectOption(this, ${index})">${opt}</div>`; });
@@ -5626,10 +5940,113 @@
         container.innerHTML = html;
     }
 
+    // ============ انتخاب‌های سوال audio-match ============
+    function selectAudio(index) {
+        if (isAnswered) return;
+        const q = currentLesson.questions[currentQuestionIndex];
+        const audio = q.audios[index];
+        if (!audio) return;
+        
+        const btnElement = document.querySelector(`.audio-btn[data-audio-idx="${index}"]`);
+        
+        // پخش صدا
+        playAudioFromVideo(audio.videoUrl, btnElement);
+        
+        // انتخاب دکمه
+        document.querySelectorAll('.audio-btn').forEach(b => b.classList.remove('selected'));
+        if (btnElement) btnElement.classList.add('selected');
+        selectedAudioIndex = index;
+        
+        // نشون دادن کلمه فارسی مربوطه
+        const wordDisplay = document.getElementById('audio-word-display');
+        const wordCard = document.getElementById('audio-word-card');
+        if (wordDisplay && wordCard) {
+            wordDisplay.textContent = audio.correctFa;
+            wordCard.classList.remove('matched');
+        }
+    }
+    
+    function selectFaWord(el, word, index) {
+        if (isAnswered) return;
+        if (selectedAudioIndex === -1) {
+            // اگه هنوز دکمه صدا رو نزده
+            vibrate([50, 30, 50]);
+            // افکت لرزش
+            el.style.animation = 'none';
+            setTimeout(() => {
+                el.style.animation = 'shakeWarning 0.3s ease';
+            }, 10);
+            return;
+        }
+        
+        vibrate(15);
+        const q = currentLesson.questions[currentQuestionIndex];
+        const selectedAudio = q.audios[selectedAudioIndex];
+        const wordCard = document.getElementById('audio-word-card');
+        
+        if (selectedAudio.correctFa === word) {
+            // ✅ تطبیق درست
+            el.classList.add('selected');
+            
+            // سبز کردن دکمه صدا و کارت کلمه
+            const audioBtn = document.querySelector(`.audio-btn[data-audio-idx="${selectedAudioIndex}"]`);
+            if (audioBtn) {
+                audioBtn.classList.add('correct-match');
+                audioBtn.classList.remove('selected');
+            }
+            if (wordCard) {
+                wordCard.classList.add('matched');
+            }
+            
+            // اضافه به لیست تطبیق‌ها
+            matchedAudioPairs.push({ audioIdx: selectedAudioIndex, faWord: word });
+            
+            // علامت زدن که جفت درست شده
+            el.style.background = 'linear-gradient(135deg, #e8f5e9, #c8e6c9)';
+            el.style.borderColor = '#4caf50';
+            el.style.color = '#1b5e20';
+            el.style.pointerEvents = 'none';
+            
+            vibrate([30, 50, 30]);
+            
+            // ریست انتخاب برای جفت بعدی
+            selectedAudioIndex = -1;
+            
+            // اگه همه جفت‌ها تطبیق داده شدن، مستقیم چک کن
+            if (matchedAudioPairs.length === q.audios.length) {
+                setTimeout(() => {
+                    checkAnswer();
+                }, 800);
+            }
+        } else {
+            // ❌ تطبیق اشتباه
+            el.classList.add('wrong');
+            vibrate([50, 30, 50]);
+            
+            setTimeout(() => {
+                el.classList.remove('wrong');
+                el.style.background = '';
+                el.style.borderColor = '';
+                el.style.color = '';
+            }, 800);
+        }
+    }
+
+    // ============ انتخاب‌های سوال find-error ============
+    function selectErrorWord(el, index) {
+        if (isAnswered) return;
+        vibrate(15);
+        
+        // حذف انتخاب قبلی
+        document.querySelectorAll('.find-error-word').forEach(w => w.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedErrorWord = index;
+    }
+
+    // ============ توابع انتخاب سوالات عادی ============
     function selectOption(el, index) { if (isAnswered) return; vibrate(15); document.querySelectorAll('.option-btn, .image-option').forEach(e => e.classList.remove('selected')); el.classList.add('selected'); selectedOptionIndex = index; }
     function selectFillOption(el, word, index) { if (isAnswered) return; vibrate(15); document.querySelectorAll('.option-btn').forEach(e => e.classList.remove('selected')); el.classList.add('selected'); selectedOptionIndex = index; document.getElementById('blank-slot').textContent = word; }
     function selectTF(el, value) { if (isAnswered) return; vibrate(15); document.querySelectorAll('.tf-btn').forEach(e => e.classList.remove('selected-true', 'selected-false')); el.classList.add(value === 1 ? 'selected-true' : 'selected-false'); selectedOptionIndex = value; }
-    
     function selectMatch(el, type) {
         if (isAnswered) return;
         if (el.classList.contains('correct') || el.classList.contains('wrong')) return;
@@ -5662,7 +6079,6 @@
             }
         }
     }
-    
     function selectOrder(el, word) {
         if (isAnswered) return;
         if (orderSelected.includes(word)) return;
@@ -5687,39 +6103,82 @@
         resultDiv.appendChild(wordSpan);
     }
 
+    // ============ بررسی پاسخ ============
     function checkAnswer() {
         if (isAnswered) return;
         const q = currentLesson.questions[currentQuestionIndex];
         let isCorrect = false;
         let answerGiven = false;
+        
         if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image') {
-            if (selectedOptionIndex !== -1) { answerGiven = true; if (selectedOptionIndex === q.correct) isCorrect = true; }
+            if (selectedOptionIndex !== -1) {
+                answerGiven = true;
+                if (selectedOptionIndex === q.correct) isCorrect = true;
+            }
         } else if (q.type === 'truefalse') {
-            if (selectedOptionIndex !== -1) { answerGiven = true; if ((selectedOptionIndex === 1 && q.correct) || (selectedOptionIndex === 0 && !q.correct)) isCorrect = true; }
+            if (selectedOptionIndex !== -1) {
+                answerGiven = true;
+                if ((selectedOptionIndex === 1 && q.correct) || (selectedOptionIndex === 0 && !q.correct)) isCorrect = true;
+            }
         } else if (q.type === 'translation') {
             const ans = document.getElementById('translation-answer').value.trim();
-            if (ans !== '') { answerGiven = true; if (ans === q.correct) isCorrect = true; }
+            if (ans !== '') {
+                answerGiven = true;
+                if (ans === q.correct) isCorrect = true;
+            }
         } else if (q.type === 'match') {
-            if (matchedPairs === q.pairs.length) { isCorrect = true; answerGiven = true; }
-            else { showModal('توجه', 'لطفاً همه جفت‌ها را به درستی وصل کنید.', '⚠️'); return; }
+            if (matchedPairs === q.pairs.length) {
+                isCorrect = true;
+                answerGiven = true;
+            } else {
+                showModal('توجه', 'لطفاً همه جفت‌ها را به درستی وصل کنید.', '⚠️');
+                return;
+            }
         } else if (q.type === 'order') {
             if (orderSelected.length > 0) {
                 answerGiven = true;
                 if (JSON.stringify(orderSelected) === JSON.stringify(q.correct)) isCorrect = true;
-                else { showModal('خطا', 'ترتیب کلمات اشتباه است.', '❌'); orderSelected = []; renderQuestion(); return; }
+                else {
+                    showModal('خطا', 'ترتیب کلمات اشتباه است.', '❌');
+                    orderSelected = [];
+                    renderQuestion();
+                    return;
+                }
+            }
+        } else if (q.type === 'audio-match') {
+            if (matchedAudioPairs.length === q.audios.length) {
+                isCorrect = true;
+                answerGiven = true;
+            } else {
+                showModal('توجه', 'لطفاً همه صداها را با کلمه درست تطبیق بده.', '⚠️');
+                return;
+            }
+        } else if (q.type === 'find-error') {
+            if (selectedErrorWord !== null) {
+                answerGiven = true;
+                const errorIdx = q.words.findIndex(w => w.isError);
+                if (selectedErrorWord === errorIdx) isCorrect = true;
             }
         }
-        if (!answerGiven) { showModal('توجه', 'لطفاً یک پاسخ انتخاب کنید.', '⚠️'); return; }
+        
+        if (!answerGiven) {
+            showModal('توجه', 'لطفاً یک پاسخ انتخاب کنید.', '⚠️');
+            return;
+        }
+        
         isAnswered = true;
         document.getElementById('submit-btn').disabled = true;
+        
         if (isCorrect) {
             if (!isPracticeMode) score += q.points;
             correctCount++;
-            playCorrectSound(); vibrate(30);
+            playCorrectSound();
+            vibrate(30);
             showFeedback(true, isPracticeMode ? 0 : q.points, q);
         } else {
             wrongCount++;
-            playWrongSound(); vibrate([50, 30, 50]);
+            playWrongSound();
+            vibrate([50, 30, 50]);
             showFeedback(false, 0, q);
         }
         saveCurrentProgress();
@@ -5731,6 +6190,12 @@
         if (q.type === 'translation') return q.correct;
         if (q.type === 'match') return 'همه جفت‌ها به درستی وصل شدند.';
         if (q.type === 'order') return q.correct.join(' - ');
+        if (q.type === 'audio-match') {
+            return q.audios.map((a, i) => `${toPersianNum(i+1)}: ${a.correctFa}`).join(' | ');
+        }
+        if (q.type === 'find-error') {
+            return q.correctFix ? `${q.correctFix.wrong} → ${q.correctFix.correct}` : '-';
+        }
         return '-';
     }
 
@@ -5743,6 +6208,12 @@
         const answerBox = document.getElementById('correct-answer-box');
         const answerLabel = document.getElementById('answer-label');
         const answerText = document.getElementById('answer-text');
+        const findErrorBox = document.getElementById('find-error-feedback-box');
+        
+        // ریست
+        findErrorBox.style.display = 'none';
+        findErrorBox.innerHTML = '';
+        
         if (isCorrect) {
             icon.textContent = '⭐';
             title.textContent = 'آفرین!';
@@ -5753,7 +6224,28 @@
             answerBox.className = 'correct-answer-box';
             answerLabel.textContent = 'پاسخ صحیح شما:';
             answerText.textContent = getCorrectAnswerText(q);
-            answerBox.style.display = 'block';
+            
+            // برای find-error، کادر ویژه نشون بده
+            if (q.type === 'find-error' && q.correctedSentence) {
+                answerBox.style.display = 'none';
+                findErrorBox.style.display = 'block';
+                const correctedHTML = q.correctedSentence.replace(
+                    q.correctFix.correct,
+                    `<span class="fixed-word">${q.correctFix.correct}</span>`
+                );
+                findErrorBox.innerHTML = `
+                    <div class="find-error-correction">
+                        <div class="find-error-correction-title">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            جمله صحیح:
+                        </div>
+                        <div class="find-error-correction-sentence">${correctedHTML}</div>
+                        ${q.explanation ? `<div class="find-error-explanation">💡 ${q.explanation}</div>` : ''}
+                    </div>
+                `;
+            } else {
+                answerBox.style.display = 'block';
+            }
         } else {
             icon.textContent = '😞';
             title.textContent = 'متأسفانه';
@@ -5761,10 +6253,30 @@
             sub.textContent = 'پاسخ شما اشتباه است.';
             pts.textContent = '۰ امتیاز';
             pts.style.color = '#999'; pts.style.fontSize = '24px';
-            answerBox.className = 'correct-answer-box wrong-answer';
-            answerLabel.textContent = 'پاسخ صحیح:';
-            answerText.textContent = getCorrectAnswerText(q);
-            answerBox.style.display = 'block';
+            
+            if (q.type === 'find-error' && q.correctFix) {
+                answerBox.style.display = 'none';
+                findErrorBox.style.display = 'block';
+                const correctedHTML = q.correctedSentence.replace(
+                    q.correctFix.correct,
+                    `<span class="fixed-word">${q.correctFix.correct}</span>`
+                );
+                findErrorBox.innerHTML = `
+                    <div class="find-error-correction" style="background: linear-gradient(135deg, #ffebee, #ffcdd2); border-color: #ef5350;">
+                        <div class="find-error-correction-title" style="color: #c62828;">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#c62828" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            پاسخ صحیح: «${q.correctFix.wrong}» اشتباه بود
+                        </div>
+                        <div class="find-error-correction-sentence" style="color: #b71c1c;">${correctedHTML}</div>
+                        ${q.explanation ? `<div class="find-error-explanation" style="color: #b71c1c;">💡 ${q.explanation}</div>` : ''}
+                    </div>
+                `;
+            } else {
+                answerBox.className = 'correct-answer-box wrong-answer';
+                answerLabel.textContent = 'پاسخ صحیح:';
+                answerText.textContent = getCorrectAnswerText(q);
+                answerBox.style.display = 'block';
+            }
         }
     }
 
@@ -5844,7 +6356,6 @@
         updateNotificationBadge();
         setTimeout(() => checkForNewMedals(), 1500);
     }
-
     function downloadCurrentReport() {
         const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
         const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
