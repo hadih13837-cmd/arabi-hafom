@@ -56,50 +56,14 @@
             flex-shrink: 0;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             gap: 12px;
-            padding: 15px 20px;
-            padding-top: calc(15px + env(safe-area-inset-top, 0px));
+            padding: 18px 20px;
             background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
             box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
             z-index: 10;
             border-bottom: 2px solid #e3f2fd;
-            min-height: 70px;
-        }
-        
-        .clips-header-back {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: var(--primary-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-            flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
-            transition: transform 0.2s ease;
-        }
-        .clips-header-back:active {
-            transform: scale(0.92);
-        }
-        .clips-header-back svg {
-            width: 24px;
-            height: 24px;
-            stroke: #fff;
-            fill: none;
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        
-        .clips-header-title-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-            justify-content: center;
+            position: relative;
         }
         
         .clips-header-icon {
@@ -128,12 +92,6 @@
             font-size: 20px;
             font-weight: 900;
             color: var(--primary);
-            white-space: nowrap;
-        }
-        
-        .clips-header-spacer {
-            width: 44px;
-            flex-shrink: 0;
         }
 
         /* ============ محتوا ============ */
@@ -580,18 +538,10 @@
 <div id="app-container">
     
     <div class="clips-header">
-        <button class="clips-header-back" onclick="goBackToApp()" title="بازگشت">
-            <svg viewBox="0 0 24 24">
-                <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </button>
-        <div class="clips-header-title-wrapper">
-            <div class="clips-header-icon">
-                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-            </div>
-            <div class="page-title">کلیپ‌های آموزشی</div>
+        <div class="clips-header-icon">
+            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
         </div>
-        <div class="clips-header-spacer"></div>
+        <div class="page-title">کلیپ‌های آموزشی</div>
     </div>
     
     <div class="clips-content">
@@ -734,13 +684,6 @@
 </div>
 
 <script>
-    // ============ بازگشت به برنامه اصلی ============
-    function goBackToApp() {
-        // قبل از رفتن، توی sessionStorage علامت می‌گذاریم که از کلیپ برگشتیم
-        sessionStorage.setItem('cameFromClips', 'true');
-        window.location.href = './index.html#home';
-    }
-    
     // ============ آکاردئون ============
     function toggleAccordion(element, event) {
         if (event && event.target) {

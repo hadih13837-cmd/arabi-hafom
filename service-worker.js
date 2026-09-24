@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arabi-hafom-v31';
+const CACHE_NAME = 'arabi-hafom-v3';
 const urlsToCache = [
   './',
   './index.html',
@@ -7,12 +7,27 @@ const urlsToCache = [
   './icon-512.png',
   './lessons/index.json',
   './lessons/lesson1.json',
+  './lessons/lesson2.json',
+  './lessons/lesson3.json',
   'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css',
   'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
   'https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png',
   'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png',
   'https://cdn.imgurl.ir/uploads/y212653___.png',
-  'https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3'
+  'https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3',
+  'https://cdn.imgurl.ir/uploads/y058507__.png',
+  'https://cdn.imgurl.ir/uploads/n50857_IMG__.png',
+  'https://cdn.imgurl.ir/uploads/f76502_IMG__.png',
+  'https://cdn.imgurl.ir/uploads/b632041_IMG__.png',
+  'https://cdn.imgurl.ir/uploads/l655746___.png',
+  'https://cdn.imgurl.ir/uploads/c3352_ChatGPT_Image_Sep_21_2026_09_21_08_PM.png',
+  'https://cdn.imgurl.ir/uploads/j02258_InShot_20260921_091848739.mp4',
+  'https://cdn.imgurl.ir/uploads/m31567_IMG__.png',
+  'https://cdn.imgurl.ir/uploads/p313911_IMG__.png',
+  'https://cdn.imgurl.ir/uploads/f058661_IMG__.png',
+  'https://cdn.imgurl.ir/uploads/k1280_IMG__.png',
+  'https://cdn.imgurl.ir/uploads/q178853_IMG__.png',
+  'https://cdn.imgurl.ir/uploads/a3501_IMG__.png'
 ];
 
 // ==================== نصب Service Worker ====================
@@ -20,7 +35,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('✅ ذخیره فایل‌ها در کش با موفقیت شروع شد');
+        console.log('✅ شروع ذخیره فایل‌ها در کش');
         return cache.addAll(urlsToCache);
       })
       .then(() => {
@@ -55,7 +70,11 @@ self.addEventListener('activate', event => {
 });
 
 // ==================== مدیریت درخواست‌ها ====================
+// استراتژی: اول از کش بخون، اگر نبود از شبکه بگیر
 self.addEventListener('fetch', event => {
+  // فقط درخواست‌های GET رو کش کن
+  if (event.request.method !== 'GET') return;
+  
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -76,10 +95,14 @@ self.addEventListener('fetch', event => {
               });
             
             return response;
+          })
+          .catch(() => {
+            // اگه شبکه قطع بود و فایل در کش نبود
+            if (event.request.mode === 'navigate') {
+              return caches.match('./index.html');
+            }
+            return caches.match('./index.html');
           });
-      })
-      .catch(() => {
-        return caches.match('./index.html');
       })
   );
 });
