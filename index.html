@@ -215,10 +215,47 @@
             touch-action: pan-y; cursor: grab;
         }
         .video-notification.show { display: flex; }
+        /* اعلان قرمز هشدار مهلت */
+        .deadline-warning-notification {
+            position: absolute; top: 165px; left: 15px; right: 15px;
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border: 2px solid #f44336; border-radius: 18px;
+            padding: 14px 16px; display: none;
+            align-items: center; gap: 12px;
+            box-shadow: 0 8px 25px rgba(244, 67, 54, 0.5);
+            z-index: 202; animation: slideDown 0.5s ease;
+            touch-action: pan-y; cursor: grab;
+        }
+        .deadline-warning-notification.show { display: flex; }
+        .deadline-warning-notification .notification-icon {
+            animation: warningShake 1s ease-in-out infinite;
+        }
+        @keyframes warningShake {
+            0%, 100% { transform: rotate(0); }
+            20% { transform: rotate(-15deg); }
+            40% { transform: rotate(15deg); }
+            60% { transform: rotate(-10deg); }
+            80% { transform: rotate(10deg); }
+        }
+        .deadline-warning-notification .notification-title {
+            color: #c62828 !important;
+        }
+        .deadline-warning-notification .notification-sub {
+            color: #b71c1c !important;
+        }
+        .deadline-warning-notification .notification-btn {
+            background: linear-gradient(135deg, #f44336, #c62828) !important;
+            box-shadow: 0 3px 10px rgba(198, 40, 40, 0.4) !important;
+        }
+        .deadline-warning-notification .notification-close {
+            color: #c62828 !important;
+        }
         .new-lesson-notification.dragging,
-        .video-notification.dragging { transition: none; cursor: grabbing; }
+        .video-notification.dragging,
+        .deadline-warning-notification.dragging { transition: none; cursor: grabbing; }
         .new-lesson-notification.swiping,
-        .video-notification.swiping { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .video-notification.swiping,
+        .deadline-warning-notification.swiping { transition: transform 0.3s ease, opacity 0.3s ease; }
         @keyframes slideDown {
             from { transform: translateY(-120%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -617,11 +654,13 @@
             display: flex; align-items: center; gap: 4px;
         }
         .lesson-card-deadline.expired { color: #c62828; }
+        .lesson-card-deadline.warning { color: #e65100; }
         .lesson-card-deadline svg {
             width: 14px; height: 14px;
             stroke: #f57c00; fill: none; stroke-width: 2;
         }
         .lesson-card-deadline.expired svg { stroke: #c62828; }
+        .lesson-card-deadline.warning svg { stroke: #e65100; }
         .lesson-view-btn {
             background: var(--primary-gradient);
             color: #fff; border: none; padding: 10px 24px;
@@ -651,7 +690,6 @@
             transform: translate(-50%, -50%);
             font-size: 11px; font-weight: 900; color: var(--primary);
         }
-        /* عدد پیشرفت 100% = سبز */
         .lesson-progress-text.full-progress { color: #2e7d32 !important; }
 
         /* جزئیات تکلیف */
@@ -699,6 +737,27 @@
         }
         .expired-warning-desc {
             font-size: 12px; color: #b71c1c;
+            font-weight: bold; line-height: 1.6;
+        }
+        .deadline-soon-warning {
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            border: 2px solid #ff9800;
+            border-radius: 16px; padding: 14px 18px;
+            margin-bottom: 18px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .deadline-soon-warning svg {
+            width: 28px; height: 28px;
+            stroke: #e65100; fill: none; stroke-width: 2;
+            flex-shrink: 0;
+        }
+        .deadline-soon-warning-text { flex: 1; text-align: right; }
+        .deadline-soon-warning-title {
+            font-size: 14px; font-weight: 900;
+            color: #e65100; margin-bottom: 4px;
+        }
+        .deadline-soon-warning-desc {
+            font-size: 12px; color: #bf360c;
             font-weight: bold; line-height: 1.6;
         }
         .lesson-info-card {
@@ -847,6 +906,8 @@
         .notif-icon-success svg { stroke: #f57c00; fill: #f57c00; }
         .notif-icon-clip { background: linear-gradient(135deg, #f3e5f5, #e1bee7); }
         .notif-icon-clip svg { stroke: #8e24aa; }
+        .notif-icon-deadline { background: linear-gradient(135deg, #ffebee, #ffcdd2); }
+        .notif-icon-deadline svg { stroke: #d32f2f; }
         .notif-content { flex: 1; text-align: right; min-width: 0; }
         .notif-title {
             font-size: 15px; font-weight: 900;
@@ -1973,7 +2034,7 @@
             flex: 1; overflow-y: auto; padding: 20px;
         }
 
-        /* ============ صفحه تقویم ============ */
+        /* تقویم */
         #screen-calendar {
             background: #f0f7ff;
             transition: background 0.5s ease;
@@ -2205,7 +2266,7 @@
             border: 2px solid #90a4ae;
         }
 
-        /* ============ پیام استریک ============ */
+        /* پیام استریک */
         .streak-message-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -2327,7 +2388,7 @@
             100% { transform: scale(0.1) translate(0, 400px); opacity: 0; }
         }
 
-        /* ============ راهنما ============ */
+        /* راهنما */
         .guide-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -2433,7 +2494,7 @@
             border-radius: 4px;
         }
 
-        /* ============ پیام خوش‌آمد ============ */
+        /* پیام خوش‌آمد */
         .welcome-graphic-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -2961,6 +3022,17 @@
                 <button class="notification-btn" onclick="goToClipsFromNotification()">مشاهده</button>
                 <div class="notification-swipe-hint"></div>
             </div>
+
+            <div class="deadline-warning-notification" id="deadline-warning-notification">
+                <button class="notification-close" onclick="dismissDeadlineWarning()">✕</button>
+                <div class="notification-icon">⚠️</div>
+                <div class="notification-text">
+                    <div class="notification-title">مهلت تکلیف در حال اتمام!</div>
+                    <div class="notification-sub" id="deadline-warning-sub-text">برای مشاهده سریع کلیک کنید</div>
+                </div>
+                <button class="notification-btn" onclick="goToDeadlineLesson()">مشاهده</button>
+                <div class="notification-swipe-hint"></div>
+            </div>
             
             <div class="home-top-bar">
                 <button class="home-icon-btn" id="guide-menu-btn" onclick="openSideMenu()">
@@ -3049,7 +3121,7 @@
     <!-- ============ صفحه تکالیف ============ -->
     <div id="screen-lessons" class="screen">
         <div class="lessons-header">
-            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
+            <button class="page-back" onclick="goBackToHome()" title="بازگشت به خانه">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -3109,7 +3181,7 @@
     <!-- ============ صفحه جزئیات تکلیف ============ -->
     <div id="screen-lesson-detail" class="screen">
         <div class="page-header">
-            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
+            <button class="page-back" onclick="goBackToLessons()" title="بازگشت به تکالیف">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -3696,6 +3768,39 @@
         if (!dueDate) return false;
         return persianDateToNumber(getPersianDate()) > persianDateToNumber(dueDate);
     }
+    // چک کن که مهلت نزدیک هست (کمتر از ۳ روز مونده)
+    function isDeadlineSoon(dueDate) {
+        if (!dueDate) return false;
+        const today = persianDateToNumber(getPersianDate());
+        const due = persianDateToNumber(dueDate);
+        const diff = due - today;
+        return diff >= 0 && diff <= 3;
+    }
+    // تعداد روزهای مونده
+    function daysUntilDeadline(dueDate) {
+        if (!dueDate) return 0;
+        const today = persianDateToNumber(getPersianDate());
+        const due = persianDateToNumber(dueDate);
+        // محاسبه تقریبی روز بر اساس فرمت YYYYMMDD
+        const todayY = Math.floor(today / 10000);
+        const todayM = Math.floor((today % 10000) / 100);
+        const todayD = today % 100;
+        const dueY = Math.floor(due / 10000);
+        const dueM = Math.floor((due % 10000) / 100);
+        const dueD = due % 100;
+        // محاسبه روزهای مونده به صورت تقریبی
+        let days = 0;
+        let cy = todayY, cm = todayM, cd = todayD;
+        while (cy < dueY || cm < dueM || cd < dueD) {
+            cd++;
+            const maxDays = cm <= 6 ? 31 : (cm === 12 ? 29 : 30);
+            if (cd > maxDays) { cd = 1; cm++; }
+            if (cm > 12) { cm = 1; cy++; }
+            days++;
+            if (days > 400) break;
+        }
+        return days;
+    }
 
     // ============ فصل‌ها ============
     const MONTHS_INFO = [
@@ -4265,6 +4370,13 @@
         history.pushState({screen: screenId}, '', '');
     }
     
+    // از جزئیات → تکالیف من
+    function goBackToLessons() {
+        goToScreen('screen-lessons', false);
+        pushHistory('screen-lessons');
+    }
+    
+    // از تکالیف → خانه
     function goBackToHome() {
         goToScreen('screen-home', false);
         pushHistory('screen-home');
@@ -4276,7 +4388,21 @@
         
         const activeId = activeScreen.id;
         
-        // از همه صفحات داخلی → خانه
+        // اگه در جزئیات تکلیف بودیم → برو تکالیف من
+        if (activeId === 'screen-lesson-detail') {
+            goToScreen('screen-lessons', false);
+            pushHistory('screen-lessons');
+            return;
+        }
+        
+        // اگه در تکالیف من بودیم → برو خانه
+        if (activeId === 'screen-lessons') {
+            goToScreen('screen-home', false);
+            pushHistory('screen-home');
+            return;
+        }
+        
+        // از بقیه صفحات → خانه
         if (activeId !== 'screen-home' && activeId !== 'screen-splash' && activeId !== 'screen-welcome') {
             goToScreen('screen-home', false);
             pushHistory('screen-home');
@@ -4325,10 +4451,12 @@
             if (allLessons.length === 0) {
                 loadLessonsListForNotification().then(() => {
                     checkAndShowNotification();
+                    checkDeadlineWarning();
                     updateNotificationBadge();
                 });
             } else {
                 checkAndShowNotification();
+                checkDeadlineWarning();
                 updateNotificationBadge();
             }
             checkVideoNotification();
@@ -4382,7 +4510,8 @@
             message: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
             info: '<svg viewBox="0 0 24 24"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',
             success: '<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-            clip: '<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
+            clip: '<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
+            deadline: '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
         };
         return icons[type] || icons.info;
     }
@@ -4427,9 +4556,21 @@
             allLessons = [];
         }
     }
+    
+    // فقط تکالیف منقضی‌نشده و انجام‌نشده رو اعلان کن
     function checkAndAddLessonNotifications() {
         const seenLessonsForNotif = JSON.parse(localStorage.getItem('seenLessonsForNotif') || '[]');
-        const newLessons = allLessons.filter(l => !seenLessonsForNotif.includes(l.id));
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const completedIds = reports.map(r => r.lessonId);
+        
+        const newLessons = allLessons.filter(l => {
+            if (seenLessonsForNotif.includes(l.id)) return false;
+            if (completedIds.includes(l.id)) return false; // انجام‌شده
+            const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
+            if (isExpired(dueDate)) return false; // منقضی‌شده
+            return true;
+        });
+        
         newLessons.forEach(lesson => {
             addNotification('lesson', 'تکلیف جدید', `${lesson.title}${lesson.subtitle ? ' - ' + lesson.subtitle : ''}`);
         });
@@ -4438,6 +4579,7 @@
             localStorage.setItem('seenLessonsForNotif', JSON.stringify(allIds));
         }
     }
+    
     function checkVideoNotification() {
         const seenVideos = JSON.parse(localStorage.getItem('seenVideos') || '[]');
         const currentVideos = ['video_1'];
@@ -4482,10 +4624,17 @@
         dismissVideoNotification();
         setTimeout(() => openClipsPage(), 200);
     }
+    
+    // بررسی تکالیف در انتظار (منقضی‌نشده و انجام‌نشده)
     function checkAndShowNotification() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
-        const pendingLessons = allLessons.filter(l => !completedIds.includes(l.id));
+        const pendingLessons = allLessons.filter(l => {
+            if (completedIds.includes(l.id)) return false;
+            const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
+            if (isExpired(dueDate)) return false;
+            return true;
+        });
         
         const notification = document.getElementById('new-lesson-notification');
         const subText = document.getElementById('notification-sub-text');
@@ -4499,13 +4648,90 @@
             }
         } else {
             notification.classList.remove('show');
-            const videoNotif = document.getElementById('video-notification');
-            if (videoNotif && videoNotif.classList.contains('show')) {
-                videoNotif.style.top = '15px';
-            }
         }
         checkNewLessons();
     }
+    
+    // بررسی هشدار مهلت (کمتر از ۳ روز مونده و انجام نشده)
+    let deadlineWarningLessonId = null;
+    function checkDeadlineWarning() {
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const completedIds = reports.map(r => r.lessonId);
+        
+        const urgentLessons = allLessons.filter(l => {
+            if (completedIds.includes(l.id)) return false;
+            const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
+            if (isExpired(dueDate)) return false;
+            return isDeadlineSoon(dueDate);
+        });
+        
+        const notification = document.getElementById('deadline-warning-notification');
+        const subText = document.getElementById('deadline-warning-sub-text');
+        
+        if (urgentLessons.length > 0 && notification) {
+            // نزدیک‌ترین تکلیف
+            urgentLessons.sort((a, b) => persianDateToNumber(a.dueDate) - persianDateToNumber(b.dueDate));
+            const urgent = urgentLessons[0];
+            const daysLeft = daysUntilDeadline(urgent.dueDate);
+            deadlineWarningLessonId = urgent.id;
+            
+            if (daysLeft === 0) {
+                subText.textContent = `مهلت «${urgent.title}» امروز تموم می‌شه! ⚠️`;
+            } else {
+                subText.textContent = `مهلت «${urgent.title}» ${toPersianNum(daysLeft)} روز دیگه تموم می‌شه!`;
+            }
+            
+            // موقعیت: پایین‌ترین اعلان
+            const videoNotif = document.getElementById('video-notification');
+            const lessonNotif = document.getElementById('new-lesson-notification');
+            let topPos = 15;
+            if (lessonNotif && lessonNotif.classList.contains('show')) topPos = 95;
+            if (videoNotif && videoNotif.classList.contains('show')) topPos = 175;
+            notification.style.top = topPos + 'px';
+            
+            setTimeout(() => notification.classList.add('show'), 1200);
+            
+            // اگه اعلان قرمز قبلاً ثبت شده و مهلتش عوض شده، دوباره اضافه نکن
+            const notifs = getNotifications();
+            const existingDeadlineNotif = notifs.find(n => n.type === 'deadline' && n.text && n.text.includes(urgent.title));
+            if (!existingDeadlineNotif) {
+                const text = daysLeft === 0 
+                    ? `مهلت تکلیف «${urgent.title}» امروز تموم می‌شه!`
+                    : `مهلت تکلیف «${urgent.title}» ${toPersianNum(daysLeft)} روز دیگه تموم می‌شه.`;
+                addNotification('deadline', '⚠️ هشدار مهلت', text);
+                updateNotificationBadge();
+            }
+        } else if (notification) {
+            notification.classList.remove('show');
+            deadlineWarningLessonId = null;
+        }
+    }
+    
+    function dismissDeadlineWarning() {
+        const notif = document.getElementById('deadline-warning-notification');
+        if (!notif) return;
+        notif.classList.add('swiping');
+        notif.style.transform = 'translateY(-200%)';
+        notif.style.opacity = '0';
+        setTimeout(() => {
+            notif.classList.remove('show', 'swiping');
+            notif.style.transform = '';
+            notif.style.opacity = '';
+        }, 300);
+    }
+    
+    function goToDeadlineLesson() {
+        dismissDeadlineWarning();
+        if (deadlineWarningLessonId) {
+            goToScreen('screen-lessons');
+            setTimeout(() => {
+                openLessonDetail(deadlineWarningLessonId);
+            }, 500);
+        } else {
+            goToScreen('screen-lessons');
+        }
+    }
+
     function dismissNotification() {
         const notif = document.getElementById('new-lesson-notification');
         notif.classList.add('swiping');
@@ -4515,9 +4741,16 @@
             notif.classList.remove('show', 'swiping');
             notif.style.transform = '';
             notif.style.opacity = '';
+            // اعلان‌های پایینی بیان بالا
             const videoNotif = document.getElementById('video-notification');
+            const deadlineNotif = document.getElementById('deadline-warning-notification');
             if (videoNotif && videoNotif.classList.contains('show')) {
                 videoNotif.style.top = '15px';
+                if (deadlineNotif && deadlineNotif.classList.contains('show')) {
+                    deadlineNotif.style.top = '95px';
+                }
+            } else if (deadlineNotif && deadlineNotif.classList.contains('show')) {
+                deadlineNotif.style.top = '15px';
             }
         }, 300);
     }
@@ -4529,7 +4762,12 @@
         if (allLessons.length === 0) return;
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const completedIds = reports.map(r => r.lessonId);
-        const pendingLessons = allLessons.filter(l => !completedIds.includes(l.id));
+        const pendingLessons = allLessons.filter(l => {
+            if (completedIds.includes(l.id)) return false;
+            const dueDate = l.dueDate || '۱۴۰۵/۰۹/۱۵';
+            if (isExpired(dueDate)) return false;
+            return true;
+        });
         const badge = document.getElementById('new-lesson-badge');
         if (pendingLessons.length > 0 && badge) badge.style.display = 'inline-block';
         else if (badge) badge.style.display = 'none';
@@ -4541,7 +4779,7 @@
     let currentSwipeNotifId = null;
     
     function initNotificationSwipe() {
-        ['new-lesson-notification', 'video-notification'].forEach(id => {
+        ['new-lesson-notification', 'video-notification', 'deadline-warning-notification'].forEach(id => {
             const notif = document.getElementById(id);
             if (!notif) return;
             notif.addEventListener('touchstart', (e) => handleNotifTouchStart(e, id), { passive: true });
@@ -4610,10 +4848,20 @@
                 
                 if (id === 'new-lesson-notification') {
                     const videoNotif = document.getElementById('video-notification');
+                    const deadlineNotif = document.getElementById('deadline-warning-notification');
                     if (videoNotif && videoNotif.classList.contains('show')) {
                         videoNotif.classList.add('swiping');
                         videoNotif.style.top = '15px';
                         setTimeout(() => videoNotif.classList.remove('swiping'), 400);
+                        if (deadlineNotif && deadlineNotif.classList.contains('show')) {
+                            deadlineNotif.classList.add('swiping');
+                            deadlineNotif.style.top = '95px';
+                            setTimeout(() => deadlineNotif.classList.remove('swiping'), 400);
+                        }
+                    } else if (deadlineNotif && deadlineNotif.classList.contains('show')) {
+                        deadlineNotif.classList.add('swiping');
+                        deadlineNotif.style.top = '15px';
+                        setTimeout(() => deadlineNotif.classList.remove('swiping'), 400);
                     }
                     if (allLessons.length > 0) {
                         const allIds = allLessons.map(l => l.id);
@@ -4623,6 +4871,14 @@
                     }
                 } else if (id === 'video-notification') {
                     localStorage.setItem('seenVideos', JSON.stringify(['video_1']));
+                    const deadlineNotif = document.getElementById('deadline-warning-notification');
+                    if (deadlineNotif && deadlineNotif.classList.contains('show')) {
+                        deadlineNotif.classList.add('swiping');
+                        deadlineNotif.style.top = '95px';
+                        setTimeout(() => deadlineNotif.classList.remove('swiping'), 400);
+                    }
+                } else if (id === 'deadline-warning-notification') {
+                    // فقط بستن
                 }
             }, 300);
         } else {
@@ -4680,8 +4936,9 @@
             goToScreen('screen-home');
             setTimeout(() => {
                 checkAndShowNotification();
-                updateNotificationBadge();
                 checkVideoNotification();
+                checkDeadlineWarning();
+                updateNotificationBadge();
                 if (localStorage.getItem('guideCompleted') !== 'true') {
                     currentGuideStep = 0;
                     showGuideStep();
@@ -5059,8 +5316,9 @@
             const isPaused = currentProgress && currentProgress.lessonId === lesson.id;
             const lessonDueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
             const expired = isExpired(lessonDueDate);
+            const soon = isDeadlineSoon(lessonDueDate) && !isCompleted;
             return {
-                ...lesson, isCompleted, isPaused, isExpired: expired,
+                ...lesson, isCompleted, isPaused, isExpired: expired, isDeadlineSoon: soon,
                 colorIndex: index % 6,
                 taskTitle: LESSON_TITLES[index] || `تکلیف ${toPersianNum(index + 1)}`,
                 dueDate: lessonDueDate
@@ -5112,9 +5370,21 @@
             const borderColor = bookData.color + '44';
             const bgColor = bookData.colorLight;
             
-            // اگر 100% بود، متن عدد سبز بشه (مستقل از رنگ کتاب)
+            // عدد پیشرفت 100% = سبز
             const progressTextColor = progressPercent === 100 ? '#2e7d32' : bookData.color;
             const progressTextClass = progressPercent === 100 ? 'full-progress' : '';
+            
+            // کلاس مهلت
+            let deadlineClass = '';
+            if (lesson.isExpired && !lesson.isCompleted) deadlineClass = 'expired';
+            else if (lesson.isDeadlineSoon) deadlineClass = 'warning';
+            
+            let deadlineLabel = 'مهلت: ';
+            if (lesson.isExpired && !lesson.isCompleted) deadlineLabel = 'مهلت گذشته: ';
+            else if (lesson.isDeadlineSoon) {
+                const days = daysUntilDeadline(lesson.dueDate);
+                deadlineLabel = days === 0 ? '⏰ امروز آخرین فرصت: ' : `⚠️ فقط ${toPersianNum(days)} روز مونده: `;
+            }
             
             return `
                 <div class="lesson-card" style="border-color: ${borderColor};">
@@ -5124,9 +5394,9 @@
                     </div>
                     <div class="lesson-card-info">
                         <div class="lesson-card-title" style="color: ${bookData.color};">${lesson.taskTitle}${lesson.subtitle ? ' - ' + lesson.subtitle : ''}</div>
-                        <div class="lesson-card-deadline ${lesson.isExpired && !lesson.isCompleted ? 'expired' : ''}">
+                        <div class="lesson-card-deadline ${deadlineClass}">
                             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <span>${lesson.isExpired && !lesson.isCompleted ? 'مهلت گذشته: ' : 'مهلت: '}${lesson.dueDate}</span>
+                            <span>${deadlineLabel}${lesson.dueDate}</span>
                         </div>
                         <button class="lesson-view-btn ${btnClass}" onclick="event.stopPropagation(); openLessonDetail('${lesson.id}')">
                             ${btnText}
@@ -5161,6 +5431,7 @@
         
         const dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
         const expired = isExpired(dueDate);
+        const soon = isDeadlineSoon(dueDate) && !isCompleted;
         const activityCount = lesson.activityCount || 12;
         const estimatedTime = lesson.estimatedTime || 10;
         const description = lesson.description || 'در این تکلیف، با واژگان جدید، ترجمه و عبارات مهم درس اول آشنا می‌شوید. موفق باشید!';
@@ -5173,6 +5444,18 @@
                     <div class="expired-warning-text">
                         <div class="expired-warning-title">مهلت این تکلیف گذشته!</div>
                         <div class="expired-warning-desc">شما می‌توانید تکلیف را برای تمرین انجام دهید، اما نمره و کارنامه‌ای صادر نمی‌شود.</div>
+                    </div>
+                </div>
+            `;
+        } else if (soon) {
+            const days = daysUntilDeadline(dueDate);
+            const daysText = days === 0 ? 'امروز آخرین فرصت است!' : `فقط ${toPersianNum(days)} روز تا پایان مهلت باقی مانده!`;
+            expiredWarningHTML = `
+                <div class="deadline-soon-warning">
+                    <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <div class="deadline-soon-warning-text">
+                        <div class="deadline-soon-warning-title">⏰ مهلت در حال اتمام!</div>
+                        <div class="deadline-soon-warning-desc">${daysText} لطفاً هر چه سریع‌تر تکلیف رو انجام بده.</div>
                     </div>
                 </div>
             `;
@@ -6092,10 +6375,12 @@
                     if (allLessons.length === 0) {
                         loadLessonsListForNotification().then(() => {
                             checkAndShowNotification();
+                            checkDeadlineWarning();
                             updateNotificationBadge();
                         });
                     } else {
                         checkAndShowNotification();
+                        checkDeadlineWarning();
                         updateNotificationBadge();
                     }
                     checkVideoNotification();
