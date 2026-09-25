@@ -134,24 +134,25 @@ function renderQuestion() {
         html += `<div class="audio-hint">👆 روی کلمه‌ای که فکر می‌کنی <span class="highlight">اشتباه</span> است، کلیک کن</div>`;
         html += `</div>`;
     } else if (q.type === 'word-build') {
-        // 🆕 سوال word-build — اگه جمله فارسی داشت، توی کادر نشون بده (بدون وکتور صدا)
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
             <div class="question-text-text">${q.question}</div>
         </div>`;
-
-        // اگه audioUrl داشت، وکتور صدا رو نشون بده
-        if (q.audioUrl) {
+        
+        // 🆕 اگه سوال فیلد sentence (جمله فارسی) داره، کادر نمایش بده
+        if (q.sentence) {
+            html += `<div class="sentence-prompt-box">
+                <div class="sentence-prompt-label">جمله فارسی:</div>
+                <div class="sentence-prompt-text">${q.sentence}</div>
+            </div>`;
+        }
+        // اگه audioUrl داره، وکتور صدا رو نشون بده
+        else if (q.audioUrl) {
             html += `<div class="word-build-audio-only" onclick="playWordBuildAudio(this)">
                 <img src="${SOUND_VECTOR_URL}" alt="صدا">
             </div>`;
         }
-
-        // اگه sentence فارسی داشت، توی کادر نشون بده (بدون وکتور صدا)
-        if (q.sentenceFa) {
-            html += `<div class="word-build-fa-sentence">${q.sentenceFa}</div>`;
-        }
-
+        
         html += `<div class="word-build-result" id="word-build-result">کلمات رو اینجا بچین (برای برگرداندن کلیک کن)</div>`;
         html += `<div class="word-build-options" id="word-build-options">`;
         const shuffledWB = shuffleArray([...q.words]);
@@ -159,7 +160,7 @@ function renderQuestion() {
             html += `<div class="word-build-item" onclick="selectWordBuild(this, '${word}')">${word}</div>`;
         });
         html += `</div>`;
-        html += `<div class="audio-hint">👆 کلمات رو به ترتیب درست بچین</div>`;
+        html += `<div class="audio-hint">👆 کلمات رو به ترتیب درست بچین تا جمله ساخته بشه</div>`;
     } else if (q.type === 'survey') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -170,13 +171,7 @@ function renderQuestion() {
         html += `<div class="audio-hint">💬 نظرت برامون مهمه! هرچی بنویسی قبوله ✨</div>`;
         html += `</div>`;
     } else {
-        // 🆕 برای سوال‌های order و multiple، اگه متن عربی/فارسی داشتن، توی کادر جدا نشون بده
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
-
-        // اگه سوال متن عربی داشت که باید توی کادر جدا نشون داده بشه
-        if (q.arabicSentence) {
-            html += `<div class="question-arabic-box">${q.arabicSentence}</div>`;
-        }
 
         if (q.type === 'multiple') {
             html += `<div class="options-grid">`;
@@ -192,6 +187,13 @@ function renderQuestion() {
                 <div class="matching-col" id="col-ar">${shuffledMatchAr.map((item) => `<div class="matching-item" data-idx="${item.idx}" data-type="ar" onclick="selectMatch(this, 'ar')">${item.text}</div>`).join('')}</div>
             </div>`;
         } else if (q.type === 'order') {
+            // 🆕 اگه فیلد arabicSentence داره، کادر جمله عربی نشون بده
+            if (q.arabicSentence) {
+                html += `<div class="arabic-sentence-box">
+                    <div class="arabic-sentence-label">جمله عربی:</div>
+                    <div class="arabic-sentence-text">${q.arabicSentence}</div>
+                </div>`;
+            }
             shuffledOrderOptions = shuffleArray([...q.options]);
             html += `<div class="order-container" id="order-container">${shuffledOrderOptions.map((opt) => `<div class="order-item" onclick="selectOrder(this, '${opt}')">${opt}</div>`).join('')}</div>`;
             html += `<div class="order-result" id="order-result">کلمات را اینجا بچینید (برای برگرداندن کلیک کنید)</div>`;
@@ -534,7 +536,7 @@ function checkAnswer() {
 }
 
 // ============================================================
-// گرفتن متن پاسخ صحیح
+// گرفتن متن پاسخ صحیح برای نمایش
 // ============================================================
 function getCorrectAnswerText(q) {
     if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image') return q.options[q.correct];
@@ -558,7 +560,7 @@ function getCorrectAnswerText(q) {
 }
 
 // ============================================================
-// نمایش بازخورد
+// نمایش بازخورد (درست/غلط)
 // ============================================================
 function showFeedback(isCorrect, points, q) {
     goToScreen('screen-feedback');

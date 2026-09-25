@@ -340,7 +340,8 @@ async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracti
             isPracticeMode = practiceMode || forcePracticeMode;
             startTime = new Date();
         }
-        document.getElementById('quiz-lesson-title').textContent = taskTitle;
+        // عنوان تکلیف دیگه نمایش داده نمیشه
+        // document.getElementById('quiz-lesson-title').textContent = taskTitle;
         goToScreen('screen-quiz');
         renderQuestion();
     } catch (error) {
