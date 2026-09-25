@@ -1,8 +1,10 @@
-const CACHE_NAME = 'arabi-hafom-v35';
+const CACHE_NAME = 'arabi-hafom-v4';
 const urlsToCache = [
   './',
   './index.html',
   './clips.html',
+  './maintenance.html',
+  './maintenance.json',
   './manifest.json',
   './icon-512.png',
   './lessons/index.json',
@@ -27,7 +29,8 @@ const urlsToCache = [
   'https://cdn.imgurl.ir/uploads/f058661_IMG__.png',
   'https://cdn.imgurl.ir/uploads/k1280_IMG__.png',
   'https://cdn.imgurl.ir/uploads/q178853_IMG__.png',
-  'https://cdn.imgurl.ir/uploads/a3501_IMG__.png'
+  'https://cdn.imgurl.ir/uploads/a3501_IMG__.png',
+  'https://cdn.imgurl.ir/uploads/i392811_file_000000004034822fab3dfb7fe4276696.png'
 ];
 
 // ==================== نصب Service Worker ====================
@@ -70,10 +73,17 @@ self.addEventListener('activate', event => {
 });
 
 // ==================== مدیریت درخواست‌ها ====================
-// استراتژی: اول از کش بخون، اگر نبود از شبکه بگیر
 self.addEventListener('fetch', event => {
-  // فقط درخواست‌های GET رو کش کن
   if (event.request.method !== 'GET') return;
+  
+  // فایل maintenance.json رو همیشه از شبکه بگیر (نه از کش)
+  if (event.request.url.includes('maintenance.json')) {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
   
   event.respondWith(
     caches.match(event.request)
@@ -97,7 +107,6 @@ self.addEventListener('fetch', event => {
             return response;
           })
           .catch(() => {
-            // اگه شبکه قطع بود و فایل در کش نبود
             if (event.request.mode === 'navigate') {
               return caches.match('./index.html');
             }

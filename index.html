@@ -1878,19 +1878,6 @@
         .option-btn.selected { 
             border-color: var(--primary); background: var(--primary-light); color: var(--primary);
         }
-        .option-btn.correct-match {
-            border-color: #4caf50;
-            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-            color: #1b5e20;
-            pointer-events: none;
-            opacity: 0.85;
-        }
-        .option-btn.wrong {
-            border-color: #ef5350;
-            background: linear-gradient(135deg, #ffebee, #ffcdd2);
-            color: #c62828;
-            animation: shakeWarning 0.3s ease;
-        }
         .image-options-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
         }
@@ -1984,11 +1971,11 @@
         .audio-match-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 14px;
             width: 100%;
         }
         .audio-match-cell {
-            min-height: 75px;
+            min-height: 95px;
             border-radius: 18px;
             display: flex;
             align-items: center;
@@ -2004,10 +1991,10 @@
             background: #fff;
             border: 2px solid #e0e0e0;
             color: #1a237e;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 900;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
         }
         .audio-match-cell.word-cell.selected {
             border-color: var(--primary);
@@ -2027,14 +2014,20 @@
             background: linear-gradient(135deg, #ffebee, #ffcdd2);
             border-color: #ef5350;
             color: #c62828;
-            animation: shakeWarning 0.35s ease;
+            animation: shakeWrong 0.35s ease;
+        }
+        @keyframes shakeWrong {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
         }
         /* سلول دکمه صدا */
         .audio-match-cell.audio-cell {
             background: #fff;
             border: 2px solid #e0e0e0;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            padding: 8px 12px;
         }
         .audio-match-cell.audio-cell.selected {
             border-color: var(--primary);
@@ -2059,18 +2052,20 @@
         .audio-match-cell.audio-cell.wrong {
             background: linear-gradient(135deg, #ffebee, #ffcdd2);
             border-color: #ef5350;
-            animation: shakeWarning 0.35s ease;
+            animation: shakeWrong 0.35s ease;
         }
+        /* وکتور صدا بزرگ‌تر - مثل عکس */
         .audio-match-wave {
             width: 100%;
-            height: 42px;
+            max-width: 140px;
+            height: 60px;
             object-fit: contain;
             display: block;
             pointer-events: none;
             transition: transform 0.25s ease;
         }
         .audio-match-cell.audio-cell.playing .audio-match-wave {
-            transform: scale(1.1);
+            transform: scale(1.08);
         }
         .audio-hint {
             text-align: center;
@@ -2210,8 +2205,8 @@
             cursor: pointer;
         }
         .word-build-audio-only img {
-            width: 110px;
-            height: 80px;
+            width: 140px;
+            height: 90px;
             object-fit: contain;
             transition: transform 0.25s ease;
         }
@@ -3380,7 +3375,6 @@
                 <div class="notification-swipe-hint"></div>
             </div>
 
-            <!-- اعلان هشدار مهلت -->
             <div class="deadline-notification" id="deadline-notification">
                 <button class="notification-close" onclick="dismissDeadlineNotification()">✕</button>
                 <div class="notification-icon">⚠️</div>
@@ -4055,6 +4049,27 @@
 
 </div>
 <script>
+    // ============ بررسی حالت بروزرسانی ============
+    const ADMIN_CODE = 'hadi1383';
+    
+    async function checkMaintenanceMode() {
+        // اگه ادمین هست، رد شو
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('admin') === ADMIN_CODE) {
+            console.log('👑 حالت ادمین فعال - ورود به برنامه');
+            return false;
+        }
+        
+        try {
+            const response = await fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' });
+            if (!response.ok) return false;
+            const data = await response.json();
+            return data.maintenance === true;
+        } catch(e) {
+            return false;
+        }
+    }
+
     // ============ ثابت‌ها ============
     const SOUND_VECTOR_URL = 'https://cdn.imgurl.ir/uploads/i392811_file_000000004034822fab3dfb7fe4276696.png';
 
@@ -5846,7 +5861,6 @@
                 <div class="question-text-text">${q.question}</div>
             </div>`;
             // چیدمان جدید: شبکه دو ستونی نامرتب
-            // ساخت آرایه نامرتب از کلمات فارسی و صداها
             const faWords = q.faOptions.map((word, idx) => ({ word, originalIdx: idx }));
             const shuffledFaWords = shuffleArray([...faWords]);
             const audiosWithIdx = q.audios.map((audio, idx) => ({ audio, originalIdx: idx }));
@@ -5856,12 +5870,9 @@
             for (let i = 0; i < q.audios.length; i++) {
                 const faItem = shuffledFaWords[i];
                 const audioItem = shuffledAudios[i];
-                // سلول کلمه فارسی
                 html += `<div class="audio-match-cell word-cell" 
                     data-word-orig="${faItem.originalIdx}" 
-                    data-current-audio=""
                     onclick="selectFaWord(this, '${faItem.word}', ${faItem.originalIdx})">${faItem.word}</div>`;
-                // سلول دکمه صدا
                 html += `<div class="audio-match-cell audio-cell" 
                     data-audio-idx="${audioItem.originalIdx}" 
                     onclick="selectAudio(this, ${audioItem.originalIdx})">
@@ -5946,12 +5957,9 @@
         const q = currentLesson.questions[currentQuestionIndex];
         const audio = q.audios[audioIdx];
         if (!audio) return;
-        // پخش صدا
         playAudioFromVideo(audio.videoUrl, el);
-        // پاک کردن انتخاب قبلی از همه
         document.querySelectorAll('.audio-match-cell.audio-cell.selected').forEach(c => c.classList.remove('selected'));
         document.querySelectorAll('.audio-match-cell.word-cell.selected').forEach(c => c.classList.remove('selected'));
-        // این سلول رو انتخاب کن
         if (!el.classList.contains('correct-match')) {
             el.classList.add('selected');
         }
@@ -5964,7 +5972,7 @@
         if (selectedAudioIndex === -1) {
             vibrate([50, 30, 50]);
             el.style.animation = 'none';
-            setTimeout(() => { el.style.animation = 'shakeWarning 0.35s ease'; }, 10);
+            setTimeout(() => { el.style.animation = 'shakeWrong 0.35s ease'; }, 10);
             return;
         }
         vibrate(15);
@@ -5972,26 +5980,20 @@
         const selectedAudio = q.audios[selectedAudioIndex];
         
         if (selectedAudio.correctFa === word) {
-            // ✅ درست
             el.classList.add('correct-match');
             el.classList.remove('selected');
-            
-            // دکمه صدا رو هم سبز کن
             const audioBtn = document.querySelector(`.audio-match-cell.audio-cell[data-audio-idx="${selectedAudioIndex}"]`);
             if (audioBtn) {
                 audioBtn.classList.add('correct-match');
                 audioBtn.classList.remove('selected', 'playing');
             }
-            
             matchedAudioPairs.push({ audioIdx: selectedAudioIndex, faWord: word });
             vibrate([30, 50, 30]);
             selectedAudioIndex = -1;
-            
             if (matchedAudioPairs.length === q.audios.length) {
                 setTimeout(() => { checkAnswer(); }, 800);
             }
         } else {
-            // ❌ غلط
             el.classList.add('wrong');
             const audioBtn = document.querySelector(`.audio-match-cell.audio-cell[data-audio-idx="${selectedAudioIndex}"]`);
             if (audioBtn) {
@@ -6556,7 +6558,14 @@
     });
 
     // ============ بارگذاری اولیه ============
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
+        // ⭐ بررسی حالت بروزرسانی
+        const isMaintenance = await checkMaintenanceMode();
+        if (isMaintenance) {
+            window.location.href = './maintenance.html';
+            return;
+        }
+        
         loadUserInfo();
         loadTheme();
         if (localStorage.getItem('soundsEnabled') === 'false') document.getElementById('setting-sounds').checked = false;
