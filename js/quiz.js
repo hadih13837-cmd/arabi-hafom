@@ -17,7 +17,7 @@ let selectedAudioIndex = -1;
 let playingAudioIndex = -1;
 let matchedAudioPairs = [];
 let selectedErrorWord = null;
-let surveyAnswerText = ''; // 🆕 ذخیره متن نظرسنجی
+let surveyAnswerText = '';
 
 // ============================================================
 // shuffle آرایه
@@ -80,7 +80,7 @@ function renderQuestion() {
     playingAudioIndex = -1;
     matchedAudioPairs = [];
     selectedErrorWord = null;
-    surveyAnswerText = ''; // 🆕 ریست متن نظرسنجی
+    surveyAnswerText = '';
     submitBtn.disabled = false;
     submitBtn.textContent = 'بررسی سوال';
     saveCurrentProgress();
@@ -134,13 +134,24 @@ function renderQuestion() {
         html += `<div class="audio-hint">👆 روی کلمه‌ای که فکر می‌کنی <span class="highlight">اشتباه</span> است، کلیک کن</div>`;
         html += `</div>`;
     } else if (q.type === 'word-build') {
+        // 🆕 سوال word-build — اگه جمله فارسی داشت، توی کادر نشون بده (بدون وکتور صدا)
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
             <div class="question-text-text">${q.question}</div>
         </div>`;
-        html += `<div class="word-build-audio-only" onclick="playWordBuildAudio(this)">
-            <img src="${SOUND_VECTOR_URL}" alt="صدا">
-        </div>`;
+
+        // اگه audioUrl داشت، وکتور صدا رو نشون بده
+        if (q.audioUrl) {
+            html += `<div class="word-build-audio-only" onclick="playWordBuildAudio(this)">
+                <img src="${SOUND_VECTOR_URL}" alt="صدا">
+            </div>`;
+        }
+
+        // اگه sentence فارسی داشت، توی کادر نشون بده (بدون وکتور صدا)
+        if (q.sentenceFa) {
+            html += `<div class="word-build-fa-sentence">${q.sentenceFa}</div>`;
+        }
+
         html += `<div class="word-build-result" id="word-build-result">کلمات رو اینجا بچین (برای برگرداندن کلیک کن)</div>`;
         html += `<div class="word-build-options" id="word-build-options">`;
         const shuffledWB = shuffleArray([...q.words]);
@@ -148,7 +159,7 @@ function renderQuestion() {
             html += `<div class="word-build-item" onclick="selectWordBuild(this, '${word}')">${word}</div>`;
         });
         html += `</div>`;
-        html += `<div class="audio-hint">👆 اول روی <span class="highlight">دکمه صدا</span> بزن، بعد کلمات رو به ترتیب بچین</div>`;
+        html += `<div class="audio-hint">👆 کلمات رو به ترتیب درست بچین</div>`;
     } else if (q.type === 'survey') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -159,7 +170,13 @@ function renderQuestion() {
         html += `<div class="audio-hint">💬 نظرت برامون مهمه! هرچی بنویسی قبوله ✨</div>`;
         html += `</div>`;
     } else {
+        // 🆕 برای سوال‌های order و multiple، اگه متن عربی/فارسی داشتن، توی کادر جدا نشون بده
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
+
+        // اگه سوال متن عربی داشت که باید توی کادر جدا نشون داده بشه
+        if (q.arabicSentence) {
+            html += `<div class="question-arabic-box">${q.arabicSentence}</div>`;
+        }
 
         if (q.type === 'multiple') {
             html += `<div class="options-grid">`;
@@ -430,7 +447,6 @@ function checkAnswer() {
             answerGiven = true;
             const userAnswer = JSON.stringify(orderSelected);
             let matched = (userAnswer === JSON.stringify(q.correct));
-            // 🆕 بررسی پاسخ‌های جایگزین (altCorrect)
             if (!matched && q.altCorrect && Array.isArray(q.altCorrect)) {
                 for (const alt of q.altCorrect) {
                     if (JSON.stringify(orderSelected) === JSON.stringify(alt)) {
@@ -466,7 +482,6 @@ function checkAnswer() {
             answerGiven = true;
             const userAnswer = JSON.stringify(orderSelected);
             let matched = (userAnswer === JSON.stringify(q.correct));
-            // 🆕 بررسی پاسخ‌های جایگزین (altCorrect) برای word-build هم
             if (!matched && q.altCorrect && Array.isArray(q.altCorrect)) {
                 for (const alt of q.altCorrect) {
                     if (JSON.stringify(orderSelected) === JSON.stringify(alt)) {
@@ -488,7 +503,7 @@ function checkAnswer() {
         if (ans.length >= (q.minLength || 2)) {
             answerGiven = true;
             isCorrect = true;
-            surveyAnswerText = ans; // 🆕 ذخیره متن نظرسنجی
+            surveyAnswerText = ans;
         } else {
             showModal('توجه', 'لطفاً نظرت رو بنویس.', '⚠️');
             return;
@@ -519,7 +534,7 @@ function checkAnswer() {
 }
 
 // ============================================================
-// گرفتن متن پاسخ صحیح برای نمایش
+// گرفتن متن پاسخ صحیح
 // ============================================================
 function getCorrectAnswerText(q) {
     if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image') return q.options[q.correct];
@@ -543,7 +558,7 @@ function getCorrectAnswerText(q) {
 }
 
 // ============================================================
-// نمایش بازخورد (درست/غلط) — 🆕 با پشتیبانی از explanation
+// نمایش بازخورد
 // ============================================================
 function showFeedback(isCorrect, points, q) {
     goToScreen('screen-feedback');
@@ -596,7 +611,6 @@ function showFeedback(isCorrect, points, q) {
             `;
         } else {
             answerBox.style.display = 'block';
-            // 🆕 اگه توضیح داشت، زیر کادر پاسخ اضافه کن
             if (q.explanation) {
                 answerBox.insertAdjacentHTML('beforeend', `
                     <div class="feedback-explanation-box">
@@ -637,7 +651,6 @@ function showFeedback(isCorrect, points, q) {
             answerLabel.textContent = 'پاسخ صحیح:';
             answerText.textContent = getCorrectAnswerText(q);
             answerBox.style.display = 'block';
-            // 🆕 اگه توضیح داشت، زیر کادر پاسخ اضافه کن
             if (q.explanation) {
                 answerBox.insertAdjacentHTML('beforeend', `
                     <div class="feedback-explanation-box" style="border-right-color: #c62828; color: #b71c1c;">
