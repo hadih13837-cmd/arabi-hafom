@@ -6559,12 +6559,12 @@
 
     // ============ بارگذاری اولیه ============
     window.addEventListener('load', async () => {
-        // ⭐ بررسی حالت بروزرسانی
-        const isMaintenance = await checkMaintenanceMode();
-        if (isMaintenance) {
-            window.location.href = './maintenance.html';
-            return;
-        }
+    // ⭐ بررسی حالت بروزرسانی
+    const isMaintenance = await checkMaintenanceMode();
+    if (isMaintenance) {
+        window.location.replace('./maintenance.html');
+        return;
+    }
         
         loadUserInfo();
         loadTheme();

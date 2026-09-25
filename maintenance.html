@@ -441,8 +441,22 @@
             window.close();
             // اگه مرورگر اجازه بستن نداد، حداقل به صفحه خالی برو
             setTimeout(() => {
-                window.location.href = 'about:blank';
+                window.location.replace('about:blank');
             }, 100);
+        });
+        
+        // ⭐ وقتی صفحه از کش بازیابی میشه، دوباره چک کن
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.maintenance === false) {
+                            window.location.replace('./index.html');
+                        }
+                    })
+                    .catch(() => {});
+            }
         });
     });
 </script>
