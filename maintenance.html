@@ -278,7 +278,7 @@
             background: #e3f2fd;
             border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             position: relative;
             z-index: 2;
             box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15) inset;
@@ -304,82 +304,6 @@
                 background-position: -100% 0;
                 transform: translateX(200%);
             }
-        }
-        
-        /* زمان تقریبی */
-        .time-box {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #fff8e1, #ffecb3);
-            border: 2px solid #ffc107;
-            border-radius: 50px;
-            padding: 10px 22px;
-            margin-bottom: 22px;
-            font-size: 14px;
-            font-weight: 900;
-            color: #e65100;
-            position: relative;
-            z-index: 2;
-            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
-        }
-        
-        .time-box .clock-icon {
-            font-size: 18px;
-            animation: clockTick 1s steps(2) infinite;
-        }
-        
-        @keyframes clockTick {
-            0%, 100% { transform: rotate(-10deg); }
-            50% { transform: rotate(10deg); }
-        }
-        
-        /* دکمه تلاش دوباره */
-        .retry-btn {
-            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-            color: #fff;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: 900;
-            cursor: pointer;
-            font-family: 'Vazirmatn', sans-serif;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            z-index: 2;
-            margin-bottom: 15px;
-        }
-        
-        .retry-btn:active {
-            transform: scale(0.97);
-            box-shadow: 0 3px 12px rgba(25, 118, 210, 0.5);
-        }
-        
-        .retry-btn svg {
-            width: 20px;
-            height: 20px;
-            stroke: #fff;
-            fill: none;
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            transition: transform 0.5s ease;
-        }
-        
-        .retry-btn.loading svg {
-            animation: retrySpin 1s linear infinite;
-        }
-        
-        @keyframes retrySpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
         
         /* پیام پایین */
@@ -414,35 +338,6 @@
             z-index: 2;
         }
         
-        /* پیام خطای اتصال */
-        .connection-msg {
-            display: none;
-            background: linear-gradient(135deg, #ffebee, #ffcdd2);
-            border: 2px solid #ef5350;
-            border-radius: 14px;
-            padding: 12px 16px;
-            margin-bottom: 15px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #c62828;
-            position: relative;
-            z-index: 2;
-            align-items: center;
-            gap: 8px;
-            justify-content: center;
-        }
-        
-        .connection-msg.show {
-            display: flex;
-            animation: shakeWarning 0.5s ease;
-        }
-        
-        @keyframes shakeWarning {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        
         /* ریسپانسیو */
         @media (max-width: 400px) {
             .maintenance-card {
@@ -454,7 +349,6 @@
             .gear-svg { width: 65px; height: 65px; }
             .maintenance-title { font-size: 22px; }
             .maintenance-text { font-size: 14px; }
-            .retry-btn { font-size: 15px; padding: 14px 28px; }
         }
     </style>
 </head>
@@ -486,29 +380,15 @@
         <div class="maintenance-text">
             داریم <span class="highlight">چیزهای باحالی</span> اضافه می‌کنیم<br>
             تا تجربه‌ی یادگیریت بهتر بشه! 🚀
+            <br><br>
+            <span style="font-size: 13px; color: #78909c;">
+                کمی صبر کن، به‌زودی برمی‌گردیم! ⏰
+            </span>
         </div>
         
         <div class="progress-wrapper">
             <div class="progress-bar"></div>
         </div>
-        
-        <div class="time-box">
-            <span class="clock-icon">⏰</span>
-            <span id="time-text">کمی صبر کن، به‌زودی برمی‌گردیم!</span>
-        </div>
-        
-        <div class="connection-msg" id="connection-msg">
-            <span>⚠️</span>
-            <span>اتصال به سرور برقرار نشد!</span>
-        </div>
-        
-        <button class="retry-btn" onclick="retryCheck()" id="retry-btn">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <polyline points="23 4 23 10 17 10"/>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-            </svg>
-            <span id="retry-text">تلاش دوباره</span>
-        </button>
         
         <div class="footer-msg">
             <span class="star">🌟</span>
@@ -547,94 +427,24 @@
         }
     }
     
-    // ============ بررسی مجدد وضعیت ============
-    async function retryCheck() {
-        const btn = document.getElementById('retry-btn');
-        const retryText = document.getElementById('retry-text');
-        const timeText = document.getElementById('time-text');
-        const connectionMsg = document.getElementById('connection-msg');
-        
-        btn.classList.add('loading');
-        retryText.textContent = 'در حال بررسی...';
-        connectionMsg.classList.remove('show');
-        
-        try {
-            const response = await fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' });
-            
-            if (response.ok) {
-                const data = await response.json();
-                
-                if (data.maintenance === false) {
-                    // برنامه دیگه در حالت تعمیر نیست
-                    retryText.textContent = 'در حال ورود...';
-                    timeText.textContent = 'آماده شد! در حال انتقال... ✅';
-                    
-                    setTimeout(() => {
-                        window.location.href = './index.html';
-                    }, 600);
-                    return;
-                } else {
-                    // هنوز در حالت تعمیر
-                    retryText.textContent = 'هنوز در حال بروزرسانیه!';
-                    timeText.textContent = 'کمی دیگه صبر کن... 😅';
-                    vibrateError();
-                    
-                    setTimeout(() => {
-                        btn.classList.remove('loading');
-                        retryText.textContent = 'تلاش دوباره';
-                        timeText.textContent = 'کمی صبر کن، به‌زودی برمی‌گردیم!';
-                    }, 2500);
-                    return;
-                }
-            }
-        } catch(e) {
-            console.log('خطا در اتصال:', e);
-            connectionMsg.classList.add('show');
-        }
-        
-        // اگه خطا داد یا سرور در دسترس نبود
-        setTimeout(() => {
-            btn.classList.remove('loading');
-            retryText.textContent = 'تلاش دوباره';
-            timeText.textContent = 'کمی صبر کن، به‌زودی برمی‌گردیم!';
-        }, 2000);
-    }
-    
-    function vibrateError() {
-        if (navigator.vibrate) {
-            navigator.vibrate([50, 30, 50]);
-        }
-    }
-    
-    function vibrateSuccess() {
-        if (navigator.vibrate) {
-            navigator.vibrate(30);
-        }
-    }
-    
     // ============ شروع ============
     window.addEventListener('load', () => {
         createParticles();
+        
+        // ⭐ جلوگیری از برگشت به صفحه خانه
+        // با push کردن یه صفحه دیگه توی history،
+        // وقتی کاربر برگشت می‌زنه، برنامه بسته میشه
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function() {
+            history.pushState(null, null, location.href);
+            // خروج از برنامه (بستن تب/برنامه)
+            window.close();
+            // اگه مرورگر اجازه بستن نداد، حداقل به صفحه خالی برو
+            setTimeout(() => {
+                window.location.href = 'about:blank';
+            }, 100);
+        });
     });
-    
-    // ============ بررسی خودکار هر ۳۰ ثانیه ============
-    setInterval(async () => {
-        try {
-            const response = await fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' });
-            if (response.ok) {
-                const data = await response.json();
-                if (data.maintenance === false) {
-                    // برنامه آماده شد - ریدایرکت خودکار
-                    document.getElementById('time-text').textContent = 'آماده شد! در حال انتقال... ✅';
-                    setTimeout(() => {
-                        window.location.href = './index.html';
-                    }, 800);
-                }
-            }
-        } catch(e) {
-            // اگه خطا داد، نادیده بگیر
-        }
-    }, 30000);
 </script>
 
 </body>
