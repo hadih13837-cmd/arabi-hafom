@@ -3,20 +3,38 @@
 // ============================================================
 
 // ============================================================
-// بررسی حالت بروزرسانی (Maintenance)
+// متغیر سراسری برای حالت انتشار
+// ============================================================
+let isPublished = true; // پیش‌فرض true (اگه published توی JSON نبود)
+
+// ============================================================
+// بررسی حالت بروزرسانی و وضعیت انتشار
 // ============================================================
 async function checkMaintenanceMode() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('admin') === ADMIN_CODE) {
+    const isAdmin = urlParams.get('admin') === ADMIN_CODE;
+    
+    if (isAdmin) {
         console.log('👑 حالت ادمین فعال - ورود به برنامه');
-        return false;
     }
+    
     try {
         const response = await fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' });
         if (!response.ok) return false;
         const data = await response.json();
+        
+        // 🆕 ذخیره وضعیت انتشار در متغیر سراسری
+        // اگه published توی JSON نبود، پیش‌فرض true
+        isPublished = (data.published !== false);
+        
+        console.log('📢 وضعیت انتشار:', isPublished ? 'منتشر شده ✅' : 'منتشر نشده 🔒');
+        
+        // اگه ادمین بود، هیچ‌وقت به maintenance.html نره
+        if (isAdmin) return false;
+        
         return data.maintenance === true;
     } catch(e) {
+        console.error('خطا در خواندن maintenance.json:', e);
         return false;
     }
 }
@@ -112,7 +130,7 @@ window.addEventListener('appinstalled', () => {
 // بارگذاری اولیه (Window Load)
 // ============================================================
 window.addEventListener('load', async () => {
-    // ۱. بررسی حالت بروزرسانی
+    // ۱. بررسی حالت بروزرسانی (و ذخیره وضعیت انتشار)
     const isMaintenance = await checkMaintenanceMode();
     if (isMaintenance) {
         window.location.replace('./maintenance.html');

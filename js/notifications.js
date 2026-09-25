@@ -100,6 +100,12 @@ async function loadLessonsListForNotification() {
 }
 
 function checkAndAddLessonNotifications() {
+    // 🆕 اگه منتشر نشده، اعلان اضافه نکن
+    if (typeof isPublished !== 'undefined' && !isPublished) {
+        console.log('🔒 تکالیف هنوز منتشر نشدن - اعلان اضافه نمی‌شه');
+        return;
+    }
+    
     const seenLessonsForNotif = JSON.parse(localStorage.getItem('seenLessonsForNotif') || '[]');
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const completedIds = reports.map(r => r.lessonId);
@@ -123,6 +129,13 @@ function checkAndAddLessonNotifications() {
 // اعلان ویدیوی جدید
 // ============================================================
 function checkVideoNotification() {
+    // 🆕 اگه منتشر نشده، اعلان ویدیو نشون نده
+    if (typeof isPublished !== 'undefined' && !isPublished) {
+        const notification = document.getElementById('video-notification');
+        if (notification) notification.classList.remove('show');
+        return;
+    }
+    
     const seenVideos = JSON.parse(localStorage.getItem('seenVideos') || '[]');
     const currentVideos = ['video_1'];
     const newVideos = currentVideos.filter(id => !seenVideos.includes(id));
@@ -167,6 +180,13 @@ function goToClipsFromNotification() {
 // اعلان تکالیف در انتظار
 // ============================================================
 function checkAndShowNotification() {
+    // 🆕 اگه منتشر نشده، اعلان نشون نده
+    if (typeof isPublished !== 'undefined' && !isPublished) {
+        const notification = document.getElementById('new-lesson-notification');
+        if (notification) notification.classList.remove('show');
+        return;
+    }
+    
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const completedIds = reports.map(r => r.lessonId);
     const pendingLessons = allLessons.filter(l => {
@@ -190,6 +210,13 @@ function checkAndShowNotification() {
 // هشدار مهلت
 // ============================================================
 function checkDeadlineWarning() {
+    // 🆕 اگه منتشر نشده، هشدار مهلت نشون نده
+    if (typeof isPublished !== 'undefined' && !isPublished) {
+        const deadlineNotif = document.getElementById('deadline-notification');
+        if (deadlineNotif) deadlineNotif.classList.remove('show');
+        return;
+    }
+    
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const completedIds = reports.map(r => r.lessonId);
     const urgentLessons = allLessons.filter(l => {
@@ -264,6 +291,14 @@ function goToNewLesson() {
 // ============================================================
 function checkNewLessons() {
     if (allLessons.length === 0) return;
+    
+    // 🆕 اگه منتشر نشده، بج «جدید» نشون نده
+    if (typeof isPublished !== 'undefined' && !isPublished) {
+        const badge = document.getElementById('new-lesson-badge');
+        if (badge) badge.style.display = 'none';
+        return;
+    }
+    
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const completedIds = reports.map(r => r.lessonId);
     const pendingLessons = allLessons.filter(l => {
@@ -278,7 +313,7 @@ function checkNewLessons() {
 }
 
 // ============================================================
-// جابه‌جایی اعلان‌ها روی هم (اگه چند تا فعال باشن)
+// جابه‌جایی اعلان‌ها روی هم
 // ============================================================
 function repositionNotifications() {
     const lessonNotif = document.getElementById('new-lesson-notification');
@@ -299,7 +334,7 @@ function repositionNotifications() {
 }
 
 // ============================================================
-// Swipe روی اعلان‌ها (لمس و ماوس)
+// Swipe روی اعلان‌ها
 // ============================================================
 let notifSwipeStartX = 0, notifSwipeStartY = 0, notifCurrentX = 0;
 let notifIsDragging = false, notifSwipeDirection = null;
