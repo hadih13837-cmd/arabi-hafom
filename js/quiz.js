@@ -31,7 +31,7 @@ function shuffleArray(array) {
 }
 
 // ============================================================
-// پخش صدا از فیلم
+// پخش صدا از فیلم (🆕 با صدای کامل)
 // ============================================================
 function playAudioFromVideo(videoUrl, btnElement) {
     const video = document.getElementById('audio-video-player');
@@ -41,6 +41,9 @@ function playAudioFromVideo(videoUrl, btnElement) {
     video.pause();
     video.src = videoUrl;
     video.currentTime = 0;
+    // 🔊 صدای ویدیو رو تا آخر بلند کن (max = 1.0)
+    video.volume = 1.0;
+    video.muted = false;
     if (btnElement) {
         btnElement.classList.add('playing');
         vibrate(15);
@@ -139,14 +142,12 @@ function renderQuestion() {
             <div class="question-text-text">${q.question}</div>
         </div>`;
         
-        // 🆕 اگه سوال فیلد sentence (جمله فارسی) داره، کادر نمایش بده
         if (q.sentence) {
             html += `<div class="sentence-prompt-box">
                 <div class="sentence-prompt-label">جمله فارسی:</div>
                 <div class="sentence-prompt-text">${q.sentence}</div>
             </div>`;
         }
-        // اگه audioUrl داره، وکتور صدا رو نشون بده
         else if (q.audioUrl) {
             html += `<div class="word-build-audio-only" onclick="playWordBuildAudio(this)">
                 <img src="${SOUND_VECTOR_URL}" alt="صدا">
@@ -187,7 +188,6 @@ function renderQuestion() {
                 <div class="matching-col" id="col-ar">${shuffledMatchAr.map((item) => `<div class="matching-item" data-idx="${item.idx}" data-type="ar" onclick="selectMatch(this, 'ar')">${item.text}</div>`).join('')}</div>
             </div>`;
         } else if (q.type === 'order') {
-            // 🆕 اگه فیلد arabicSentence داره، کادر جمله عربی نشون بده
             if (q.arabicSentence) {
                 html += `<div class="arabic-sentence-box">
                     <div class="arabic-sentence-label">جمله عربی:</div>
@@ -560,7 +560,7 @@ function getCorrectAnswerText(q) {
 }
 
 // ============================================================
-// نمایش بازخورد (درست/غلط)
+// نمایش بازخورد
 // ============================================================
 function showFeedback(isCorrect, points, q) {
     goToScreen('screen-feedback');
