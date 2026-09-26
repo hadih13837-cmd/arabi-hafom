@@ -2023,7 +2023,7 @@ body { display: flex; justify-content: center; align-items: center; }
     width: 100%;
 }
 .audio-match-cell {
-    min-height: 95px;
+    min-height: 130px;
     border-radius: 18px;
     display: flex;
     align-items: center;
@@ -2100,10 +2100,11 @@ body { display: flex; justify-content: center; align-items: center; }
     border-color: #ef5350;
     animation: shakeWrong 0.35s ease;
 }
+/* 🆕 وکتور صدا - بزرگ‌تر */
 .audio-match-wave {
     width: 100%;
-    max-width: 140px;
-    height: 60px;
+    max-width: 200px;
+    height: 90px;
     object-fit: contain;
     display: block;
     pointer-events: none;
@@ -2249,9 +2250,10 @@ body { display: flex; justify-content: center; align-items: center; }
     padding: 10px 0;
     cursor: pointer;
 }
+/* 🆕 وکتور صدا - بزرگ‌تر */
 .word-build-audio-only img {
-    width: 140px;
-    height: 90px;
+    width: 220px;
+    height: 140px;
     object-fit: contain;
     transition: transform 0.25s ease;
 }
