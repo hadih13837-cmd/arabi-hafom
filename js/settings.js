@@ -46,7 +46,6 @@ function loadUserInfo() {
     const name = localStorage.getItem('userName');
     if (name) {
         updateHomeUI();
-        // اعمال آواتار (عکس یا ایموجی)
         if (typeof applyAvatarToElements === 'function') {
             applyAvatarToElements();
         }
@@ -69,7 +68,6 @@ function loadProfileData() {
     document.getElementById('profile-school').textContent = school;
     document.getElementById('profile-year').textContent = year;
     
-    // اعمال آواتار (عکس یا ایموجی)
     if (typeof applyAvatarToElements === 'function') {
         applyAvatarToElements();
     }
@@ -234,7 +232,6 @@ function closeUpdateDataModal() {
 async function confirmUpdateData() {
     closeUpdateDataModal();
 
-    // نمایش پیام لودینگ
     showModal('⏳ در حال بروزرسانی...', 'لطفاً چند لحظه صبر کنید.\nاطلاعات شما حفظ می‌شود.', '🔄');
 
     try {
@@ -261,7 +258,7 @@ async function confirmUpdateData() {
             soundsEnabled: localStorage.getItem('soundsEnabled'),
             musicEnabled: localStorage.getItem('musicEnabled'),
 
-            // 🆕 موارد مربوط به اعلان‌ها و استریک (نگه داشته می‌شن تا دوباره نیاد)
+            // موارد مربوط به اعلان‌ها و استریک (نگه داشته می‌شن تا دوباره نیاد)
             welcomeShown: localStorage.getItem('welcomeShown'),
             guideCompleted: localStorage.getItem('guideCompleted'),
             lessonsGuideShown: localStorage.getItem('lessonsGuideShown'),
@@ -295,7 +292,6 @@ async function confirmUpdateData() {
                 );
             } catch (cacheError) {
                 console.warn('⚠️ خطا در پاک کردن کش:', cacheError);
-                // ادامه می‌دیم، مهم نیست
             }
         }
 
@@ -309,7 +305,6 @@ async function confirmUpdateData() {
                 }
             } catch (swError) {
                 console.warn('⚠️ خطا در حذف Service Worker:', swError);
-                // ادامه می‌دیم، مهم نیست
             }
         }
 
@@ -325,7 +320,7 @@ async function confirmUpdateData() {
 
     } catch (error) {
         console.error('❌ خطا در بروزرسانی:', error);
-        // 🆕 حتی اگه خطا داد، بازم رفرش کن (چون اطلاعات حفظ شدن)
+        // حتی اگه خطا داد، بازم رفرش کن (چون اطلاعات حفظ شدن)
         setTimeout(() => {
             const url = new URL(window.location.href);
             url.searchParams.set('updated', Date.now());
@@ -341,7 +336,6 @@ function changeAvatar(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // محدودیت حجم: ۵۰۰ کیلوبایت
     if (file.size > 500 * 1024) {
         showModal('خطا', 'حجم عکس باید کمتر از ۵۰۰ کیلوبایت باشد.', '⚠️');
         return;
@@ -351,17 +345,14 @@ function changeAvatar(event) {
     reader.onload = function(e) {
         const avatarData = e.target.result;
         localStorage.setItem('userAvatar', avatarData);
-        // حذف ایموجی قبلی
         localStorage.removeItem('userAvatarEmoji');
 
-        // اعمال
         if (typeof applyAvatarToElements === 'function') {
             applyAvatarToElements();
         }
 
         showModal('موفق', 'عکس پروفایل با موفقیت تغییر کرد.', '✅');
 
-        // آپدیت رتبه‌بندی
         if (typeof saveRankingToSupabase === 'function') {
             saveRankingToSupabase();
         }

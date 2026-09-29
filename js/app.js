@@ -5,7 +5,7 @@
 // ============================================================
 // متغیر سراسری برای حالت انتشار
 // ============================================================
-let isPublished = true; // پیش‌فرض true (اگه published توی JSON نبود)
+let isPublished = true;
 
 // ============================================================
 // بررسی حالت بروزرسانی و وضعیت انتشار
@@ -23,13 +23,9 @@ async function checkMaintenanceMode() {
         if (!response.ok) return false;
         const data = await response.json();
         
-        // 🆕 ذخیره وضعیت انتشار در متغیر سراسری
-        // اگه published توی JSON نبود، پیش‌فرض true
         isPublished = (data.published !== false);
-        
         console.log('📢 وضعیت انتشار:', isPublished ? 'منتشر شده ✅' : 'منتشر نشده 🔒');
         
-        // اگه ادمین بود، هیچ‌وقت به maintenance.html نره
         if (isAdmin) return false;
         
         return data.maintenance === true;
@@ -66,14 +62,84 @@ async function startApp() {
 }
 
 // ============================================================
-// PWA — نصب اپلیکیشن
+// 🆕 PWA — نصب اپلیکیشن + آپدیت خودکار
 // ============================================================
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js').catch(e => console.log(e));
+    window.addEventListener('load', async () => {
+        try {
+            const registration = await navigator.serviceWorker.register('./service-worker.js');
+            console.log('✅ Service Worker ثبت شد');
+
+            // 🆕 بررسی آپدیت هر ۳۰ ثانیه یه بار
+            setInterval(() => {
+                registration.update();
+            }, 30000);
+
+            // 🆕 وقتی Service Worker جدید پیدا شد
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('🔄 نسخه‌ی جدید پیدا شد');
+
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        console.log('✅ نسخه‌ی جدید آماده - در حال بارگذاری...');
+                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                        showUpdateNotification();
+                    }
+                });
+            });
+
+            // 🆕 وقتی Service Worker جدید فعال شد، صفحه رو رفرش کن
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    console.log('🔄 بارگذاری مجدد برای اعمال تغییرات...');
+                    window.location.reload();
+                }
+            });
+
+        } catch (e) {
+            console.log('⚠️ خطا در ثبت Service Worker:', e);
+        }
     });
 }
 
+// 🆕 نمایش پیام «نسخه‌ی جدید در حال بارگذاری»
+function showUpdateNotification() {
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #4caf50, #2e7d32);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 50px;
+        font-family: 'Vazirmatn', sans-serif;
+        font-size: 13px;
+        font-weight: 900;
+        z-index: 999999;
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+        animation: slideDownUpdate 0.5s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    `;
+    notif.innerHTML = '🎉 نسخه‌ی جدید در حال بارگذاری...';
+    document.body.appendChild(notif);
+
+    setTimeout(() => {
+        notif.style.transition = 'opacity 0.3s ease';
+        notif.style.opacity = '0';
+        setTimeout(() => notif.remove(), 300);
+    }, 2000);
+}
+
+// ============================================================
+// PWA — نصب بنر
+// ============================================================
 let deferredPrompt = null;
 const installBanner = document.getElementById('install-banner');
 
@@ -130,7 +196,7 @@ window.addEventListener('appinstalled', () => {
 // بارگذاری اولیه (Window Load)
 // ============================================================
 window.addEventListener('load', async () => {
-    // ۱. بررسی حالت بروزرسانی (و ذخیره وضعیت انتشار)
+    // ۱. بررسی حالت بروزرسانی
     const isMaintenance = await checkMaintenanceMode();
     if (isMaintenance) {
         window.location.replace('./maintenance.html');
