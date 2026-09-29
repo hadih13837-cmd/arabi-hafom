@@ -164,6 +164,31 @@
     </div>
 </div>
 
+<!-- مودال انتخاب نوع آواتار -->
+<div class="exit-modal-overlay" id="avatar-options-modal">
+    <div class="exit-modal-box">
+        <div class="exit-icon-wrapper" style="background: linear-gradient(135deg, #f3e5f5, #e1bee7);">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="stroke: #7b1fa2;">
+                <path d="M12 20H21"/>
+                <path d="M16.5 3.5C16.8978 3.10217 17.4374 2.87868 18 2.87868C18.2786 2.87868 18.5544 2.93355 18.8118 3.04015C19.0692 3.14676 19.303 3.30301 19.5 3.5C19.697 3.697 19.8532 3.93084 19.9598 4.18821C20.0665 4.44557 20.1213 4.72142 20.1213 5C20.1213 5.27858 20.0665 5.55443 19.9598 5.81179C19.8532 6.06915 19.697 6.303 19.5 6.5L7 19L3 20L4 16L16.5 3.5Z"/>
+            </svg>
+        </div>
+        <div class="exit-title">تغییر عکس پروفایل</div>
+        <div class="exit-text">از کدام روش می‌خواهی عکس پروفایلت را انتخاب کنی؟</div>
+        <div class="avatar-options-buttons">
+            <button class="avatar-option-btn emoji-option" onclick="chooseEmojiOption()">
+                <span class="avatar-option-icon">😀</span>
+                <span>ایموجی</span>
+            </button>
+            <button class="avatar-option-btn gallery-option" onclick="chooseGalleryOption()">
+                <span class="avatar-option-icon">🖼️</span>
+                <span>گالری</span>
+            </button>
+        </div>
+        <button class="exit-btn-cancel" style="width: 100%; margin-top: 15px;" onclick="closeAvatarOptionsModal()">انصراف</button>
+    </div>
+</div>
+
 <!-- مودال انتخاب ایموجی -->
 <div class="emoji-picker-overlay" id="emoji-picker-modal">
     <div class="emoji-picker-box">
@@ -549,14 +574,8 @@
             </div>
         </div>
         
-        <!-- نوار پایین صفحه خانه -->
+        <!-- نوار پایین - صفحه خانه -->
         <div class="bottom-nav">
-            <button class="bottom-nav-item home-item active" onclick="goToScreen('screen-home')">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>خانه</span>
-            </button>
             <button class="bottom-nav-item medals-item" id="guide-medals-btn" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="8" r="6"/>
@@ -573,6 +592,12 @@
                     <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span>رتبه‌بندی</span>
+            </button>
+            <button class="bottom-nav-item home-item active" onclick="goToScreen('screen-home')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>خانه</span>
             </button>
             <button class="bottom-nav-item settings-item" id="guide-settings-btn" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -618,12 +643,6 @@
         <div class="lessons-scroll-content" id="lessons-list"></div>
         
         <div class="bottom-nav">
-            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>خانه</span>
-            </button>
             <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="8" r="6"/>
@@ -640,6 +659,12 @@
                     <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span>رتبه‌بندی</span>
+            </button>
+            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>خانه</span>
             </button>
             <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -718,12 +743,6 @@
         <div class="rankings-scroll-content" id="rankings-content"></div>
         
         <div class="bottom-nav">
-            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>خانه</span>
-            </button>
             <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="8" r="6"/>
@@ -740,6 +759,12 @@
                     <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span>رتبه‌بندی</span>
+            </button>
+            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>خانه</span>
             </button>
             <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -832,12 +857,6 @@
         </div>
         
         <div class="bottom-nav">
-            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>خانه</span>
-            </button>
             <button class="bottom-nav-item medals-item active" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="8" r="6"/>
@@ -854,6 +873,12 @@
                     <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span>رتبه‌بندی</span>
+            </button>
+            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>خانه</span>
             </button>
             <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -994,12 +1019,6 @@
         </div>
         
         <div class="bottom-nav">
-            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>خانه</span>
-            </button>
             <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="8" r="6"/>
@@ -1016,6 +1035,12 @@
                     <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span>رتبه‌بندی</span>
+            </button>
+            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>خانه</span>
             </button>
             <button class="bottom-nav-item settings-item active" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1054,10 +1079,10 @@
         <div class="profile-scroll-content">
             <div class="profile-avatar-section">
                 <div class="profile-avatar-wrapper">
-                    <div class="profile-avatar">
+                    <div class="profile-avatar" onclick="openAvatarOptionsModal()">
                         <img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" alt="آواتار" id="profile-avatar-img">
                     </div>
-                    <div class="profile-avatar-edit" onclick="document.getElementById('avatar-input').click()">
+                    <div class="profile-avatar-edit" onclick="openAvatarOptionsModal()">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 20H21"/>
                             <path d="M16.5 3.5C16.8978 3.10217 17.4374 2.87868 18 2.87868C18.2786 2.87868 18.5544 2.93355 18.8118 3.04015C19.0692 3.14676 19.303 3.30301 19.5 3.5C19.697 3.697 19.8532 3.93084 19.9598 4.18821C20.0665 4.44557 20.1213 4.72142 20.1213 5C20.1213 5.27858 20.0665 5.55443 19.9598 5.81179C19.8532 6.06915 19.697 6.303 19.5 6.5L7 19L3 20L4 16L16.5 3.5Z"/>
@@ -1065,16 +1090,6 @@
                     </div>
                 </div>
                 <input type="file" id="avatar-input" accept="image/*" style="display:none;" onchange="changeAvatar(event)">
-                
-                <button class="emoji-avatar-btn" onclick="openEmojiPicker()">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-                        <line x1="9" y1="9" x2="9.01" y2="9"/>
-                        <line x1="15" y1="9" x2="15.01" y2="9"/>
-                    </svg>
-                    <span>انتخاب ایموجی</span>
-                </button>
                 
                 <div class="profile-name" id="profile-name-display">دانش‌آموز</div>
                 <div class="profile-grade" id="profile-grade-display">پایه هفتم</div>
@@ -1153,12 +1168,6 @@
         </div>
         
         <div class="bottom-nav">
-            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>خانه</span>
-            </button>
             <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="8" r="6"/>
@@ -1175,6 +1184,12 @@
                     <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span>رتبه‌بندی</span>
+            </button>
+            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>خانه</span>
             </button>
             <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1273,7 +1288,7 @@
 </div>
 
 <!-- ============================================================
-     لود فایل‌های JavaScript (ترتیب مهمه!)
+     لود فایل‌های JavaScript
      ============================================================ -->
 <script src="./js/config.js"></script>
 <script src="./js/utils.js"></script>
