@@ -14,7 +14,6 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
     
-    <!-- CSS اصلی برنامه -->
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -137,6 +136,42 @@
             <button class="exit-btn-cancel" onclick="closeResetSettingsModal()">انصراف</button>
             <button class="exit-btn-confirm" style="background: linear-gradient(135deg, #ffc107, #ffb300);" onclick="confirmResetSettings()">بازگردان</button>
         </div>
+    </div>
+</div>
+
+<!-- مودال بروزرسانی اطلاعات -->
+<div class="exit-modal-overlay" id="update-data-modal">
+    <div class="exit-modal-box">
+        <div class="exit-icon-wrapper" style="background: linear-gradient(135deg, #e1f5fe, #b3e5fc);">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="stroke: #0288d1;">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+        </div>
+        <div class="exit-title">بروزرسانی اطلاعات</div>
+        <div class="exit-text">
+            این کار باعث می‌شه آخرین تغییرات برنامه دریافت بشه.<br><br>
+            ✅ <strong>اطلاعات شما حفظ می‌شه:</strong><br>
+            نام، کلاس، مدرسه، آواتار، کارنامه‌ها، امتیازها و مدال‌ها<br><br>
+            🔄 <strong>موارد بروزرسانی:</strong><br>
+            کش برنامه، اعلان‌ها و تکالیف جدید
+        </div>
+        <div class="exit-buttons">
+            <button class="exit-btn-cancel" onclick="closeUpdateDataModal()">انصراف</button>
+            <button class="exit-btn-confirm" style="background: linear-gradient(135deg, #29b6f6, #0288d1);" onclick="confirmUpdateData()">بروزرسانی کن</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال انتخاب ایموجی -->
+<div class="emoji-picker-overlay" id="emoji-picker-modal">
+    <div class="emoji-picker-box">
+        <div class="emoji-picker-header">
+            <div class="emoji-picker-title">🎨 انتخاب ایموجی برای پروفایل</div>
+            <button class="emoji-picker-close" onclick="closeEmojiPicker()">✕</button>
+        </div>
+        <div class="emoji-picker-body" id="emoji-picker-container"></div>
     </div>
 </div>
 
@@ -276,11 +311,8 @@
         <div class="side-menu-item" onclick="goToScreen('screen-medals'); closeSideMenu();">
             <div class="side-menu-item-icon menu-icon-medals">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
-                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
-                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
-                    <path d="M12 16V20"/>
-                    <path d="M8 20H16"/>
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
                 </svg>
             </div>
             <div class="side-menu-item-text">
@@ -379,7 +411,6 @@
         ساخته شده با <span class="heart">❤</span> توسط محمدهادی حججی
     </div>
 </div>
-
 <div id="app-container">
     
     <audio id="bg-music" src="https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3" loop preload="none"></audio>
@@ -518,6 +549,7 @@
             </div>
         </div>
         
+        <!-- نوار پایین صفحه خانه -->
         <div class="bottom-nav">
             <button class="bottom-nav-item home-item active" onclick="goToScreen('screen-home')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -527,13 +559,20 @@
             </button>
             <button class="bottom-nav-item medals-item" id="guide-medals-btn" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
-                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
-                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
-                    <path d="M12 16V20"/>
-                    <path d="M8 20H16"/>
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
                 </svg>
                 <span>مدال‌ها</span>
+            </button>
+            <button class="bottom-nav-item rankings-item" id="guide-rankings-btn" onclick="goToScreen('screen-rankings')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 16V20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>رتبه‌بندی</span>
             </button>
             <button class="bottom-nav-item settings-item" id="guide-settings-btn" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -587,13 +626,20 @@
             </button>
             <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
-                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
-                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
-                    <path d="M12 16V20"/>
-                    <path d="M8 20H16"/>
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
                 </svg>
                 <span>مدال‌ها</span>
+            </button>
+            <button class="bottom-nav-item rankings-item" onclick="goToScreen('screen-rankings')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 16V20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>رتبه‌بندی</span>
             </button>
             <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -652,6 +698,65 @@
         <div class="calendar-scroll-content" id="calendar-content"></div>
     </div>
 
+    <!-- ============ صفحه رتبه‌بندی ============ -->
+    <div id="screen-rankings" class="screen">
+        <div class="page-header">
+            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="page-title">رتبه‌بندی کلاس</div>
+            <button class="rankings-refresh-btn" onclick="refreshRankings()" title="رفرش">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polyline points="23 4 23 10 17 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="1 20 1 14 7 14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+        <div class="rankings-scroll-content" id="rankings-content"></div>
+        
+        <div class="bottom-nav">
+            <button class="bottom-nav-item home-item" onclick="goToScreen('screen-home')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>خانه</span>
+            </button>
+            <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                </svg>
+                <span>مدال‌ها</span>
+            </button>
+            <button class="bottom-nav-item rankings-item active" onclick="goToScreen('screen-rankings')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 16V20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>رتبه‌بندی</span>
+            </button>
+            <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                <span>تنظیمات</span>
+            </button>
+            <button class="bottom-nav-item profile-item" onclick="goToScreen('screen-profile')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="8" r="4" stroke-width="2"/>
+                    <path d="M4 21C4 17 7 14 12 14C17 14 20 17 20 21" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>حساب کاربری</span>
+            </button>
+        </div>
+    </div>
     <!-- ============ صفحه درباره ما ============ -->
     <div id="screen-about" class="screen">
         <div class="page-header">
@@ -683,7 +788,7 @@
                     <span>اطلاعات برنامه</span>
                 </div>
                 <div class="about-info-row"><span class="label">نام برنامه</span><span class="value">عربی هفتم</span></div>
-                <div class="about-info-row"><span class="label">نسخه</span><span class="value">۱.۰.۰</span></div>
+                <div class="about-info-row"><span class="label">نسخه</span><span class="value">۲.۰.۰</span></div>
                 <div class="about-info-row"><span class="label">پایه تحصیلی</span><span class="value">هفتم</span></div>
                 <div class="about-info-row"><span class="label">سال تحصیلی</span><span class="value">۱۴۰۵-۱۴۰۶</span></div>
             </div>
@@ -698,7 +803,7 @@
                 <div class="about-features">
                     <div class="about-feature"><div class="about-feature-icon">📚</div><div class="about-feature-text">تکالیف تعاملی</div></div>
                     <div class="about-feature"><div class="about-feature-icon">📊</div><div class="about-feature-text">کارنامه گرافیکی</div></div>
-                    <div class="about-feature"><div class="about-feature-icon">🏆</div><div class="about-feature-text">مدال و امتیاز</div></div>
+                    <div class="about-feature"><div class="about-feature-icon">🏆</div><div class="about-feature-text">رتبه‌بندی زنده</div></div>
                     <div class="about-feature"><div class="about-feature-icon">🎬</div><div class="about-feature-text">کلیپ آموزشی</div></div>
                     <div class="about-feature"><div class="about-feature-icon">🌙</div><div class="about-feature-text">حالت شب</div></div>
                     <div class="about-feature"><div class="about-feature-icon">📱</div><div class="about-feature-text">قابل نصب</div></div>
@@ -735,13 +840,20 @@
             </button>
             <button class="bottom-nav-item medals-item active" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
-                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
-                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
-                    <path d="M12 16V20"/>
-                    <path d="M8 20H16"/>
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
                 </svg>
                 <span>مدال‌ها</span>
+            </button>
+            <button class="bottom-nav-item rankings-item" onclick="goToScreen('screen-rankings')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 16V20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>رتبه‌بندی</span>
             </button>
             <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -852,6 +964,15 @@
                     </label>
                 </div>
                 
+                <button class="reset-settings-btn" style="background: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%);" onclick="openUpdateDataModal()">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <polyline points="1 20 1 14 7 14"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                    <span>بروزرسانی اطلاعات</span>
+                </button>
+                
                 <button class="reset-settings-btn" onclick="openResetSettingsModal()">
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z"/>
@@ -881,13 +1002,20 @@
             </button>
             <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
-                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
-                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
-                    <path d="M12 16V20"/>
-                    <path d="M8 20H16"/>
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
                 </svg>
                 <span>مدال‌ها</span>
+            </button>
+            <button class="bottom-nav-item rankings-item" onclick="goToScreen('screen-rankings')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 16V20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>رتبه‌بندی</span>
             </button>
             <button class="bottom-nav-item settings-item active" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -938,6 +1066,16 @@
                 </div>
                 <input type="file" id="avatar-input" accept="image/*" style="display:none;" onchange="changeAvatar(event)">
                 
+                <button class="emoji-avatar-btn" onclick="openEmojiPicker()">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                        <line x1="9" y1="9" x2="9.01" y2="9"/>
+                        <line x1="15" y1="9" x2="15.01" y2="9"/>
+                    </svg>
+                    <span>انتخاب ایموجی</span>
+                </button>
+                
                 <div class="profile-name" id="profile-name-display">دانش‌آموز</div>
                 <div class="profile-grade" id="profile-grade-display">پایه هفتم</div>
             </div>
@@ -967,11 +1105,8 @@
                 <div class="stat-card stat-orange">
                     <div class="stat-card-icon">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
-                            <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
-                            <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
-                            <path d="M12 16V20"/>
-                            <path d="M8 20H16"/>
+                            <circle cx="12" cy="8" r="6"/>
+                            <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
                         </svg>
                     </div>
                     <div class="stat-card-content">
@@ -1026,13 +1161,20 @@
             </button>
             <button class="bottom-nav-item medals-item" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6"/>
-                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18"/>
-                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z"/>
-                    <path d="M12 16V20"/>
-                    <path d="M8 20H16"/>
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
                 </svg>
                 <span>مدال‌ها</span>
+            </button>
+            <button class="bottom-nav-item rankings-item" onclick="goToScreen('screen-rankings')">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9H4.5C3.67157 9 3 8.32843 3 7.5V7.5C3 6.67157 3.67157 6 4.5 6H6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18 9H19.5C20.3284 9 21 8.32843 21 7.5V7.5C21 6.67157 20.3284 6 19.5 6H18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 4H18V10C18 13.3137 15.3137 16 12 16C8.68629 16 6 13.3137 6 10V4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 16V20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 20H16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>رتبه‌بندی</span>
             </button>
             <button class="bottom-nav-item settings-item" onclick="goToScreen('screen-settings')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1135,12 +1277,15 @@
      ============================================================ -->
 <script src="./js/config.js"></script>
 <script src="./js/utils.js"></script>
+<script src="./js/supabase.js"></script>
+<script src="./js/avatars.js"></script>
 <script src="./js/navigation.js"></script>
 <script src="./js/notifications.js"></script>
 <script src="./js/medals.js"></script>
 <script src="./js/lessons.js"></script>
 <script src="./js/quiz.js"></script>
 <script src="./js/reports.js"></script>
+<script src="./js/rankings.js"></script>
 <script src="./js/settings.js"></script>
 <script src="./js/app.js"></script>
 
