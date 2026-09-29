@@ -207,6 +207,26 @@ window.addEventListener('load', async () => {
     loadUserInfo();
     loadTheme();
 
+    // 🆕 اگه کاربر ثبت‌نام کرده ولی UUID نداره، بسازش
+    if (localStorage.getItem('userRegistered') === 'true' && !localStorage.getItem('studentUUID')) {
+        console.log('🆕 کاربر قدیمی - ساخت UUID...');
+        const newUUID = (typeof crypto !== 'undefined' && crypto.randomUUID) 
+            ? crypto.randomUUID() 
+            : generateUUID();
+        localStorage.setItem('studentUUID', newUUID);
+        console.log('✅ UUID ساخته شد:', newUUID);
+    }
+
+    // 🆕 آپدیت خودکار امتیاز در Supabase (برای کاربرای قدیمی و جدید)
+    if (localStorage.getItem('userRegistered') === 'true' && localStorage.getItem('studentUUID')) {
+        setTimeout(() => {
+            if (typeof saveRankingToSupabase === 'function') {
+                console.log('📤 ارسال اطلاعات به Supabase...');
+                saveRankingToSupabase();
+            }
+        }, 2500);
+    }
+
     if (localStorage.getItem('soundsEnabled') === 'false') {
         document.getElementById('setting-sounds').checked = false;
     }
