@@ -1,6 +1,35 @@
 // ============================================================
-// utils.js — توابع کمکی، تاریخ، فصل‌ها، کانفتی، استریک
+// utils.js — توابع کمکی، تاریخ، فصل‌ها، کانفتی، استریک، UUID
 // ============================================================
+
+// ============================================================
+// 🆕 تولید UUID یکتا برای هر کاربر
+// ============================================================
+function generateUUID() {
+    // روش ۱: اگه مرورگر پشتیبانی می‌کنه (اکثر مرورگرهای جدید)
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    // روش ۲: روش قدیمی (برای مرورگرهای قدیمی)
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+// ============================================================
+// 🆕 گرفتن یا ساختن UUID کاربر
+// ============================================================
+function getOrCreateStudentUUID() {
+    let uuid = localStorage.getItem('studentUUID');
+    if (!uuid) {
+        uuid = generateUUID();
+        localStorage.setItem('studentUUID', uuid);
+        console.log('🆔 UUID جدید ساخته شد:', uuid);
+    }
+    return uuid;
+}
 
 // ============================================================
 // توابع اعداد فارسی

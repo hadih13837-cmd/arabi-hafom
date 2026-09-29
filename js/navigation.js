@@ -17,7 +17,7 @@ function closeModal() {
 }
 
 // ============================================================
-// رفتن به صفحه کلیپ‌ها (خارج از برنامه)
+// رفتن به صفحه کلیپ‌ها
 // ============================================================
 function openClipsPage() {
     sessionStorage.setItem('cameFromClips', 'true');
@@ -51,13 +51,17 @@ function goToScreen(screenId, addToHistory = true) {
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) targetScreen.classList.add('active');
     document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
+    
+    // 🆕 ترتیب جدید: خانه، مدال‌ها، رتبه‌بندی، تنظیمات، پروفایل
     document.querySelectorAll('.bottom-nav').forEach(nav => {
         const items = nav.querySelectorAll('.bottom-nav-item');
         if (screenId === 'screen-home' && items[0]) items[0].classList.add('active');
         if (screenId === 'screen-medals' && items[1]) items[1].classList.add('active');
-        if (screenId === 'screen-settings' && items[2]) items[2].classList.add('active');
-        if (screenId === 'screen-profile' && items[3]) items[3].classList.add('active');
+        if (screenId === 'screen-rankings' && items[2]) items[2].classList.add('active');
+        if (screenId === 'screen-settings' && items[3]) items[3].classList.add('active');
+        if (screenId === 'screen-profile' && items[4]) items[4].classList.add('active');
     });
+    
     if (addToHistory) pushHistory(screenId);
     if (['screen-quiz', 'screen-feedback', 'screen-result'].includes(screenId)) {
         if (bgMusic && !bgMusic.paused) bgMusic.pause();
@@ -74,6 +78,7 @@ function goToScreen(screenId, addToHistory = true) {
     if (screenId === 'screen-profile') loadProfileData();
     if (screenId === 'screen-medals') loadMedals();
     if (screenId === 'screen-notifications') loadNotifications();
+    if (screenId === 'screen-rankings') loadRankingsPage();
     if (screenId === 'screen-calendar') {
         calendarCurrentMonth = null;
         renderCalendar();
@@ -335,7 +340,7 @@ function confirmDeleteAccount() {
 }
 
 // ============================================================
-// مودال بازگشت تنظیمات به حالت اول
+// مودال بازگشت تنظیمات
 // ============================================================
 function openResetSettingsModal() {
     document.getElementById('reset-settings-modal').classList.add('active');
@@ -391,21 +396,7 @@ function saveProfileChanges() {
     loadProfileData();
     closeEditProfile();
     showModal('موفق', 'اطلاعات شما با موفقیت ذخیره شد.', '✅');
-}
-
-// ============================================================
-// تغییر آواتار
-// ============================================================
-function changeAvatar(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const avatarData = e.target.result;
-        localStorage.setItem('userAvatar', avatarData);
-        document.getElementById('profile-avatar-img').src = avatarData;
-        document.getElementById('home-avatar-img').src = avatarData;
-        showModal('موفق', 'عکس پروفایل با موفقیت تغییر کرد.', '✅');
-    };
-    reader.readAsDataURL(file);
+    setTimeout(() => {
+        saveRankingToSupabase();
+    }, 500);
 }

@@ -1,0 +1,183 @@
+// ============================================================
+// supabase.js — اتصال به Supabase + توابع رتبه‌بندی
+// ============================================================
+
+// ============================================================
+// تنظیمات Supabase
+// ============================================================
+const SUPABASE_URL = 'https://tocowguxqrhvmdsgyux.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvY293Z3V4cXJoaHZtZHNneXV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2ODM2MDIsImV4cCI6MjEwNjI1OTYwMn0.KhouMN8uOXjvb48-ekqbr3TCjfXZiGE8BTrbEnsLUDU';
+
+// ============================================================
+// تبدیل نام کلاس فارسی به انگلیسی (برای دیتابیس)
+// ============================================================
+function classNameToSlug(className) {
+    const map = {
+        'هفتم یک': 'hafom-1',
+        'هفتم دو': 'hafom-2',
+        'هفتم سه': 'hafom-3',
+        'هفتم چهار': 'hafom-4',
+        'هفتم پنج': 'hafom-5'
+    };
+    return map[className] || 'unknown';
+}
+
+// ============================================================
+// درخواست به Supabase (REST API)
+// ============================================================
+async function supabaseRequest(endpoint, options = {}) {
+    const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+    const defaultHeaders = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+    };
+    const finalOptions = {
+        ...options,
+        headers: {
+            ...defaultHeaders,
+            ...(options.headers || {})
+        }
+    };
+
+    try {
+        const response = await fetch(url, finalOptions);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Supabase Error:', response.status, errorText);
+            throw new Error(`Supabase error: ${response.status}`);
+        }
+        if (response.status === 204) return null;
+        return await response.json();
+    } catch (error) {
+        console.error('❌ خطا در ارتباط با Supabase:', error);
+        throw error;
+    }
+}
+
+// ============================================================
+// ذخیره/آپدیت امتیاز کاربر
+// ============================================================
+async function saveRankingToSupabase() {
+    try {
+        const studentId = localStorage.getItem('studentUUID');
+        const userName = localStorage.getItem('userName');
+        const userClass = localStorage.getItem('userClass');
+
+        if (!studentId || !userName || !userClass) {
+            console.log('⚠️ اطلاعات کاربر ناقص - ثبت امتیاز انجام نشد');
+            return;
+        }
+
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
+
+        const totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
+        const completedLessons = reports.length;
+        const avgPercent = reports.length > 0
+            ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length)
+            : 0;
+        const streakDays = streakData.count || 0;
+        const avatarUrl = getAvatarForRanking(); // عکس یا ایموجی
+
+        const payload = {
+            student_id: studentId,
+            name: userName,
+            class_name: classNameToSlug(userClass),
+            total_points: totalPoints,
+            completed_lessons: completedLessons,
+            avg_percent: avgPercent,
+            streak_days: streakDays,
+            avatar_url: avatarUrl,
+            last_update: new Date().toISOString()
+        };
+
+        // چک کن آیا رکورد قبلاً وجود داره
+        const existing = await supabaseRequest(
+            `rankings?student_id=eq.${studentId}&select=id`,
+            { method: 'GET' }
+        );
+
+        if (existing && existing.length > 0) {
+            // آپدیت
+            await supabaseRequest(
+                `rankings?student_id=eq.${studentId}`,
+                {
+                    method: 'PATCH',
+                    body: JSON.stringify(payload),
+                    headers: { 'Prefer': 'return=minimal' }
+                }
+            );
+            console.log('✅ امتیاز آپدیت شد:', totalPoints);
+        } else {
+            // درج جدید
+            await supabaseRequest(
+                'rankings',
+                {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Prefer': 'return=minimal' }
+                }
+            );
+            console.log('✅ امتیاز جدید ثبت شد:', totalPoints);
+        }
+    } catch (error) {
+        console.error('❌ خطا در ثبت امتیاز:', error);
+    }
+}
+
+// ============================================================
+// گرفتن رتبه‌بندی یه کلاس خاص
+// ============================================================
+async function getRankingsByClass(className) {
+    try {
+        const classSlug = classNameToSlug(className);
+        const data = await supabaseRequest(
+            `rankings?class_name=eq.${classSlug}&order=total_points.desc,avg_percent.desc&select=*`,
+            { method: 'GET' }
+        );
+        return data || [];
+    } catch (error) {
+        console.error('❌ خطا در گرفتن رتبه‌بندی:', error);
+        return [];
+    }
+}
+
+// ============================================================
+// گرفتن رتبه‌ی خودم
+// ============================================================
+async function getMyRank() {
+    try {
+        const studentId = localStorage.getItem('studentUUID');
+        const userClass = localStorage.getItem('userClass');
+        if (!studentId || !userClass) return null;
+
+        const rankings = await getRankingsByClass(userClass);
+        const myIndex = rankings.findIndex(r => r.student_id === studentId);
+        if (myIndex === -1) return null;
+
+        return {
+            rank: myIndex + 1,
+            total: rankings.length,
+            data: rankings[myIndex]
+        };
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// چک کردن اتصال به Supabase
+// ============================================================
+async function testSupabaseConnection() {
+    try {
+        await supabaseRequest('rankings?select=id&limit=1', { method: 'GET' });
+        console.log('✅ اتصال به Supabase موفق');
+        return true;
+    } catch (error) {
+        console.error('❌ اتصال به Supabase ناموفق:', error);
+        return false;
+    }
+}

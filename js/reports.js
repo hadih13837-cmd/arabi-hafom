@@ -1,5 +1,5 @@
 // ============================================================
-// reports.js — کارنامه، PDF، لیست کارنامه‌ها
+// reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
 // ============================================================
 
 // ============================================================
@@ -93,7 +93,7 @@ function generateGraphicReport(report) {
 }
 
 // ============================================================
-// 🆕 دانلود کارنامه با تنظیمات بهینه (سریع‌تر)
+// دانلود کارنامه با تنظیمات بهینه
 // ============================================================
 function downloadReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -105,25 +105,25 @@ function downloadReportById(index) {
         element.style.direction = 'rtl';
         element.style.background = '#f0f7ff';
         element.style.fontFamily = 'Vazirmatn, sans-serif';
-        element.style.width = '700px';  // 🆕 عرض ثابت برای کیفیت بهتر
+        element.style.width = '700px';
         element.innerHTML = generateGraphicReport(report);
         const opt = {
             margin: 0.3,
             filename: `کارنامه_${report.lessonTitle}_${report.date.replace(/\//g, '-')}.pdf`,
-            image: { type: 'jpeg', quality: 0.85 },  // 🆕 کیفیت کمتر = سریع‌تر
-            html2canvas: { 
-                scale: 1.5,              // 🆕 scale کمتر = سریع‌تر
-                useCORS: true, 
+            image: { type: 'jpeg', quality: 0.85 },
+            html2canvas: {
+                scale: 1.5,
+                useCORS: true,
                 backgroundColor: '#f0f7ff',
-                logging: false,          // 🆕 لاگ نکن = سریع‌تر
-                imageTimeout: 0,         // 🆕 منتظر تصاویر نمونه
-                removeContainer: true    // 🆕 حذف کانتینر بعد از تولید
+                logging: false,
+                imageTimeout: 0,
+                removeContainer: true
             },
-            jsPDF: { 
-                unit: 'in', 
-                format: 'a4', 
+            jsPDF: {
+                unit: 'in',
+                format: 'a4',
                 orientation: 'portrait',
-                compress: true           // 🆕 PDF فشرده = سریع‌تر
+                compress: true
             }
         };
         html2pdf().set(opt).from(element).save().then(() => {
@@ -133,7 +133,7 @@ function downloadReportById(index) {
 }
 
 // ============================================================
-// نمایش کارنامه بعد از تکلیف
+// نمایش کارنامه بعد از تکلیف + 🆕 ثبت امتیاز
 // ============================================================
 function showReportCard() {
     if (isPracticeMode) {
@@ -175,10 +175,15 @@ function showReportCard() {
     addNotification('message', 'پیام معلم', `بازخورد تکلیف شما ثبت شد. آفرین!`);
     updateNotificationBadge();
     setTimeout(() => checkForNewMedals(), 1500);
+
+    // 🆕 ثبت امتیاز در Supabase (بعد از کارنامه)
+    setTimeout(() => {
+        saveRankingToSupabase();
+    }, 1000);
 }
 
 // ============================================================
-// 🆕 دانلود کارنامه فعلی با تنظیمات بهینه (سریع‌تر)
+// دانلود کارنامه فعلی
 // ============================================================
 function downloadCurrentReport() {
     const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
@@ -200,25 +205,25 @@ function downloadCurrentReport() {
     element.style.direction = 'rtl';
     element.style.background = '#f0f7ff';
     element.style.fontFamily = 'Vazirmatn, sans-serif';
-    element.style.width = '700px';  // 🆕 عرض ثابت
+    element.style.width = '700px';
     element.innerHTML = generateGraphicReport(report);
     const opt = {
         margin: 0.3,
         filename: `کارنامه_${taskTitle}_${dateStr.replace(/\//g, '-')}.pdf`,
-        image: { type: 'jpeg', quality: 0.85 },  // 🆕
-        html2canvas: { 
-            scale: 1.5,              // 🆕
-            useCORS: true, 
+        image: { type: 'jpeg', quality: 0.85 },
+        html2canvas: {
+            scale: 1.5,
+            useCORS: true,
             backgroundColor: '#f0f7ff',
-            logging: false,          // 🆕
-            imageTimeout: 0,         // 🆕
-            removeContainer: true    // 🆕
+            logging: false,
+            imageTimeout: 0,
+            removeContainer: true
         },
-        jsPDF: { 
-            unit: 'in', 
-            format: 'a4', 
+        jsPDF: {
+            unit: 'in',
+            format: 'a4',
             orientation: 'portrait',
-            compress: true           // 🆕
+            compress: true
         }
     };
     html2pdf().set(opt).from(element).save().then(() => {
