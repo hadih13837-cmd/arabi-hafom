@@ -8,7 +8,7 @@
 const DEFAULT_AVATAR = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
 
 // ============================================================
-// مجموعه ایموجی‌های پیشنهادی (دسته‌بندی شده)
+// مجموعه ایموجی‌ها (فقط دسته‌های آموزشی و سرگرم‌کننده)
 // ============================================================
 const AVATAR_EMOJIS = {
     'حیوانات': ['🐱', '🐶', '🦊', '🐰', '🐼', '🐨', '🦁', '🐯', '🐮', '🐷', '🐸', '🐵', '🐔', '🦉', '🦄', '🐲'],
@@ -16,11 +16,7 @@ const AVATAR_EMOJIS = {
     'میوه‌ها': ['🍎', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍒', '🍑', '🥭', '🍍', '🥝', '🍅', '🥑', '🥕'],
     'ورزشی': ['⚽', '🏀', '🏈', '⚾', '🎾', '🏐', '🏉', '🎱', '🏓', '🏸', '🥊', '🏆', '🏅', '🎯', '🎳', '🎮'],
     'فضا': ['⭐', '🌟', '✨', '💫', '🌙', '🌛', '🌜', '☀️', '🌞', '🪐', '🌍', '🌎', '🌏', '🚀', '🛸', '👽'],
-    'آموزشی': ['📚', '📖', '📝', '✏️', '🖊️', '📐', '📏', '🎓', '🏫', '🔬', '🔭', '💡', '🧠', '💻', '🖥️', '📊'],
-    'چهره‌ها': ['😀', '😎', '🤓', '😇', '🥳', '🤗', '😺', '🤖', '👻', '🎃', '👑', '🧙', '🦸', '🧚', '🥷', '💪'],
-    'غذا': ['🍕', '🍔', '🌮', '🌯', '🍟', '🍿', '🍩', '🍪', '🎂', '🧁', '🍰', '🍫', '🍬', '🍭', '🍦', '🍧'],
-    'رنگ‌ها': ['🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛'],
-    'نمادها': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💖', '💝', '🔥', '⚡', '💎', '🌈', '☮️', '✌️']
+    'آموزشی': ['📚', '📖', '📝', '✏️', '🖊️', '📐', '📏', '🎓', '🏫', '🔬', '🔭', '💡', '🧠', '💻', '🖥️', '📊']
 };
 
 // ============================================================
@@ -67,17 +63,20 @@ function applyAvatarToElements() {
         const parent = el.parentElement;
 
         if (avatar.type === 'image') {
-            // عکس کاربر
             el.src = avatar.value;
             el.style.display = 'block';
             if (parent) {
                 const emojiSpan = parent.querySelector('.emoji-avatar');
                 if (emojiSpan) emojiSpan.remove();
+                // 🆕 حذف کلاس حالت ایموجی
+                parent.classList.remove('emoji-mode');
             }
         } else if (avatar.type === 'emoji') {
-            // ایموجی انتخاب‌شده
             el.style.display = 'none';
             if (parent) {
+                // 🆕 اضافه کردن کلاس حالت ایموجی (بدون کادر)
+                parent.classList.add('emoji-mode');
+                
                 let emojiSpan = parent.querySelector('.emoji-avatar');
                 if (!emojiSpan) {
                     emojiSpan = document.createElement('span');
@@ -87,12 +86,12 @@ function applyAvatarToElements() {
                 emojiSpan.textContent = avatar.value;
             }
         } else {
-            // 🆕 عکس پیش‌فرض (پسر)
             el.src = avatar.value;
             el.style.display = 'block';
             if (parent) {
                 const emojiSpan = parent.querySelector('.emoji-avatar');
                 if (emojiSpan) emojiSpan.remove();
+                parent.classList.remove('emoji-mode');
             }
         }
     });
@@ -113,6 +112,16 @@ function selectEmojiAvatar(emoji, element) {
     if (element) element.classList.add('selected');
 
     vibrate(15);
+    
+    // 🆕 بستن مودال بعد از انتخاب
+    setTimeout(() => {
+        closeEmojiPicker();
+        showModal('موفق', 'ایموجی پروفایل با موفقیت تغییر کرد.', '✅');
+        // آپدیت رتبه‌بندی
+        if (typeof saveRankingToSupabase === 'function') {
+            saveRankingToSupabase();
+        }
+    }, 300);
 }
 
 // ============================================================
@@ -151,10 +160,38 @@ function renderEmojiPicker() {
 // باز کردن مودال انتخاب ایموجی
 // ============================================================
 function openEmojiPicker() {
+    closeAvatarOptionsModal();
     renderEmojiPicker();
     document.getElementById('emoji-picker-modal').classList.add('active');
 }
 
 function closeEmojiPicker() {
     document.getElementById('emoji-picker-modal').classList.remove('active');
+}
+
+// ============================================================
+// 🆕 مودال انتخاب نوع آواتار (ایموجی یا گالری)
+// ============================================================
+function openAvatarOptionsModal() {
+    document.getElementById('avatar-options-modal').classList.add('active');
+}
+
+function closeAvatarOptionsModal() {
+    document.getElementById('avatar-options-modal').classList.remove('active');
+}
+
+// 🆕 انتخاب ایموجی از مودال گزینه‌ها
+function chooseEmojiOption() {
+    closeAvatarOptionsModal();
+    setTimeout(() => {
+        openEmojiPicker();
+    }, 200);
+}
+
+// 🆕 انتخاب گالری از مودال گزینه‌ها
+function chooseGalleryOption() {
+    closeAvatarOptionsModal();
+    setTimeout(() => {
+        document.getElementById('avatar-input').click();
+    }, 200);
 }

@@ -3,7 +3,7 @@
 // ============================================================
 
 // ============================================================
-// نمایش لیست کارنامه‌ها
+// نمایش لیست کارنامه‌ها (با دکمه‌ی مشاهده و دانلود)
 // ============================================================
 function loadReports() {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -23,7 +23,25 @@ function loadReports() {
             <div class="report-info-row"><span>پاسخ صحیح:</span><span class="value green">${toPersianNum(report.correct)}</span></div>
             <div class="report-info-row"><span>پاسخ غلط:</span><span class="value red">${toPersianNum(report.wrong)}</span></div>
             <div class="report-info-row"><span>امتیاز:</span><span class="value blue">${toPersianNum(report.score)} از ${toPersianNum(report.totalPoints)}</span></div>
-            <button class="report-btn report-btn-download" onclick="downloadReportById(${index})">دانلود PDF</button>
+            
+            <!-- 🆕 دو دکمه: مشاهده و دانلود -->
+            <div class="report-card-buttons">
+                <button class="report-btn report-btn-view" onclick="viewReportById(${index})">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <circle cx="12" cy="12" r="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                    <span>مشاهده</span>
+                </button>
+                <button class="report-btn report-btn-download" onclick="downloadReportById(${index})">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <polyline points="7 10 12 15 17 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>دانلود</span>
+                </button>
+            </div>
         </div>
     `).join('');
 }
@@ -93,47 +111,129 @@ function generateGraphicReport(report) {
 }
 
 // ============================================================
-// دانلود کارنامه با تنظیمات بهینه
+// 🆕 مشاهده‌ی کارنامه (نمایش توی صفحه)
 // ============================================================
-function downloadReportById(index) {
+function viewReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     const report = reports[index];
-    if (report) {
+    if (!report) return;
+    
+    const container = document.getElementById('report-view-content');
+    container.innerHTML = generateGraphicReport(report);
+    container.innerHTML += `
+        <button class="btn-primary" style="margin-top: 15px;" onclick="downloadReportByData(${index})">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; margin-left: 8px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <polyline points="7 10 12 15 17 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <line x1="12" y1="15" x2="12" y2="3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            دانلود PDF
+        </button>
+        <button class="btn-primary" onclick="goToScreen('screen-reports')" style="margin-top: 10px; background: linear-gradient(135deg, #546e7a 0%, #37474f 100%);">بازگشت به کارنامه‌ها</button>
+    `;
+    goToScreen('screen-report-view');
+}
+
+// ============================================================
+// 🆕 بهینه‌سازی: دانلود با روش سریع‌تر
+// ============================================================
+async function downloadReportFast(report, filename) {
+    try {
+        // ذخیره موقعیت فعلی صفحه
         const element = document.createElement('div');
+        element.style.position = 'fixed';
+        element.style.left = '-9999px';
+        element.style.top = '0';
         element.style.padding = '20px';
         element.style.direction = 'rtl';
         element.style.background = '#f0f7ff';
         element.style.fontFamily = 'Vazirmatn, sans-serif';
         element.style.width = '700px';
         element.innerHTML = generateGraphicReport(report);
+        document.body.appendChild(element);
+
+        // 🆕 تنظیمات بهینه‌تر
         const opt = {
-            margin: 0.3,
-            filename: `کارنامه_${report.lessonTitle}_${report.date.replace(/\//g, '-')}.pdf`,
-            image: { type: 'jpeg', quality: 0.85 },
-            html2canvas: {
-                scale: 1.5,
+            margin: [0.3, 0.3, 0.3, 0.3],
+            filename: filename,
+            image: { 
+                type: 'jpeg', 
+                quality: 0.75  // 🆕 کیفیت کمتر = سریع‌تر
+            },
+            html2canvas: { 
+                scale: 1.2,              // 🆕 scale کمتر = سریع‌تر
                 useCORS: true,
                 backgroundColor: '#f0f7ff',
                 logging: false,
                 imageTimeout: 0,
-                removeContainer: true
+                removeContainer: true,
+                allowTaint: false,
+                scrollX: 0,
+                scrollY: 0
             },
-            jsPDF: {
-                unit: 'in',
-                format: 'a4',
+            jsPDF: { 
+                unit: 'in', 
+                format: 'a4', 
                 orientation: 'portrait',
-                compress: true
-            }
+                compress: true,
+                precision: 2                 // 🆕 دقت کمتر = سریع‌تر
+            },
+            pagebreak: { mode: ['avoid-all', 'css'] }
         };
-        html2pdf().set(opt).from(element).save().then(() => {
-            showModal('دانلود موفق', 'کارنامه با موفقیت دانلود شد.', '✅');
-        });
+
+        // 🆕 اجرای سریع‌تر
+        await html2pdf().set(opt).from(element).save();
+        
+        // پاک کردن المان
+        if (element.parentNode) {
+            element.parentNode.removeChild(element);
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('❌ خطا در دانلود:', error);
+        return false;
     }
 }
 
 // ============================================================
-// نمایش کارنامه بعد از تکلیف + 🆕 ثبت امتیاز
+// دانلود کارنامه با index (از لیست کارنامه‌ها)
+// ============================================================
+async function downloadReportById(index) {
+    const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+    reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const report = reports[index];
+    if (!report) return;
+    
+    // 🆕 نمایش پیام «در حال آماده‌سازی»
+    showModal('⏳ در حال آماده‌سازی PDF...', 'لطفاً چند لحظه صبر کنید.', '📄');
+    
+    const filename = `کارنامه_${report.lessonTitle}_${report.date.replace(/\//g, '-')}.pdf`;
+    const success = await downloadReportFast(report, filename);
+    
+    if (success) {
+        closeModal();
+        setTimeout(() => {
+            showModal('✅ دانلود موفق', 'کارنامه با موفقیت دانلود شد.', '✅');
+        }, 300);
+    } else {
+        closeModal();
+        setTimeout(() => {
+            showModal('❌ خطا', 'مشکلی در دانلود پیش آمد.\nلطفاً دوباره تلاش کنید.', '❌');
+        }, 300);
+    }
+}
+
+// ============================================================
+// 🆕 دانلود از توی صفحه‌ی مشاهده
+// ============================================================
+async function downloadReportByData(index) {
+    await downloadReportById(index);
+}
+
+// ============================================================
+// نمایش کارنامه بعد از تکلیف + ثبت امتیاز
 // ============================================================
 function showReportCard() {
     if (isPracticeMode) {
@@ -168,7 +268,14 @@ function showReportCard() {
     const container = document.getElementById('report-view-content');
     container.innerHTML = generateGraphicReport(report);
     container.innerHTML += `
-        <button class="btn-primary" onclick="downloadCurrentReport()" style="margin-top: 15px;">دانلود کارنامه (PDF)</button>
+        <button class="btn-primary" onclick="downloadCurrentReport()" style="margin-top: 15px;">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; margin-left: 8px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <polyline points="7 10 12 15 17 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <line x1="12" y1="15" x2="12" y2="3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            دانلود کارنامه (PDF)
+        </button>
         <button class="btn-primary" onclick="goToScreen('screen-home')" style="margin-top: 10px; background: linear-gradient(135deg, #546e7a 0%, #37474f 100%);">بازگشت به خانه</button>
     `;
     goToScreen('screen-report-view');
@@ -176,16 +283,18 @@ function showReportCard() {
     updateNotificationBadge();
     setTimeout(() => checkForNewMedals(), 1500);
 
-    // 🆕 ثبت امتیاز در Supabase (بعد از کارنامه)
+    // ثبت امتیاز در Supabase
     setTimeout(() => {
-        saveRankingToSupabase();
+        if (typeof saveRankingToSupabase === 'function') {
+            saveRankingToSupabase();
+        }
     }, 1000);
 }
 
 // ============================================================
-// دانلود کارنامه فعلی
+// 🆕 دانلود کارنامه فعلی (بهینه‌شده)
 // ============================================================
-function downloadCurrentReport() {
+async function downloadCurrentReport() {
     const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
     const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
     const now = new Date();
@@ -200,33 +309,22 @@ function downloadCurrentReport() {
         score, totalPoints: currentLesson.totalPoints, timeTaken,
         surveyAnswer: surveyAnswerText
     };
-    const element = document.createElement('div');
-    element.style.padding = '20px';
-    element.style.direction = 'rtl';
-    element.style.background = '#f0f7ff';
-    element.style.fontFamily = 'Vazirmatn, sans-serif';
-    element.style.width = '700px';
-    element.innerHTML = generateGraphicReport(report);
-    const opt = {
-        margin: 0.3,
-        filename: `کارنامه_${taskTitle}_${dateStr.replace(/\//g, '-')}.pdf`,
-        image: { type: 'jpeg', quality: 0.85 },
-        html2canvas: {
-            scale: 1.5,
-            useCORS: true,
-            backgroundColor: '#f0f7ff',
-            logging: false,
-            imageTimeout: 0,
-            removeContainer: true
-        },
-        jsPDF: {
-            unit: 'in',
-            format: 'a4',
-            orientation: 'portrait',
-            compress: true
-        }
-    };
-    html2pdf().set(opt).from(element).save().then(() => {
-        showModal('دانلود موفق', 'کارنامه با موفقیت دانلود شد.', '✅');
-    });
+
+    // 🆕 نمایش پیام
+    showModal('⏳ در حال آماده‌سازی PDF...', 'لطفاً چند لحظه صبر کنید.', '📄');
+
+    const filename = `کارنامه_${taskTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
+    const success = await downloadReportFast(report, filename);
+
+    if (success) {
+        closeModal();
+        setTimeout(() => {
+            showModal('✅ دانلود موفق', 'کارنامه با موفقیت دانلود شد.', '✅');
+        }, 300);
+    } else {
+        closeModal();
+        setTimeout(() => {
+            showModal('❌ خطا', 'مشکلی در دانلود پیش آمد.\nلطفاً دوباره تلاش کنید.', '❌');
+        }, 300);
+    }
 }

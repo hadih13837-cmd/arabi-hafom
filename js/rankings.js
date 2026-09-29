@@ -4,7 +4,7 @@
 
 // متغیر سراسری برای ذخیره‌ی رتبه‌بندی
 let currentRankings = [];
-let currentRankingFilter = 'my-class'; // 'my-class' یا 'all'
+let currentRankingFilter = 'my-class';
 
 // ============================================================
 // بارگذاری و نمایش صفحه‌ی رتبه‌بندی
@@ -13,7 +13,27 @@ async function loadRankingsPage() {
     const container = document.getElementById('rankings-content');
     if (!container) return;
 
-    // نمایش لودینگ
+    // 🆕 نمایش پیام «در حال ساخت»
+    container.innerHTML = `
+        <div class="rankings-coming-soon">
+            <div class="rankings-coming-icon">🚧</div>
+            <div class="rankings-coming-title">در حال ساخت</div>
+            <div class="rankings-coming-text">
+                بخش رتبه‌بندی به‌زودی راه‌اندازی می‌شه!<br>
+                <span style="font-size: 12px; opacity: 0.7;">با انجام تکالیف، امتیاز جمع کن تا وقتی رتبه‌بندی فعال شد، جزو نفرات برتر باشی! 🏆</span>
+            </div>
+            <div class="rankings-coming-decoration">✨</div>
+        </div>
+    `;
+}
+
+// ============================================================
+// تابع قدیمی (برای زمانی که رتبه‌بندی فعال شد)
+// ============================================================
+async function loadRankingsPageReal() {
+    const container = document.getElementById('rankings-content');
+    if (!container) return;
+
     container.innerHTML = `
         <div class="rankings-loading">
             <div class="rankings-spinner"></div>
@@ -25,16 +45,13 @@ async function loadRankingsPage() {
         const userClass = localStorage.getItem('userClass') || 'هفتم یک';
         const studentId = localStorage.getItem('studentUUID');
 
-        // گرفتن رتبه‌بندی کلاس خودم
         currentRankings = await getRankingsByClass(userClass);
 
-        // اگه خالی بود
         if (!currentRankings || currentRankings.length === 0) {
             container.innerHTML = renderEmptyRankings();
             return;
         }
 
-        // نمایش رتبه‌بندی
         container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
 
     } catch (error) {
@@ -57,7 +74,6 @@ async function loadRankingsPage() {
 function renderRankingsList(rankings, userClass, studentId) {
     let html = '';
 
-    // هدر با اطلاعات کلاس
     html += `
         <div class="rankings-header">
             <div class="rankings-header-icon">🏆</div>
@@ -68,22 +84,18 @@ function renderRankingsList(rankings, userClass, studentId) {
         </div>
     `;
 
-    // کارت‌های ۳ نفر اول (سکوی قهرمانی)
     if (rankings.length >= 3) {
         html += renderTopThree(rankings);
     }
 
-    // لیست بقیه (از رتبه ۱ یا ۴ به بعد)
     const startIndex = rankings.length >= 3 ? 3 : 0;
     html += `<div class="rankings-list">`;
 
     if (startIndex === 0) {
-        // کمتر از ۳ نفر
         rankings.forEach((r, index) => {
             html += renderRankingCard(r, index + 1, studentId);
         });
     } else {
-        // ۳ نفر اول توی سکو هستن، بقیه توی لیست
         for (let i = startIndex; i < rankings.length; i++) {
             html += renderRankingCard(rankings[i], i + 1, studentId);
         }
@@ -91,7 +103,6 @@ function renderRankingsList(rankings, userClass, studentId) {
 
     html += `</div>`;
 
-    // اگه کاربر خودش توی رتبه‌بندی نیست
     if (studentId) {
         const myIndex = rankings.findIndex(r => r.student_id === studentId);
         if (myIndex === -1) {
@@ -111,7 +122,7 @@ function renderRankingsList(rankings, userClass, studentId) {
 }
 
 // ============================================================
-// رندر سکوی قهرمانی (۳ نفر اول)
+// رندر سکوی قهرمانی
 // ============================================================
 function renderTopThree(rankings) {
     const first = rankings[0];
@@ -120,10 +131,9 @@ function renderTopThree(rankings) {
 
     return `
         <div class="rankings-podium">
-            <!-- نفر دوم (سمت چپ) -->
             <div class="podium-item podium-2">
                 <div class="podium-avatar-wrap">
-                    <div class="podium-avatar">${renderAvatar(first, second)}</div>
+                    <div class="podium-avatar">${renderAvatar(second)}</div>
                     <div class="podium-medal">🥈</div>
                 </div>
                 <div class="podium-name">${truncateName(second.name)}</div>
@@ -133,10 +143,9 @@ function renderTopThree(rankings) {
                 </div>
             </div>
 
-            <!-- نفر اول (وسط) -->
             <div class="podium-item podium-1">
                 <div class="podium-avatar-wrap">
-                    <div class="podium-avatar">${renderAvatar(first, first)}</div>
+                    <div class="podium-avatar">${renderAvatar(first)}</div>
                     <div class="podium-medal">🥇</div>
                 </div>
                 <div class="podium-name">${truncateName(first.name)}</div>
@@ -146,10 +155,9 @@ function renderTopThree(rankings) {
                 </div>
             </div>
 
-            <!-- نفر سوم (سمت راست) -->
             <div class="podium-item podium-3">
                 <div class="podium-avatar-wrap">
-                    <div class="podium-avatar">${renderAvatar(first, third)}</div>
+                    <div class="podium-avatar">${renderAvatar(third)}</div>
                     <div class="podium-medal">🥉</div>
                 </div>
                 <div class="podium-name">${truncateName(third.name)}</div>
@@ -163,7 +171,7 @@ function renderTopThree(rankings) {
 }
 
 // ============================================================
-// رندر کارت رتبه‌بندی (برای رتبه‌های ۴ به بعد)
+// رندر کارت رتبه‌بندی
 // ============================================================
 function renderRankingCard(ranking, rank, myStudentId) {
     const isMe = (ranking.student_id === myStudentId);
@@ -173,7 +181,7 @@ function renderRankingCard(ranking, rank, myStudentId) {
         <div class="ranking-card ${meClass}">
             <div class="ranking-rank">${toPersianNum(rank)}</div>
             <div class="ranking-avatar">
-                ${renderAvatar(ranking, ranking)}
+                ${renderAvatar(ranking)}
             </div>
             <div class="ranking-info">
                 <div class="ranking-name">
@@ -194,19 +202,17 @@ function renderRankingCard(ranking, rank, myStudentId) {
 }
 
 // ============================================================
-// رندر آواتار (عکس یا ایموجی)
+// رندر آواتار
 // ============================================================
-function renderAvatar(ranking, fallback) {
+function renderAvatar(ranking) {
     const avatarUrl = ranking.avatar_url || 'emoji:👤';
 
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '');
         return `<span class="avatar-emoji">${emoji}</span>`;
     } else if (avatarUrl.startsWith('data:image')) {
-        // عکس Base64
         return `<img src="${avatarUrl}" alt="آواتار" class="avatar-img">`;
     } else if (avatarUrl.startsWith('http')) {
-        // URL عکس
         return `<img src="${avatarUrl}" alt="آواتار" class="avatar-img">`;
     } else {
         return `<span class="avatar-emoji">👤</span>`;
@@ -214,13 +220,12 @@ function renderAvatar(ranking, fallback) {
 }
 
 // ============================================================
-// کوتاه کردن اسم (اسم + حرف اول فامیل)
+// کوتاه کردن اسم
 // ============================================================
 function truncateName(fullName) {
     if (!fullName) return 'دانش‌آموز';
     const parts = fullName.trim().split(/\s+/);
     if (parts.length === 1) return parts[0];
-    // اسم اول + حرف اول فامیل
     const firstName = parts[0];
     const lastNameInitial = parts[parts.length - 1].charAt(0);
     return `${firstName} ${lastNameInitial}.`;
@@ -242,7 +247,7 @@ function renderEmptyRankings() {
 }
 
 // ============================================================
-// رفرش کردن رتبه‌بندی (با کشیدن به پایین)
+// رفرش کردن رتبه‌بندی
 // ============================================================
 async function refreshRankings() {
     vibrate(20);

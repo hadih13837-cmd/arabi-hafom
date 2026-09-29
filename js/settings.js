@@ -219,7 +219,7 @@ function typeMotivation() {
 }
 
 // ============================================================
-// 🆕 بروزرسانی اطلاعات (با حفظ اطلاعات کاربر + بدون خطا)
+// بروزرسانی اطلاعات (با حفظ اطلاعات کاربر + بدون خطا)
 // ============================================================
 function openUpdateDataModal() {
     document.getElementById('update-data-modal').classList.add('active');
@@ -235,9 +235,7 @@ async function confirmUpdateData() {
     showModal('⏳ در حال بروزرسانی...', 'لطفاً چند لحظه صبر کنید.\nاطلاعات شما حفظ می‌شود.', '🔄');
 
     try {
-        // ۱. ذخیره‌ی همه‌ی اطلاعات مهم کاربر (حتی استریک و موارد دیده‌شده)
         const userData = {
-            // اطلاعات کاربری
             userName: localStorage.getItem('userName'),
             userClass: localStorage.getItem('userClass'),
             userSchool: localStorage.getItem('userSchool'),
@@ -246,19 +244,13 @@ async function confirmUpdateData() {
             userAvatar: localStorage.getItem('userAvatar'),
             userAvatarEmoji: localStorage.getItem('userAvatarEmoji'),
             studentUUID: localStorage.getItem('studentUUID'),
-
-            // دستاوردها
             reports: localStorage.getItem('reports'),
             streakData: localStorage.getItem('streakData'),
             unlockedMedals: localStorage.getItem('unlockedMedals'),
-
-            // تنظیمات
             theme: localStorage.getItem('theme'),
             darkMode: localStorage.getItem('darkMode'),
             soundsEnabled: localStorage.getItem('soundsEnabled'),
             musicEnabled: localStorage.getItem('musicEnabled'),
-
-            // موارد مربوط به اعلان‌ها و استریک (نگه داشته می‌شن تا دوباره نیاد)
             welcomeShown: localStorage.getItem('welcomeShown'),
             guideCompleted: localStorage.getItem('guideCompleted'),
             lessonsGuideShown: localStorage.getItem('lessonsGuideShown'),
@@ -270,48 +262,36 @@ async function confirmUpdateData() {
             lastDeadlineNotifDate: localStorage.getItem('lastDeadlineNotifDate')
         };
 
-        // ۲. پاک کردن کل localStorage
         localStorage.clear();
 
-        // ۳. برگرداندن اطلاعات کاربر
         Object.keys(userData).forEach(key => {
             if (userData[key] !== null && userData[key] !== undefined) {
                 localStorage.setItem(key, userData[key]);
             }
         });
 
-        // ۴. پاک کردن کش‌های Service Worker
         if ('caches' in window) {
             try {
                 const cacheNames = await caches.keys();
-                await Promise.all(
-                    cacheNames.map(name => {
-                        console.log('🗑️ حذف کش:', name);
-                        return caches.delete(name);
-                    })
-                );
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
             } catch (cacheError) {
                 console.warn('⚠️ خطا در پاک کردن کش:', cacheError);
             }
         }
 
-        // ۵. Unregister کردن Service Worker قدیمی
         if ('serviceWorker' in navigator) {
             try {
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 for (let registration of registrations) {
                     await registration.unregister();
-                    console.log('🗑️ Service Worker حذف شد');
                 }
             } catch (swError) {
                 console.warn('⚠️ خطا در حذف Service Worker:', swError);
             }
         }
 
-        // ۶. پیام موفقیت
         showModal('✅ بروزرسانی موفق', 'اطلاعات شما با موفقیت حفظ شد.\nبرنامه در حال بارگذاری مجدد...', '✅');
 
-        // ۷. بارگذاری مجدد صفحه بعد از ۱.۵ ثانیه
         setTimeout(() => {
             const url = new URL(window.location.href);
             url.searchParams.set('updated', Date.now());
@@ -320,7 +300,6 @@ async function confirmUpdateData() {
 
     } catch (error) {
         console.error('❌ خطا در بروزرسانی:', error);
-        // حتی اگه خطا داد، بازم رفرش کن (چون اطلاعات حفظ شدن)
         setTimeout(() => {
             const url = new URL(window.location.href);
             url.searchParams.set('updated', Date.now());
@@ -330,7 +309,7 @@ async function confirmUpdateData() {
 }
 
 // ============================================================
-// تغییر آواتار (عکس)
+// تغییر آواتار (عکس از گالری)
 // ============================================================
 function changeAvatar(event) {
     const file = event.target.files[0];
@@ -358,4 +337,43 @@ function changeAvatar(event) {
         }
     };
     reader.readAsDataURL(file);
+
+    // ریست کردن input برای اینکه بشه دوباره انتخاب کرد
+    event.target.value = '';
+}
+
+// ============================================================
+// 🆕 باز کردن مودال انتخاب نوع آواتار (ایموجی یا گالری)
+// ============================================================
+function openAvatarOptionsModal() {
+    if (typeof openAvatarOptionsModalGlobal === 'function') {
+        openAvatarOptionsModalGlobal();
+    } else {
+        const modal = document.getElementById('avatar-options-modal');
+        if (modal) modal.classList.add('active');
+    }
+}
+
+function closeAvatarOptionsModal() {
+    const modal = document.getElementById('avatar-options-modal');
+    if (modal) modal.classList.remove('active');
+}
+
+// 🆕 رفتن به گزینه‌ی ایموجی
+function chooseEmojiOption() {
+    closeAvatarOptionsModal();
+    setTimeout(() => {
+        if (typeof openEmojiPicker === 'function') {
+            openEmojiPicker();
+        }
+    }, 250);
+}
+
+// 🆕 رفتن به گزینه‌ی گالری
+function chooseGalleryOption() {
+    closeAvatarOptionsModal();
+    setTimeout(() => {
+        const fileInput = document.getElementById('avatar-input');
+        if (fileInput) fileInput.click();
+    }, 250);
 }

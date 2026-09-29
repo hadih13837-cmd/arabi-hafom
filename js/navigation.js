@@ -52,12 +52,12 @@ function goToScreen(screenId, addToHistory = true) {
     if (targetScreen) targetScreen.classList.add('active');
     document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
     
-    // 🆕 ترتیب جدید: خانه، مدال‌ها، رتبه‌بندی، تنظیمات، پروفایل
+    // 🆕 ترتیب جدید نوار پایین: مدال‌ها → رتبه‌بندی → خانه (وسط) → تنظیمات → پروفایل
     document.querySelectorAll('.bottom-nav').forEach(nav => {
         const items = nav.querySelectorAll('.bottom-nav-item');
-        if (screenId === 'screen-home' && items[0]) items[0].classList.add('active');
-        if (screenId === 'screen-medals' && items[1]) items[1].classList.add('active');
-        if (screenId === 'screen-rankings' && items[2]) items[2].classList.add('active');
+        if (screenId === 'screen-medals' && items[0]) items[0].classList.add('active');
+        if (screenId === 'screen-rankings' && items[1]) items[1].classList.add('active');
+        if (screenId === 'screen-home' && items[2]) items[2].classList.add('active');
         if (screenId === 'screen-settings' && items[3]) items[3].classList.add('active');
         if (screenId === 'screen-profile' && items[4]) items[4].classList.add('active');
     });
@@ -397,6 +397,8 @@ function saveProfileChanges() {
     closeEditProfile();
     showModal('موفق', 'اطلاعات شما با موفقیت ذخیره شد.', '✅');
     setTimeout(() => {
-        saveRankingToSupabase();
+        if (typeof saveRankingToSupabase === 'function') {
+            saveRankingToSupabase();
+        }
     }, 500);
 }
