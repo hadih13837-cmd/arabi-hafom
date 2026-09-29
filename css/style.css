@@ -50,7 +50,8 @@ body.dark-mode #screen-about,
 body.dark-mode #screen-settings,
 body.dark-mode #screen-profile,
 body.dark-mode #screen-reports,
-body.dark-mode #screen-calendar { background: #0f1419; }
+body.dark-mode #screen-calendar,
+body.dark-mode #screen-rankings { background: #0f1419; }
 body.dark-mode .home-welcome,
 body.dark-mode .lesson-card,
 body.dark-mode .lesson-info-card,
@@ -130,7 +131,7 @@ body { display: flex; justify-content: center; align-items: center; }
     100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
 }
 
-/* نوار پایین */
+/* ============ نوار پایین با افکت‌های جدید ============ */
 .bottom-nav {
     flex-shrink: 0; background: #fff;
     display: flex; justify-content: space-around; align-items: center;
@@ -141,57 +142,68 @@ body { display: flex; justify-content: center; align-items: center; }
     border-radius: 24px 24px 0 0;
     z-index: 100; gap: 4px;
 }
+
 .bottom-nav-item {
     flex: 1; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 4px; cursor: pointer; padding: 9px 2px;
     border-radius: 16px; background: transparent; border: none;
     font-family: 'Vazirmatn', sans-serif;
-    transition: transform 0.2s;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
 }
 .bottom-nav-item svg {
     width: 26px; height: 26px; stroke: #90a4ae;
     fill: none; stroke-width: 2;
     stroke-linecap: round; stroke-linejoin: round;
+    transition: all 0.25s ease;
 }
 .bottom-nav-item span {
     font-size: 11px; font-weight: bold; color: #90a4ae;
+    transition: all 0.25s ease;
 }
-.bottom-nav-item:active { transform: scale(0.94); }
-.bottom-nav-item.home-item.active { background: var(--primary-light); }
-.bottom-nav-item.home-item.active svg { stroke: var(--primary); fill: var(--primary-light); }
-.bottom-nav-item.home-item.active span { color: var(--primary); }
-.bottom-nav-item.medals-item.active { background: linear-gradient(135deg, #fff8e1, #ffecb3); }
-.bottom-nav-item.medals-item.active svg { stroke: #f57c00; fill: #fff8e1; }
-.bottom-nav-item.medals-item.active span { color: #f57c00; }
-.bottom-nav-item.settings-item.active { background: linear-gradient(135deg, #ffebee, #ffcdd2); }
-.bottom-nav-item.settings-item.active svg { stroke: #c62828; fill: #ffebee; }
-.bottom-nav-item.settings-item.active span { color: #c62828; }
-.bottom-nav-item.profile-item.active { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
-.bottom-nav-item.profile-item.active svg { stroke: #2e7d32; fill: #e8f5e9; }
-.bottom-nav-item.profile-item.active span { color: #2e7d32; }
 
-/* 🆕 دکمه‌ی رتبه‌بندی در نوار پایین (وسط، بنفش) */
-.bottom-nav-item.rankings-item {
-    position: relative;
-    transition: all 0.3s ease;
+/* 🆕 افکت کلیک روی همه‌ی دکمه‌ها */
+.bottom-nav-item:active {
+    transform: scale(0.92);
 }
+
+/* 🆕 سایه و برجستگی برای همه‌ی دکمه‌ها وقتی active می‌شن */
+.bottom-nav-item.active {
+    background: rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: scale(1.05);
+}
+
+/* حالت خانه */
+.bottom-nav-item.home-item.active {
+    background: var(--primary-light);
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.25);
+}
+.bottom-nav-item.home-item.active svg { stroke: var(--primary); fill: var(--primary-light); transform: scale(1.1); }
+.bottom-nav-item.home-item.active span { color: var(--primary); font-weight: 900; }
+
+/* حالت مدال‌ها */
+.bottom-nav-item.medals-item.active {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    box-shadow: 0 4px 15px rgba(245, 124, 0, 0.25);
+}
+.bottom-nav-item.medals-item.active svg { stroke: #f57c00; fill: #fff8e1; transform: scale(1.1); }
+.bottom-nav-item.medals-item.active span { color: #f57c00; font-weight: 900; }
+
+/* حالت رتبه‌بندی (پیش‌فرض خاکستری مثل بقیه) */
 .bottom-nav-item.rankings-item svg {
     stroke: #90a4ae;
     fill: none;
-    transition: all 0.3s ease;
 }
 .bottom-nav-item.rankings-item span {
     color: #90a4ae;
-    font-weight: bold;
-    transition: all 0.3s ease;
 }
-.bottom-nav-item.rankings-item:active {
-    transform: scale(0.94);
-}
+/* فقط وقتی active شد، بنفش می‌شه */
 .bottom-nav-item.rankings-item.active {
     background: linear-gradient(135deg, #e1bee7, #ce93d8);
     box-shadow: 0 4px 15px rgba(123, 31, 162, 0.3);
+    transform: scale(1.05);
 }
 .bottom-nav-item.rankings-item.active svg {
     stroke: #6a1b9a;
@@ -203,7 +215,23 @@ body { display: flex; justify-content: center; align-items: center; }
     font-weight: 900;
 }
 
-/* صفحه خانه */
+/* حالت تنظیمات */
+.bottom-nav-item.settings-item.active {
+    background: linear-gradient(135deg, #ffebee, #ffcdd2);
+    box-shadow: 0 4px 15px rgba(198, 40, 40, 0.25);
+}
+.bottom-nav-item.settings-item.active svg { stroke: #c62828; fill: #ffebee; transform: scale(1.1); }
+.bottom-nav-item.settings-item.active span { color: #c62828; font-weight: 900; }
+
+/* حالت پروفایل */
+.bottom-nav-item.profile-item.active {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.25);
+}
+.bottom-nav-item.profile-item.active svg { stroke: #2e7d32; fill: #e8f5e9; transform: scale(1.1); }
+.bottom-nav-item.profile-item.active span { color: #2e7d32; font-weight: 900; }
+
+/* ============ صفحه خانه ============ */
 #screen-home { background: linear-gradient(180deg, var(--primary-light) 0%, #ffffff 100%); }
 .home-scroll-area {
     flex: 1; overflow-y: auto; overflow-x: hidden;
@@ -522,6 +550,18 @@ body { display: flex; justify-content: center; align-items: center; }
     font-family: 'Vazirmatn', sans-serif;
 }
 .welcome-btn:active { transform: scale(0.98); }
+
+/* 🆕 حالت ایموجی آواتار (بدون کادر) */
+.home-welcome-avatar.emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+.home-welcome-avatar.emoji-mode .emoji-avatar {
+    font-size: 58px;
+    line-height: 1;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+}
 /* ============ صفحات داخلی ============ */
 .page-header {
     flex-shrink: 0; display: flex; align-items: center;
@@ -1422,8 +1462,24 @@ body { display: flex; justify-content: center; align-items: center; }
     display: flex; align-items: center; justify-content: center;
     overflow: hidden; border: 4px solid #fff;
     box-shadow: 0 8px 25px rgba(25, 118, 210, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s ease;
 }
+.profile-avatar:active { transform: scale(0.95); }
 .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* 🆕 حالت ایموجی (بدون کادر) */
+.profile-avatar.emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+.profile-avatar.emoji-mode .emoji-avatar {
+    font-size: 100px;
+    line-height: 1;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
+}
+
 .profile-avatar-edit {
     position: absolute; bottom: 0; left: 0;
     width: 36px; height: 36px; border-radius: 50%;
@@ -1514,6 +1570,62 @@ body { display: flex; justify-content: center; align-items: center; }
     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
 }
 .delete-account-btn span { color: #c62828; font-size: 15px; font-weight: 900; }
+
+/* 🆕 مودال انتخاب نوع آواتار */
+.avatar-options-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+.avatar-option-btn {
+    flex: 1;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 18px;
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    color: #333;
+    transition: all 0.2s ease;
+}
+.avatar-option-btn:active {
+    transform: scale(0.95);
+}
+.avatar-option-btn.emoji-option {
+    border-color: #ce93d8;
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+}
+.avatar-option-btn.emoji-option:hover {
+    border-color: #7b1fa2;
+    background: linear-gradient(135deg, #e1bee7, #ce93d8);
+}
+.avatar-option-btn.gallery-option {
+    border-color: #90caf9;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+}
+.avatar-option-btn.gallery-option:hover {
+    border-color: #1976d2;
+    background: linear-gradient(135deg, #bbdefb, #90caf9);
+}
+.avatar-option-icon {
+    font-size: 38px;
+    display: block;
+    line-height: 1;
+}
+.avatar-option-btn.emoji-option span:last-child {
+    color: #6a1b9a;
+}
+.avatar-option-btn.gallery-option span:last-child {
+    color: #0d47a1;
+}
 
 /* کارنامه گرافیکی */
 .report-graphic-container {
@@ -1674,19 +1786,45 @@ body { display: flex; justify-content: center; align-items: center; }
 .report-info-row .value.green { color: #2e7d32; }
 .report-info-row .value.red { color: #c62828; }
 .report-info-row .value.blue { color: var(--primary); }
-.report-btn {
-    width: 100%; margin-top: 12px;
-    padding: 12px; border-radius: 50px;
-    border: none; font-family: 'Vazirmatn', sans-serif;
-    font-size: 14px; font-weight: 900;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+
+/* 🆕 دکمه‌های کارنامه */
+.report-card-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
 }
-.report-btn:active { transform: scale(0.97); }
+.report-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 50px;
+    border: none;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.report-btn:active { transform: scale(0.95); }
+.report-btn svg {
+    width: 16px;
+    height: 16px;
+}
+.report-btn-view {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: var(--primary);
+    border: 1.5px solid var(--primary-lighter);
+}
+.report-btn-view svg { stroke: var(--primary); }
 .report-btn-download {
     background: var(--primary-gradient);
     color: #fff;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.3);
 }
+.report-btn-download svg { stroke: #fff; }
 
 /* بنر نصب */
 .install-banner {
@@ -2345,7 +2483,7 @@ body { display: flex; justify-content: center; align-items: center; }
     transform: scale(0.95);
 }
 
-/* ============ کادر جمله فارسی (برای سوال word-build) ============ */
+/* ============ کادر جمله فارسی ============ */
 .sentence-prompt-box {
     background: linear-gradient(135deg, #fff 0%, #f0f7ff 100%);
     border: 2.5px solid #bbdefb;
@@ -2380,7 +2518,7 @@ body { display: flex; justify-content: center; align-items: center; }
     direction: rtl;
 }
 
-/* ============ کادر جمله عربی (برای سوال order) ============ */
+/* ============ کادر جمله عربی ============ */
 .arabic-sentence-box {
     background: linear-gradient(135deg, #fff 0%, #f3e5f5 100%);
     border: 2.5px solid #ce93d8;
@@ -3638,54 +3776,7 @@ body { display: flex; justify-content: center; align-items: center; }
     border-color: #ce93d8;
 }
 
-.emoji-avatar-btn {
-    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 50px;
-    font-family: 'Vazirmatn', sans-serif;
-    font-size: 13px;
-    font-weight: 900;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    margin-bottom: 15px;
-    box-shadow: 0 4px 15px rgba(123, 31, 162, 0.35);
-    transition: transform 0.2s;
-}
-.emoji-avatar-btn:active {
-    transform: scale(0.95);
-}
-.emoji-avatar-btn svg {
-    width: 18px;
-    height: 18px;
-    stroke: #fff;
-    fill: none;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.emoji-avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    font-size: 38px;
-    line-height: 1;
-}
-.home-welcome-avatar .emoji-avatar {
-    font-size: 32px;
-}
-.profile-avatar .emoji-avatar {
-    font-size: 50px;
-}
-
-/* ============ حالت شب رتبه‌بندی ============ */
+/* حالت شب رتبه‌بندی */
 body.dark-mode #screen-rankings {
     background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%);
 }
@@ -3740,7 +3831,7 @@ body.dark-mode .podium-name {
     color: #ce93d8;
 }
 
-/* ============ ریسپانسیو ============ */
+/* ریسپانسیو */
 @media (max-width: 400px) {
     .emoji-category-grid {
         grid-template-columns: repeat(7, 1fr);
@@ -3769,4 +3860,138 @@ body.dark-mode .podium-name {
     .ranking-avatar .avatar-emoji {
         font-size: 22px;
     }
+    .profile-avatar.emoji-mode .emoji-avatar {
+        font-size: 80px;
+    }
+    .home-welcome-avatar.emoji-mode .emoji-avatar {
+        font-size: 48px;
+    }
+}
+
+/* انیمیشن برای نوتیفیکیشن آپدیت */
+@keyframes slideDownUpdate {
+    from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+    to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+/* ============================================================
+   🆕 بخش جدید: حذف کادر ایموجی + وسط‌چین خانه + در حال ساخت
+   ============================================================ */
+
+/* ============ ۱. حذف کادر ایموجی آواتار خانه ============ */
+.home-welcome-avatar.emoji-mode {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.home-welcome-avatar.emoji-mode img {
+    display: none !important;
+}
+.home-welcome-avatar.emoji-mode .emoji-avatar {
+    font-size: 62px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+/* ============ ۲. حذف کادر ایموجی آواتار پروفایل ============ */
+.profile-avatar.emoji-mode {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.profile-avatar.emoji-mode img {
+    display: none !important;
+}
+.profile-avatar.emoji-mode .emoji-avatar {
+    font-size: 110px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.2));
+}
+
+/* ============ ۳. وسط‌چین کردن دکمه‌ی خانه ============ */
+.bottom-nav {
+    justify-content: space-evenly !important;
+}
+
+.bottom-nav .bottom-nav-item.home-item {
+    flex: 1.3;
+    position: relative;
+}
+
+/* ============ ۴. صفحه رتبه‌بندی - در حال ساخت ============ */
+.rankings-coming-soon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 25px;
+    min-height: 70vh;
+}
+
+.rankings-coming-icon {
+    font-size: 100px;
+    margin-bottom: 25px;
+    animation: comingSoonBounce 2s ease-in-out infinite;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.2));
+}
+
+@keyframes comingSoonBounce {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-15px) rotate(5deg); }
+}
+
+.rankings-coming-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #7b1fa2;
+    margin-bottom: 15px;
+    text-shadow: 0 3px 10px rgba(123, 31, 162, 0.2);
+    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.rankings-coming-text {
+    font-size: 15px;
+    font-weight: bold;
+    color: #607d8b;
+    line-height: 2;
+    max-width: 320px;
+    margin-bottom: 25px;
+}
+
+.rankings-coming-decoration {
+    font-size: 40px;
+    animation: sparkleRotate 3s linear infinite;
+    opacity: 0.7;
+}
+
+@keyframes sparkleRotate {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.3); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+/* حالت شب برای صفحه در حال ساخت */
+body.dark-mode .rankings-coming-title {
+    background: linear-gradient(135deg, #ce93d8, #ba68c8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+body.dark-mode .rankings-coming-text {
+    color: #90a4ae;
 }
