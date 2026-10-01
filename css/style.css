@@ -3995,3 +3995,317 @@ body.dark-mode .rankings-coming-title {
 body.dark-mode .rankings-coming-text {
     color: #90a4ae;
 }
+/* ============================================================
+   🆕 بخش جدید: استایل سوالات match-flip و word-attach
+   ============================================================ */
+
+/* ============ سوال match-flip (بازی حافظه) ============ */
+.match-flip-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.match-flip-card {
+    aspect-ratio: 1 / 1;
+    perspective: 1000px;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+.match-flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.match-flip-card.flipped .match-flip-inner {
+    transform: rotateY(180deg);
+}
+
+.match-flip-front,
+.match-flip-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px;
+    font-weight: 900;
+}
+
+/* روی کارت (پشت) */
+.match-flip-front {
+    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
+    color: #fff;
+    font-size: 36px;
+    box-shadow: 0 6px 20px rgba(123, 31, 162, 0.35);
+    border: 3px solid #fff;
+}
+
+/* پشت کارت (رو) */
+.match-flip-back {
+    transform: rotateY(180deg);
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border: 3px solid #fff;
+}
+
+/* کارت عربی */
+.match-flip-back.ar {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: #0d47a1;
+    font-size: 16px;
+    direction: rtl;
+    border-color: #1976d2;
+}
+
+/* کارت فارسی */
+.match-flip-back.fa {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    color: #1b5e20;
+    font-size: 14px;
+    direction: rtl;
+    border-color: #43a047;
+}
+
+/* کارت‌های جفت‌شده */
+.match-flip-card.matched {
+    pointer-events: none;
+    animation: matchPulse 0.6s ease;
+}
+
+.match-flip-card.matched .match-flip-inner {
+    transform: rotateY(180deg);
+}
+
+.match-flip-card.matched .match-flip-back {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3), 0 6px 20px rgba(76, 175, 80, 0.4);
+    opacity: 0.85;
+}
+
+@keyframes matchPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* کارت‌های باز شده اشتباه */
+.match-flip-card.flipped:not(.matched) {
+    animation: flipWrong 0.9s ease;
+}
+
+@keyframes flipWrong {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+/* وضعیت بازی */
+.match-flip-status {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 900;
+    color: #6a1b9a;
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+    padding: 12px 20px;
+    border-radius: 50px;
+    margin-top: 15px;
+    box-shadow: 0 3px 12px rgba(123, 31, 162, 0.15);
+    border: 1.5px solid #ce93d8;
+}
+
+/* ============ سوال word-attach (چسباندن ضمیر) ============ */
+.word-attach-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    padding: 20px 10px;
+    width: 100%;
+}
+
+/* کلمه‌ی پایه */
+.word-attach-base {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #fff 0%, #f0f7ff 100%);
+    border: 3px dashed #90caf9;
+    border-radius: 20px;
+    padding: 25px 35px;
+    min-width: 220px;
+    box-shadow: 0 6px 25px rgba(25, 118, 210, 0.15);
+    transition: all 0.3s ease;
+}
+
+.word-attach-text {
+    font-size: 32px;
+    font-weight: 900;
+    color: #0d47a1;
+    direction: rtl;
+    letter-spacing: 1px;
+}
+
+.word-attach-slot {
+    display: inline-block;
+    min-width: 50px;
+    height: 44px;
+    border-bottom: 4px solid #1976d2;
+    margin-right: 8px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 900;
+    color: #1976d2;
+    transition: all 0.3s ease;
+    padding: 0 8px;
+}
+
+.word-attach-slot.filled {
+    border-bottom-color: #4caf50;
+    color: #2e7d32;
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border-radius: 12px 12px 0 0;
+    animation: slotFill 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slotFill {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* گزینه‌های ضمیر */
+.word-attach-options {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.word-attach-item {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2.5px solid #bbdefb;
+    padding: 14px 26px;
+    border-radius: 16px;
+    font-size: 22px;
+    font-weight: 900;
+    color: #0d47a1;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    direction: rtl;
+    user-select: none;
+    min-width: 70px;
+    text-align: center;
+}
+
+.word-attach-item:active {
+    transform: scale(0.93);
+}
+
+.word-attach-item.selected {
+    background: linear-gradient(135deg, #e3f2fd, #90caf9);
+    border-color: #1976d2;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+    transform: scale(1.08);
+}
+
+.word-attach-item:hover:not(.selected) {
+    border-color: #1976d2;
+    background: #e3f2fd;
+}
+
+/* ============ حالت شب ============ */
+body.dark-mode .match-flip-front {
+    background: linear-gradient(135deg, #4a148c, #38006b);
+}
+
+body.dark-mode .match-flip-back.ar {
+    background: linear-gradient(135deg, #1a2332, #2a3444);
+    color: #90caf9;
+    border-color: #1976d2;
+}
+
+body.dark-mode .match-flip-back.fa {
+    background: linear-gradient(135deg, #1a2a1a, #2a3a2a);
+    color: #a5d6a7;
+    border-color: #43a047;
+}
+
+body.dark-mode .match-flip-status {
+    background: linear-gradient(135deg, #2a1a3a, #1a2332);
+    color: #ce93d8;
+    border-color: #4a148c;
+}
+
+body.dark-mode .word-attach-base {
+    background: linear-gradient(135deg, #1a2332, #0f1419);
+    border-color: #1976d2;
+}
+
+body.dark-mode .word-attach-text {
+    color: #90caf9;
+}
+
+body.dark-mode .word-attach-item {
+    background: #1a2332;
+    border-color: #2a3444;
+    color: #90caf9;
+}
+
+body.dark-mode .word-attach-item.selected {
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+    color: #fff;
+    border-color: #90caf9;
+}
+
+/* ============ ریسپانسیو ============ */
+@media (max-width: 400px) {
+    .match-flip-grid {
+        gap: 8px;
+    }
+    .match-flip-front {
+        font-size: 30px;
+    }
+    .match-flip-back {
+        font-size: 12px;
+        padding: 6px;
+    }
+    .match-flip-back.ar {
+        font-size: 14px;
+    }
+    .match-flip-back.fa {
+        font-size: 12px;
+    }
+    .word-attach-base {
+        padding: 20px 25px;
+        min-width: 180px;
+    }
+    .word-attach-text {
+        font-size: 26px;
+    }
+    .word-attach-item {
+        padding: 12px 20px;
+        font-size: 18px;
+        min-width: 60px;
+    }
+    .word-attach-slot {
+        font-size: 24px;
+        min-width: 40px;
+        height: 38px;
+    }
+}
