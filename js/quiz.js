@@ -20,10 +20,11 @@ let selectedErrorWord = null;
 let surveyAnswerText = '';
 
 // 🆕 متغیرهای مربوط به match-flip (بازی حافظه)
-let flippedCards = [];       // کارت‌های برگردونده‌شده
-let matchedFlipPairs = 0;    // تعداد جفت‌های پیدا شده
-let flipLocked = false;      // قفل کلیک
-let totalFlipPairs = 0;      // تعداد کل جفت‌ها
+let flippedCards = [];
+let matchedFlipPairs = 0;
+let flipLocked = false;
+let totalFlipPairs = 0;
+let matchFlipChecking = false; // 🆕 جلوگیری از checkAnswer دوباره
 
 // 🆕 متغیرهای مربوط به word-attach (چسباندن ضمیر)
 let selectedAttachOption = null;
@@ -101,6 +102,7 @@ function renderQuestion() {
     matchedFlipPairs = 0;
     flipLocked = false;
     totalFlipPairs = 0;
+    matchFlipChecking = false;
     selectedAttachOption = null;
     attachedWord = '';
     
@@ -196,7 +198,6 @@ function renderQuestion() {
         html += `<div class="audio-hint">💬 نظرت برامون مهمه! هرچی بنویسی قبوله ✨</div>`;
         html += `</div>`;
     } 
-    // 🆕 match-flip (بازی حافظه)
     else if (q.type === 'match-flip') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -204,7 +205,6 @@ function renderQuestion() {
         </div>`;
         html += `<div class="audio-hint" style="margin-bottom: 15px;">👆 روی کارت‌ها کلیک کن تا معنی‌شون رو ببینی، بعد جفت‌های درست رو پیدا کن</div>`;
         
-        // ساخت ۱۲ کارت (۶ عربی + ۶ فارسی)
         const allCards = [];
         q.pairs.forEach((pair, idx) => {
             allCards.push({ type: 'ar', text: pair.ar, pairId: idx });
@@ -225,7 +225,6 @@ function renderQuestion() {
         html += `</div>`;
         html += `<div class="match-flip-status" id="match-flip-status">جفت‌های پیدا شده: ۰ از ${toPersianNum(totalFlipPairs)}</div>`;
     } 
-    // 🆕 word-attach (چسباندن ضمیر)
     else if (q.type === 'word-attach') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -293,12 +292,14 @@ function renderQuestion() {
     }
     container.innerHTML = html;
 }
+
 // ============================================================
-// 🆕 توابع مربوط به match-flip (بازی حافظه)
+// 🆕 توابع مربوط به match-flip (بازی حافظه) - اصلاح شده
 // ============================================================
 function flipCard(el, cardIdx) {
     if (isAnswered) return;
     if (flipLocked) return;
+    if (matchFlipChecking) return;
     if (el.classList.contains('flipped')) return;
     if (el.classList.contains('matched')) return;
     
@@ -317,9 +318,9 @@ function flipCard(el, cardIdx) {
         const card1 = flippedCards[0];
         const card2 = flippedCards[1];
         
-        // چک کن جفت هستن یا نه (pairId یکسان + type متفاوت)
+        // چک کن جفت هستن یا نه
         if (card1.pairId === card2.pairId && card1.type !== card2.type) {
-            // درست
+            // ✅ درست
             setTimeout(() => {
                 card1.el.classList.add('matched');
                 card2.el.classList.add('matched');
@@ -335,13 +336,18 @@ function flipCard(el, cardIdx) {
                 flippedCards = [];
                 flipLocked = false;
                 
-                // اگه همه جفت‌ها پیدا شدن، خودکار بررسی کن
-                if (matchedFlipPairs === totalFlipPairs) {
-                    setTimeout(() => checkAnswer(), 600);
+                // 🆕 اگه همه جفت‌ها پیدا شدن، خودکار بررسی کن (فقط یه بار)
+                if (matchedFlipPairs === totalFlipPairs && !isAnswered && !matchFlipChecking) {
+                    matchFlipChecking = true;
+                    setTimeout(() => {
+                        if (!isAnswered) {
+                            checkAnswer();
+                        }
+                    }, 800);
                 }
             }, 400);
         } else {
-            // اشتباه - برگردون
+            // ❌ اشتباه - برگردون
             setTimeout(() => {
                 card1.el.classList.remove('flipped');
                 card2.el.classList.remove('flipped');
@@ -360,7 +366,6 @@ function selectAttachOption(el, option) {
     if (isAnswered) return;
     vibrate(15);
     
-    // حذف انتخاب قبلی
     document.querySelectorAll('.word-attach-item').forEach(item => {
         item.classList.remove('selected');
     });
@@ -368,7 +373,6 @@ function selectAttachOption(el, option) {
     el.classList.add('selected');
     selectedAttachOption = option;
     
-    // نمایش توی جای خالی
     const slot = document.getElementById('word-attach-slot');
     if (slot) {
         slot.textContent = option;
@@ -614,7 +618,6 @@ function checkAnswer() {
             return;
         }
     } 
-    // 🆕 بررسی match-flip
     else if (q.type === 'match-flip') {
         if (matchedFlipPairs === totalFlipPairs) {
             isCorrect = true;
@@ -624,7 +627,6 @@ function checkAnswer() {
             return;
         }
     } 
-    // 🆕 بررسی word-attach
     else if (q.type === 'word-attach') {
         if (selectedAttachOption !== null) {
             answerGiven = true;
@@ -772,7 +774,6 @@ function showFeedback(isCorrect, points, q) {
     findErrorBox.style.display = 'none';
     findErrorBox.innerHTML = '';
 
-    // 🆕 ریست کادر پاسخ
     answerBox.className = 'correct-answer-box';
     answerBox.style.display = 'none';
     answerBox.innerHTML = `
@@ -795,23 +796,17 @@ function showFeedback(isCorrect, points, q) {
             pts.style.fontSize = '24px';
         }
         
-        // 🆕 برای match-flip و match، کادر پاسخ کامل نشون بده
+        // 🆕 برای match-flip
         if (q.type === 'match-flip') {
             answerBox.className = 'correct-answer-box';
             answerBox.style.display = 'block';
             answerBox.innerHTML = `
                 <div class="answer-label">✅ همه جفت‌ها به درستی پیدا شدند:</div>
-                <div class="answer-text" style="font-size: 16px; line-height: 2; text-align: right;">
+                <div class="answer-text" style="font-size: 15px; line-height: 2; text-align: right;">
                     ${q.pairs.map(p => `• <strong>${p.ar}</strong> = ${p.fa}`).join('<br>')}
                 </div>
-                ${q.explanation ? `
-                    <div class="feedback-explanation-box">
-                        💡 ${q.explanation.replace(/\n/g, '<br>')}
-                    </div>
-                ` : ''}
             `;
         } 
-        // 🆕 برای word-attach
         else if (q.type === 'word-attach') {
             answerBox.className = 'correct-answer-box';
             answerBox.style.display = 'block';
@@ -830,13 +825,12 @@ function showFeedback(isCorrect, points, q) {
                 ` : ''}
             `;
         } 
-        // 🆕 برای match (وصل کردنی)
         else if (q.type === 'match') {
             answerBox.className = 'correct-answer-box';
             answerBox.style.display = 'block';
             answerBox.innerHTML = `
                 <div class="answer-label">✅ همه جفت‌ها به درستی وصل شدند:</div>
-                <div class="answer-text" style="font-size: 16px; line-height: 2; text-align: right;">
+                <div class="answer-text" style="font-size: 15px; line-height: 2; text-align: right;">
                     ${q.pairs.map(p => `• <strong>${p.ar}</strong> = ${p.fa}`).join('<br>')}
                 </div>
                 ${q.explanation ? `
@@ -846,7 +840,6 @@ function showFeedback(isCorrect, points, q) {
                 ` : ''}
             `;
         } 
-        // برای بقیه سوالات
         else {
             answerBox.className = 'correct-answer-box';
             answerLabel.textContent = 'پاسخ صحیح شما:';
@@ -871,23 +864,16 @@ function showFeedback(isCorrect, points, q) {
         pts.style.color = '#999';
         pts.style.fontSize = '24px';
 
-        // 🆕 برای match-flip اشتباه
         if (q.type === 'match-flip') {
             answerBox.className = 'correct-answer-box wrong-answer';
             answerBox.style.display = 'block';
             answerBox.innerHTML = `
                 <div class="answer-label" style="color: #c62828;">❌ پاسخ صحیح:</div>
-                <div class="answer-text" style="font-size: 16px; line-height: 2; text-align: right; color: #b71c1c;">
+                <div class="answer-text" style="font-size: 15px; line-height: 2; text-align: right; color: #b71c1c;">
                     ${q.pairs.map(p => `• <strong>${p.ar}</strong> = ${p.fa}`).join('<br>')}
                 </div>
-                ${q.explanation ? `
-                    <div class="feedback-explanation-box" style="border-right-color: #c62828; color: #b71c1c;">
-                        💡 ${q.explanation.replace(/\n/g, '<br>')}
-                    </div>
-                ` : ''}
             `;
         } 
-        // 🆕 برای word-attach اشتباه
         else if (q.type === 'word-attach') {
             answerBox.className = 'correct-answer-box wrong-answer';
             answerBox.style.display = 'block';
@@ -906,13 +892,12 @@ function showFeedback(isCorrect, points, q) {
                 ` : ''}
             `;
         } 
-        // 🆕 برای match اشتباه
         else if (q.type === 'match') {
             answerBox.className = 'correct-answer-box wrong-answer';
             answerBox.style.display = 'block';
             answerBox.innerHTML = `
                 <div class="answer-label" style="color: #c62828;">❌ پاسخ صحیح:</div>
-                <div class="answer-text" style="font-size: 16px; line-height: 2; text-align: right; color: #b71c1c;">
+                <div class="answer-text" style="font-size: 15px; line-height: 2; text-align: right; color: #b71c1c;">
                     ${q.pairs.map(p => `• <strong>${p.ar}</strong> = ${p.fa}`).join('<br>')}
                 </div>
                 ${q.explanation ? `
@@ -922,7 +907,6 @@ function showFeedback(isCorrect, points, q) {
                 ` : ''}
             `;
         } 
-        // برای find-error
         else if (q.type === 'find-error' && q.correctFix) {
             answerBox.style.display = 'none';
             findErrorBox.style.display = 'block';
@@ -941,7 +925,6 @@ function showFeedback(isCorrect, points, q) {
                 </div>
             `;
         } 
-        // برای بقیه
         else {
             answerBox.className = 'correct-answer-box wrong-answer';
             answerLabel.textContent = 'پاسخ صحیح:';
