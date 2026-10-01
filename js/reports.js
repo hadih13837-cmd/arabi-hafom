@@ -1,15 +1,15 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۵.۰.۰ — با صفحه پیش‌نمایش PDF
+// نسخه: ۶.۰.۰ — راه‌حل قطعی مشکل هاله سفید در PDF
 // ============================================================
 
 // ============================================================
-// 🆕 متغیرهای پیش‌نمایش PDF
+// متغیرهای پیش‌نمایش PDF
 // ============================================================
-let currentPreviewReport = null;      // کارنامه‌ای که داره پیش‌نمایش می‌شه
-let currentPreviewFilename = '';      // نام فایل PDF
-let currentPreviewSource = '';        // منبع: 'list' یا 'after-lesson'
-let currentPreviewIndex = -1;         // ایندکس کارنامه توی لیست
+let currentPreviewReport = null;
+let currentPreviewFilename = '';
+let currentPreviewSource = '';
+let currentPreviewIndex = -1;
 
 // ============================================================
 // نمایش لیست کارنامه‌ها
@@ -161,7 +161,7 @@ function generateGraphicReport(report) {
 }
 
 // ============================================================
-// مشاهده‌ی کارنامه (نمایش توی صفحه)
+// مشاهده‌ی کارنامه
 // ============================================================
 function viewReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -186,7 +186,7 @@ function viewReportById(index) {
 }
 
 // ============================================================
-// 🆕 باز کردن صفحه پیش‌نمایش PDF
+// باز کردن صفحه پیش‌نمایش PDF
 // ============================================================
 function openPdfPreview(report, filename, source, index = -1) {
     currentPreviewReport = report;
@@ -207,7 +207,7 @@ function openPdfPreview(report, filename, source, index = -1) {
 }
 
 // ============================================================
-// 🆕 بستن صفحه پیش‌نمایش (برگشت به صفحه قبلی)
+// بستن صفحه پیش‌نمایش
 // ============================================================
 function closePdfPreview() {
     const source = currentPreviewSource;
@@ -228,7 +228,7 @@ function closePdfPreview() {
 }
 
 // ============================================================
-// 🆕 دانلود PDF از صفحه پیش‌نمایش
+// دانلود PDF از صفحه پیش‌نمایش
 // ============================================================
 async function downloadPdfFromPreview() {
     if (!currentPreviewReport) {
@@ -274,26 +274,27 @@ async function downloadPdfFromPreview() {
 }
 
 // ============================================================
-// 🆕 دانلود PDF — راه‌حل با html2canvas + jsPDF مستقیم
+// 🆕 دانلود PDF — راه‌حل قطعی (بدون هاله سفید)
+// کانتینر به صورت موقت توی صفحه قرار می‌گیره و بلافاصله پاک میشه
 // ============================================================
 async function downloadReportFast(report, filename) {
     let container = null;
     try {
-        // ۱. ساخت کانتینر
+        // ۱. ساخت کانتینر با position: absolute (نه fixed)
+        // نکته مهم: نباید opacity کم باشه، وگرنه html2canvas هاله سفید می‌سازه
         container = document.createElement('div');
         container.id = 'pdf-render-container';
-        container.style.position = 'fixed';
+        container.style.position = 'absolute';
         container.style.top = '0';
-        container.style.left = '0';
+        container.style.left = '-9999px';          // 🆕 خارج از دید ولی داخل DOM
         container.style.width = '794px';
         container.style.background = '#ffffff';
         container.style.direction = 'rtl';
         container.style.fontFamily = 'Vazirmatn, sans-serif';
         container.style.padding = '30px';
         container.style.boxSizing = 'border-box';
-        container.style.zIndex = '-1';
-        container.style.opacity = '0.01';
-        container.style.pointerEvents = 'none';
+        container.style.zIndex = '1';
+        // 🆕 opacity رو دست نمی‌زنیم — کاملاً قابل مشاهده
         container.style.overflow = 'visible';
         
         container.innerHTML = generateGraphicReport(report);
@@ -316,8 +317,16 @@ async function downloadReportFast(report, filename) {
         await new Promise(resolve => setTimeout(resolve, 500));
         
         console.log('🎨 شروع رندر با html2canvas...');
+        console.log('📐 ابعاد کانتینر:', container.offsetWidth, 'x', container.offsetHeight);
         
         // ۴. رندر با html2canvas
+        // نکته مهم: باید کانتینر رو از سمت چپ بیاریم برای رندر
+        // وگرنه html2canvas بخش‌های خارج از viewport رو رندر نمی‌کنه
+        container.style.left = '0';
+        
+        // یه صبر کوتاه برای اعمال تغییر
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         const canvas = await html2canvas(container, {
             scale: 2,
             useCORS: true,
@@ -338,10 +347,13 @@ async function downloadReportFast(report, filename) {
         
         console.log('✅ canvas ساخته شد:', canvas.width, 'x', canvas.height);
         
-        // ۵. تبدیل به تصویر
+        // ۵. مخفی کردن کانتینر بلافاصله بعد از رندر
+        container.style.left = '-9999px';
+        
+        // ۶. تبدیل به تصویر
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         
-        // ۶. ساخت PDF
+        // ۷. ساخت PDF
         const { jsPDF } = window.jspdf;
         
         const pdfWidth = 595.28;
@@ -359,7 +371,7 @@ async function downloadReportFast(report, filename) {
         
         console.log('✅ PDF با موفقیت ساخته شد');
         
-        // ۷. پاک کردن کانتینر
+        // ۸. پاک کردن کانتینر
         if (container && container.parentNode) {
             container.parentNode.removeChild(container);
         }
@@ -375,7 +387,7 @@ async function downloadReportFast(report, filename) {
 }
 
 // ============================================================
-// 🆕 دانلود کارنامه با index — الان می‌ره به صفحه پیش‌نمایش
+// دانلود کارنامه با index — می‌ره به صفحه پیش‌نمایش
 // ============================================================
 async function downloadReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -395,7 +407,7 @@ async function downloadReportByData(index) {
 }
 
 // ============================================================
-// نمایش کارنامه بعد از تکلیف + ثبت امتیاز
+// نمایش کارنامه بعد از تکلیف
 // ============================================================
 function showReportCard() {
     if (isPracticeMode) {
@@ -461,7 +473,7 @@ function showReportCard() {
 }
 
 // ============================================================
-// 🆕 دانلود کارنامه فعلی — الان می‌ره به صفحه پیش‌نمایش
+// دانلود کارنامه فعلی — می‌ره به صفحه پیش‌نمایش
 // ============================================================
 async function downloadCurrentReport() {
     const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
