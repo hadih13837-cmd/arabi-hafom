@@ -1,5 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
+// نسخه: ۲.۰.۰ (اصلاح مشکل دانلود PDF)
 // ============================================================
 
 // ============================================================
@@ -8,11 +9,14 @@
 function loadReports() {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const container = document.getElementById('reports-list');
+    
     if (reports.length === 0) {
         container.innerHTML = `<div class="report-empty"><div class="report-empty-icon">📋</div><div class="report-empty-text">هنوز کارنامه‌ای ندارید</div></div>`;
         return;
     }
+    
     reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
     container.innerHTML = reports.map((report, index) => `
         <div class="report-card">
             <div class="report-card-header">
@@ -63,6 +67,7 @@ function generateGraphicReport(report) {
                     report.percent >= 70 ? 'خوب بود، کمی تلاش بیشتر نیاز داری 💪' :
                     report.percent >= 50 ? 'قابل قبول، اما نیاز به تمرین بیشتر داری 📚' :
                     'نیاز به تلاش بیشتر داری، ناامید نشو 🌱';
+    
     const bookIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1976d2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/><path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/></svg>';
     const calendarIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8e24aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
     const clockIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#00897b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
@@ -71,38 +76,76 @@ function generateGraphicReport(report) {
     const xIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#c62828" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
     
     return `
-        <div class="report-graphic-container">
-            <div class="report-header-graphic">
-                <div class="report-header-title">کارنامه تکلیف</div>
-                <div class="report-header-sub">عربی پایه هفتم</div>
+        <div class="report-graphic-container" style="background: #fff; padding: 25px 20px; border-radius: 20px; direction: rtl; font-family: 'Vazirmatn', sans-serif;">
+            <div class="report-header-graphic" style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px dashed #e3f2fd;">
+                <div class="report-header-title" style="font-size: 24px; font-weight: 900; color: #1976d2; margin-bottom: 5px;">کارنامه تکلیف</div>
+                <div class="report-header-sub" style="font-size: 13px; color: #90a4ae; font-weight: bold;">عربی پایه هفتم</div>
             </div>
-            <div class="report-student-card">
-                <div class="report-student-avatar"><img src="${avatar}" alt="دانش‌آموز" crossorigin="anonymous"></div>
-                <div class="report-student-info">
-                    <div class="report-student-name">${report.studentName}</div>
-                    <div class="report-student-class">کلاس: ${report.studentClass}</div>
+            <div class="report-student-card" style="background: #e3f2fd; border-radius: 18px; padding: 18px; display: flex; align-items: center; gap: 15px; margin-bottom: 20px; border: 2px solid #bbdefb;">
+                <div class="report-student-avatar" style="width: 70px; height: 70px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 3px solid #fff; flex-shrink: 0;">
+                    <img src="${avatar}" alt="دانش‌آموز" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div class="report-student-info" style="flex: 1;">
+                    <div class="report-student-name" style="font-size: 18px; font-weight: 900; color: #1565c0; margin-bottom: 5px;">${report.studentName}</div>
+                    <div class="report-student-class" style="font-size: 13px; color: #1976d2; font-weight: bold;">کلاس: ${report.studentClass}</div>
                 </div>
             </div>
-            <div class="report-info-grid">
-                <div class="report-info-item"><div class="report-info-icon blue">${bookIcon}</div><div class="report-info-content"><div class="report-info-label">تکلیف</div><div class="report-info-value">${report.lessonTitle}</div></div></div>
-                <div class="report-info-item"><div class="report-info-icon purple">${calendarIcon}</div><div class="report-info-content"><div class="report-info-label">تاریخ</div><div class="report-info-value">${report.date}</div></div></div>
-                <div class="report-info-item"><div class="report-info-icon teal">${clockIcon}</div><div class="report-info-content"><div class="report-info-label">زمان</div><div class="report-info-value">${toPersianNum(report.timeTaken)} دقیقه</div></div></div>
-                <div class="report-info-item"><div class="report-info-icon yellow">${starIcon}</div><div class="report-info-content"><div class="report-info-label">امتیاز</div><div class="report-info-value">${toPersianNum(report.score)} از ${toPersianNum(report.totalPoints)}</div></div></div>
-                <div class="report-info-item"><div class="report-info-icon green">${checkIcon}</div><div class="report-info-content"><div class="report-info-label">پاسخ صحیح</div><div class="report-info-value">${toPersianNum(report.correct)}</div></div></div>
-                <div class="report-info-item"><div class="report-info-icon red">${xIcon}</div><div class="report-info-content"><div class="report-info-label">پاسخ غلط</div><div class="report-info-value">${toPersianNum(report.wrong)}</div></div></div>
+            <div class="report-info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                <div class="report-info-item" style="background: #f8f9fa; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 10px; border: 1.5px solid #e3f2fd;">
+                    <div class="report-info-icon blue" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #e3f2fd;">${bookIcon}</div>
+                    <div class="report-info-content" style="flex: 1; min-width: 0;">
+                        <div class="report-info-label" style="font-size: 11px; color: #78909c; font-weight: bold; margin-bottom: 3px;">تکلیف</div>
+                        <div class="report-info-value" style="font-size: 15px; font-weight: 900; color: #333;">${report.lessonTitle}</div>
+                    </div>
+                </div>
+                <div class="report-info-item" style="background: #f8f9fa; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 10px; border: 1.5px solid #e3f2fd;">
+                    <div class="report-info-icon purple" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #f3e5f5;">${calendarIcon}</div>
+                    <div class="report-info-content" style="flex: 1; min-width: 0;">
+                        <div class="report-info-label" style="font-size: 11px; color: #78909c; font-weight: bold; margin-bottom: 3px;">تاریخ</div>
+                        <div class="report-info-value" style="font-size: 15px; font-weight: 900; color: #333;">${report.date}</div>
+                    </div>
+                </div>
+                <div class="report-info-item" style="background: #f8f9fa; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 10px; border: 1.5px solid #e3f2fd;">
+                    <div class="report-info-icon teal" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #e0f2f1;">${clockIcon}</div>
+                    <div class="report-info-content" style="flex: 1; min-width: 0;">
+                        <div class="report-info-label" style="font-size: 11px; color: #78909c; font-weight: bold; margin-bottom: 3px;">زمان</div>
+                        <div class="report-info-value" style="font-size: 15px; font-weight: 900; color: #333;">${toPersianNum(report.timeTaken)} دقیقه</div>
+                    </div>
+                </div>
+                <div class="report-info-item" style="background: #f8f9fa; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 10px; border: 1.5px solid #e3f2fd;">
+                    <div class="report-info-icon yellow" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #fff8e1;">${starIcon}</div>
+                    <div class="report-info-content" style="flex: 1; min-width: 0;">
+                        <div class="report-info-label" style="font-size: 11px; color: #78909c; font-weight: bold; margin-bottom: 3px;">امتیاز</div>
+                        <div class="report-info-value" style="font-size: 15px; font-weight: 900; color: #333;">${toPersianNum(report.score)} از ${toPersianNum(report.totalPoints)}</div>
+                    </div>
+                </div>
+                <div class="report-info-item" style="background: #f8f9fa; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 10px; border: 1.5px solid #e3f2fd;">
+                    <div class="report-info-icon green" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #e8f5e9;">${checkIcon}</div>
+                    <div class="report-info-content" style="flex: 1; min-width: 0;">
+                        <div class="report-info-label" style="font-size: 11px; color: #78909c; font-weight: bold; margin-bottom: 3px;">پاسخ صحیح</div>
+                        <div class="report-info-value" style="font-size: 15px; font-weight: 900; color: #333;">${toPersianNum(report.correct)}</div>
+                    </div>
+                </div>
+                <div class="report-info-item" style="background: #f8f9fa; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 10px; border: 1.5px solid #e3f2fd;">
+                    <div class="report-info-icon red" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #ffebee;">${xIcon}</div>
+                    <div class="report-info-content" style="flex: 1; min-width: 0;">
+                        <div class="report-info-label" style="font-size: 11px; color: #78909c; font-weight: bold; margin-bottom: 3px;">پاسخ غلط</div>
+                        <div class="report-info-value" style="font-size: 15px; font-weight: 900; color: #333;">${toPersianNum(report.wrong)}</div>
+                    </div>
+                </div>
             </div>
-            <div class="report-percent-circle">
-                <div class="report-percent-value">${toPersianNum(report.percent)}%</div>
-                <div class="report-percent-label">درصد موفقیت</div>
+            <div class="report-percent-circle" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px auto; width: 140px; height: 140px; border-radius: 50%; border: 8px solid #1976d2; background: #f8f9fa;">
+                <div class="report-percent-value" style="font-size: 36px; font-weight: 900; color: #1976d2;">${toPersianNum(report.percent)}%</div>
+                <div class="report-percent-label" style="font-size: 12px; color: #78909c; font-weight: bold;">درصد موفقیت</div>
             </div>
-            <div class="report-message">
-                <div class="report-message-title">پیام برای شما:</div>
-                <div class="report-message-text">${message}</div>
+            <div class="report-message" style="background: #fff8e1; border: 2px solid #ffc107; border-radius: 16px; padding: 16px; text-align: center; margin-top: 20px;">
+                <div class="report-message-title" style="font-size: 15px; font-weight: 900; color: #e65100; margin-bottom: 6px;">پیام برای شما:</div>
+                <div class="report-message-text" style="font-size: 13px; color: #bf360c; font-weight: bold; line-height: 1.6;">${message}</div>
             </div>
             ${report.surveyAnswer ? `
-                <div class="report-survey-box">
-                    <div class="report-survey-title">💬 نظر دانش‌آموز:</div>
-                    <div class="report-survey-text">${report.surveyAnswer}</div>
+                <div class="report-survey-box" style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 2px solid #66bb6a; border-radius: 16px; padding: 16px 20px; margin-top: 18px; text-align: right;">
+                    <div class="report-survey-title" style="font-size: 14px; font-weight: 900; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">💬 نظر دانش‌آموز:</div>
+                    <div class="report-survey-text" style="font-size: 15px; font-weight: bold; color: #1b5e20; line-height: 1.9; background: rgba(255, 255, 255, 0.7); padding: 12px 14px; border-radius: 12px; border-right: 4px solid #4caf50;">${report.surveyAnswer}</div>
                 </div>
             ` : ''}
         </div>
@@ -135,70 +178,66 @@ function viewReportById(index) {
 }
 
 // ============================================================
-// 🆕 دانلود PDF با روش اصلاح شده (ارتفاع داینامیک)
+// 🆕 دانلود PDF با روش اصلاح شده (کانتینر مخفی)
+// این تابع مشکل ابعاد و رندر ناقص رو حل می‌کنه
 // ============================================================
 async function downloadReportFast(report, filename) {
-    let element = null;
+    let container = null;
     try {
-        // ۱. ساخت المان با ابعاد مشخص
-        element = document.createElement('div');
-        element.style.position = 'fixed';
-        element.style.top = '0';
-        element.style.left = '0';
-        element.style.width = '794px';
-        element.style.padding = '30px';
-        element.style.direction = 'rtl';
-        element.style.background = '#f0f7ff';
-        element.style.fontFamily = 'Vazirmatn, sans-serif';
-        element.style.zIndex = '999999';
-        element.style.boxSizing = 'border-box';
-        element.style.visibility = 'hidden';
-        element.innerHTML = generateGraphicReport(report);
+        // ۱. ساخت یک کانتینر مخفی در خارج از دید (خارج از viewport)
+        container = document.createElement('div');
+        container.id = 'pdf-render-container';
+        container.style.position = 'absolute';
+        container.style.top = '-99999px';
+        container.style.left = '-99999px';
+        container.style.width = '794px'; // عرض A4 با DPI 96
+        container.style.background = '#f0f7ff';
+        container.style.direction = 'rtl';
+        container.style.fontFamily = 'Vazirmatn, sans-serif';
+        container.style.padding = '20px';
+        container.style.boxSizing = 'border-box';
+        container.style.zIndex = '-1';
         
-        // ۲. اضافه کردن به body
-        document.body.appendChild(element);
+        // ۲. محتوای کارنامه رو داخلش قرار بده
+        container.innerHTML = generateGraphicReport(report);
         
-        // ۳. صبر برای لود فونت‌ها و استایل‌ها
-        await new Promise(resolve => setTimeout(resolve, 700));
+        // ۳. به body اضافه کن
+        document.body.appendChild(container);
         
-        // ۴. صبر برای لود تصاویر
-        const images = element.querySelectorAll('img');
+        // ۴. صبر برای لود فونت‌ها و استایل‌ها
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // ۵. صبر برای لود تصاویر
+        const images = container.querySelectorAll('img');
         await Promise.all(Array.from(images).map(img => {
             if (img.complete) return Promise.resolve();
             return new Promise(resolve => {
                 img.onload = resolve;
                 img.onerror = resolve;
-                setTimeout(resolve, 2500);
+                setTimeout(resolve, 3000);
             });
         }));
         
-        // ۵. 🆕 اندازه‌گیری ارتفاع واقعی
-        const actualWidth = 794;
-        const actualHeight = element.scrollHeight;
-        console.log('📐 ابعاد المان:', actualWidth, 'x', actualHeight);
+        // ۶. اندازه‌گیری ارتفاع واقعی بعد از لود کامل
+        const actualWidth = container.scrollWidth;
+        const actualHeight = container.scrollHeight;
+        console.log('📐 ابعاد نهایی کارنامه:', actualWidth, 'x', actualHeight);
         
-        // ۶. تنظیم ارتفاع دقیق و نمایش
-        element.style.height = actualHeight + 'px';
-        element.style.visibility = 'visible';
-        
-        // ۷. صبر کوتاه
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // ۸. 🆕 تنظیمات html2pdf با ابعاد داینامیک
+        // ۷. تنظیمات html2pdf با ابعاد دقیق
         const opt = {
             margin: 0,
             filename: filename,
             image: { 
                 type: 'jpeg', 
-                quality: 0.95
+                quality: 0.98 
             },
             html2canvas: { 
-                scale: 2,
+                scale: 2,                    // کیفیت بالا
                 useCORS: true,
                 allowTaint: false,
                 backgroundColor: '#f0f7ff',
                 logging: false,
-                imageTimeout: 5000,
+                imageTimeout: 8000,
                 removeContainer: false,
                 scrollX: 0,
                 scrollY: 0,
@@ -211,26 +250,26 @@ async function downloadReportFast(report, filename) {
             },
             jsPDF: { 
                 unit: 'px', 
-                format: [actualWidth, actualHeight],
+                format: [actualWidth, actualHeight], // ابعاد داینامیک
                 orientation: 'portrait',
                 compress: true
             },
             pagebreak: { mode: ['css', 'legacy'] }
         };
         
-        // ۹. اجرای html2pdf
-        await html2pdf().set(opt).from(element).save();
+        // ۸. اجرای html2pdf
+        await html2pdf().set(opt).from(container).save();
         
-        // ۱۰. پاک کردن المان
-        if (element && element.parentNode) {
-            element.parentNode.removeChild(element);
+        // ۹. پاک کردن کانتینر
+        if (container && container.parentNode) {
+            container.parentNode.removeChild(container);
         }
         
         return true;
     } catch (error) {
         console.error('❌ خطا در دانلود:', error);
-        if (element && element.parentNode) {
-            element.parentNode.removeChild(element);
+        if (container && container.parentNode) {
+            container.parentNode.removeChild(container);
         }
         return false;
     }
@@ -278,19 +317,23 @@ function showReportCard() {
         showModal('توجه', 'این تکلیف در حالت تمرین انجام شده و کارنامه‌ای صادر نمی‌شود.', '⚠️');
         return;
     }
+    
     const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
     const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
     const now = new Date();
     const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
     const taskTitle = allLessons[lessonIndex] ? allLessons[lessonIndex].title : currentLesson.title;
+    
     const lesson = allLessons[lessonIndex];
     const dueDate = lesson ? (lesson.dueDate || '۱۴۰۵/۰۹/۱۵') : null;
     const expired = isExpired(dueDate);
+    
     if (expired) {
         showModal('توجه', 'مهلت این تکلیف گذشته و کارنامه‌ای صادر نمی‌شود.', '⚠️');
         return;
     }
+    
     const report = {
         studentName: localStorage.getItem('userName'),
         studentClass: localStorage.getItem('userClass'),
@@ -302,7 +345,9 @@ function showReportCard() {
         score, totalPoints: currentLesson.totalPoints, timeTaken,
         surveyAnswer: surveyAnswerText
     };
+    
     saveReport(report);
+    
     const container = document.getElementById('report-view-content');
     container.innerHTML = generateGraphicReport(report);
     container.innerHTML += `
@@ -316,11 +361,13 @@ function showReportCard() {
         </button>
         <button class="btn-primary" onclick="goToScreen('screen-home')" style="margin-top: 10px; background: linear-gradient(135deg, #546e7a 0%, #37474f 100%);">بازگشت به خانه</button>
     `;
+    
     goToScreen('screen-report-view');
     addNotification('message', 'پیام معلم', `بازخورد تکلیف شما ثبت شد. آفرین!`);
     updateNotificationBadge();
+    
     setTimeout(() => checkForNewMedals(), 1500);
-
+    
     setTimeout(() => {
         if (typeof saveRankingToSupabase === 'function') {
             saveRankingToSupabase();
@@ -338,6 +385,7 @@ async function downloadCurrentReport() {
     const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
     const taskTitle = allLessons[lessonIndex] ? allLessons[lessonIndex].title : currentLesson.title;
+    
     const report = {
         studentName: localStorage.getItem('userName'),
         studentClass: localStorage.getItem('userClass'),
@@ -346,12 +394,12 @@ async function downloadCurrentReport() {
         score, totalPoints: currentLesson.totalPoints, timeTaken,
         surveyAnswer: surveyAnswerText
     };
-
+    
     showModal('⏳ در حال آماده‌سازی PDF...', 'لطفاً چند لحظه صبر کنید.', '📄');
-
+    
     const filename = `کارنامه_${taskTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
     const success = await downloadReportFast(report, filename);
-
+    
     if (success) {
         closeModal();
         setTimeout(() => {
