@@ -3,7 +3,7 @@
 // ============================================================
 
 // ============================================================
-// نمایش لیست کارنامه‌ها (با دکمه‌ی مشاهده و دانلود)
+// نمایش لیست کارنامه‌ها
 // ============================================================
 function loadReports() {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -24,7 +24,6 @@ function loadReports() {
             <div class="report-info-row"><span>پاسخ غلط:</span><span class="value red">${toPersianNum(report.wrong)}</span></div>
             <div class="report-info-row"><span>امتیاز:</span><span class="value blue">${toPersianNum(report.score)} از ${toPersianNum(report.totalPoints)}</span></div>
             
-            <!-- 🆕 دو دکمه: مشاهده و دانلود -->
             <div class="report-card-buttons">
                 <button class="report-btn report-btn-view" onclick="viewReportById(${index})">
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -78,7 +77,7 @@ function generateGraphicReport(report) {
                 <div class="report-header-sub">عربی پایه هفتم</div>
             </div>
             <div class="report-student-card">
-                <div class="report-student-avatar"><img src="${avatar}" alt="دانش‌آموز"></div>
+                <div class="report-student-avatar"><img src="${avatar}" alt="دانش‌آموز" crossorigin="anonymous"></div>
                 <div class="report-student-info">
                     <div class="report-student-name">${report.studentName}</div>
                     <div class="report-student-class">کلاس: ${report.studentClass}</div>
@@ -111,7 +110,7 @@ function generateGraphicReport(report) {
 }
 
 // ============================================================
-// 🆕 مشاهده‌ی کارنامه (نمایش توی صفحه)
+// مشاهده‌ی کارنامه (نمایش توی صفحه)
 // ============================================================
 function viewReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -136,56 +135,78 @@ function viewReportById(index) {
 }
 
 // ============================================================
-// 🆕 بهینه‌سازی: دانلود با روش سریع‌تر
+// 🆕 دانلود PDF با روش اصلاح شده (بدون سفید شدن)
 // ============================================================
 async function downloadReportFast(report, filename) {
     try {
-        // ذخیره موقعیت فعلی صفحه
+        // ۱. ساخت المان با ابعاد مشخص
         const element = document.createElement('div');
-        element.style.position = 'fixed';
-        element.style.left = '-9999px';
+        element.style.position = 'absolute';
         element.style.top = '0';
-        element.style.padding = '20px';
+        element.style.left = '0';
+        element.style.width = '794px'; // عرض A4 با 96 DPI
+        element.style.minHeight = '1123px';
+        element.style.padding = '30px';
         element.style.direction = 'rtl';
         element.style.background = '#f0f7ff';
         element.style.fontFamily = 'Vazirmatn, sans-serif';
-        element.style.width = '700px';
+        element.style.zIndex = '99999';
+        element.style.boxSizing = 'border-box';
         element.innerHTML = generateGraphicReport(report);
+        
+        // ۲. اضافه کردن به body (ولی مخفی نکن)
         document.body.appendChild(element);
-
-        // 🆕 تنظیمات بهینه‌تر
+        
+        // ۳. صبر کن تا همه‌ی تصاویر و فونت‌ها لود بشن
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // ۴. صبر کن تا تصاویر لود بشن
+        const images = element.querySelectorAll('img');
+        await Promise.all(Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => {
+                img.onload = resolve;
+                img.onerror = resolve;
+                setTimeout(resolve, 2000);
+            });
+        }));
+        
+        // ۵. تنظیمات بهینه html2pdf
         const opt = {
-            margin: [0.3, 0.3, 0.3, 0.3],
+            margin: [10, 10, 10, 10],
             filename: filename,
             image: { 
                 type: 'jpeg', 
-                quality: 0.75  // 🆕 کیفیت کمتر = سریع‌تر
+                quality: 0.95
             },
             html2canvas: { 
-                scale: 1.2,              // 🆕 scale کمتر = سریع‌تر
+                scale: 2,
                 useCORS: true,
+                allowTaint: false,
                 backgroundColor: '#f0f7ff',
                 logging: false,
-                imageTimeout: 0,
-                removeContainer: true,
-                allowTaint: false,
+                imageTimeout: 5000,
+                removeContainer: false,
                 scrollX: 0,
-                scrollY: 0
+                scrollY: 0,
+                windowWidth: 794,
+                windowHeight: element.scrollHeight,
+                width: 794,
+                height: element.scrollHeight
             },
             jsPDF: { 
-                unit: 'in', 
-                format: 'a4', 
+                unit: 'px', 
+                format: [794, element.scrollHeight],
                 orientation: 'portrait',
-                compress: true,
-                precision: 2                 // 🆕 دقت کمتر = سریع‌تر
+                compress: true
             },
-            pagebreak: { mode: ['avoid-all', 'css'] }
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
-
-        // 🆕 اجرای سریع‌تر
+        
+        // ۶. اجرای html2pdf
         await html2pdf().set(opt).from(element).save();
         
-        // پاک کردن المان
+        // ۷. پاک کردن المان
         if (element.parentNode) {
             element.parentNode.removeChild(element);
         }
@@ -193,12 +214,19 @@ async function downloadReportFast(report, filename) {
         return true;
     } catch (error) {
         console.error('❌ خطا در دانلود:', error);
+        // اگه خطا داد، المان رو پاک کن
+        try {
+            const elements = document.querySelectorAll('[style*="z-index: 99999"]');
+            elements.forEach(el => {
+                if (el.parentNode) el.parentNode.removeChild(el);
+            });
+        } catch(e) {}
         return false;
     }
 }
 
 // ============================================================
-// دانلود کارنامه با index (از لیست کارنامه‌ها)
+// دانلود کارنامه با index
 // ============================================================
 async function downloadReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -206,7 +234,6 @@ async function downloadReportById(index) {
     const report = reports[index];
     if (!report) return;
     
-    // 🆕 نمایش پیام «در حال آماده‌سازی»
     showModal('⏳ در حال آماده‌سازی PDF...', 'لطفاً چند لحظه صبر کنید.', '📄');
     
     const filename = `کارنامه_${report.lessonTitle}_${report.date.replace(/\//g, '-')}.pdf`;
@@ -226,7 +253,7 @@ async function downloadReportById(index) {
 }
 
 // ============================================================
-// 🆕 دانلود از توی صفحه‌ی مشاهده
+// دانلود از توی صفحه‌ی مشاهده
 // ============================================================
 async function downloadReportByData(index) {
     await downloadReportById(index);
@@ -283,7 +310,6 @@ function showReportCard() {
     updateNotificationBadge();
     setTimeout(() => checkForNewMedals(), 1500);
 
-    // ثبت امتیاز در Supabase
     setTimeout(() => {
         if (typeof saveRankingToSupabase === 'function') {
             saveRankingToSupabase();
@@ -292,7 +318,7 @@ function showReportCard() {
 }
 
 // ============================================================
-// 🆕 دانلود کارنامه فعلی (بهینه‌شده)
+// دانلود کارنامه فعلی
 // ============================================================
 async function downloadCurrentReport() {
     const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
@@ -310,7 +336,6 @@ async function downloadCurrentReport() {
         surveyAnswer: surveyAnswerText
     };
 
-    // 🆕 نمایش پیام
     showModal('⏳ در حال آماده‌سازی PDF...', 'لطفاً چند لحظه صبر کنید.', '📄');
 
     const filename = `کارنامه_${taskTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
