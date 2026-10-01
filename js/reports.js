@@ -1,6 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۳.۰.۰ (اصلاح قطعی مشکل دانلود PDF)
+// نسخه: ۴.۰.۰ — راه‌حل تضمینی PDF با html2canvas + jsPDF
 // ============================================================
 
 // ============================================================
@@ -153,7 +153,7 @@ function generateGraphicReport(report) {
 }
 
 // ============================================================
-// مشاهده‌ی کارنامه (نمایش توی صفحه)
+// مشاهده‌ی کارنامه
 // ============================================================
 function viewReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -178,13 +178,12 @@ function viewReportById(index) {
 }
 
 // ============================================================
-// 🆕 دانلود PDF — راه‌حل قطعی
-// کانتینر داخل صفحه می‌مونه ولی با opacity: 0 پنهان میشه
+// 🆕 دانلود PDF — راه‌حل نهایی با html2canvas مستقیم
 // ============================================================
 async function downloadReportFast(report, filename) {
     let container = null;
     try {
-        // ۱. ساخت کانتینر در بالای صفحه (داخل viewport)
+        // ۱. ساخت کانتینر قابل مشاهده (روی صفحه، ولی زیر محتوا)
         container = document.createElement('div');
         container.id = 'pdf-render-container';
         container.style.position = 'fixed';
@@ -194,23 +193,23 @@ async function downloadReportFast(report, filename) {
         container.style.background = '#ffffff';
         container.style.direction = 'rtl';
         container.style.fontFamily = 'Vazirmatn, sans-serif';
-        container.style.padding = '20px';
+        container.style.padding = '30px';
         container.style.boxSizing = 'border-box';
-        container.style.zIndex = '999999';
-        container.style.opacity = '0';           // 🆕 مخفی با opacity
-        container.style.pointerEvents = 'none';  // 🆕 غیرقابل کلیک
+        container.style.zIndex = '-1';          // 🆕 زیر همه چیز
+        container.style.opacity = '0.01';       // 🆕 تقریباً شفاف (نه کاملاً صفر)
+        container.style.pointerEvents = 'none';
         container.style.overflow = 'visible';
         
-        // ۲. محتوای کارنامه
+        // ۲. محتوا
         container.innerHTML = generateGraphicReport(report);
         
         // ۳. اضافه کردن به body
         document.body.appendChild(container);
         
-        // ۴. صبر برای لود فونت‌ها و استایل‌ها
+        // ۴. صبر برای رندر کامل
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // ۵. صبر برای لود تصاویر (مخصوصاً آواتار)
+        // ۵. صبر برای لود تصاویر
         const images = container.querySelectorAll('img');
         await Promise.all(Array.from(images).map(img => {
             if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
@@ -221,52 +220,58 @@ async function downloadReportFast(report, filename) {
             });
         }));
         
-        // ۶. 🆕 یه صبر کوتاه دیگه برای اطمینان از رندر کامل
+        // ۶. صبر اضافی
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // ۷. اندازه‌گیری ابعاد واقعی
-        const actualWidth = container.scrollWidth;
-        const actualHeight = container.scrollHeight;
-        console.log('📐 ابعاد کارنامه:', actualWidth, 'x', actualHeight);
+        // ۷. 🆕 رندر مستقیم با html2canvas (بدون html2pdf)
+        console.log('🎨 شروع رندر با html2canvas...');
         
-        // ۸. تنظیمات html2pdf
-        const opt = {
-            margin: 0,
-            filename: filename,
-            image: { 
-                type: 'jpeg', 
-                quality: 0.98 
-            },
-            html2canvas: { 
-                scale: 2,
-                useCORS: true,
-                allowTaint: false,
-                backgroundColor: '#ffffff',
-                logging: false,
-                imageTimeout: 10000,
-                removeContainer: false,
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: actualWidth,
-                windowHeight: actualHeight,
-                width: actualWidth,
-                height: actualHeight,
-                x: 0,
-                y: 0
-            },
-            jsPDF: { 
-                unit: 'px', 
-                format: [actualWidth, actualHeight],
-                orientation: 'portrait',
-                compress: true
-            },
-            pagebreak: { mode: ['css', 'legacy'] }
-        };
+        const canvas = await html2canvas(container, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: '#ffffff',
+            logging: true,                    // برای دیباگ
+            imageTimeout: 10000,
+            removeContainer: false,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: 794,
+            windowHeight: container.scrollHeight,
+            width: 794,
+            height: container.scrollHeight,
+            x: 0,
+            y: 0
+        });
         
-        // ۹. اجرای html2pdf
-        await html2pdf().set(opt).from(container).save();
+        console.log('✅ canvas ساخته شد:', canvas.width, 'x', canvas.height);
         
-        // ۱۰. پاک کردن کانتینر
+        // ۸. تبدیل canvas به تصویر
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        
+        // ۹. 🆕 ساخت PDF با jsPDF
+        const { jsPDF } = window.jspdf;
+        
+        // ابعاد PDF بر اساس ابعاد canvas
+        const pdfWidth = 595.28;              // A4 width در points
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'pt',
+            format: [pdfWidth, pdfHeight],
+            compress: true
+        });
+        
+        // ۱۰. اضافه کردن تصویر به PDF
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        
+        // ۱۱. ذخیره PDF
+        pdf.save(filename);
+        
+        console.log('✅ PDF با موفقیت ساخته شد');
+        
+        // ۱۲. پاک کردن کانتینر
         if (container && container.parentNode) {
             container.parentNode.removeChild(container);
         }
