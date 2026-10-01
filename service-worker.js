@@ -1,15 +1,14 @@
 // ============================================================
 // service-worker.js — کش کردن فایل‌ها برای کارکرد آفلاین
-// نسخه: v6 (نسخه‌ی جدید با ساختار multi-file)
+// نسخه: v62
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v63';
+const CACHE_NAME = 'arabi-hafom-v62';
 
 // ============================================================
 // لیست فایل‌های ضروری برای کش
 // ============================================================
 const urlsToCache = [
-    // صفحات اصلی
     './',
     './index.html',
     './clips.html',
@@ -18,30 +17,29 @@ const urlsToCache = [
     './manifest.json',
     './icon-512.png',
 
-    // 🆕 فایل CSS
     './css/style.css',
 
-    // 🆕 فایل‌های JavaScript (ترتیب مهم نیست، فقط کش می‌شن)
     './js/config.js',
     './js/utils.js',
+    './js/supabase.js',
+    './js/avatars.js',
     './js/navigation.js',
     './js/notifications.js',
     './js/medals.js',
     './js/lessons.js',
     './js/quiz.js',
     './js/reports.js',
+    './js/rankings.js',
     './js/settings.js',
     './js/app.js',
 
-    // فایل‌های درس (این‌ها از کش استفاده می‌کنن، ولی در fetch از شبکه هم چک می‌شن)
     './lessons/index.json',
     './lessons/lesson1.json',
+    './lessons/lesson2.json',
 
-    // فونت و کتابخانه‌های خارجی
     'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css',
     'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
 
-    // تصاویر و ویدیوهای CDN
     'https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png',
     'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png',
     'https://cdn.imgurl.ir/uploads/y212653___.png',
@@ -111,7 +109,20 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
 
-    // ۱. فایل maintenance.json — همیشه از شبکه (نه از کش)
+    // ۱. درخواست‌های Supabase — همیشه از شبکه
+    if (event.request.url.includes('supabase.co')) {
+        event.respondWith(
+            fetch(event.request, { cache: 'no-store' })
+                .catch(() => {
+                    return new Response(JSON.stringify([]), {
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                })
+        );
+        return;
+    }
+
+    // ۲. فایل maintenance.json — همیشه از شبکه
     if (event.request.url.includes('maintenance.json')) {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' })
@@ -120,12 +131,11 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // 🆕 ۲. فایل‌های درس (lessons/*.json) — همیشه از شبکه چک، اگه نبود از کش
+    // ۳. فایل‌های درس — همیشه از شبکه چک
     if (event.request.url.includes('/lessons/')) {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' })
                 .then(response => {
-                    // کپی موفق رو توی کش ذخیره کن
                     if (response && response.status === 200) {
                         const responseClone = response.clone();
                         caches.open(CACHE_NAME).then(cache => {
@@ -139,7 +149,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // ۳. بقیه درخواست‌ها — اول از کش، بعد از شبکه
+    // ۴. بقیه درخواست‌ها — اول از کش، بعد از شبکه
     event.respondWith(
         caches.match(event.request)
             .then(response => {
@@ -148,7 +158,6 @@ self.addEventListener('fetch', event => {
                 }
                 return fetch(event.request)
                     .then(response => {
-                        // اگه درخواست معتبر بود، توی کش ذخیره کن
                         if (!response || response.status !== 200 || response.type !== 'basic') {
                             return response;
                         }
@@ -160,7 +169,6 @@ self.addEventListener('fetch', event => {
                         return response;
                     })
                     .catch(() => {
-                        // اگه آفلاین بود و صفحه ناوبری، index.html رو برگردون
                         if (event.request.mode === 'navigate') {
                             return caches.match('./index.html');
                         }
