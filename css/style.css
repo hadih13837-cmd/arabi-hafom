@@ -131,51 +131,65 @@ body { display: flex; justify-content: center; align-items: center; }
     100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
 }
 
-/* ============ نوار پایین با افکت‌های جدید ============ */
+/* ============ نوار پایین ============ */
 .bottom-nav {
     flex-shrink: 0; background: #fff;
-    display: flex; justify-content: space-around; align-items: center;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
     padding: 8px 8px;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
     border-top: 1px solid var(--primary-light);
     border-radius: 24px 24px 0 0;
-    z-index: 100; gap: 4px;
+    z-index: 100;
+    gap: 4px;
 }
 
 .bottom-nav-item {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 4px; cursor: pointer; padding: 9px 2px;
-    border-radius: 16px; background: transparent; border: none;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 9px 2px;
+    border-radius: 16px;
+    background: transparent;
+    border: none;
     font-family: 'Vazirmatn', sans-serif;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
 }
+
+.bottom-nav-item.home-item {
+    flex: 1.3;
+}
+
 .bottom-nav-item svg {
-    width: 26px; height: 26px; stroke: #90a4ae;
-    fill: none; stroke-width: 2;
+    width: 26px; height: 26px;
+    stroke: #90a4ae; fill: none;
+    stroke-width: 2;
     stroke-linecap: round; stroke-linejoin: round;
     transition: all 0.25s ease;
 }
+
 .bottom-nav-item span {
     font-size: 11px; font-weight: bold; color: #90a4ae;
     transition: all 0.25s ease;
 }
 
-/* 🆕 افکت کلیک روی همه‌ی دکمه‌ها */
 .bottom-nav-item:active {
     transform: scale(0.92);
 }
 
-/* 🆕 سایه و برجستگی برای همه‌ی دکمه‌ها وقتی active می‌شن */
 .bottom-nav-item.active {
     background: rgba(0, 0, 0, 0.04);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transform: scale(1.05);
 }
 
-/* حالت خانه */
 .bottom-nav-item.home-item.active {
     background: var(--primary-light);
     box-shadow: 0 4px 15px rgba(25, 118, 210, 0.25);
@@ -183,7 +197,6 @@ body { display: flex; justify-content: center; align-items: center; }
 .bottom-nav-item.home-item.active svg { stroke: var(--primary); fill: var(--primary-light); transform: scale(1.1); }
 .bottom-nav-item.home-item.active span { color: var(--primary); font-weight: 900; }
 
-/* حالت مدال‌ها */
 .bottom-nav-item.medals-item.active {
     background: linear-gradient(135deg, #fff8e1, #ffecb3);
     box-shadow: 0 4px 15px rgba(245, 124, 0, 0.25);
@@ -191,31 +204,17 @@ body { display: flex; justify-content: center; align-items: center; }
 .bottom-nav-item.medals-item.active svg { stroke: #f57c00; fill: #fff8e1; transform: scale(1.1); }
 .bottom-nav-item.medals-item.active span { color: #f57c00; font-weight: 900; }
 
-/* حالت رتبه‌بندی (پیش‌فرض خاکستری مثل بقیه) */
-.bottom-nav-item.rankings-item svg {
-    stroke: #90a4ae;
-    fill: none;
-}
-.bottom-nav-item.rankings-item span {
-    color: #90a4ae;
-}
-/* فقط وقتی active شد، بنفش می‌شه */
+.bottom-nav-item.rankings-item svg { stroke: #90a4ae; fill: none; }
+.bottom-nav-item.rankings-item span { color: #90a4ae; }
+
 .bottom-nav-item.rankings-item.active {
     background: linear-gradient(135deg, #e1bee7, #ce93d8);
     box-shadow: 0 4px 15px rgba(123, 31, 162, 0.3);
     transform: scale(1.05);
 }
-.bottom-nav-item.rankings-item.active svg {
-    stroke: #6a1b9a;
-    fill: #f3e5f5;
-    transform: scale(1.1);
-}
-.bottom-nav-item.rankings-item.active span {
-    color: #6a1b9a;
-    font-weight: 900;
-}
+.bottom-nav-item.rankings-item.active svg { stroke: #6a1b9a; fill: #f3e5f5; transform: scale(1.1); }
+.bottom-nav-item.rankings-item.active span { color: #6a1b9a; font-weight: 900; }
 
-/* حالت تنظیمات */
 .bottom-nav-item.settings-item.active {
     background: linear-gradient(135deg, #ffebee, #ffcdd2);
     box-shadow: 0 4px 15px rgba(198, 40, 40, 0.25);
@@ -223,7 +222,6 @@ body { display: flex; justify-content: center; align-items: center; }
 .bottom-nav-item.settings-item.active svg { stroke: #c62828; fill: #ffebee; transform: scale(1.1); }
 .bottom-nav-item.settings-item.active span { color: #c62828; font-weight: 900; }
 
-/* حالت پروفایل */
 .bottom-nav-item.profile-item.active {
     background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
     box-shadow: 0 4px 15px rgba(46, 125, 50, 0.25);
@@ -466,101 +464,111 @@ body { display: flex; justify-content: center; align-items: center; }
     animation: badgePulse 1.5s ease-in-out infinite;
 }
 
-/* Splash */
-#screen-splash { background: #000; }
-.splash-bg-image {
-    position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: cover; z-index: 0;
-}
-.splash-light-glow {
-    position: absolute; top: -50px; left: 50%;
-    transform: translateX(-50%);
-    width: 300px; height: 200px;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.4) 0%, rgba(200, 230, 255, 0.2) 40%, transparent 70%);
-    border-radius: 50%; z-index: 1;
-    animation: glowPulse 4s ease-in-out infinite;
-    pointer-events: none;
-}
-@keyframes glowPulse {
-    0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
-    50% { opacity: 0.8; transform: translateX(-50%) scale(1.1); }
-}
-.splash-content-wrapper {
-    position: relative; z-index: 2;
-    width: 100%; height: 100%;
-    display: flex; flex-direction: column;
-    justify-content: flex-end; align-items: center;
-    padding-bottom: 40px;
-}
-.btn-start-splash {
-    background: var(--primary-gradient);
-    color: #fff; border: none; padding: 16px 25px;
-    border-radius: 50px; font-size: 17px; font-weight: bold;
-    cursor: pointer; width: 80%; max-width: 280px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
-    animation: btnPulse 2.5s ease-in-out infinite;
-    font-family: 'Vazirmatn', sans-serif;
-}
-@keyframes btnPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-/* Welcome */
-#screen-welcome {
-    background: linear-gradient(180deg, var(--primary-light) 0%, #ffffff 100%);
-    align-items: center; text-align: center;
-    padding: 30px 25px; overflow-y: auto;
-}
-.welcome-video-wrapper {
-    width: 180px; height: 180px; border-radius: 50%;
-    overflow: hidden; margin: 0 auto 20px auto;
-    position: relative; background: transparent;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-}
-.welcome-video-wrapper video {
-    width: 100%; height: 100%; object-fit: cover;
-    border-radius: 50%; mix-blend-mode: multiply;
-}
-.welcome-title {
-    font-size: 24px; font-weight: 900;
-    color: var(--primary); margin-bottom: 10px;
-}
-.welcome-sub {
-    font-size: 14px; color: #546e7a;
-    margin-bottom: 25px; line-height: 1.6;
-}
-.welcome-input {
-    width: 100%; padding: 16px;
-    border: 2px solid #e0e0e0; border-radius: 50px;
-    text-align: center; font-size: 16px; outline: none;
-    background: #fff; margin-bottom: 15px;
-    font-family: 'Vazirmatn', sans-serif;
-}
-.welcome-input:focus { border-color: var(--primary); }
-.welcome-btn {
-    background: var(--primary-gradient);
-    color: #fff; border: none; padding: 16px 30px;
-    border-radius: 50px; font-size: 17px; font-weight: bold;
-    cursor: pointer; width: 100%;
-    box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4);
-    font-family: 'Vazirmatn', sans-serif;
-}
-.welcome-btn:active { transform: scale(0.98); }
-
-/* 🆕 حالت ایموجی آواتار (بدون کادر) */
+/* ============ حالت ایموجی بدون کادر ============ */
 .home-welcome-avatar.emoji-mode {
-    background: transparent;
-    border: none;
-    box-shadow: none;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.home-welcome-avatar.emoji-mode img {
+    display: none !important;
 }
 .home-welcome-avatar.emoji-mode .emoji-avatar {
-    font-size: 58px;
+    font-size: 62px;
     line-height: 1;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+.profile-avatar.emoji-mode {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.profile-avatar.emoji-mode img {
+    display: none !important;
+}
+.profile-avatar.emoji-mode .emoji-avatar {
+    font-size: 110px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.2));
+}
+
+/* ============ صفحه رتبه‌بندی - در حال ساخت ============ */
+.rankings-coming-soon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 25px;
+    min-height: 70vh;
+}
+
+.rankings-coming-icon {
+    font-size: 100px;
+    margin-bottom: 25px;
+    animation: comingSoonBounce 2s ease-in-out infinite;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.2));
+}
+
+@keyframes comingSoonBounce {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-15px) rotate(5deg); }
+}
+
+.rankings-coming-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #7b1fa2;
+    margin-bottom: 15px;
+    text-shadow: 0 3px 10px rgba(123, 31, 162, 0.2);
+    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.rankings-coming-text {
+    font-size: 15px;
+    font-weight: bold;
+    color: #607d8b;
+    line-height: 2;
+    max-width: 320px;
+    margin-bottom: 25px;
+}
+
+.rankings-coming-decoration {
+    font-size: 40px;
+    animation: sparkleRotate 3s linear infinite;
+    opacity: 0.7;
+}
+
+@keyframes sparkleRotate {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.3); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+body.dark-mode .rankings-coming-title {
+    background: linear-gradient(135deg, #ce93d8, #ba68c8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+body.dark-mode .rankings-coming-text {
+    color: #90a4ae;
 }
 /* ============ صفحات داخلی ============ */
 .page-header {
@@ -1467,19 +1475,6 @@ body { display: flex; justify-content: center; align-items: center; }
 }
 .profile-avatar:active { transform: scale(0.95); }
 .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-/* 🆕 حالت ایموجی (بدون کادر) */
-.profile-avatar.emoji-mode {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-}
-.profile-avatar.emoji-mode .emoji-avatar {
-    font-size: 100px;
-    line-height: 1;
-    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
-}
-
 .profile-avatar-edit {
     position: absolute; bottom: 0; left: 0;
     width: 36px; height: 36px; border-radius: 50%;
@@ -1571,7 +1566,7 @@ body { display: flex; justify-content: center; align-items: center; }
 }
 .delete-account-btn span { color: #c62828; font-size: 15px; font-weight: 900; }
 
-/* 🆕 مودال انتخاب نوع آواتار */
+/* مودال انتخاب نوع آواتار */
 .avatar-options-buttons {
     display: flex;
     gap: 12px;
@@ -1596,36 +1591,22 @@ body { display: flex; justify-content: center; align-items: center; }
     color: #333;
     transition: all 0.2s ease;
 }
-.avatar-option-btn:active {
-    transform: scale(0.95);
-}
+.avatar-option-btn:active { transform: scale(0.95); }
 .avatar-option-btn.emoji-option {
     border-color: #ce93d8;
     background: linear-gradient(135deg, #f3e5f5, #e1bee7);
 }
-.avatar-option-btn.emoji-option:hover {
-    border-color: #7b1fa2;
-    background: linear-gradient(135deg, #e1bee7, #ce93d8);
-}
 .avatar-option-btn.gallery-option {
     border-color: #90caf9;
     background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-}
-.avatar-option-btn.gallery-option:hover {
-    border-color: #1976d2;
-    background: linear-gradient(135deg, #bbdefb, #90caf9);
 }
 .avatar-option-icon {
     font-size: 38px;
     display: block;
     line-height: 1;
 }
-.avatar-option-btn.emoji-option span:last-child {
-    color: #6a1b9a;
-}
-.avatar-option-btn.gallery-option span:last-child {
-    color: #0d47a1;
-}
+.avatar-option-btn.emoji-option span:last-child { color: #6a1b9a; }
+.avatar-option-btn.gallery-option span:last-child { color: #0d47a1; }
 
 /* کارنامه گرافیکی */
 .report-graphic-container {
@@ -1787,7 +1768,7 @@ body { display: flex; justify-content: center; align-items: center; }
 .report-info-row .value.red { color: #c62828; }
 .report-info-row .value.blue { color: var(--primary); }
 
-/* 🆕 دکمه‌های کارنامه */
+/* دکمه‌های کارنامه */
 .report-card-buttons {
     display: flex;
     gap: 10px;
@@ -1809,10 +1790,7 @@ body { display: flex; justify-content: center; align-items: center; }
     transition: all 0.2s ease;
 }
 .report-btn:active { transform: scale(0.95); }
-.report-btn svg {
-    width: 16px;
-    height: 16px;
-}
+.report-btn svg { width: 16px; height: 16px; }
 .report-btn-view {
     background: linear-gradient(135deg, #e3f2fd, #bbdefb);
     color: var(--primary);
@@ -2425,12 +2403,8 @@ body { display: flex; justify-content: center; align-items: center; }
     object-fit: contain;
     transition: transform 0.25s ease;
 }
-.word-build-audio-only:active img {
-    transform: scale(0.95);
-}
-.word-build-audio-only.playing img {
-    animation: audioPulseSimple 1.5s ease-in-out infinite;
-}
+.word-build-audio-only:active img { transform: scale(0.95); }
+.word-build-audio-only.playing img { animation: audioPulseSimple 1.5s ease-in-out infinite; }
 @keyframes audioPulseSimple {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.12); }
@@ -2479,9 +2453,7 @@ body { display: flex; justify-content: center; align-items: center; }
     cursor: pointer;
     transition: all 0.15s ease;
 }
-.word-build-item:active {
-    transform: scale(0.95);
-}
+.word-build-item:active { transform: scale(0.95); }
 
 /* ============ کادر جمله فارسی ============ */
 .sentence-prompt-box {
@@ -2579,11 +2551,263 @@ body { display: flex; justify-content: center; align-items: center; }
     border-color: var(--primary);
     box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.15);
 }
-.survey-textarea::placeholder {
-    color: #90a4ae;
+.survey-textarea::placeholder { color: #90a4ae; }
+
+/* ============ سوال match-flip (بازی حافظه) ============ */
+.match-flip-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 15px;
 }
 
-/* بازخورد */
+.match-flip-card {
+    aspect-ratio: 1 / 1;
+    perspective: 1000px;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+.match-flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.match-flip-card.flipped .match-flip-inner {
+    transform: rotateY(180deg);
+}
+
+.match-flip-front,
+.match-flip-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px;
+    font-weight: 900;
+}
+
+.match-flip-front {
+    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
+    color: #fff;
+    font-size: 36px;
+    box-shadow: 0 6px 20px rgba(123, 31, 162, 0.35);
+    border: 3px solid #fff;
+}
+
+.match-flip-back {
+    transform: rotateY(180deg);
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border: 3px solid #fff;
+}
+
+.match-flip-back.ar {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: #0d47a1;
+    font-size: 16px;
+    direction: rtl;
+    border-color: #1976d2;
+}
+
+.match-flip-back.fa {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    color: #1b5e20;
+    font-size: 14px;
+    direction: rtl;
+    border-color: #43a047;
+}
+
+.match-flip-card.matched {
+    pointer-events: none;
+    animation: matchPulse 0.6s ease;
+}
+
+.match-flip-card.matched .match-flip-inner {
+    transform: rotateY(180deg);
+}
+
+.match-flip-card.matched .match-flip-back {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3), 0 6px 20px rgba(76, 175, 80, 0.4);
+    opacity: 0.85;
+}
+
+@keyframes matchPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.match-flip-card.flipped:not(.matched) {
+    animation: flipWrong 0.9s ease;
+}
+
+@keyframes flipWrong {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.match-flip-status {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 900;
+    color: #6a1b9a;
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+    padding: 12px 20px;
+    border-radius: 50px;
+    margin-top: 15px;
+    box-shadow: 0 3px 12px rgba(123, 31, 162, 0.15);
+    border: 1.5px solid #ce93d8;
+}
+
+/* ============ سوال word-attach (چسباندن ضمیر) ============ */
+.word-attach-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    padding: 20px 10px;
+    width: 100%;
+}
+
+.word-attach-base {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #fff 0%, #f0f7ff 100%);
+    border: 3px dashed #90caf9;
+    border-radius: 20px;
+    padding: 25px 35px;
+    min-width: 220px;
+    box-shadow: 0 6px 25px rgba(25, 118, 210, 0.15);
+    transition: all 0.3s ease;
+}
+
+.word-attach-text {
+    font-size: 32px;
+    font-weight: 900;
+    color: #0d47a1;
+    direction: rtl;
+    letter-spacing: 1px;
+}
+
+.word-attach-slot {
+    display: inline-block;
+    min-width: 50px;
+    height: 44px;
+    border-bottom: 4px solid #1976d2;
+    margin-right: 8px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 900;
+    color: #1976d2;
+    transition: all 0.3s ease;
+    padding: 0 8px;
+}
+
+.word-attach-slot.filled {
+    border-bottom-color: #4caf50;
+    color: #2e7d32;
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border-radius: 12px 12px 0 0;
+    animation: slotFill 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slotFill {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.word-attach-options {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.word-attach-item {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2.5px solid #bbdefb;
+    padding: 14px 26px;
+    border-radius: 16px;
+    font-size: 22px;
+    font-weight: 900;
+    color: #0d47a1;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    direction: rtl;
+    user-select: none;
+    min-width: 70px;
+    text-align: center;
+}
+
+.word-attach-item:active { transform: scale(0.93); }
+
+.word-attach-item.selected {
+    background: linear-gradient(135deg, #e3f2fd, #90caf9);
+    border-color: #1976d2;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+    transform: scale(1.08);
+}
+
+.word-attach-item:hover:not(.selected) {
+    border-color: #1976d2;
+    background: #e3f2fd;
+}
+
+/* حالت شب match-flip و word-attach */
+body.dark-mode .match-flip-front {
+    background: linear-gradient(135deg, #4a148c, #38006b);
+}
+body.dark-mode .match-flip-back.ar {
+    background: linear-gradient(135deg, #1a2332, #2a3444);
+    color: #90caf9;
+    border-color: #1976d2;
+}
+body.dark-mode .match-flip-back.fa {
+    background: linear-gradient(135deg, #1a2a1a, #2a3a2a);
+    color: #a5d6a7;
+    border-color: #43a047;
+}
+body.dark-mode .match-flip-status {
+    background: linear-gradient(135deg, #2a1a3a, #1a2332);
+    color: #ce93d8;
+    border-color: #4a148c;
+}
+body.dark-mode .word-attach-base {
+    background: linear-gradient(135deg, #1a2332, #0f1419);
+    border-color: #1976d2;
+}
+body.dark-mode .word-attach-text { color: #90caf9; }
+body.dark-mode .word-attach-item {
+    background: #1a2332;
+    border-color: #2a3444;
+    color: #90caf9;
+}
+body.dark-mode .word-attach-item.selected {
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+    color: #fff;
+    border-color: #90caf9;
+}
+
+/* ============ بازخورد ============ */
 #screen-feedback {
     justify-content: center; align-items: center;
     text-align: center;
@@ -2623,7 +2847,7 @@ body { display: flex; justify-content: center; align-items: center; }
 .correct-answer-box.wrong-answer .answer-label { color: #c62828; }
 .correct-answer-box.wrong-answer .answer-text { color: #b71c1c; }
 
-/* نتیجه */
+/* ============ نتیجه ============ */
 #screen-result {
     justify-content: center; align-items: center;
     text-align: center;
@@ -2670,7 +2894,7 @@ body { display: flex; justify-content: center; align-items: center; }
     flex: 1; overflow-y: auto; padding: 20px;
 }
 
-/* ============ صفحه تقویم ============ */
+/* ============ تقویم ============ */
 #screen-calendar {
     background: #f0f7ff;
     transition: background 0.5s ease;
@@ -3219,448 +3443,11 @@ body { display: flex; justify-content: center; align-items: center; }
 }
 .welcome-graphic-btn:active { transform: scale(0.97); }
 
-/* ============ رتبه‌بندی ============ */
-#screen-rankings {
-    background: linear-gradient(180deg, #f3e5f5 0%, #ffffff 100%);
-}
-
-.rankings-refresh-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: none;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(123, 31, 162, 0.35);
-    transition: transform 0.3s ease;
-}
-.rankings-refresh-btn:active {
-    transform: scale(0.9) rotate(180deg);
-}
-.rankings-refresh-btn svg {
-    width: 20px;
-    height: 20px;
-    stroke: #fff;
-}
-
-.rankings-scroll-content {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 15px 15px 30px 15px;
-}
-
-.rankings-header {
-    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
-    border-radius: 20px;
-    padding: 18px 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 8px 25px rgba(123, 31, 162, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-.rankings-header::before {
-    content: '';
-    position: absolute;
-    top: -30px;
-    left: -30px;
-    width: 120px;
-    height: 120px;
-    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-    border-radius: 50%;
-}
-.rankings-header-icon {
-    font-size: 42px;
-    flex-shrink: 0;
-    animation: rankingsIconFloat 3s ease-in-out infinite;
-}
-@keyframes rankingsIconFloat {
-    0%, 100% { transform: translateY(0) rotate(-5deg); }
-    50% { transform: translateY(-5px) rotate(5deg); }
-}
-.rankings-header-text {
-    flex: 1;
-    text-align: right;
-    position: relative;
-    z-index: 1;
-}
-.rankings-header-title {
-    font-size: 20px;
-    font-weight: 900;
-    color: #fff;
-    margin-bottom: 4px;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-.rankings-header-sub {
-    font-size: 13px;
-    font-weight: bold;
-    color: rgba(255,255,255,0.9);
-    text-shadow: 0 1px 3px rgba(0,0,0,0.15);
-}
-
-.rankings-podium {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 8px;
-    margin-bottom: 25px;
-    padding: 20px 5px 0 5px;
-    position: relative;
-}
-
-.podium-item {
-    flex: 1;
-    max-width: 110px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-}
-
-.podium-avatar-wrap {
-    position: relative;
-    margin-bottom: 10px;
-}
-.podium-avatar {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    border: 4px solid #fff;
-}
-.podium-1 .podium-avatar {
-    width: 85px;
-    height: 85px;
-    border-color: #ffc107;
-    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
-}
-.podium-2 .podium-avatar {
-    border-color: #b0bec5;
-    box-shadow: 0 6px 20px rgba(176, 190, 197, 0.4);
-}
-.podium-3 .podium-avatar {
-    border-color: #cd7f32;
-    box-shadow: 0 6px 20px rgba(205, 127, 50, 0.4);
-}
-.podium-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-.podium-avatar .avatar-emoji {
-    font-size: 40px;
-}
-.podium-1 .podium-avatar .avatar-emoji {
-    font-size: 48px;
-}
-
-.podium-medal {
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 28px;
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
-    animation: medalBounce 1.5s ease-in-out infinite;
-}
-@keyframes medalBounce {
-    0%, 100% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.15); }
-}
-
-.podium-name {
-    font-size: 12px;
-    font-weight: 900;
-    color: #4a148c;
-    text-align: center;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    padding: 0 4px;
-}
-.podium-points {
-    font-size: 11px;
-    font-weight: bold;
-    color: #f57c00;
-    background: #fff8e1;
-    padding: 3px 10px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    white-space: nowrap;
-}
-
-.podium-base {
-    width: 100%;
-    border-radius: 12px 12px 0 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 0;
-    position: relative;
-    box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
-}
-.podium-base-1 {
-    background: linear-gradient(180deg, #ffd54f 0%, #ffa000 100%);
-    height: 80px;
-}
-.podium-base-2 {
-    background: linear-gradient(180deg, #cfd8dc 0%, #90a4ae 100%);
-    height: 60px;
-}
-.podium-base-3 {
-    background: linear-gradient(180deg, #ffb74d 0%, #cd7f32 100%);
-    height: 50px;
-}
-.podium-rank-num {
-    font-size: 24px;
-    font-weight: 900;
-    color: #fff;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-.podium-1 .podium-rank-num {
-    font-size: 32px;
-}
-
-.rankings-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.ranking-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 3px 12px rgba(123, 31, 162, 0.08);
-    border: 1.5px solid #e1bee7;
-    transition: all 0.2s ease;
-    position: relative;
-}
-.ranking-card:active {
-    transform: scale(0.98);
-}
-.ranking-card.is-me {
-    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
-    border-color: #7b1fa2;
-    box-shadow: 0 4px 18px rgba(123, 31, 162, 0.25);
-}
-
-.ranking-rank {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: 900;
-    color: #6a1b9a;
-    flex-shrink: 0;
-    border: 2px solid #ce93d8;
-}
-.ranking-card.is-me .ranking-rank {
-    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
-    color: #fff;
-    border-color: #4a148c;
-}
-
-.ranking-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #f3e5f5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
-    border: 2px solid #e1bee7;
-}
-.ranking-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.ranking-avatar .avatar-emoji {
-    font-size: 26px;
-}
-
-.ranking-info {
-    flex: 1;
-    text-align: right;
-    min-width: 0;
-}
-.ranking-name {
-    font-size: 14px;
-    font-weight: 900;
-    color: #4a148c;
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    justify-content: flex-end;
-}
-.ranking-me-badge {
-    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
-    color: #fff;
-    font-size: 9px;
-    font-weight: 900;
-    padding: 2px 8px;
-    border-radius: 10px;
-}
-.ranking-stats {
-    display: flex;
-    gap: 10px;
-    font-size: 11px;
-    font-weight: bold;
-    color: #78909c;
-    justify-content: flex-end;
-}
-.ranking-stats span {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
-
-.ranking-points {
-    text-align: center;
-    flex-shrink: 0;
-    min-width: 55px;
-}
-.ranking-points-value {
-    font-size: 18px;
-    font-weight: 900;
-    color: #f57c00;
-    line-height: 1;
-}
-.ranking-points-label {
-    font-size: 10px;
-    font-weight: bold;
-    color: #90a4ae;
-    margin-top: 2px;
-}
-
-.avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-.avatar-emoji {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-}
-
-.rankings-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 20px;
-    text-align: center;
-}
-.rankings-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid #e1bee7;
-    border-top-color: #7b1fa2;
-    border-radius: 50%;
-    animation: rankingsSpinner 0.8s linear infinite;
-    margin-bottom: 20px;
-}
-@keyframes rankingsSpinner {
-    to { transform: rotate(360deg); }
-}
-.rankings-loading-text {
-    font-size: 14px;
-    font-weight: bold;
-    color: #7b1fa2;
-}
-
-.rankings-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 20px;
-    text-align: center;
-}
-.rankings-empty-icon {
-    font-size: 80px;
-    margin-bottom: 20px;
-    opacity: 0.6;
-    animation: rankingsEmptyFloat 3s ease-in-out infinite;
-}
-@keyframes rankingsEmptyFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-.rankings-empty-title {
-    font-size: 20px;
-    font-weight: 900;
-    color: #6a1b9a;
-    margin-bottom: 10px;
-}
-.rankings-empty-text {
-    font-size: 13px;
-    font-weight: bold;
-    color: #90a4ae;
-    line-height: 1.8;
-    max-width: 300px;
-}
-
-.rankings-not-in-list {
-    background: linear-gradient(135deg, #fff8e1, #ffecb3);
-    border: 2px dashed #ffc107;
-    border-radius: 16px;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 15px;
-    text-align: right;
-}
-.rankings-not-in-icon {
-    font-size: 32px;
-    flex-shrink: 0;
-}
-.rankings-not-in-text {
-    flex: 1;
-    font-size: 13px;
-    font-weight: bold;
-    color: #e65100;
-    line-height: 1.7;
-}
-
 /* ============ مودال انتخاب ایموجی ============ */
 .emoji-picker-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: rgba(0,0,0,0.7);
     backdrop-filter: blur(8px);
     display: none;
@@ -3669,9 +3456,7 @@ body { display: flex; justify-content: center; align-items: center; }
     z-index: 9300;
     padding: 15px;
 }
-.emoji-picker-overlay.active {
-    display: flex;
-}
+.emoji-picker-overlay.active { display: flex; }
 
 .emoji-picker-box {
     background: #fff;
@@ -3718,9 +3503,7 @@ body { display: flex; justify-content: center; align-items: center; }
     justify-content: center;
     transition: transform 0.2s;
 }
-.emoji-picker-close:active {
-    transform: scale(0.9);
-}
+.emoji-picker-close:active { transform: scale(0.9); }
 
 .emoji-picker-body {
     flex: 1;
@@ -3738,9 +3521,7 @@ body { display: flex; justify-content: center; align-items: center; }
     padding-right: 10px;
     border-right: 3px solid #7b1fa2;
 }
-.emoji-category-title:first-child {
-    margin-top: 0;
-}
+.emoji-category-title:first-child { margin-top: 0; }
 
 .emoji-category-grid {
     display: grid;
@@ -3762,9 +3543,7 @@ body { display: flex; justify-content: center; align-items: center; }
     border: 2px solid transparent;
     user-select: none;
 }
-.emoji-picker-item:active {
-    transform: scale(0.85);
-}
+.emoji-picker-item:active { transform: scale(0.85); }
 .emoji-picker-item.selected {
     background: linear-gradient(135deg, #f3e5f5, #e1bee7);
     border-color: #7b1fa2;
@@ -3776,62 +3555,7 @@ body { display: flex; justify-content: center; align-items: center; }
     border-color: #ce93d8;
 }
 
-/* حالت شب رتبه‌بندی */
-body.dark-mode #screen-rankings {
-    background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%);
-}
-body.dark-mode .rankings-header {
-    background: linear-gradient(135deg, #4a148c, #38006b);
-}
-body.dark-mode .ranking-card {
-    background: #1a2332;
-    border-color: #2a3444;
-    color: #e0e0e0;
-}
-body.dark-mode .ranking-card.is-me {
-    background: linear-gradient(135deg, #2a1a3a, #1a2332);
-    border-color: #7b1fa2;
-}
-body.dark-mode .ranking-name {
-    color: #ce93d8;
-}
-body.dark-mode .ranking-stats {
-    color: #90a4ae;
-}
-body.dark-mode .ranking-rank {
-    background: linear-gradient(135deg, #2a1a3a, #1a2332);
-    color: #ce93d8;
-    border-color: #4a148c;
-}
-body.dark-mode .ranking-card.is-me .ranking-rank {
-    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
-    color: #fff;
-}
-body.dark-mode .ranking-avatar {
-    background: #2a1a3a;
-    border-color: #4a148c;
-}
-body.dark-mode .emoji-picker-box {
-    background: #1a2332;
-}
-body.dark-mode .emoji-picker-item {
-    background: #0f1419;
-}
-body.dark-mode .emoji-picker-item.selected {
-    background: linear-gradient(135deg, #2a1a3a, #1a2332);
-}
-body.dark-mode .rankings-empty-title {
-    color: #ce93d8;
-}
-body.dark-mode .rankings-not-in-list {
-    background: linear-gradient(135deg, #2a2a1a, #1a2332);
-    border-color: #ffc107;
-}
-body.dark-mode .podium-name {
-    color: #ce93d8;
-}
-
-/* ریسپانسیو */
+/* ============ ریسپانسیو ============ */
 @media (max-width: 400px) {
     .emoji-category-grid {
         grid-template-columns: repeat(7, 1fr);
@@ -3839,442 +3563,6 @@ body.dark-mode .podium-name {
     .emoji-picker-item {
         font-size: 22px;
     }
-    .podium-avatar {
-        width: 60px;
-        height: 60px;
-    }
-    .podium-1 .podium-avatar {
-        width: 72px;
-        height: 72px;
-    }
-    .podium-avatar .avatar-emoji {
-        font-size: 32px;
-    }
-    .podium-1 .podium-avatar .avatar-emoji {
-        font-size: 40px;
-    }
-    .ranking-avatar {
-        width: 42px;
-        height: 42px;
-    }
-    .ranking-avatar .avatar-emoji {
-        font-size: 22px;
-    }
-    .profile-avatar.emoji-mode .emoji-avatar {
-        font-size: 80px;
-    }
-    .home-welcome-avatar.emoji-mode .emoji-avatar {
-        font-size: 48px;
-    }
-}
-
-/* انیمیشن برای نوتیفیکیشن آپدیت */
-@keyframes slideDownUpdate {
-    from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
-    to { transform: translateX(-50%) translateY(0); opacity: 1; }
-}
-/* ============================================================
-   🆕 بخش جدید: حذف کادر ایموجی + وسط‌چین خانه + در حال ساخت
-   ============================================================ */
-
-/* ============ ۱. حذف کادر ایموجی آواتار خانه ============ */
-.home-welcome-avatar.emoji-mode {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-}
-.home-welcome-avatar.emoji-mode img {
-    display: none !important;
-}
-.home-welcome-avatar.emoji-mode .emoji-avatar {
-    font-size: 62px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-}
-
-/* ============ ۲. حذف کادر ایموجی آواتار پروفایل ============ */
-.profile-avatar.emoji-mode {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-}
-.profile-avatar.emoji-mode img {
-    display: none !important;
-}
-.profile-avatar.emoji-mode .emoji-avatar {
-    font-size: 110px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.2));
-}
-
-/* ============ ۳. وسط‌چین کردن دکمه‌ی خانه ============ */
-.bottom-nav {
-    justify-content: space-evenly !important;
-}
-
-.bottom-nav .bottom-nav-item.home-item {
-    flex: 1.3;
-    position: relative;
-}
-
-/* ============ ۴. صفحه رتبه‌بندی - در حال ساخت ============ */
-.rankings-coming-soon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 80px 25px;
-    min-height: 70vh;
-}
-
-.rankings-coming-icon {
-    font-size: 100px;
-    margin-bottom: 25px;
-    animation: comingSoonBounce 2s ease-in-out infinite;
-    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.2));
-}
-
-@keyframes comingSoonBounce {
-    0%, 100% { transform: translateY(0) rotate(-5deg); }
-    50% { transform: translateY(-15px) rotate(5deg); }
-}
-
-.rankings-coming-title {
-    font-size: 32px;
-    font-weight: 900;
-    color: #7b1fa2;
-    margin-bottom: 15px;
-    text-shadow: 0 3px 10px rgba(123, 31, 162, 0.2);
-    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.rankings-coming-text {
-    font-size: 15px;
-    font-weight: bold;
-    color: #607d8b;
-    line-height: 2;
-    max-width: 320px;
-    margin-bottom: 25px;
-}
-
-.rankings-coming-decoration {
-    font-size: 40px;
-    animation: sparkleRotate 3s linear infinite;
-    opacity: 0.7;
-}
-
-@keyframes sparkleRotate {
-    0% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(180deg) scale(1.3); }
-    100% { transform: rotate(360deg) scale(1); }
-}
-
-/* حالت شب برای صفحه در حال ساخت */
-body.dark-mode .rankings-coming-title {
-    background: linear-gradient(135deg, #ce93d8, #ba68c8);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-body.dark-mode .rankings-coming-text {
-    color: #90a4ae;
-}
-/* ============================================================
-   🆕 بخش جدید: استایل سوالات match-flip و word-attach
-   ============================================================ */
-
-/* ============ سوال match-flip (بازی حافظه) ============ */
-.match-flip-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    width: 100%;
-    margin-top: 10px;
-    margin-bottom: 15px;
-}
-
-.match-flip-card {
-    aspect-ratio: 1 / 1;
-    perspective: 1000px;
-    cursor: pointer;
-    position: relative;
-    user-select: none;
-}
-
-.match-flip-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-style: preserve-3d;
-}
-
-.match-flip-card.flipped .match-flip-inner {
-    transform: rotateY(180deg);
-}
-
-.match-flip-front,
-.match-flip-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 8px;
-    font-weight: 900;
-}
-
-/* روی کارت (پشت) */
-.match-flip-front {
-    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
-    color: #fff;
-    font-size: 36px;
-    box-shadow: 0 6px 20px rgba(123, 31, 162, 0.35);
-    border: 3px solid #fff;
-}
-
-/* پشت کارت (رو) */
-.match-flip-back {
-    transform: rotateY(180deg);
-    font-size: 14px;
-    line-height: 1.4;
-    word-break: break-word;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    border: 3px solid #fff;
-}
-
-/* کارت عربی */
-.match-flip-back.ar {
-    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-    color: #0d47a1;
-    font-size: 16px;
-    direction: rtl;
-    border-color: #1976d2;
-}
-
-/* کارت فارسی */
-.match-flip-back.fa {
-    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-    color: #1b5e20;
-    font-size: 14px;
-    direction: rtl;
-    border-color: #43a047;
-}
-
-/* کارت‌های جفت‌شده */
-.match-flip-card.matched {
-    pointer-events: none;
-    animation: matchPulse 0.6s ease;
-}
-
-.match-flip-card.matched .match-flip-inner {
-    transform: rotateY(180deg);
-}
-
-.match-flip-card.matched .match-flip-back {
-    border-color: #4caf50;
-    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3), 0 6px 20px rgba(76, 175, 80, 0.4);
-    opacity: 0.85;
-}
-
-@keyframes matchPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-/* کارت‌های باز شده اشتباه */
-.match-flip-card.flipped:not(.matched) {
-    animation: flipWrong 0.9s ease;
-}
-
-@keyframes flipWrong {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
-}
-
-/* وضعیت بازی */
-.match-flip-status {
-    text-align: center;
-    font-size: 14px;
-    font-weight: 900;
-    color: #6a1b9a;
-    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
-    padding: 12px 20px;
-    border-radius: 50px;
-    margin-top: 15px;
-    box-shadow: 0 3px 12px rgba(123, 31, 162, 0.15);
-    border: 1.5px solid #ce93d8;
-}
-
-/* ============ سوال word-attach (چسباندن ضمیر) ============ */
-.word-attach-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 25px;
-    padding: 20px 10px;
-    width: 100%;
-}
-
-/* کلمه‌ی پایه */
-.word-attach-base {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #fff 0%, #f0f7ff 100%);
-    border: 3px dashed #90caf9;
-    border-radius: 20px;
-    padding: 25px 35px;
-    min-width: 220px;
-    box-shadow: 0 6px 25px rgba(25, 118, 210, 0.15);
-    transition: all 0.3s ease;
-}
-
-.word-attach-text {
-    font-size: 32px;
-    font-weight: 900;
-    color: #0d47a1;
-    direction: rtl;
-    letter-spacing: 1px;
-}
-
-.word-attach-slot {
-    display: inline-block;
-    min-width: 50px;
-    height: 44px;
-    border-bottom: 4px solid #1976d2;
-    margin-right: 8px;
-    text-align: center;
-    font-size: 28px;
-    font-weight: 900;
-    color: #1976d2;
-    transition: all 0.3s ease;
-    padding: 0 8px;
-}
-
-.word-attach-slot.filled {
-    border-bottom-color: #4caf50;
-    color: #2e7d32;
-    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-    border-radius: 12px 12px 0 0;
-    animation: slotFill 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes slotFill {
-    0% { transform: scale(0.5); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-/* گزینه‌های ضمیر */
-.word-attach-options {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.word-attach-item {
-    background: rgba(255, 255, 255, 0.95);
-    border: 2.5px solid #bbdefb;
-    padding: 14px 26px;
-    border-radius: 16px;
-    font-size: 22px;
-    font-weight: 900;
-    color: #0d47a1;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    direction: rtl;
-    user-select: none;
-    min-width: 70px;
-    text-align: center;
-}
-
-.word-attach-item:active {
-    transform: scale(0.93);
-}
-
-.word-attach-item.selected {
-    background: linear-gradient(135deg, #e3f2fd, #90caf9);
-    border-color: #1976d2;
-    color: #fff;
-    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
-    transform: scale(1.08);
-}
-
-.word-attach-item:hover:not(.selected) {
-    border-color: #1976d2;
-    background: #e3f2fd;
-}
-
-/* ============ حالت شب ============ */
-body.dark-mode .match-flip-front {
-    background: linear-gradient(135deg, #4a148c, #38006b);
-}
-
-body.dark-mode .match-flip-back.ar {
-    background: linear-gradient(135deg, #1a2332, #2a3444);
-    color: #90caf9;
-    border-color: #1976d2;
-}
-
-body.dark-mode .match-flip-back.fa {
-    background: linear-gradient(135deg, #1a2a1a, #2a3a2a);
-    color: #a5d6a7;
-    border-color: #43a047;
-}
-
-body.dark-mode .match-flip-status {
-    background: linear-gradient(135deg, #2a1a3a, #1a2332);
-    color: #ce93d8;
-    border-color: #4a148c;
-}
-
-body.dark-mode .word-attach-base {
-    background: linear-gradient(135deg, #1a2332, #0f1419);
-    border-color: #1976d2;
-}
-
-body.dark-mode .word-attach-text {
-    color: #90caf9;
-}
-
-body.dark-mode .word-attach-item {
-    background: #1a2332;
-    border-color: #2a3444;
-    color: #90caf9;
-}
-
-body.dark-mode .word-attach-item.selected {
-    background: linear-gradient(135deg, #1976d2, #1565c0);
-    color: #fff;
-    border-color: #90caf9;
-}
-
-/* ============ ریسپانسیو ============ */
-@media (max-width: 400px) {
     .match-flip-grid {
         gap: 8px;
     }
@@ -4308,4 +3596,16 @@ body.dark-mode .word-attach-item.selected {
         min-width: 40px;
         height: 38px;
     }
+    .profile-avatar.emoji-mode .emoji-avatar {
+        font-size: 80px;
+    }
+    .home-welcome-avatar.emoji-mode .emoji-avatar {
+        font-size: 48px;
+    }
+}
+
+/* انیمیشن برای نوتیفیکیشن آپدیت */
+@keyframes slideDownUpdate {
+    from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+    to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
