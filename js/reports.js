@@ -1,7 +1,15 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۴.۰.۰ — راه‌حل تضمینی PDF با html2canvas + jsPDF
+// نسخه: ۵.۰.۰ — با صفحه پیش‌نمایش PDF
 // ============================================================
+
+// ============================================================
+// 🆕 متغیرهای پیش‌نمایش PDF
+// ============================================================
+let currentPreviewReport = null;      // کارنامه‌ای که داره پیش‌نمایش می‌شه
+let currentPreviewFilename = '';      // نام فایل PDF
+let currentPreviewSource = '';        // منبع: 'list' یا 'after-lesson'
+let currentPreviewIndex = -1;         // ایندکس کارنامه توی لیست
 
 // ============================================================
 // نمایش لیست کارنامه‌ها
@@ -153,7 +161,7 @@ function generateGraphicReport(report) {
 }
 
 // ============================================================
-// مشاهده‌ی کارنامه
+// مشاهده‌ی کارنامه (نمایش توی صفحه)
 // ============================================================
 function viewReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -178,12 +186,100 @@ function viewReportById(index) {
 }
 
 // ============================================================
-// 🆕 دانلود PDF — راه‌حل نهایی با html2canvas مستقیم
+// 🆕 باز کردن صفحه پیش‌نمایش PDF
+// ============================================================
+function openPdfPreview(report, filename, source, index = -1) {
+    currentPreviewReport = report;
+    currentPreviewFilename = filename;
+    currentPreviewSource = source;
+    currentPreviewIndex = index;
+    
+    const container = document.getElementById('pdf-preview-content');
+    if (!container) {
+        console.error('❌ کانتینر پیش‌نمایش پیدا نشد');
+        return;
+    }
+    
+    container.innerHTML = generateGraphicReport(report);
+    goToScreen('screen-pdf-preview');
+    container.scrollTop = 0;
+    vibrate(15);
+}
+
+// ============================================================
+// 🆕 بستن صفحه پیش‌نمایش (برگشت به صفحه قبلی)
+// ============================================================
+function closePdfPreview() {
+    const source = currentPreviewSource;
+    
+    currentPreviewReport = null;
+    currentPreviewFilename = '';
+    currentPreviewSource = '';
+    currentPreviewIndex = -1;
+    
+    const container = document.getElementById('pdf-preview-content');
+    if (container) container.innerHTML = '';
+    
+    if (source === 'after-lesson') {
+        goToScreen('screen-result', false);
+    } else {
+        goToScreen('screen-reports', false);
+    }
+}
+
+// ============================================================
+// 🆕 دانلود PDF از صفحه پیش‌نمایش
+// ============================================================
+async function downloadPdfFromPreview() {
+    if (!currentPreviewReport) {
+        showModal('خطا', 'اطلاعات کارنامه پیدا نشد.', '❌');
+        return;
+    }
+    
+    const downloadBtn = document.querySelector('.pdf-preview-download-btn');
+    if (downloadBtn) {
+        downloadBtn.disabled = true;
+        downloadBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 22px; height: 22px; animation: spin 1s linear infinite;">
+                <circle cx="12" cy="12" r="10" stroke="white" stroke-width="3" fill="none" stroke-dasharray="31.4" stroke-dashoffset="10"/>
+            </svg>
+            <span>در حال آماده‌سازی...</span>
+        `;
+    }
+    
+    try {
+        const success = await downloadReportFast(currentPreviewReport, currentPreviewFilename);
+        
+        if (success) {
+            showModal('✅ دانلود موفق', 'کارنامه با موفقیت دانلود شد.', '✅');
+        } else {
+            showModal('❌ خطا', 'مشکلی در دانلود پیش آمد.\nلطفاً دوباره تلاش کنید.', '❌');
+        }
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        showModal('❌ خطا', 'مشکلی در دانلود پیش آمد.', '❌');
+    } finally {
+        if (downloadBtn) {
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <polyline points="7 10 12 15 17 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <line x1="12" y1="15" x2="12" y2="3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>دانلود PDF</span>
+            `;
+        }
+    }
+}
+
+// ============================================================
+// 🆕 دانلود PDF — راه‌حل با html2canvas + jsPDF مستقیم
 // ============================================================
 async function downloadReportFast(report, filename) {
     let container = null;
     try {
-        // ۱. ساخت کانتینر قابل مشاهده (روی صفحه، ولی زیر محتوا)
+        // ۱. ساخت کانتینر
         container = document.createElement('div');
         container.id = 'pdf-render-container';
         container.style.position = 'fixed';
@@ -195,21 +291,18 @@ async function downloadReportFast(report, filename) {
         container.style.fontFamily = 'Vazirmatn, sans-serif';
         container.style.padding = '30px';
         container.style.boxSizing = 'border-box';
-        container.style.zIndex = '-1';          // 🆕 زیر همه چیز
-        container.style.opacity = '0.01';       // 🆕 تقریباً شفاف (نه کاملاً صفر)
+        container.style.zIndex = '-1';
+        container.style.opacity = '0.01';
         container.style.pointerEvents = 'none';
         container.style.overflow = 'visible';
         
-        // ۲. محتوا
         container.innerHTML = generateGraphicReport(report);
-        
-        // ۳. اضافه کردن به body
         document.body.appendChild(container);
         
-        // ۴. صبر برای رندر کامل
+        // ۲. صبر برای رندر
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // ۵. صبر برای لود تصاویر
+        // ۳. صبر برای لود تصاویر
         const images = container.querySelectorAll('img');
         await Promise.all(Array.from(images).map(img => {
             if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
@@ -220,18 +313,17 @@ async function downloadReportFast(report, filename) {
             });
         }));
         
-        // ۶. صبر اضافی
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // ۷. 🆕 رندر مستقیم با html2canvas (بدون html2pdf)
         console.log('🎨 شروع رندر با html2canvas...');
         
+        // ۴. رندر با html2canvas
         const canvas = await html2canvas(container, {
             scale: 2,
             useCORS: true,
             allowTaint: false,
             backgroundColor: '#ffffff',
-            logging: true,                    // برای دیباگ
+            logging: false,
             imageTimeout: 10000,
             removeContainer: false,
             scrollX: 0,
@@ -246,14 +338,13 @@ async function downloadReportFast(report, filename) {
         
         console.log('✅ canvas ساخته شد:', canvas.width, 'x', canvas.height);
         
-        // ۸. تبدیل canvas به تصویر
+        // ۵. تبدیل به تصویر
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         
-        // ۹. 🆕 ساخت PDF با jsPDF
+        // ۶. ساخت PDF
         const { jsPDF } = window.jspdf;
         
-        // ابعاد PDF بر اساس ابعاد canvas
-        const pdfWidth = 595.28;              // A4 width در points
+        const pdfWidth = 595.28;
         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
         
         const pdf = new jsPDF({
@@ -263,15 +354,12 @@ async function downloadReportFast(report, filename) {
             compress: true
         });
         
-        // ۱۰. اضافه کردن تصویر به PDF
         pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-        
-        // ۱۱. ذخیره PDF
         pdf.save(filename);
         
         console.log('✅ PDF با موفقیت ساخته شد');
         
-        // ۱۲. پاک کردن کانتینر
+        // ۷. پاک کردن کانتینر
         if (container && container.parentNode) {
             container.parentNode.removeChild(container);
         }
@@ -287,7 +375,7 @@ async function downloadReportFast(report, filename) {
 }
 
 // ============================================================
-// دانلود کارنامه با index
+// 🆕 دانلود کارنامه با index — الان می‌ره به صفحه پیش‌نمایش
 // ============================================================
 async function downloadReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -295,22 +383,8 @@ async function downloadReportById(index) {
     const report = reports[index];
     if (!report) return;
     
-    showModal('⏳ در حال آماده‌سازی PDF...', 'لطفاً چند لحظه صبر کنید.', '📄');
-    
     const filename = `کارنامه_${report.lessonTitle}_${report.date.replace(/\//g, '-')}.pdf`;
-    const success = await downloadReportFast(report, filename);
-    
-    if (success) {
-        closeModal();
-        setTimeout(() => {
-            showModal('✅ دانلود موفق', 'کارنامه با موفقیت دانلود شد.', '✅');
-        }, 300);
-    } else {
-        closeModal();
-        setTimeout(() => {
-            showModal('❌ خطا', 'مشکلی در دانلود پیش آمد.\nلطفاً دوباره تلاش کنید.', '❌');
-        }, 300);
-    }
+    openPdfPreview(report, filename, 'list', index);
 }
 
 // ============================================================
@@ -387,7 +461,7 @@ function showReportCard() {
 }
 
 // ============================================================
-// دانلود کارنامه فعلی
+// 🆕 دانلود کارنامه فعلی — الان می‌ره به صفحه پیش‌نمایش
 // ============================================================
 async function downloadCurrentReport() {
     const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
@@ -406,20 +480,6 @@ async function downloadCurrentReport() {
         surveyAnswer: surveyAnswerText
     };
     
-    showModal('⏳ در حال آماده‌سازی PDF...', 'لطفاً چند لحظه صبر کنید.', '📄');
-    
     const filename = `کارنامه_${taskTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
-    const success = await downloadReportFast(report, filename);
-    
-    if (success) {
-        closeModal();
-        setTimeout(() => {
-            showModal('✅ دانلود موفق', 'کارنامه با موفقیت دانلود شد.', '✅');
-        }, 300);
-    } else {
-        closeModal();
-        setTimeout(() => {
-            showModal('❌ خطا', 'مشکلی در دانلود پیش آمد.\nلطفاً دوباره تلاش کنید.', '❌');
-        }, 300);
-    }
+    openPdfPreview(report, filename, 'after-lesson', -1);
 }
