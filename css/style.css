@@ -3794,3 +3794,184 @@ body.dark-mode #screen-rankings {
     width: 100% !important;
     box-sizing: border-box !important;
 }
+/* ============================================================
+   🆕 اصلاح صفحه ثبت‌نام (Welcome)
+   ============================================================ */
+
+#screen-welcome {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: none !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    background: linear-gradient(180deg, var(--primary-light) 0%, #ffffff 100%) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 30px 25px 40px 25px !important;
+    box-sizing: border-box !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+#screen-welcome.active {
+    display: flex !important;
+}
+
+/* ویدیوی بالای صفحه */
+#screen-welcome .welcome-video-wrapper {
+    width: 150px !important;
+    height: 150px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    margin: 0 auto 20px auto !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+}
+
+#screen-welcome .welcome-video-wrapper video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+    mix-blend-mode: multiply !important;
+}
+
+/* عنوان */
+#screen-welcome .welcome-title {
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    color: var(--primary) !important;
+    margin-bottom: 10px !important;
+    text-align: center !important;
+    width: 100% !important;
+    flex-shrink: 0 !important;
+}
+
+#screen-welcome .welcome-sub {
+    font-size: 13px !important;
+    color: #546e7a !important;
+    margin-bottom: 20px !important;
+    text-align: center !important;
+    width: 100% !important;
+    line-height: 1.6 !important;
+    flex-shrink: 0 !important;
+}
+
+/* فیلدهای ورودی */
+#screen-welcome .welcome-input {
+    width: 100% !important;
+    max-width: 400px !important;
+    padding: 14px 18px !important;
+    border: 2px solid #e0e0e0 !important;
+    border-radius: 50px !important;
+    text-align: center !important;
+    font-size: 15px !important;
+    outline: none !important;
+    background: #fff !important;
+    margin-bottom: 12px !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+    color: #333 !important;
+}
+
+#screen-welcome .welcome-input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.15) !important;
+}
+
+#screen-welcome .welcome-input::placeholder {
+    color: #90a4ae !important;
+}
+
+/* سلکت (dropdown) */
+#screen-welcome select.welcome-input {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2390a4ae' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: left 15px center !important;
+    background-size: 18px !important;
+    padding-left: 45px !important;
+    cursor: pointer !important;
+}
+
+/* دکمه ورود */
+#screen-welcome .welcome-btn {
+    background: var(--primary-gradient) !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 16px 30px !important;
+    border-radius: 50px !important;
+    font-size: 17px !important;
+    font-weight: 900 !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    max-width: 400px !important;
+    box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4) !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+    margin-top: 10px !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+    min-height: 55px !important;
+}
+
+#screen-welcome .welcome-btn:active {
+    transform: scale(0.98) !important;
+}
+
+/* حالت شب */
+body.dark-mode #screen-welcome {
+    background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%) !important;
+}
+
+body.dark-mode #screen-welcome .welcome-input {
+    background: #1a2332 !important;
+    color: #e0e0e0 !important;
+    border-color: #2a3444 !important;
+}
+
+body.dark-mode #screen-welcome .welcome-input:focus {
+    border-color: var(--primary) !important;
+}
+
+body.dark-mode #screen-welcome .welcome-title {
+    color: #90caf9 !important;
+}
+
+body.dark-mode #screen-welcome .welcome-sub {
+    color: #90a4ae !important;
+}
+
+/* ریسپانسیو */
+@media (max-width: 400px) {
+    #screen-welcome {
+        padding: 20px 18px 30px 18px !important;
+    }
+    #screen-welcome .welcome-video-wrapper {
+        width: 120px !important;
+        height: 120px !important;
+    }
+    #screen-welcome .welcome-title {
+        font-size: 19px !important;
+    }
+    #screen-welcome .welcome-sub {
+        font-size: 12px !important;
+    }
+    #screen-welcome .welcome-input {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+    }
+    #screen-welcome .welcome-btn {
+        padding: 14px 25px !important;
+        font-size: 16px !important;
+    }
+}
