@@ -3609,3 +3609,92 @@ body.dark-mode .word-attach-item.selected {
     from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
     to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
+/* ============================================================
+   🆕 اصلاح فوری: صفحه Splash و دکمه ورود
+   ============================================================ */
+
+#screen-splash {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: none !important;
+    background: #000 !important;
+    overflow: hidden !important;
+    z-index: 1 !important;
+}
+
+#screen-splash.active {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.splash-bg-image {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    z-index: 0 !important;
+}
+
+.splash-light-glow {
+    position: absolute !important;
+    top: -50px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 300px !important;
+    height: 200px !important;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.4) 0%, rgba(200, 230, 255, 0.2) 40%, transparent 70%) !important;
+    border-radius: 50% !important;
+    z-index: 1 !important;
+    animation: glowPulse 4s ease-in-out infinite !important;
+    pointer-events: none !important;
+}
+
+.splash-content-wrapper {
+    position: relative !important;
+    z-index: 2 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    padding-bottom: 60px !important;
+}
+
+.btn-start-splash {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 18px 40px !important;
+    border-radius: 50px !important;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    cursor: pointer !important;
+    width: 80% !important;
+    max-width: 300px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 8px 25px rgba(25, 118, 210, 0.5) !important;
+    animation: btnPulse 2.5s ease-in-out infinite !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+    position: relative !important;
+    z-index: 5 !important;
+    min-height: 55px !important;
+}
+
+.btn-start-splash:active {
+    transform: scale(0.96) !important;
+}
+
+@keyframes btnPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
