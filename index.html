@@ -574,7 +574,7 @@
             </div>
         </div>
         
-        <!-- نوار پایین - صفحه خانه -->
+        <!-- نوار پایین - صفحه خانه (ترتیب: مدال‌ها → رتبه‌بندی → خانه وسط → تنظیمات → پروفایل) -->
         <div class="bottom-nav">
             <button class="bottom-nav-item medals-item" id="guide-medals-btn" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1207,7 +1207,6 @@
             </button>
         </div>
     </div>
-
     <!-- ============ صفحه سوالات ============ -->
     <div id="screen-quiz" class="screen">
         <div class="quiz-header-area">
@@ -1226,7 +1225,7 @@
         </div>
     </div>
 
-        <!-- ============ صفحه بازخورد ============ -->
+    <!-- ============ صفحه بازخورد ============ -->
     <div id="screen-feedback" class="screen">
         <div class="feedback-icon" id="fb-icon">⭐</div>
         <div class="feedback-title" id="fb-title">آفرین!</div>
@@ -1237,7 +1236,7 @@
             <div class="answer-text" id="answer-text">-</div>
         </div>
         <div id="find-error-feedback-box" style="display: none; width: 100%; max-width: 380px; margin: 15px auto;"></div>
-        <button class="btn-primary" id="next-question-btn" onclick="nextQuestion()" style="margin-top: 20px; width: 100%; max-width: 320px;">سوال بعدی</button>
+        <button class="btn-primary" onclick="nextQuestion()" style="margin-top: 20px; width: 100%; max-width: 320px;">سوال بعدی</button>
     </div>
 
     <!-- ============ صفحه نتیجه ============ -->
@@ -1288,7 +1287,7 @@
 </div>
 
 <!-- ============================================================
-     لود فایل‌های JavaScript
+     لود فایل‌های JavaScript (ترتیب مهمه!)
      ============================================================ -->
 <script src="./js/config.js"></script>
 <script src="./js/utils.js"></script>
