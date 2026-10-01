@@ -135,45 +135,58 @@ function viewReportById(index) {
 }
 
 // ============================================================
-// 🆕 دانلود PDF با روش اصلاح شده (بدون سفید شدن)
+// 🆕 دانلود PDF با روش اصلاح شده (ارتفاع داینامیک)
 // ============================================================
 async function downloadReportFast(report, filename) {
+    let element = null;
     try {
         // ۱. ساخت المان با ابعاد مشخص
-        const element = document.createElement('div');
-        element.style.position = 'absolute';
+        element = document.createElement('div');
+        element.style.position = 'fixed';
         element.style.top = '0';
         element.style.left = '0';
-        element.style.width = '794px'; // عرض A4 با 96 DPI
-        element.style.minHeight = '1123px';
+        element.style.width = '794px';
         element.style.padding = '30px';
         element.style.direction = 'rtl';
         element.style.background = '#f0f7ff';
         element.style.fontFamily = 'Vazirmatn, sans-serif';
-        element.style.zIndex = '99999';
+        element.style.zIndex = '999999';
         element.style.boxSizing = 'border-box';
+        element.style.visibility = 'hidden';
         element.innerHTML = generateGraphicReport(report);
         
-        // ۲. اضافه کردن به body (ولی مخفی نکن)
+        // ۲. اضافه کردن به body
         document.body.appendChild(element);
         
-        // ۳. صبر کن تا همه‌ی تصاویر و فونت‌ها لود بشن
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // ۳. صبر برای لود فونت‌ها و استایل‌ها
+        await new Promise(resolve => setTimeout(resolve, 700));
         
-        // ۴. صبر کن تا تصاویر لود بشن
+        // ۴. صبر برای لود تصاویر
         const images = element.querySelectorAll('img');
         await Promise.all(Array.from(images).map(img => {
             if (img.complete) return Promise.resolve();
             return new Promise(resolve => {
                 img.onload = resolve;
                 img.onerror = resolve;
-                setTimeout(resolve, 2000);
+                setTimeout(resolve, 2500);
             });
         }));
         
-        // ۵. تنظیمات بهینه html2pdf
+        // ۵. 🆕 اندازه‌گیری ارتفاع واقعی
+        const actualWidth = 794;
+        const actualHeight = element.scrollHeight;
+        console.log('📐 ابعاد المان:', actualWidth, 'x', actualHeight);
+        
+        // ۶. تنظیم ارتفاع دقیق و نمایش
+        element.style.height = actualHeight + 'px';
+        element.style.visibility = 'visible';
+        
+        // ۷. صبر کوتاه
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // ۸. 🆕 تنظیمات html2pdf با ابعاد داینامیک
         const opt = {
-            margin: [10, 10, 10, 10],
+            margin: 0,
             filename: filename,
             image: { 
                 type: 'jpeg', 
@@ -189,38 +202,36 @@ async function downloadReportFast(report, filename) {
                 removeContainer: false,
                 scrollX: 0,
                 scrollY: 0,
-                windowWidth: 794,
-                windowHeight: element.scrollHeight,
-                width: 794,
-                height: element.scrollHeight
+                windowWidth: actualWidth,
+                windowHeight: actualHeight,
+                width: actualWidth,
+                height: actualHeight,
+                x: 0,
+                y: 0
             },
             jsPDF: { 
                 unit: 'px', 
-                format: [794, element.scrollHeight],
+                format: [actualWidth, actualHeight],
                 orientation: 'portrait',
                 compress: true
             },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            pagebreak: { mode: ['css', 'legacy'] }
         };
         
-        // ۶. اجرای html2pdf
+        // ۹. اجرای html2pdf
         await html2pdf().set(opt).from(element).save();
         
-        // ۷. پاک کردن المان
-        if (element.parentNode) {
+        // ۱۰. پاک کردن المان
+        if (element && element.parentNode) {
             element.parentNode.removeChild(element);
         }
         
         return true;
     } catch (error) {
         console.error('❌ خطا در دانلود:', error);
-        // اگه خطا داد، المان رو پاک کن
-        try {
-            const elements = document.querySelectorAll('[style*="z-index: 99999"]');
-            elements.forEach(el => {
-                if (el.parentNode) el.parentNode.removeChild(el);
-            });
-        } catch(e) {}
+        if (element && element.parentNode) {
+            element.parentNode.removeChild(element);
+        }
         return false;
     }
 }
