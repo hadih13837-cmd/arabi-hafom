@@ -19,6 +19,16 @@ let matchedAudioPairs = [];
 let selectedErrorWord = null;
 let surveyAnswerText = '';
 
+// 🆕 متغیرهای مربوط به match-flip (بازی حافظه)
+let flippedCards = [];       // کارت‌های برگردونده‌شده
+let matchedFlipPairs = 0;    // تعداد جفت‌های پیدا شده
+let flipLocked = false;      // قفل کلیک
+let totalFlipPairs = 0;      // تعداد کل جفت‌ها
+
+// 🆕 متغیرهای مربوط به word-attach (چسباندن ضمیر)
+let selectedAttachOption = null;
+let attachedWord = '';
+
 // ============================================================
 // shuffle آرایه
 // ============================================================
@@ -31,7 +41,7 @@ function shuffleArray(array) {
 }
 
 // ============================================================
-// پخش صدا از فیلم (🆕 با صدای کامل)
+// پخش صدا از فیلم
 // ============================================================
 function playAudioFromVideo(videoUrl, btnElement) {
     const video = document.getElementById('audio-video-player');
@@ -41,7 +51,6 @@ function playAudioFromVideo(videoUrl, btnElement) {
     video.pause();
     video.src = videoUrl;
     video.currentTime = 0;
-    // 🔊 صدای ویدیو رو تا آخر بلند کن (max = 1.0)
     video.volume = 1.0;
     video.muted = false;
     if (btnElement) {
@@ -73,6 +82,8 @@ function renderQuestion() {
     counter.textContent = `سوال ${toPersianNum(currentQuestionIndex + 1)} از ${toPersianNum(currentLesson.questions.length)}`;
     progress.style.width = `${((currentQuestionIndex) / currentLesson.questions.length) * 100}%`;
     scoreDisplay.textContent = toPersianNum(score);
+    
+    // ریست متغیرها
     selectedOptionIndex = -1;
     selectedMatchFa = null;
     selectedMatchAr = null;
@@ -84,6 +95,15 @@ function renderQuestion() {
     matchedAudioPairs = [];
     selectedErrorWord = null;
     surveyAnswerText = '';
+    
+    // 🆕 ریست متغیرهای جدید
+    flippedCards = [];
+    matchedFlipPairs = 0;
+    flipLocked = false;
+    totalFlipPairs = 0;
+    selectedAttachOption = null;
+    attachedWord = '';
+    
     submitBtn.disabled = false;
     submitBtn.textContent = 'بررسی سوال';
     saveCurrentProgress();
@@ -99,7 +119,8 @@ function renderQuestion() {
             html += `<div class="option-btn" onclick="selectFillOption(this, '${opt}', ${index})">${opt}</div>`;
         });
         html += `</div>`;
-    } else if (q.type === 'audio-match') {
+    } 
+    else if (q.type === 'audio-match') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
             <div class="question-text-text">${q.question}</div>
@@ -123,7 +144,8 @@ function renderQuestion() {
         }
         html += `</div>`;
         html += `<div class="audio-hint">👆 اول روی <span class="highlight">دکمه صدا</span> بزن، بعد <span class="highlight">کلمه فارسی</span> متناظرش رو انتخاب کن</div>`;
-    } else if (q.type === 'find-error') {
+    } 
+    else if (q.type === 'find-error') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
             <div class="question-text-text">${q.question}</div>
@@ -136,7 +158,8 @@ function renderQuestion() {
         html += `</div>`;
         html += `<div class="audio-hint">👆 روی کلمه‌ای که فکر می‌کنی <span class="highlight">اشتباه</span> است، کلیک کن</div>`;
         html += `</div>`;
-    } else if (q.type === 'word-build') {
+    } 
+    else if (q.type === 'word-build') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
             <div class="question-text-text">${q.question}</div>
@@ -162,7 +185,8 @@ function renderQuestion() {
         });
         html += `</div>`;
         html += `<div class="audio-hint">👆 کلمات رو به ترتیب درست بچین تا جمله ساخته بشه</div>`;
-    } else if (q.type === 'survey') {
+    } 
+    else if (q.type === 'survey') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
             <div class="question-text-text">${q.question}</div>
@@ -171,7 +195,60 @@ function renderQuestion() {
         html += `<textarea id="survey-answer" class="survey-textarea" placeholder="${q.placeholder || 'نظرت رو اینجا بنویس...'}"></textarea>`;
         html += `<div class="audio-hint">💬 نظرت برامون مهمه! هرچی بنویسی قبوله ✨</div>`;
         html += `</div>`;
-    } else {
+    } 
+    // 🆕 match-flip (بازی حافظه)
+    else if (q.type === 'match-flip') {
+        html += `<div class="question-text">
+            <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+            <div class="question-text-text">${q.question}</div>
+        </div>`;
+        html += `<div class="audio-hint" style="margin-bottom: 15px;">👆 روی کارت‌ها کلیک کن تا معنی‌شون رو ببینی، بعد جفت‌های درست رو پیدا کن</div>`;
+        
+        // ساخت ۱۲ کارت (۶ عربی + ۶ فارسی)
+        const allCards = [];
+        q.pairs.forEach((pair, idx) => {
+            allCards.push({ type: 'ar', text: pair.ar, pairId: idx });
+            allCards.push({ type: 'fa', text: pair.fa, pairId: idx });
+        });
+        const shuffledCards = shuffleArray([...allCards]);
+        totalFlipPairs = q.pairs.length;
+        
+        html += `<div class="match-flip-grid">`;
+        shuffledCards.forEach((card, index) => {
+            html += `<div class="match-flip-card" data-card-idx="${index}" data-pair-id="${card.pairId}" data-type="${card.type}" onclick="flipCard(this, ${index})">
+                <div class="match-flip-inner">
+                    <div class="match-flip-front">❓</div>
+                    <div class="match-flip-back ${card.type}">${card.text}</div>
+                </div>
+            </div>`;
+        });
+        html += `</div>`;
+        html += `<div class="match-flip-status" id="match-flip-status">جفت‌های پیدا شده: ۰ از ${toPersianNum(totalFlipPairs)}</div>`;
+    } 
+    // 🆕 word-attach (چسباندن ضمیر)
+    else if (q.type === 'word-attach') {
+        html += `<div class="question-text">
+            <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+            <div class="question-text-text">${q.question}</div>
+        </div>`;
+        
+        html += `<div class="word-attach-container">`;
+        html += `<div class="word-attach-base" id="word-attach-base">
+            <span class="word-attach-text">${q.baseWord}</span>
+            <span class="word-attach-slot" id="word-attach-slot"></span>
+        </div>`;
+        
+        html += `<div class="word-attach-options">`;
+        const shuffledOptions = shuffleArray([...q.options]);
+        shuffledOptions.forEach(option => {
+            html += `<div class="word-attach-item" onclick="selectAttachOption(this, '${option}')">${option}</div>`;
+        });
+        html += `</div>`;
+        
+        html += `<div class="audio-hint">👆 روی ضمیر درست کلیک کن تا به کلمه بچسبه</div>`;
+        html += `</div>`;
+    }
+    else {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
 
         if (q.type === 'multiple') {
@@ -180,14 +257,16 @@ function renderQuestion() {
                 html += `<div class="option-btn" onclick="selectOption(this, ${index})">${opt}</div>`;
             });
             html += `</div>`;
-        } else if (q.type === 'match') {
+        } 
+        else if (q.type === 'match') {
             const arItems = q.pairs.map((p, i) => ({ text: p.ar, idx: i }));
             shuffledMatchAr = shuffleArray([...arItems]);
             html += `<div class="matching-container">
                 <div class="matching-col" id="col-fa">${q.pairs.map((p, i) => `<div class="matching-item" data-idx="${i}" data-type="fa" onclick="selectMatch(this, 'fa')">${p.fa}</div>`).join('')}</div>
                 <div class="matching-col" id="col-ar">${shuffledMatchAr.map((item) => `<div class="matching-item" data-idx="${item.idx}" data-type="ar" onclick="selectMatch(this, 'ar')">${item.text}</div>`).join('')}</div>
             </div>`;
-        } else if (q.type === 'order') {
+        } 
+        else if (q.type === 'order') {
             if (q.arabicSentence) {
                 html += `<div class="arabic-sentence-box">
                     <div class="arabic-sentence-label">جمله عربی:</div>
@@ -197,19 +276,104 @@ function renderQuestion() {
             shuffledOrderOptions = shuffleArray([...q.options]);
             html += `<div class="order-container" id="order-container">${shuffledOrderOptions.map((opt) => `<div class="order-item" onclick="selectOrder(this, '${opt}')">${opt}</div>`).join('')}</div>`;
             html += `<div class="order-result" id="order-result">کلمات را اینجا بچینید (برای برگرداندن کلیک کنید)</div>`;
-        } else if (q.type === 'image') {
+        } 
+        else if (q.type === 'image') {
             html += `<div class="image-options-grid">`;
             q.options.forEach((opt, index) => {
                 html += `<div class="image-option" onclick="selectOption(this, ${index})">${opt}</div>`;
             });
             html += `</div>`;
-        } else if (q.type === 'truefalse') {
+        } 
+        else if (q.type === 'truefalse') {
             html += `<div class="true-false-grid"><button class="tf-btn" onclick="selectTF(this, 1)">درست ✓</button><button class="tf-btn" onclick="selectTF(this, 0)">غلط ✗</button></div>`;
-        } else if (q.type === 'translation') {
-            html += `<input type="text" id="translation-answer" placeholder="ترجمه را وارد کنید..." style="width:100%;padding:16px;border:2px solid #cfd8dc;border-radius:50px;text-align:center;font-size:17px;outline:none;margin-bottom:15px;font-family:'Vazirmatn',sans-serif;background:rgba(255,255,255,0.95);">`;
+        } 
+        else if (q.type === 'translation') {
+            html += `<input type="text" id="translation-answer" placeholder="پاسخ را وارد کنید..." style="width:100%;padding:16px;border:2px solid #cfd8dc;border-radius:50px;text-align:center;font-size:17px;outline:none;margin-bottom:15px;font-family:'Vazirmatn',sans-serif;background:rgba(255,255,255,0.95);">`;
         }
     }
     container.innerHTML = html;
+}
+// ============================================================
+// 🆕 توابع مربوط به match-flip (بازی حافظه)
+// ============================================================
+function flipCard(el, cardIdx) {
+    if (isAnswered) return;
+    if (flipLocked) return;
+    if (el.classList.contains('flipped')) return;
+    if (el.classList.contains('matched')) return;
+    
+    vibrate(15);
+    el.classList.add('flipped');
+    flippedCards.push({
+        el: el,
+        pairId: parseInt(el.dataset.pairId),
+        type: el.dataset.type,
+        cardIdx: cardIdx
+    });
+    
+    // اگه دو تا کارت برگردونده شد
+    if (flippedCards.length === 2) {
+        flipLocked = true;
+        const card1 = flippedCards[0];
+        const card2 = flippedCards[1];
+        
+        // چک کن جفت هستن یا نه (pairId یکسان + type متفاوت)
+        if (card1.pairId === card2.pairId && card1.type !== card2.type) {
+            // درست
+            setTimeout(() => {
+                card1.el.classList.add('matched');
+                card2.el.classList.add('matched');
+                matchedFlipPairs++;
+                vibrate([30, 50, 30]);
+                
+                // آپدیت وضعیت
+                const statusEl = document.getElementById('match-flip-status');
+                if (statusEl) {
+                    statusEl.textContent = `جفت‌های پیدا شده: ${toPersianNum(matchedFlipPairs)} از ${toPersianNum(totalFlipPairs)}`;
+                }
+                
+                flippedCards = [];
+                flipLocked = false;
+                
+                // اگه همه جفت‌ها پیدا شدن، خودکار بررسی کن
+                if (matchedFlipPairs === totalFlipPairs) {
+                    setTimeout(() => checkAnswer(), 600);
+                }
+            }, 400);
+        } else {
+            // اشتباه - برگردون
+            setTimeout(() => {
+                card1.el.classList.remove('flipped');
+                card2.el.classList.remove('flipped');
+                vibrate([50, 30, 50]);
+                flippedCards = [];
+                flipLocked = false;
+            }, 900);
+        }
+    }
+}
+
+// ============================================================
+// 🆕 توابع مربوط به word-attach (چسباندن ضمیر)
+// ============================================================
+function selectAttachOption(el, option) {
+    if (isAnswered) return;
+    vibrate(15);
+    
+    // حذف انتخاب قبلی
+    document.querySelectorAll('.word-attach-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    el.classList.add('selected');
+    selectedAttachOption = option;
+    
+    // نمایش توی جای خالی
+    const slot = document.getElementById('word-attach-slot');
+    if (slot) {
+        slot.textContent = option;
+        slot.classList.add('filled');
+    }
 }
 
 // ============================================================
@@ -425,18 +589,23 @@ function checkAnswer() {
             answerGiven = true;
             if (selectedOptionIndex === q.correct) isCorrect = true;
         }
-    } else if (q.type === 'truefalse') {
+    } 
+    else if (q.type === 'truefalse') {
         if (selectedOptionIndex !== -1) {
             answerGiven = true;
             if ((selectedOptionIndex === 1 && q.correct) || (selectedOptionIndex === 0 && !q.correct)) isCorrect = true;
         }
-    } else if (q.type === 'translation') {
+    } 
+    else if (q.type === 'translation') {
         const ans = document.getElementById('translation-answer').value.trim();
         if (ans !== '') {
             answerGiven = true;
-            if (ans === q.correct) isCorrect = true;
+            const correct = q.correct;
+            const altCorrect = q.altCorrect || [];
+            if (ans === correct || altCorrect.includes(ans)) isCorrect = true;
         }
-    } else if (q.type === 'match') {
+    } 
+    else if (q.type === 'match') {
         if (matchedPairs === q.pairs.length) {
             isCorrect = true;
             answerGiven = true;
@@ -444,7 +613,28 @@ function checkAnswer() {
             showModal('توجه', 'لطفاً همه جفت‌ها را به درستی وصل کنید.', '⚠️');
             return;
         }
-    } else if (q.type === 'order') {
+    } 
+    // 🆕 بررسی match-flip
+    else if (q.type === 'match-flip') {
+        if (matchedFlipPairs === totalFlipPairs) {
+            isCorrect = true;
+            answerGiven = true;
+        } else {
+            showModal('توجه', 'لطفاً همه جفت‌ها را پیدا کن.', '⚠️');
+            return;
+        }
+    } 
+    // 🆕 بررسی word-attach
+    else if (q.type === 'word-attach') {
+        if (selectedAttachOption !== null) {
+            answerGiven = true;
+            if (selectedAttachOption === q.correct) isCorrect = true;
+        } else {
+            showModal('توجه', 'لطفاً یک ضمیر انتخاب کن.', '⚠️');
+            return;
+        }
+    } 
+    else if (q.type === 'order') {
         if (orderSelected.length > 0) {
             answerGiven = true;
             const userAnswer = JSON.stringify(orderSelected);
@@ -465,7 +655,8 @@ function checkAnswer() {
                 return;
             }
         }
-    } else if (q.type === 'audio-match') {
+    } 
+    else if (q.type === 'audio-match') {
         if (matchedAudioPairs.length === q.audios.length) {
             isCorrect = true;
             answerGiven = true;
@@ -473,13 +664,15 @@ function checkAnswer() {
             showModal('توجه', 'لطفاً همه صداها را با کلمه درست تطبیق بده.', '⚠️');
             return;
         }
-    } else if (q.type === 'find-error') {
+    } 
+    else if (q.type === 'find-error') {
         if (selectedErrorWord !== null) {
             answerGiven = true;
             const errorIdx = q.words.findIndex(w => w.isError);
             if (selectedErrorWord === errorIdx) isCorrect = true;
         }
-    } else if (q.type === 'word-build') {
+    } 
+    else if (q.type === 'word-build') {
         if (orderSelected.length > 0) {
             answerGiven = true;
             const userAnswer = JSON.stringify(orderSelected);
@@ -500,7 +693,8 @@ function checkAnswer() {
                 return;
             }
         }
-    } else if (q.type === 'survey') {
+    } 
+    else if (q.type === 'survey') {
         const ans = document.getElementById('survey-answer').value.trim();
         if (ans.length >= (q.minLength || 2)) {
             answerGiven = true;
@@ -542,7 +736,9 @@ function getCorrectAnswerText(q) {
     if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image') return q.options[q.correct];
     if (q.type === 'truefalse') return q.correct ? 'درست ✓' : 'غلط ✗';
     if (q.type === 'translation') return q.correct;
-    if (q.type === 'match') return 'همه جفت‌ها به درستی وصل شدند.';
+    if (q.type === 'match') return q.pairs.map(p => `${p.ar} → ${p.fa}`).join('\n');
+    if (q.type === 'match-flip') return q.pairs.map(p => `${p.ar} → ${p.fa}`).join('\n');
+    if (q.type === 'word-attach') return `${q.baseWord}${q.correct} = ${q.resultWord}`;
     if (q.type === 'order') return q.correct.join(' ');
     if (q.type === 'audio-match') {
         return q.audios.map((a, i) => `${toPersianNum(i+1)}: ${a.correctFa}`).join(' | ');
@@ -576,6 +772,14 @@ function showFeedback(isCorrect, points, q) {
     findErrorBox.style.display = 'none';
     findErrorBox.innerHTML = '';
 
+    // 🆕 ریست کادر پاسخ
+    answerBox.className = 'correct-answer-box';
+    answerBox.style.display = 'none';
+    answerBox.innerHTML = `
+        <div class="answer-label" id="answer-label"></div>
+        <div class="answer-text" id="answer-text"></div>
+    `;
+
     if (isCorrect) {
         icon.textContent = '⭐';
         title.textContent = 'آفرین!';
@@ -590,33 +794,69 @@ function showFeedback(isCorrect, points, q) {
             pts.style.color = '#f57c00';
             pts.style.fontSize = '24px';
         }
-        answerBox.className = 'correct-answer-box';
-        answerLabel.textContent = 'پاسخ صحیح شما:';
-        answerText.textContent = getCorrectAnswerText(q);
-
-        if (q.type === 'find-error' && q.correctedSentence) {
-            answerBox.style.display = 'none';
-            findErrorBox.style.display = 'block';
-            const correctedHTML = q.correctedSentence.replace(
-                q.correctFix.correct,
-                `<span class="fixed-word">${q.correctFix.correct}</span>`
-            );
-            findErrorBox.innerHTML = `
-                <div class="find-error-correction">
-                    <div class="find-error-correction-title">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        جمله صحیح:
-                    </div>
-                    <div class="find-error-correction-sentence">${correctedHTML}</div>
-                    ${q.explanation ? `<div class="find-error-explanation">💡 ${q.explanation}</div>` : ''}
-                </div>
-            `;
-        } else {
+        
+        // 🆕 برای match-flip و match، کادر پاسخ کامل نشون بده
+        if (q.type === 'match-flip') {
+            answerBox.className = 'correct-answer-box';
             answerBox.style.display = 'block';
+            answerBox.innerHTML = `
+                <div class="answer-label">✅ همه جفت‌ها به درستی پیدا شدند:</div>
+                <div class="answer-text" style="font-size: 16px; line-height: 2; text-align: right;">
+                    ${q.pairs.map(p => `• <strong>${p.ar}</strong> = ${p.fa}`).join('<br>')}
+                </div>
+                ${q.explanation ? `
+                    <div class="feedback-explanation-box">
+                        💡 ${q.explanation.replace(/\n/g, '<br>')}
+                    </div>
+                ` : ''}
+            `;
+        } 
+        // 🆕 برای word-attach
+        else if (q.type === 'word-attach') {
+            answerBox.className = 'correct-answer-box';
+            answerBox.style.display = 'block';
+            answerBox.innerHTML = `
+                <div class="answer-label">✅ پاسخ درست:</div>
+                <div class="answer-text" style="font-size: 28px; direction: rtl;">
+                    ${q.baseWord}${q.correct} = <strong>${q.resultWord}</strong>
+                </div>
+                <div style="font-size: 14px; color: #2e7d32; margin-top: 8px; font-weight: bold;">
+                    معنی: ${q.resultMeaning}
+                </div>
+                ${q.explanation ? `
+                    <div class="feedback-explanation-box">
+                        💡 ${q.explanation.replace(/\n/g, '<br>')}
+                    </div>
+                ` : ''}
+            `;
+        } 
+        // 🆕 برای match (وصل کردنی)
+        else if (q.type === 'match') {
+            answerBox.className = 'correct-answer-box';
+            answerBox.style.display = 'block';
+            answerBox.innerHTML = `
+                <div class="answer-label">✅ همه جفت‌ها به درستی وصل شدند:</div>
+                <div class="answer-text" style="font-size: 16px; line-height: 2; text-align: right;">
+                    ${q.pairs.map(p => `• <strong>${p.ar}</strong> = ${p.fa}`).join('<br>')}
+                </div>
+                ${q.explanation ? `
+                    <div class="feedback-explanation-box">
+                        💡 ${q.explanation.replace(/\n/g, '<br>')}
+                    </div>
+                ` : ''}
+            `;
+        } 
+        // برای بقیه سوالات
+        else {
+            answerBox.className = 'correct-answer-box';
+            answerLabel.textContent = 'پاسخ صحیح شما:';
+            answerText.textContent = getCorrectAnswerText(q);
+            answerBox.style.display = 'block';
+            
             if (q.explanation) {
                 answerBox.insertAdjacentHTML('beforeend', `
                     <div class="feedback-explanation-box">
-                        💡 ${q.explanation}
+                        💡 ${q.explanation.replace(/\n/g, '<br>')}
                         ${q.correctSentence ? `<span class="correct-sentence">✅ پاسخ درست: ${q.correctSentence}</span>` : ''}
                     </div>
                 `);
@@ -631,7 +871,59 @@ function showFeedback(isCorrect, points, q) {
         pts.style.color = '#999';
         pts.style.fontSize = '24px';
 
-        if (q.type === 'find-error' && q.correctFix) {
+        // 🆕 برای match-flip اشتباه
+        if (q.type === 'match-flip') {
+            answerBox.className = 'correct-answer-box wrong-answer';
+            answerBox.style.display = 'block';
+            answerBox.innerHTML = `
+                <div class="answer-label" style="color: #c62828;">❌ پاسخ صحیح:</div>
+                <div class="answer-text" style="font-size: 16px; line-height: 2; text-align: right; color: #b71c1c;">
+                    ${q.pairs.map(p => `• <strong>${p.ar}</strong> = ${p.fa}`).join('<br>')}
+                </div>
+                ${q.explanation ? `
+                    <div class="feedback-explanation-box" style="border-right-color: #c62828; color: #b71c1c;">
+                        💡 ${q.explanation.replace(/\n/g, '<br>')}
+                    </div>
+                ` : ''}
+            `;
+        } 
+        // 🆕 برای word-attach اشتباه
+        else if (q.type === 'word-attach') {
+            answerBox.className = 'correct-answer-box wrong-answer';
+            answerBox.style.display = 'block';
+            answerBox.innerHTML = `
+                <div class="answer-label" style="color: #c62828;">❌ پاسخ صحیح:</div>
+                <div class="answer-text" style="font-size: 26px; direction: rtl; color: #b71c1c;">
+                    ${q.baseWord}${q.correct} = <strong>${q.resultWord}</strong>
+                </div>
+                <div style="font-size: 14px; color: #c62828; margin-top: 8px; font-weight: bold;">
+                    معنی: ${q.resultMeaning}
+                </div>
+                ${q.explanation ? `
+                    <div class="feedback-explanation-box" style="border-right-color: #c62828; color: #b71c1c;">
+                        💡 ${q.explanation.replace(/\n/g, '<br>')}
+                    </div>
+                ` : ''}
+            `;
+        } 
+        // 🆕 برای match اشتباه
+        else if (q.type === 'match') {
+            answerBox.className = 'correct-answer-box wrong-answer';
+            answerBox.style.display = 'block';
+            answerBox.innerHTML = `
+                <div class="answer-label" style="color: #c62828;">❌ پاسخ صحیح:</div>
+                <div class="answer-text" style="font-size: 16px; line-height: 2; text-align: right; color: #b71c1c;">
+                    ${q.pairs.map(p => `• <strong>${p.ar}</strong> = ${p.fa}`).join('<br>')}
+                </div>
+                ${q.explanation ? `
+                    <div class="feedback-explanation-box" style="border-right-color: #c62828; color: #b71c1c;">
+                        💡 ${q.explanation.replace(/\n/g, '<br>')}
+                    </div>
+                ` : ''}
+            `;
+        } 
+        // برای find-error
+        else if (q.type === 'find-error' && q.correctFix) {
             answerBox.style.display = 'none';
             findErrorBox.style.display = 'block';
             const correctedHTML = q.correctedSentence.replace(
@@ -645,18 +937,21 @@ function showFeedback(isCorrect, points, q) {
                         پاسخ صحیح: «${q.correctFix.wrong}» اشتباه بود
                     </div>
                     <div class="find-error-correction-sentence" style="color: #b71c1c;">${correctedHTML}</div>
-                    ${q.explanation ? `<div class="find-error-explanation" style="color: #b71c1c;">💡 ${q.explanation}</div>` : ''}
+                    ${q.explanation ? `<div class="find-error-explanation" style="color: #b71c1c;">💡 ${q.explanation.replace(/\n/g, '<br>')}</div>` : ''}
                 </div>
             `;
-        } else {
+        } 
+        // برای بقیه
+        else {
             answerBox.className = 'correct-answer-box wrong-answer';
             answerLabel.textContent = 'پاسخ صحیح:';
             answerText.textContent = getCorrectAnswerText(q);
             answerBox.style.display = 'block';
+            
             if (q.explanation) {
                 answerBox.insertAdjacentHTML('beforeend', `
                     <div class="feedback-explanation-box" style="border-right-color: #c62828; color: #b71c1c;">
-                        💡 ${q.explanation}
+                        💡 ${q.explanation.replace(/\n/g, '<br>')}
                         ${q.correctSentence ? `<span class="correct-sentence" style="color: #2e7d32;">✅ پاسخ درست: ${q.correctSentence}</span>` : ''}
                     </div>
                 `);
