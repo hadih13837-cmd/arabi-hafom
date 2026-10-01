@@ -1,6 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۲.۰.۰ (اصلاح مشکل دانلود PDF)
+// نسخه: ۳.۰.۰ (اصلاح قطعی مشکل دانلود PDF)
 // ============================================================
 
 // ============================================================
@@ -178,52 +178,58 @@ function viewReportById(index) {
 }
 
 // ============================================================
-// 🆕 دانلود PDF با روش اصلاح شده (کانتینر مخفی)
-// این تابع مشکل ابعاد و رندر ناقص رو حل می‌کنه
+// 🆕 دانلود PDF — راه‌حل قطعی
+// کانتینر داخل صفحه می‌مونه ولی با opacity: 0 پنهان میشه
 // ============================================================
 async function downloadReportFast(report, filename) {
     let container = null;
     try {
-        // ۱. ساخت یک کانتینر مخفی در خارج از دید (خارج از viewport)
+        // ۱. ساخت کانتینر در بالای صفحه (داخل viewport)
         container = document.createElement('div');
         container.id = 'pdf-render-container';
-        container.style.position = 'absolute';
-        container.style.top = '-99999px';
-        container.style.left = '-99999px';
-        container.style.width = '794px'; // عرض A4 با DPI 96
-        container.style.background = '#f0f7ff';
+        container.style.position = 'fixed';
+        container.style.top = '0';
+        container.style.left = '0';
+        container.style.width = '794px';
+        container.style.background = '#ffffff';
         container.style.direction = 'rtl';
         container.style.fontFamily = 'Vazirmatn, sans-serif';
         container.style.padding = '20px';
         container.style.boxSizing = 'border-box';
-        container.style.zIndex = '-1';
+        container.style.zIndex = '999999';
+        container.style.opacity = '0';           // 🆕 مخفی با opacity
+        container.style.pointerEvents = 'none';  // 🆕 غیرقابل کلیک
+        container.style.overflow = 'visible';
         
-        // ۲. محتوای کارنامه رو داخلش قرار بده
+        // ۲. محتوای کارنامه
         container.innerHTML = generateGraphicReport(report);
         
-        // ۳. به body اضافه کن
+        // ۳. اضافه کردن به body
         document.body.appendChild(container);
         
         // ۴. صبر برای لود فونت‌ها و استایل‌ها
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // ۵. صبر برای لود تصاویر
+        // ۵. صبر برای لود تصاویر (مخصوصاً آواتار)
         const images = container.querySelectorAll('img');
         await Promise.all(Array.from(images).map(img => {
-            if (img.complete) return Promise.resolve();
+            if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
             return new Promise(resolve => {
                 img.onload = resolve;
                 img.onerror = resolve;
-                setTimeout(resolve, 3000);
+                setTimeout(resolve, 4000);
             });
         }));
         
-        // ۶. اندازه‌گیری ارتفاع واقعی بعد از لود کامل
+        // ۶. 🆕 یه صبر کوتاه دیگه برای اطمینان از رندر کامل
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // ۷. اندازه‌گیری ابعاد واقعی
         const actualWidth = container.scrollWidth;
         const actualHeight = container.scrollHeight;
-        console.log('📐 ابعاد نهایی کارنامه:', actualWidth, 'x', actualHeight);
+        console.log('📐 ابعاد کارنامه:', actualWidth, 'x', actualHeight);
         
-        // ۷. تنظیمات html2pdf با ابعاد دقیق
+        // ۸. تنظیمات html2pdf
         const opt = {
             margin: 0,
             filename: filename,
@@ -232,12 +238,12 @@ async function downloadReportFast(report, filename) {
                 quality: 0.98 
             },
             html2canvas: { 
-                scale: 2,                    // کیفیت بالا
+                scale: 2,
                 useCORS: true,
                 allowTaint: false,
-                backgroundColor: '#f0f7ff',
+                backgroundColor: '#ffffff',
                 logging: false,
-                imageTimeout: 8000,
+                imageTimeout: 10000,
                 removeContainer: false,
                 scrollX: 0,
                 scrollY: 0,
@@ -250,17 +256,17 @@ async function downloadReportFast(report, filename) {
             },
             jsPDF: { 
                 unit: 'px', 
-                format: [actualWidth, actualHeight], // ابعاد داینامیک
+                format: [actualWidth, actualHeight],
                 orientation: 'portrait',
                 compress: true
             },
             pagebreak: { mode: ['css', 'legacy'] }
         };
         
-        // ۸. اجرای html2pdf
+        // ۹. اجرای html2pdf
         await html2pdf().set(opt).from(container).save();
         
-        // ۹. پاک کردن کانتینر
+        // ۱۰. پاک کردن کانتینر
         if (container && container.parentNode) {
             container.parentNode.removeChild(container);
         }
