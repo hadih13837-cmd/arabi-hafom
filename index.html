@@ -12,6 +12,9 @@
     <link rel="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="./icon-512.png">
     
+    <!-- 🆕 کتابخانه‌های PDF (ترتیب مهمه!) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
     
     <link rel="stylesheet" href="./css/style.css">
@@ -277,7 +280,6 @@
         <div class="guide-step-indicator" id="guide-indicator"></div>
     </div>
 </div>
-
 <!-- منوی کناری -->
 <div class="side-menu-overlay" id="side-menu-overlay" onclick="closeSideMenu()"></div>
 <div class="side-menu" id="side-menu">
@@ -436,6 +438,7 @@
         ساخته شده با <span class="heart">❤</span> توسط محمدهادی حججی
     </div>
 </div>
+
 <div id="app-container">
     
     <audio id="bg-music" src="https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3" loop preload="none"></audio>
@@ -574,7 +577,7 @@
             </div>
         </div>
         
-        <!-- نوار پایین - صفحه خانه (ترتیب: مدال‌ها → رتبه‌بندی → خانه وسط → تنظیمات → پروفایل) -->
+        <!-- نوار پایین - صفحه خانه -->
         <div class="bottom-nav">
             <button class="bottom-nav-item medals-item" id="guide-medals-btn" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -615,7 +618,6 @@
             </button>
         </div>
     </div>
-
     <!-- ============ صفحه تکالیف ============ -->
     <div id="screen-lessons" class="screen">
         <div class="lessons-header">
@@ -782,6 +784,7 @@
             </button>
         </div>
     </div>
+
     <!-- ============ صفحه درباره ما ============ -->
     <div id="screen-about" class="screen">
         <div class="page-header">
@@ -1207,6 +1210,7 @@
             </button>
         </div>
     </div>
+
     <!-- ============ صفحه سوالات ============ -->
     <div id="screen-quiz" class="screen">
         <div class="quiz-header-area">
