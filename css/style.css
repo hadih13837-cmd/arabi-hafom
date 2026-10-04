@@ -50,8 +50,7 @@ body.dark-mode #screen-about,
 body.dark-mode #screen-settings,
 body.dark-mode #screen-profile,
 body.dark-mode #screen-reports,
-body.dark-mode #screen-calendar,
-body.dark-mode #screen-rankings { background: #0f1419; }
+body.dark-mode #screen-calendar { background: #0f1419; }
 body.dark-mode .home-welcome,
 body.dark-mode .lesson-card,
 body.dark-mode .lesson-info-card,
@@ -109,8 +108,7 @@ body { display: flex; justify-content: center; align-items: center; }
 
 .home-scroll-area, .page-scroll-content, .lessons-scroll-content,
 .notifications-list, .lesson-detail-content, .about-content,
-.profile-scroll-content, .report-view-content, .calendar-scroll-content,
-.rankings-scroll-content {
+.profile-scroll-content, .report-view-content, .calendar-scroll-content {
     -webkit-overflow-scrolling: touch;
 }
 
@@ -505,71 +503,6 @@ body { display: flex; justify-content: center; align-items: center; }
     filter: drop-shadow(0 6px 12px rgba(0,0,0,0.2));
 }
 
-/* ============ صفحه رتبه‌بندی - در حال ساخت ============ */
-.rankings-coming-soon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 80px 25px;
-    min-height: 70vh;
-}
-
-.rankings-coming-icon {
-    font-size: 100px;
-    margin-bottom: 25px;
-    animation: comingSoonBounce 2s ease-in-out infinite;
-    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.2));
-}
-
-@keyframes comingSoonBounce {
-    0%, 100% { transform: translateY(0) rotate(-5deg); }
-    50% { transform: translateY(-15px) rotate(5deg); }
-}
-
-.rankings-coming-title {
-    font-size: 32px;
-    font-weight: 900;
-    color: #7b1fa2;
-    margin-bottom: 15px;
-    text-shadow: 0 3px 10px rgba(123, 31, 162, 0.2);
-    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.rankings-coming-text {
-    font-size: 15px;
-    font-weight: bold;
-    color: #607d8b;
-    line-height: 2;
-    max-width: 320px;
-    margin-bottom: 25px;
-}
-
-.rankings-coming-decoration {
-    font-size: 40px;
-    animation: sparkleRotate 3s linear infinite;
-    opacity: 0.7;
-}
-
-@keyframes sparkleRotate {
-    0% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(180deg) scale(1.3); }
-    100% { transform: rotate(360deg) scale(1); }
-}
-
-body.dark-mode .rankings-coming-title {
-    background: linear-gradient(135deg, #ce93d8, #ba68c8);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-body.dark-mode .rankings-coming-text {
-    color: #90a4ae;
-}
 /* ============ صفحات داخلی ============ */
 .page-header {
     flex-shrink: 0; display: flex; align-items: center;
@@ -1112,8 +1045,7 @@ body.dark-mode .rankings-coming-text {
     color: #90a4ae; font-weight: bold;
 }
 .side-menu-footer .heart { color: #e53935; }
-
-/* مدال مودال */
+/* ============ مدال مودال ============ */
 .medal-modal-overlay {
     position: fixed; top: 0; left: 0;
     width: 100%; height: 100%;
@@ -1568,10 +1500,8 @@ body.dark-mode .rankings-coming-text {
 
 /* مودال انتخاب نوع آواتار */
 .avatar-options-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 10px;
-    margin-bottom: 5px;
+    display: flex; gap: 12px;
+    margin-top: 10px; margin-bottom: 5px;
 }
 .avatar-option-btn {
     flex: 1;
@@ -1579,16 +1509,11 @@ body.dark-mode .rankings-coming-text {
     border: 2px solid #e0e0e0;
     border-radius: 18px;
     padding: 20px 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px; cursor: pointer;
     font-family: 'Vazirmatn', sans-serif;
-    font-size: 15px;
-    font-weight: 900;
-    color: #333;
+    font-size: 15px; font-weight: 900; color: #333;
     transition: all 0.2s ease;
 }
 .avatar-option-btn:active { transform: scale(0.95); }
@@ -1601,9 +1526,7 @@ body.dark-mode .rankings-coming-text {
     background: linear-gradient(135deg, #e3f2fd, #bbdefb);
 }
 .avatar-option-icon {
-    font-size: 38px;
-    display: block;
-    line-height: 1;
+    font-size: 38px; display: block; line-height: 1;
 }
 .avatar-option-btn.emoji-option span:last-child { color: #6a1b9a; }
 .avatar-option-btn.gallery-option span:last-child { color: #0d47a1; }
@@ -1683,8 +1606,6 @@ body.dark-mode .rankings-coming-text {
 }
 .report-message-title { font-size: 15px; font-weight: 900; color: #e65100; margin-bottom: 6px; }
 .report-message-text { font-size: 13px; color: #bf360c; font-weight: bold; line-height: 1.6; }
-
-/* کادر نظرسنجی در کارنامه */
 .report-survey-box {
     background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
     border: 2px solid #66bb6a;
@@ -1694,49 +1615,32 @@ body.dark-mode .rankings-coming-text {
     text-align: right;
 }
 .report-survey-title {
-    font-size: 14px;
-    font-weight: 900;
-    color: #2e7d32;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    font-size: 14px; font-weight: 900;
+    color: #2e7d32; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
 }
 .report-survey-text {
-    font-size: 15px;
-    font-weight: bold;
-    color: #1b5e20;
-    line-height: 1.9;
+    font-size: 15px; font-weight: bold;
+    color: #1b5e20; line-height: 1.9;
     background: rgba(255, 255, 255, 0.7);
-    padding: 12px 14px;
-    border-radius: 12px;
+    padding: 12px 14px; border-radius: 12px;
     border-right: 4px solid #4caf50;
 }
-
-/* کادر توضیح در بازخورد */
 .feedback-explanation-box {
-    margin-top: 14px;
-    padding: 12px 14px;
+    margin-top: 14px; padding: 12px 14px;
     background: rgba(255,255,255,0.85);
     border-radius: 12px;
     border-right: 4px solid #1976d2;
-    text-align: right;
-    font-size: 13px;
-    font-weight: bold;
-    line-height: 1.9;
+    text-align: right; font-size: 13px;
+    font-weight: bold; line-height: 1.9;
     color: #1565c0;
 }
 .feedback-explanation-box .correct-sentence {
-    display: block;
-    margin-top: 10px;
+    display: block; margin-top: 10px;
     padding-top: 10px;
     border-top: 1px dashed #90caf9;
-    color: #2e7d32;
-    font-size: 15px;
-    font-weight: 900;
+    color: #2e7d32; font-size: 15px; font-weight: 900;
 }
-
-/* کارت‌های کارنامه */
 .report-card {
     background: #fff; border-radius: 18px;
     padding: 16px; margin-bottom: 14px;
@@ -1767,26 +1671,15 @@ body.dark-mode .rankings-coming-text {
 .report-info-row .value.green { color: #2e7d32; }
 .report-info-row .value.red { color: #c62828; }
 .report-info-row .value.blue { color: var(--primary); }
-
-/* دکمه‌های کارنامه */
-.report-card-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 14px;
-}
+.report-card-buttons { display: flex; gap: 10px; margin-top: 14px; }
 .report-btn {
-    flex: 1;
-    padding: 12px 16px;
-    border-radius: 50px;
-    border: none;
+    flex: 1; padding: 12px 16px;
+    border-radius: 50px; border: none;
     font-family: 'Vazirmatn', sans-serif;
-    font-size: 13px;
-    font-weight: 900;
+    font-size: 13px; font-weight: 900;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+    display: flex; align-items: center;
+    justify-content: center; gap: 6px;
     transition: all 0.2s ease;
 }
 .report-btn:active { transform: scale(0.95); }
@@ -2163,7 +2056,7 @@ body.dark-mode .rankings-coming-text {
     font-family: 'Vazirmatn', sans-serif;
 }
 
-/* ============ سوال audio-match ============ */
+/* سوال audio-match */
 .audio-match-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -2272,7 +2165,7 @@ body.dark-mode .rankings-coming-text {
     font-weight: 900;
 }
 
-/* ============ سوال find-error ============ */
+/* سوال find-error */
 .find-error-container {
     display: flex;
     flex-direction: column;
@@ -2389,7 +2282,7 @@ body.dark-mode .rankings-coming-text {
     border-radius: 12px;
 }
 
-/* ============ سوال word-build ============ */
+/* سوال word-build */
 .word-build-audio-only {
     display: flex;
     justify-content: center;
@@ -2455,7 +2348,6 @@ body.dark-mode .rankings-coming-text {
 }
 .word-build-item:active { transform: scale(0.95); }
 
-/* ============ کادر جمله فارسی ============ */
 .sentence-prompt-box {
     background: linear-gradient(135deg, #fff 0%, #f0f7ff 100%);
     border: 2.5px solid #bbdefb;
@@ -2489,8 +2381,6 @@ body.dark-mode .rankings-coming-text {
     line-height: 1.7;
     direction: rtl;
 }
-
-/* ============ کادر جمله عربی ============ */
 .arabic-sentence-box {
     background: linear-gradient(135deg, #fff 0%, #f3e5f5 100%);
     border: 2.5px solid #ce93d8;
@@ -2525,7 +2415,6 @@ body.dark-mode .rankings-coming-text {
     direction: rtl;
 }
 
-/* ============ سوال survey ============ */
 .survey-container {
     display: flex;
     flex-direction: column;
@@ -2553,7 +2442,6 @@ body.dark-mode .rankings-coming-text {
 }
 .survey-textarea::placeholder { color: #90a4ae; }
 
-/* ============ سوال match-flip (بازی حافظه) ============ */
 .match-flip-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -2562,7 +2450,6 @@ body.dark-mode .rankings-coming-text {
     margin-top: 10px;
     margin-bottom: 15px;
 }
-
 .match-flip-card {
     aspect-ratio: 1 / 1;
     perspective: 1000px;
@@ -2570,7 +2457,6 @@ body.dark-mode .rankings-coming-text {
     position: relative;
     user-select: none;
 }
-
 .match-flip-inner {
     position: relative;
     width: 100%;
@@ -2578,11 +2464,9 @@ body.dark-mode .rankings-coming-text {
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     transform-style: preserve-3d;
 }
-
 .match-flip-card.flipped .match-flip-inner {
     transform: rotateY(180deg);
 }
-
 .match-flip-front,
 .match-flip-back {
     position: absolute;
@@ -2598,7 +2482,6 @@ body.dark-mode .rankings-coming-text {
     padding: 8px;
     font-weight: 900;
 }
-
 .match-flip-front {
     background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
     color: #fff;
@@ -2606,7 +2489,6 @@ body.dark-mode .rankings-coming-text {
     box-shadow: 0 6px 20px rgba(123, 31, 162, 0.35);
     border: 3px solid #fff;
 }
-
 .match-flip-back {
     transform: rotateY(180deg);
     font-size: 14px;
@@ -2615,7 +2497,6 @@ body.dark-mode .rankings-coming-text {
     box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     border: 3px solid #fff;
 }
-
 .match-flip-back.ar {
     background: linear-gradient(135deg, #e3f2fd, #bbdefb);
     color: #0d47a1;
@@ -2623,7 +2504,6 @@ body.dark-mode .rankings-coming-text {
     direction: rtl;
     border-color: #1976d2;
 }
-
 .match-flip-back.fa {
     background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
     color: #1b5e20;
@@ -2631,38 +2511,31 @@ body.dark-mode .rankings-coming-text {
     direction: rtl;
     border-color: #43a047;
 }
-
 .match-flip-card.matched {
     pointer-events: none;
     animation: matchPulse 0.6s ease;
 }
-
 .match-flip-card.matched .match-flip-inner {
     transform: rotateY(180deg);
 }
-
 .match-flip-card.matched .match-flip-back {
     border-color: #4caf50;
     box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3), 0 6px 20px rgba(76, 175, 80, 0.4);
     opacity: 0.85;
 }
-
 @keyframes matchPulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
 }
-
 .match-flip-card.flipped:not(.matched) {
     animation: flipWrong 0.9s ease;
 }
-
 @keyframes flipWrong {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-4px); }
     75% { transform: translateX(4px); }
 }
-
 .match-flip-status {
     text-align: center;
     font-size: 14px;
@@ -2676,7 +2549,6 @@ body.dark-mode .rankings-coming-text {
     border: 1.5px solid #ce93d8;
 }
 
-/* ============ سوال word-attach (چسباندن ضمیر) ============ */
 .word-attach-container {
     display: flex;
     flex-direction: column;
@@ -2685,7 +2557,6 @@ body.dark-mode .rankings-coming-text {
     padding: 20px 10px;
     width: 100%;
 }
-
 .word-attach-base {
     display: flex;
     align-items: center;
@@ -2698,7 +2569,6 @@ body.dark-mode .rankings-coming-text {
     box-shadow: 0 6px 25px rgba(25, 118, 210, 0.15);
     transition: all 0.3s ease;
 }
-
 .word-attach-text {
     font-size: 32px;
     font-weight: 900;
@@ -2706,7 +2576,6 @@ body.dark-mode .rankings-coming-text {
     direction: rtl;
     letter-spacing: 1px;
 }
-
 .word-attach-slot {
     display: inline-block;
     min-width: 50px;
@@ -2720,7 +2589,6 @@ body.dark-mode .rankings-coming-text {
     transition: all 0.3s ease;
     padding: 0 8px;
 }
-
 .word-attach-slot.filled {
     border-bottom-color: #4caf50;
     color: #2e7d32;
@@ -2728,19 +2596,16 @@ body.dark-mode .rankings-coming-text {
     border-radius: 12px 12px 0 0;
     animation: slotFill 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
 @keyframes slotFill {
     0% { transform: scale(0.5); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
-
 .word-attach-options {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
     justify-content: center;
 }
-
 .word-attach-item {
     background: rgba(255, 255, 255, 0.95);
     border: 2.5px solid #bbdefb;
@@ -2756,9 +2621,7 @@ body.dark-mode .rankings-coming-text {
     min-width: 70px;
     text-align: center;
 }
-
 .word-attach-item:active { transform: scale(0.93); }
-
 .word-attach-item.selected {
     background: linear-gradient(135deg, #e3f2fd, #90caf9);
     border-color: #1976d2;
@@ -2766,48 +2629,12 @@ body.dark-mode .rankings-coming-text {
     box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
     transform: scale(1.08);
 }
-
 .word-attach-item:hover:not(.selected) {
     border-color: #1976d2;
     background: #e3f2fd;
 }
 
-/* حالت شب match-flip و word-attach */
-body.dark-mode .match-flip-front {
-    background: linear-gradient(135deg, #4a148c, #38006b);
-}
-body.dark-mode .match-flip-back.ar {
-    background: linear-gradient(135deg, #1a2332, #2a3444);
-    color: #90caf9;
-    border-color: #1976d2;
-}
-body.dark-mode .match-flip-back.fa {
-    background: linear-gradient(135deg, #1a2a1a, #2a3a2a);
-    color: #a5d6a7;
-    border-color: #43a047;
-}
-body.dark-mode .match-flip-status {
-    background: linear-gradient(135deg, #2a1a3a, #1a2332);
-    color: #ce93d8;
-    border-color: #4a148c;
-}
-body.dark-mode .word-attach-base {
-    background: linear-gradient(135deg, #1a2332, #0f1419);
-    border-color: #1976d2;
-}
-body.dark-mode .word-attach-text { color: #90caf9; }
-body.dark-mode .word-attach-item {
-    background: #1a2332;
-    border-color: #2a3444;
-    color: #90caf9;
-}
-body.dark-mode .word-attach-item.selected {
-    background: linear-gradient(135deg, #1976d2, #1565c0);
-    color: #fff;
-    border-color: #90caf9;
-}
-
-/* ============ بازخورد ============ */
+/* بازخورد */
 #screen-feedback {
     justify-content: center; align-items: center;
     text-align: center;
@@ -2847,7 +2674,7 @@ body.dark-mode .word-attach-item.selected {
 .correct-answer-box.wrong-answer .answer-label { color: #c62828; }
 .correct-answer-box.wrong-answer .answer-text { color: #b71c1c; }
 
-/* ============ نتیجه ============ */
+/* نتیجه */
 #screen-result {
     justify-content: center; align-items: center;
     text-align: center;
@@ -2894,7 +2721,87 @@ body.dark-mode .word-attach-item.selected {
     flex: 1; overflow-y: auto; padding: 20px;
 }
 
-/* ============ تقویم ============ */
+/* صفحه پیش‌نمایش PDF */
+#screen-pdf-preview {
+    background: #f0f7ff;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+}
+#screen-pdf-preview.active {
+    display: flex !important;
+}
+.pdf-preview-content {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    box-sizing: border-box !important;
+    min-height: 0 !important;
+}
+.pdf-preview-content .report-graphic-container {
+    width: 100%;
+    max-width: 794px;
+    box-shadow: 0 8px 30px rgba(25, 118, 210, 0.15);
+    border: 2px solid #e3f2fd;
+    margin: 0 auto;
+}
+.pdf-preview-footer {
+    flex-shrink: 0 !important;
+    padding: 15px 20px;
+    padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+    background: #fff;
+    border-top: 2px solid #e3f2fd;
+    box-shadow: 0 -4px 15px rgba(25, 118, 210, 0.08);
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+.pdf-preview-download-btn {
+    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+    color: #fff;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    min-height: 55px;
+}
+.pdf-preview-download-btn:active { transform: scale(0.97); }
+.pdf-preview-download-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+.pdf-preview-download-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #90a4ae 0%, #607d8b 100%);
+    box-shadow: 0 4px 12px rgba(96, 125, 139, 0.3);
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* تقویم */
 #screen-calendar {
     background: #f0f7ff;
     transition: background 0.5s ease;
@@ -2903,12 +2810,10 @@ body.dark-mode .word-attach-item.selected {
 #screen-calendar.season-summer { background: linear-gradient(180deg, #fff8e1 0%, #b3e5fc 100%); }
 #screen-calendar.season-autumn { background: linear-gradient(180deg, #fff3e0 0%, #ffccbc 100%); }
 #screen-calendar.season-winter { background: linear-gradient(180deg, #e1f5fe 0%, #e3f2fd 100%); }
-
 .calendar-scroll-content {
     flex: 1; overflow-y: auto;
     padding: 15px 15px 30px 15px;
 }
-
 .calendar-season-banner {
     border-radius: 24px;
     padding: 22px 20px;
@@ -2933,7 +2838,6 @@ body.dark-mode .word-attach-item.selected {
 .calendar-season-banner.summer { background: linear-gradient(135deg, #ffb300 0%, #29b6f6 100%); }
 .calendar-season-banner.autumn { background: linear-gradient(135deg, #ff7043 0%, #ffca28 100%); }
 .calendar-season-banner.winter { background: linear-gradient(135deg, #1976d2 0%, #b3e5fc 100%); }
-
 .calendar-season-icon {
     font-size: 56px;
     flex-shrink: 0;
@@ -2960,7 +2864,6 @@ body.dark-mode .word-attach-item.selected {
     opacity: 0.95; line-height: 1.6;
     text-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
-
 .calendar-month-card {
     background: #fff;
     border-radius: 24px;
@@ -2975,7 +2878,6 @@ body.dark-mode .word-attach-item.selected {
 .calendar-month-card.summer { border-color: #ffcc80; background: linear-gradient(180deg, #ffffff 0%, #fffde7 100%); }
 .calendar-month-card.autumn { border-color: #ffab91; background: linear-gradient(180deg, #ffffff 0%, #fff3e0 100%); }
 .calendar-month-card.winter { border-color: #90caf9; background: linear-gradient(180deg, #ffffff 0%, #e1f5fe 100%); }
-
 .calendar-month-header {
     display: flex;
     align-items: center;
@@ -3004,7 +2906,6 @@ body.dark-mode .word-attach-item.selected {
 .calendar-month-card.summer .calendar-nav-btn { color: #ef6c00; background: #fff8e1; }
 .calendar-month-card.autumn .calendar-nav-btn { color: #d84315; background: #fff3e0; }
 .calendar-month-card.winter .calendar-nav-btn { color: #1565c0; background: #e1f5fe; }
-
 .calendar-month-name {
     font-size: 20px; font-weight: 900;
     display: flex; align-items: center; gap: 8px;
@@ -3014,9 +2915,7 @@ body.dark-mode .word-attach-item.selected {
 .calendar-month-card.summer .calendar-month-name { color: #ef6c00; }
 .calendar-month-card.autumn .calendar-month-name { color: #d84315; }
 .calendar-month-card.winter .calendar-month-name { color: #1565c0; }
-
 .calendar-month-icon { font-size: 24px; }
-
 .calendar-month-year {
     font-size: 13px; font-weight: bold;
     color: #90a4ae;
@@ -3025,7 +2924,6 @@ body.dark-mode .word-attach-item.selected {
     text-align: center;
     min-width: 70px;
 }
-
 .calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -3043,7 +2941,6 @@ body.dark-mode .word-attach-item.selected {
 .calendar-month-card.summer .calendar-weekday { color: #ef6c00; }
 .calendar-month-card.autumn .calendar-weekday { color: #d84315; }
 .calendar-month-card.winter .calendar-weekday { color: #1976d2; }
-
 .calendar-days-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -3066,7 +2963,6 @@ body.dark-mode .word-attach-item.selected {
 .calendar-month-card.summer .calendar-day.today { color: #ef6c00; background: rgba(255, 179, 0, 0.15); }
 .calendar-month-card.autumn .calendar-day.today { color: #d84315; background: rgba(255, 112, 67, 0.15); }
 .calendar-month-card.winter .calendar-day.today { color: #1565c0; background: rgba(25, 118, 210, 0.15); }
-
 .calendar-day.visited {
     color: #fff !important;
     font-weight: 900;
@@ -3085,7 +2981,6 @@ body.dark-mode .word-attach-item.selected {
 .calendar-month-card.summer .calendar-day.visited { background: linear-gradient(135deg, #ffb300, #fb8c00); }
 .calendar-month-card.autumn .calendar-day.visited { background: linear-gradient(135deg, #ff7043, #e64a19); }
 .calendar-month-card.winter .calendar-day.visited { background: linear-gradient(135deg, #42a5f5, #1976d2); }
-
 .calendar-day.today.visited {
     animation: todayPulse 2s ease-in-out infinite;
 }
@@ -3093,7 +2988,6 @@ body.dark-mode .word-attach-item.selected {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
 }
-
 .calendar-legend {
     display: flex;
     justify-content: center;
@@ -3126,7 +3020,7 @@ body.dark-mode .word-attach-item.selected {
     border: 2px solid #90a4ae;
 }
 
-/* ============ پیام استریک ============ */
+/* پیام استریک */
 .streak-message-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -3141,7 +3035,6 @@ body.dark-mode .word-attach-item.selected {
     padding: 20px;
 }
 .streak-message-overlay.active { display: flex; }
-
 .streak-message-card {
     border-radius: 32px;
     padding: 40px 30px 30px 30px;
@@ -3159,12 +3052,10 @@ body.dark-mode .word-attach-item.selected {
     60% { transform: scale(1.05) rotate(3deg); opacity: 1; }
     100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
-
 .streak-message-card.spring { background: linear-gradient(135deg, #66bb6a 0%, #f06292 100%); }
 .streak-message-card.summer { background: linear-gradient(135deg, #ffb300 0%, #29b6f6 100%); }
 .streak-message-card.autumn { background: linear-gradient(135deg, #ff7043 0%, #ffca28 100%); }
 .streak-message-card.winter { background: linear-gradient(135deg, #1976d2 0%, #b3e5fc 100%); }
-
 .streak-message-card::before {
     content: '';
     position: absolute;
@@ -3174,7 +3065,6 @@ body.dark-mode .word-attach-item.selected {
     border-radius: 50%;
     pointer-events: none;
 }
-
 .streak-message-emoji {
     font-size: 90px;
     margin-bottom: 15px;
@@ -3188,7 +3078,6 @@ body.dark-mode .word-attach-item.selected {
     0%, 100% { transform: translateY(0) scale(1) rotate(-5deg); }
     50% { transform: translateY(-15px) scale(1.1) rotate(5deg); }
 }
-
 .streak-message-title {
     font-size: 28px;
     font-weight: 900;
@@ -3197,7 +3086,6 @@ body.dark-mode .word-attach-item.selected {
     z-index: 1;
     text-shadow: 0 3px 12px rgba(0,0,0,0.25);
 }
-
 .streak-message-text {
     font-size: 15px;
     font-weight: bold;
@@ -3207,7 +3095,6 @@ body.dark-mode .word-attach-item.selected {
     z-index: 1;
     text-shadow: 0 1px 6px rgba(0,0,0,0.15);
 }
-
 .streak-message-count-badge {
     display: inline-block;
     background: rgba(255,255,255,0.3);
@@ -3221,7 +3108,6 @@ body.dark-mode .word-attach-item.selected {
     z-index: 1;
     text-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
-
 .streak-message-btn {
     background: rgba(255,255,255,0.95);
     color: #333;
@@ -3238,7 +3124,6 @@ body.dark-mode .word-attach-item.selected {
     z-index: 1;
 }
 .streak-message-btn:active { transform: scale(0.96); }
-
 .streak-message-card.shrinking {
     animation: streakShrink 0.8s cubic-bezier(0.4, 0, 0.6, 1) forwards;
 }
@@ -3248,7 +3133,7 @@ body.dark-mode .word-attach-item.selected {
     100% { transform: scale(0.1) translate(0, 400px); opacity: 0; }
 }
 
-/* ============ راهنما ============ */
+/* راهنما */
 .guide-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -3258,7 +3143,6 @@ body.dark-mode .word-attach-item.selected {
     display: none;
 }
 .guide-overlay.active { display: block; }
-
 .guide-highlight {
     position: fixed;
     border-radius: 20px;
@@ -3271,7 +3155,6 @@ body.dark-mode .word-attach-item.selected {
                 0 0 60px 15px rgba(25, 118, 210, 0.3);
     background: transparent;
 }
-
 .guide-tooltip {
     position: fixed;
     background: #fff;
@@ -3287,7 +3170,6 @@ body.dark-mode .word-attach-item.selected {
     0% { transform: scale(0.8); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
-
 .guide-tooltip-title {
     font-size: 18px;
     font-weight: 900;
@@ -3335,7 +3217,6 @@ body.dark-mode .word-attach-item.selected {
     flex: 1;
 }
 .guide-btn-next:active { transform: scale(0.96); }
-
 .guide-step-indicator {
     display: flex;
     justify-content: center;
@@ -3354,7 +3235,7 @@ body.dark-mode .word-attach-item.selected {
     border-radius: 4px;
 }
 
-/* ============ پیام خوش‌آمد ============ */
+/* پیام خوش‌آمد */
 .welcome-graphic-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -3368,7 +3249,6 @@ body.dark-mode .word-attach-item.selected {
     padding: 20px;
 }
 .welcome-graphic-overlay.active { display: flex; }
-
 .welcome-graphic-card {
     background: linear-gradient(180deg, #fff9c4 0%, #ffffff 50%, #ffffff 100%);
     border-radius: 32px;
@@ -3386,7 +3266,6 @@ body.dark-mode .word-attach-item.selected {
     60% { transform: scale(1.08) rotate(4deg); opacity: 1; }
     100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
-
 .welcome-graphic-card::before {
     content: '';
     position: absolute;
@@ -3396,7 +3275,6 @@ body.dark-mode .word-attach-item.selected {
     border-radius: 50%;
     pointer-events: none;
 }
-
 .welcome-graphic-emoji {
     font-size: 90px;
     margin-bottom: 15px;
@@ -3407,14 +3285,12 @@ body.dark-mode .word-attach-item.selected {
     0%, 100% { transform: rotate(-10deg) scale(1); }
     50% { transform: rotate(10deg) scale(1.1); }
 }
-
 .welcome-graphic-title {
     font-size: 26px;
     font-weight: 900;
     color: var(--primary);
     margin-bottom: 12px;
 }
-
 .welcome-graphic-text {
     font-size: 15px;
     color: #607d8b;
@@ -3422,12 +3298,10 @@ body.dark-mode .word-attach-item.selected {
     line-height: 1.9;
     margin-bottom: 25px;
 }
-
 .welcome-graphic-text strong {
     color: var(--primary);
     font-weight: 900;
 }
-
 .welcome-graphic-btn {
     background: linear-gradient(135deg, #ff9800, #f57c00);
     color: #fff;
@@ -3443,7 +3317,7 @@ body.dark-mode .word-attach-item.selected {
 }
 .welcome-graphic-btn:active { transform: scale(0.97); }
 
-/* ============ مودال انتخاب ایموجی ============ */
+/* مودال انتخاب ایموجی */
 .emoji-picker-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -3457,7 +3331,6 @@ body.dark-mode .word-attach-item.selected {
     padding: 15px;
 }
 .emoji-picker-overlay.active { display: flex; }
-
 .emoji-picker-box {
     background: #fff;
     border-radius: 24px;
@@ -3474,7 +3347,6 @@ body.dark-mode .word-attach-item.selected {
     0% { transform: scale(0.7); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
-
 .emoji-picker-header {
     background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
     padding: 16px 20px;
@@ -3504,14 +3376,12 @@ body.dark-mode .word-attach-item.selected {
     transition: transform 0.2s;
 }
 .emoji-picker-close:active { transform: scale(0.9); }
-
 .emoji-picker-body {
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 15px 18px 20px 18px;
 }
-
 .emoji-category-title {
     font-size: 13px;
     font-weight: 900;
@@ -3522,14 +3392,12 @@ body.dark-mode .word-attach-item.selected {
     border-right: 3px solid #7b1fa2;
 }
 .emoji-category-title:first-child { margin-top: 0; }
-
 .emoji-category-grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     gap: 6px;
     margin-bottom: 8px;
 }
-
 .emoji-picker-item {
     aspect-ratio: 1 / 1;
     display: flex;
@@ -3555,8 +3423,869 @@ body.dark-mode .word-attach-item.selected {
     border-color: #ce93d8;
 }
 
-/* ============ ریسپانسیو ============ */
+/* ═══════════════════════════════════════
+   صفحه رتبه‌بندی (نسخه نهایی)
+   ═══════════════════════════════════════ */
+#screen-rankings {
+    background: url('https://cdn.imgurl.ir/uploads/y68091_ChatGPT_Image_Oct_4_2026_02_36_15_PM.png') center center / cover no-repeat fixed !important;
+    position: relative !important;
+}
+#screen-rankings::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.2);
+    z-index: 0;
+    pointer-events: none;
+}
+#screen-rankings > * {
+    position: relative;
+    z-index: 1;
+}
+#screen-rankings .page-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 20px;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.1) !important;
+    border-bottom: 2px solid var(--primary-light, #e3f2fd) !important;
+    z-index: 10;
+}
+#screen-rankings .page-back {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 14px !important;
+    background: var(--primary-gradient, linear-gradient(135deg, #1976d2 0%, #1565c0 100%)) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35) !important;
+    border: none !important;
+    flex-shrink: 0;
+}
+#screen-rankings .page-back:active {
+    transform: scale(0.92);
+}
+#screen-rankings .page-back svg {
+    width: 24px !important;
+    height: 24px !important;
+    stroke: #fff !important;
+    stroke-width: 2.5 !important;
+    fill: none !important;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+#screen-rankings .page-header .page-title {
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    color: var(--primary, #1976d2) !important;
+    flex: 1 !important;
+    margin-right: 5px !important;
+    display: block !important;
+}
+#screen-rankings .rankings-refresh-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--primary-light, #e3f2fd);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+#screen-rankings .rankings-refresh-btn:active {
+    transform: scale(0.92);
+}
+#screen-rankings .rankings-refresh-btn svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--primary, #1976d2);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+#screen-rankings .rankings-scroll-content {
+    background: transparent !important;
+    padding: 15px !important;
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* سکوی قهرمانی روی وکتور */
+.lb-podium-vector-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+.lb-podium-vector-bg {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+.lb-podium-people {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 0 10px 15%;
+    pointer-events: none;
+}
+.lb-podium-person {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform 0.2s ease;
+}
+.lb-podium-person:active {
+    transform: scale(0.95);
+}
+.lb-person-1 {
+    bottom: 45%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+.lb-person-2 {
+    bottom: 32%;
+    right: 12%;
+    z-index: 2;
+}
+.lb-person-3 {
+    bottom: 28%;
+    left: 12%;
+    z-index: 2;
+}
+.lb-person-avatar {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    margin-bottom: 4px;
+}
+.lb-person-1 .lb-person-avatar {
+    width: 70px;
+    height: 70px;
+    border: 4px solid #ffc107;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.4), 0 8px 25px rgba(255, 193, 7, 0.6);
+}
+.lb-person-avatar.lb-avatar-emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+}
+.lb-person-1 .lb-person-avatar.lb-avatar-emoji-mode {
+    filter: drop-shadow(0 6px 15px rgba(255, 193, 7, 0.7));
+}
+.lb-person-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.lb-person-avatar .lb-avatar-emoji {
+    font-size: 32px;
+}
+.lb-person-1 .lb-person-avatar .lb-avatar-emoji {
+    font-size: 44px;
+}
+.lb-person-crown {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+    animation: crownBounce 2s ease-in-out infinite;
+    z-index: 4;
+}
+@keyframes crownBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+    50% { transform: translateX(-50%) translateY(-5px) rotate(5deg); }
+}
+.lb-person-info {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 4px 10px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 80px;
+}
+.lb-person-name {
+    font-size: 11px;
+    font-weight: 900;
+    color: #1a237e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+    margin-bottom: 2px;
+}
+.lb-person-1 .lb-person-name {
+    font-size: 12px;
+    max-width: 110px;
+}
+.lb-person-points {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #f57c00;
+}
+.lb-person-1 .lb-person-points {
+    font-size: 12px;
+}
+.lb-podium-person.lb-is-me .lb-person-avatar {
+    box-shadow: 0 0 0 4px #ffeb3b, 0 8px 25px rgba(255, 235, 59, 0.6);
+}
+
+/* لیست ردیفی */
+.lb-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+.lb-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1.5px solid #e3f2fd;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.05);
+    cursor: pointer;
+}
+.lb-row:active {
+    transform: scale(0.98);
+    background: #f8fbff;
+}
+.lb-row.lb-row-me {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-color: #1cb0f6;
+    box-shadow: 0 4px 15px rgba(28, 176, 246, 0.3);
+}
+.lb-row-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    order: 1;
+}
+.lb-row-avatar.lb-avatar-emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+}
+.lb-row-avatar.lb-avatar-image-mode {
+    background: #f5f5f5;
+    border: 2.5px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.lb-row-me .lb-row-avatar.lb-avatar-image-mode {
+    border-color: #1cb0f6;
+    box-shadow: 0 0 0 2px rgba(28, 176, 246, 0.3);
+}
+.lb-row-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.lb-row-avatar .lb-avatar-emoji {
+    font-size: 32px;
+}
+.lb-row-points {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #fff9c4, #fff176);
+    padding: 7px 12px;
+    border-radius: 50px;
+    flex-shrink: 0;
+    border: 1.5px solid #fdd835;
+    box-shadow: 0 2px 6px rgba(253, 216, 53, 0.3);
+    min-width: 72px;
+    justify-content: center;
+    order: 2;
+}
+.lb-row-star {
+    font-size: 13px;
+}
+.lb-row-points-value {
+    font-size: 15px;
+    font-weight: 900;
+    color: #f57c00;
+    line-height: 1;
+}
+.lb-row-info {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    order: 3;
+}
+.lb-row-name {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+.lb-row-me .lb-row-name {
+    color: #0d47a1;
+}
+.lb-row-you {
+    background: linear-gradient(135deg, #1cb0f6, #0288d1);
+    color: #fff;
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 8px;
+    font-weight: 900;
+}
+.lb-row-class {
+    font-size: 11px;
+    font-weight: bold;
+    color: #90a4ae;
+}
+.lb-row-rank {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 15px;
+    font-weight: 900;
+    color: #777;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    order: 4;
+}
+.lb-row-me .lb-row-rank {
+    background: linear-gradient(135deg, #1cb0f6, #0288d1);
+    color: #fff;
+}
+.lb-row-medal {
+    font-size: 22px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+.lb-row-num {
+    color: #607d8b;
+}
+.lb-not-in-list {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    border: 2px solid #ff9800;
+    border-radius: 16px;
+    padding: 16px;
+    margin: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+}
+.lb-not-in-icon {
+    font-size: 30px;
+    flex-shrink: 0;
+}
+.lb-not-in-text {
+    flex: 1;
+    font-size: 13px;
+    font-weight: bold;
+    color: #e65100;
+    line-height: 1.6;
+}
+
+/* مودال کارت پروفایل */
+.profile-card-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 0;
+    animation: pcFadeIn 0.3s ease;
+}
+.profile-card-overlay.active {
+    display: flex;
+}
+@keyframes pcFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.profile-card-container {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    animation: pcSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: #f0f7ff;
+}
+@keyframes pcSlideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+.pc-card {
+    background: #f0f7ff;
+    min-height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+.pc-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 20px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.pc-back-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--primary-gradient, linear-gradient(135deg, #1976d2 0%, #1565c0 100%));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
+}
+.pc-back-btn:active {
+    transform: scale(0.92);
+}
+.pc-back-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: #fff;
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.pc-header-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--primary, #1976d2);
+    flex: 1;
+}
+.pc-scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 15px 25px 15px;
+}
+.pc-avatar-section {
+    text-align: center;
+    margin-bottom: 22px;
+    position: relative;
+}
+.pc-avatar-wrapper {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 15px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pc-avatar-wrapper.lb-avatar-emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+}
+.pc-avatar-wrapper.lb-avatar-emoji-mode .lb-avatar-emoji {
+    font-size: 110px;
+    line-height: 1;
+    filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.2));
+}
+.pc-avatar-wrapper.lb-avatar-image-mode {
+    background: #fff;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #fff;
+    box-shadow: 0 8px 25px rgba(25, 118, 210, 0.3);
+}
+.pc-avatar-wrapper.lb-avatar-image-mode img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.pc-rank-medal {
+    position: absolute;
+    top: 0;
+    right: calc(50% - 65px);
+    font-size: 36px;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+    animation: medalFloat 2s ease-in-out infinite;
+    z-index: 3;
+}
+@keyframes medalFloat {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-6px) rotate(5deg); }
+}
+.pc-name {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--primary, #1976d2);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.pc-you-badge {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-weight: 900;
+}
+.pc-grade {
+    font-size: 13px;
+    color: #78909c;
+    font-weight: bold;
+    background: var(--primary-light, #e3f2fd);
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+}
+.pc-info-table {
+    background: #fff;
+    border-radius: 20px;
+    padding: 8px 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--primary-light, #e3f2fd);
+}
+.pc-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--primary-light, #e3f2fd);
+    font-size: 14px;
+}
+.pc-info-row:last-child {
+    border-bottom: none;
+}
+.pc-label {
+    color: #78909c;
+    font-weight: bold;
+}
+.pc-value {
+    color: var(--primary, #1976d2);
+    font-weight: 900;
+}
+.pc-stats-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary, #1976d2);
+    margin-bottom: 12px;
+    padding-right: 5px;
+}
+.pc-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+.pc-stat-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--primary-light, #e3f2fd);
+}
+.pc-stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.pc-stat-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.pc-stat-yellow .pc-stat-icon {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+}
+.pc-stat-yellow .pc-stat-icon svg {
+    stroke: #f57c00;
+    fill: #f57c00;
+}
+.pc-stat-orange .pc-stat-icon {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+}
+.pc-stat-orange .pc-stat-icon svg {
+    stroke: #ef6c00;
+    fill: none;
+}
+.pc-stat-teal .pc-stat-icon {
+    background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+}
+.pc-stat-teal .pc-stat-icon svg {
+    stroke: #00897b;
+    fill: none;
+}
+.pc-stat-purple .pc-stat-icon {
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+}
+.pc-stat-purple .pc-stat-icon svg {
+    stroke: #8e24aa;
+    fill: none;
+}
+.pc-stat-content {
+    flex: 1;
+    min-width: 0;
+}
+.pc-stat-label {
+    font-size: 11px;
+    color: #78909c;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+.pc-stat-value {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--primary, #1976d2);
+}
+.pc-progress-section {
+    background: #fff;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--primary-light, #e3f2fd);
+}
+.pc-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 900;
+    color: #546e7a;
+    margin-bottom: 10px;
+}
+.pc-progress-label span:last-child {
+    color: var(--primary, #1976d2);
+}
+.pc-progress-bar {
+    height: 12px;
+    background: var(--primary-light, #e3f2fd);
+    border-radius: 50px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+.pc-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50 0%, #8bc34a 50%, #cddc39 100%);
+    border-radius: 50px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+.pc-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: progressShine 2s linear infinite;
+}
+@keyframes progressShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* حالت شب اضافی */
+body.dark-mode #screen-rankings .page-header {
+    background: rgba(26, 35, 50, 0.95) !important;
+    border-color: #2a3444 !important;
+}
+body.dark-mode #screen-rankings .page-header .page-title {
+    color: #90caf9 !important;
+}
+body.dark-mode #screen-rankings .rankings-refresh-btn {
+    background: #2a3444;
+}
+body.dark-mode #screen-rankings .rankings-refresh-btn svg {
+    stroke: #90caf9;
+}
+body.dark-mode .pc-card {
+    background: #0f1419;
+}
+body.dark-mode .pc-header {
+    background: #1a2332;
+}
+body.dark-mode .pc-header-title {
+    color: #90caf9;
+}
+body.dark-mode .pc-info-table,
+body.dark-mode .pc-stat-card,
+body.dark-mode .pc-progress-section {
+    background: #1a2332;
+    border-color: #2a3444;
+}
+body.dark-mode .pc-name {
+    color: #90caf9;
+}
+body.dark-mode .pc-value,
+body.dark-mode .pc-stat-value,
+body.dark-mode .pc-stats-title {
+    color: #90caf9;
+}
+body.dark-mode .pc-grade {
+    background: #1a2332;
+    color: #90a4ae;
+}
+body.dark-mode .lb-list {
+    background: rgba(15, 20, 25, 0.92);
+}
+body.dark-mode .lb-row {
+    background: #1a2332;
+    border-color: #2a3444;
+}
+body.dark-mode .lb-row.lb-row-me {
+    background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+}
+body.dark-mode .lb-row-name {
+    color: #90caf9;
+}
+body.dark-mode .lb-row-class {
+    color: #607d8b;
+}
+body.dark-mode .lb-row-rank {
+    background: #2a3444;
+    color: #90a4ae;
+}
+body.dark-mode .lb-row-avatar.lb-avatar-image-mode {
+    background: #2a3444;
+}
+body.dark-mode .emoji-picker-box {
+    background: #1a2332;
+}
+body.dark-mode .emoji-picker-item {
+    background: #0f1419;
+    color: #e0e0e0;
+}
+body.dark-mode .emoji-category-title {
+    color: #ce93d8;
+}
+
+/* ریسپانسیو کلی */
 @media (max-width: 400px) {
+    .lb-person-avatar { width: 45px; height: 45px; }
+    .lb-person-1 .lb-person-avatar { width: 58px; height: 58px; }
+    .lb-person-avatar .lb-avatar-emoji { font-size: 26px; }
+    .lb-person-1 .lb-person-avatar .lb-avatar-emoji { font-size: 36px; }
+    .lb-person-name { font-size: 10px; max-width: 80px; }
+    .lb-person-1 .lb-person-name { font-size: 11px; max-width: 90px; }
+    .lb-person-points { font-size: 10px; }
+    .lb-person-1 .lb-person-points { font-size: 11px; }
+    .lb-person-info { padding: 3px 8px; min-width: 70px; }
+    
+    .lb-row { padding: 10px 12px; gap: 8px; }
+    .lb-row-avatar { width: 38px; height: 38px; }
+    .lb-row-avatar .lb-avatar-emoji { font-size: 26px; }
+    .lb-row-name { font-size: 12px; }
+    .lb-row-class { font-size: 10px; }
+    .lb-row-points { padding: 6px 10px; min-width: 62px; }
+    .lb-row-points-value { font-size: 13px; }
+    .lb-row-rank { width: 32px; height: 32px; font-size: 13px; }
+    .lb-row-medal { font-size: 18px; }
+    
+    .pc-avatar-wrapper { width: 90px; height: 90px; }
+    .pc-avatar-wrapper.lb-avatar-emoji-mode .lb-avatar-emoji { font-size: 90px; }
+    .pc-rank-medal { right: calc(50% - 55px); font-size: 30px; }
+    .pc-name { font-size: 17px; }
+    .pc-stat-value { font-size: 15px; }
+    .pc-stat-card { padding: 12px; }
+    .pc-stat-icon { width: 36px; height: 36px; }
+    .pc-stat-icon svg { width: 18px; height: 18px; }
+    
     .emoji-category-grid {
         grid-template-columns: repeat(7, 1fr);
     }
@@ -3604,13 +4333,12 @@ body.dark-mode .word-attach-item.selected {
     }
 }
 
-/* انیمیشن برای نوتیفیکیشن آپدیت */
 @keyframes slideDownUpdate {
     from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
     to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
 /* ============================================================
-   🆕 اصلاح فوری: صفحه Splash و دکمه ورود
+   🆕 صفحه Splash و دکمه ورود
    ============================================================ */
 
 #screen-splash {
@@ -3656,6 +4384,11 @@ body.dark-mode .word-attach-item.selected {
     pointer-events: none !important;
 }
 
+@keyframes glowPulse {
+    0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.6; }
+    50% { transform: translateX(-50%) scale(1.2); opacity: 0.3; }
+}
+
 .splash-content-wrapper {
     position: relative !important;
     z-index: 2 !important;
@@ -3699,103 +4432,126 @@ body.dark-mode .word-attach-item.selected {
     50% { transform: scale(1.05); }
 }
 /* ============================================================
-   🆕 اصلاح صفحه رتبه‌بندی (جلوگیری از بیرون زدن از صفحه)
+   🆕 اصلاح حالت‌های لودینگ
    ============================================================ */
 
-#screen-rankings {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    display: none !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-}
-
-#screen-rankings.active {
-    display: flex !important;
-}
-
-#screen-rankings .page-header {
-    flex-shrink: 0 !important;
-}
-
-#screen-rankings .rankings-scroll-content {
-    flex: 1 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
-    padding: 15px 15px 20px 15px !important;
-    box-sizing: border-box !important;
-    max-height: 100% !important;
-}
-
-#screen-rankings .bottom-nav {
-    flex-shrink: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-
-/* اصلاح کارت‌های سکوی قهرمانی */
-#screen-rankings .rankings-podium {
-    padding: 15px 5px 0 5px !important;
-    margin-bottom: 20px !important;
-}
-
-/* اصلاح پیام «در حال ساخت» */
-#screen-rankings .rankings-coming-soon {
-    padding: 60px 20px !important;
-    min-height: auto !important;
-}
-
-/* اصلاح صفحه‌ی rتبه‌بندی در حالت شب */
-body.dark-mode #screen-rankings {
-    background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%) !important;
-}
-/* ============ اصلاح کلی همه صفحات ============ */
-.screen {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-}
-
-.screen.active {
+/* ─────────────────────────────────────
+   ۱. لودینگ صفحه رتبه‌بندی
+   ───────────────────────────────────── */
+.rankings-loading {
     display: flex !important;
     flex-direction: column !important;
-}
-
-/* محتوای اسکرول‌شونده */
-.page-scroll-content,
-.lessons-scroll-content,
-.rankings-scroll-content,
-.calendar-scroll-content,
-.about-content,
-.profile-scroll-content,
-.report-view-content,
-.lesson-detail-content,
-.home-scroll-area {
-    flex: 1 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box !important;
-    min-height: 0 !important;
-}
-
-/* نوار پایین */
-.bottom-nav {
-    flex-shrink: 0 !important;
-    position: relative !important;
-    bottom: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 80px 20px !important;
+    gap: 20px !important;
     width: 100% !important;
+    min-height: 400px !important;
     box-sizing: border-box !important;
+}
+
+.rankings-spinner {
+    width: 60px !important;
+    height: 60px !important;
+    border: 5px solid rgba(25, 118, 210, 0.15) !important;
+    border-top-color: #1976d2 !important;
+    border-right-color: #1976d2 !important;
+    border-radius: 50% !important;
+    animation: rankingsSpin 0.9s linear infinite !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+}
+
+@keyframes rankingsSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.rankings-loading-text {
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    color: #1976d2 !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+    text-align: center !important;
+}
+
+/* ─────────────────────────────────────
+   ۲. لودینگ کلی (اسپینر آبی)
+   ───────────────────────────────────── */
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(25, 118, 210, 0.15);
+    border-top-color: #1976d2;
+    border-radius: 50%;
+    animation: generalSpin 0.9s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes generalSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1976d2;
+    text-align: center;
+    margin-top: 15px;
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+/* ─────────────────────────────────────
+   ۳. اصلاح ساختار کلی اسپینر
+   ───────────────────────────────────── */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ─────────────────────────────────────
+   ۴. لودینگ داخل کارنامه‌ها
+   ───────────────────────────────────── */
+.pdf-preview-content .rankings-loading,
+.page-scroll-content .rankings-loading,
+.report-view-content .rankings-loading {
+    min-height: 300px !important;
+    padding: 50px 20px !important;
+}
+
+/* ─────────────────────────────────────
+   ۵. اصلاح اسپینر داخل دکمه دانلود
+   ───────────────────────────────────── */
+.pdf-preview-download-btn svg[style*="animation: spin"],
+.pdf-preview-download-btn svg[style*="spin 1s"] {
+    animation: spin 1s linear infinite !important;
+    transform-origin: center center !important;
+}
+
+/* ─────────────────────────────────────
+   ۶. حالت شب - لودینگ
+   ───────────────────────────────────── */
+body.dark-mode .rankings-spinner {
+    border-color: rgba(144, 202, 249, 0.15) !important;
+    border-top-color: #90caf9 !important;
+    border-right-color: #90caf9 !important;
+}
+
+body.dark-mode .rankings-loading-text {
+    color: #90caf9 !important;
+}
+
+body.dark-mode .loading-spinner {
+    border-color: rgba(144, 202, 249, 0.15);
+    border-top-color: #90caf9;
+}
+
+body.dark-mode .loading-text {
+    color: #90caf9;
 }
 /* ============================================================
-   🆕 اصلاح صفحه ثبت‌نام (Welcome)
+   🆕 صفحه ثبت‌نام (Welcome) — کامل و اصلاح‌شده
    ============================================================ */
 
 #screen-welcome {
@@ -3808,10 +4564,10 @@ body.dark-mode #screen-rankings {
     flex-direction: column !important;
     justify-content: flex-start !important;
     align-items: center !important;
-    background: linear-gradient(180deg, var(--primary-light) 0%, #ffffff 100%) !important;
+    background: linear-gradient(180deg, var(--primary-light, #e3f2fd) 0%, #ffffff 100%) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding: 30px 25px 40px 25px !important;
+    padding: 40px 25px 40px 25px !important;
     box-sizing: border-box !important;
     -webkit-overflow-scrolling: touch !important;
 }
@@ -3820,10 +4576,14 @@ body.dark-mode #screen-rankings {
     display: flex !important;
 }
 
-/* ویدیوی بالای صفحه */
+/* ویدیوی بالا (دایره‌ای) */
 #screen-welcome .welcome-video-wrapper {
-    width: 150px !important;
-    height: 150px !important;
+    width: 140px !important;
+    height: 140px !important;
+    min-width: 140px !important;
+    min-height: 140px !important;
+    max-width: 140px !important;
+    max-height: 140px !important;
     border-radius: 50% !important;
     overflow: hidden !important;
     margin: 0 auto 20px auto !important;
@@ -3833,6 +4593,7 @@ body.dark-mode #screen-rankings {
     align-items: center !important;
     justify-content: center !important;
     background: transparent !important;
+    box-shadow: 0 8px 25px rgba(25, 118, 210, 0.2) !important;
 }
 
 #screen-welcome .welcome-video-wrapper video {
@@ -3840,6 +4601,7 @@ body.dark-mode #screen-rankings {
     height: 100% !important;
     object-fit: cover !important;
     border-radius: 50% !important;
+    display: block !important;
     mix-blend-mode: multiply !important;
 }
 
@@ -3847,21 +4609,28 @@ body.dark-mode #screen-rankings {
 #screen-welcome .welcome-title {
     font-size: 22px !important;
     font-weight: 900 !important;
-    color: var(--primary) !important;
-    margin-bottom: 10px !important;
+    color: var(--primary, #1976d2) !important;
+    margin: 0 0 10px 0 !important;
+    padding: 0 !important;
     text-align: center !important;
     width: 100% !important;
+    max-width: 400px !important;
     flex-shrink: 0 !important;
+    line-height: 1.4 !important;
 }
 
+/* زیرعنوان */
 #screen-welcome .welcome-sub {
     font-size: 13px !important;
     color: #546e7a !important;
-    margin-bottom: 20px !important;
+    margin: 0 0 25px 0 !important;
+    padding: 0 !important;
     text-align: center !important;
     width: 100% !important;
-    line-height: 1.6 !important;
+    max-width: 400px !important;
+    line-height: 1.7 !important;
     flex-shrink: 0 !important;
+    font-weight: bold !important;
 }
 
 /* فیلدهای ورودی */
@@ -3873,40 +4642,57 @@ body.dark-mode #screen-rankings {
     border-radius: 50px !important;
     text-align: center !important;
     font-size: 15px !important;
+    font-weight: bold !important;
     outline: none !important;
     background: #fff !important;
-    margin-bottom: 12px !important;
+    margin: 0 0 12px 0 !important;
     font-family: 'Vazirmatn', sans-serif !important;
     box-sizing: border-box !important;
     flex-shrink: 0 !important;
     color: #333 !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    direction: rtl !important;
 }
 
 #screen-welcome .welcome-input:focus {
-    border-color: var(--primary) !important;
+    border-color: var(--primary, #1976d2) !important;
     box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.15) !important;
 }
 
 #screen-welcome .welcome-input::placeholder {
     color: #90a4ae !important;
+    font-weight: normal !important;
 }
 
-/* سلکت (dropdown) */
+/* سلکت کلاس */
 #screen-welcome select.welcome-input {
     appearance: none !important;
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2390a4ae' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2390a4ae' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
     background-repeat: no-repeat !important;
-    background-position: left 15px center !important;
+    background-position: left 18px center !important;
     background-size: 18px !important;
     padding-left: 45px !important;
     cursor: pointer !important;
+    color: #333 !important;
+}
+
+#screen-welcome select.welcome-input:invalid,
+#screen-welcome select.welcome-input option[value=""] {
+    color: #90a4ae !important;
+}
+
+/* فیلد readonly (سال تحصیلی) */
+#screen-welcome .welcome-input[readonly] {
+    background: #f0f4f8 !important;
+    cursor: not-allowed !important;
+    color: #546e7a !important;
 }
 
 /* دکمه ورود */
 #screen-welcome .welcome-btn {
-    background: var(--primary-gradient) !important;
+    background: var(--primary-gradient, linear-gradient(135deg, #1976d2 0%, #1565c0 100%)) !important;
     color: #fff !important;
     border: none !important;
     padding: 16px 30px !important;
@@ -3916,16 +4702,21 @@ body.dark-mode #screen-rankings {
     cursor: pointer !important;
     width: 100% !important;
     max-width: 400px !important;
-    box-shadow: 0 6px 15px rgba(25, 118, 210, 0.4) !important;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4) !important;
     font-family: 'Vazirmatn', sans-serif !important;
-    margin-top: 10px !important;
+    margin: 15px 0 0 0 !important;
     box-sizing: border-box !important;
     flex-shrink: 0 !important;
     min-height: 55px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    transition: transform 0.15s ease !important;
 }
 
 #screen-welcome .welcome-btn:active {
-    transform: scale(0.98) !important;
+    transform: scale(0.97) !important;
 }
 
 /* حالت شب */
@@ -3940,7 +4731,16 @@ body.dark-mode #screen-welcome .welcome-input {
 }
 
 body.dark-mode #screen-welcome .welcome-input:focus {
-    border-color: var(--primary) !important;
+    border-color: var(--primary, #1976d2) !important;
+}
+
+body.dark-mode #screen-welcome .welcome-input::placeholder {
+    color: #607d8b !important;
+}
+
+body.dark-mode #screen-welcome .welcome-input[readonly] {
+    background: #0f1419 !important;
+    color: #78909c !important;
 }
 
 body.dark-mode #screen-welcome .welcome-title {
@@ -3951,1530 +4751,3640 @@ body.dark-mode #screen-welcome .welcome-sub {
     color: #90a4ae !important;
 }
 
+body.dark-mode #screen-welcome select.welcome-input {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23607d8b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+}
+
 /* ریسپانسیو */
 @media (max-width: 400px) {
     #screen-welcome {
-        padding: 20px 18px 30px 18px !important;
+        padding: 25px 18px 30px 18px !important;
     }
+    
     #screen-welcome .welcome-video-wrapper {
-        width: 120px !important;
-        height: 120px !important;
+        width: 110px !important;
+        height: 110px !important;
+        min-width: 110px !important;
+        min-height: 110px !important;
+        max-width: 110px !important;
+        max-height: 110px !important;
+        margin-bottom: 15px !important;
     }
+    
     #screen-welcome .welcome-title {
         font-size: 19px !important;
+        margin-bottom: 8px !important;
     }
+    
     #screen-welcome .welcome-sub {
         font-size: 12px !important;
+        margin-bottom: 20px !important;
     }
+    
     #screen-welcome .welcome-input {
         padding: 12px 16px !important;
         font-size: 14px !important;
+        margin-bottom: 10px !important;
     }
+    
     #screen-welcome .welcome-btn {
         padding: 14px 25px !important;
-        font-size: 16px !important;
+        font-size: 15px !important;
+        min-height: 50px !important;
+        margin-top: 10px !important;
+    }
+}
+
+/* ریسپانسیو ارتفاع کم */
+@media (max-height: 650px) {
+    #screen-welcome {
+        padding: 20px 18px 20px 18px !important;
+    }
+    
+    #screen-welcome .welcome-video-wrapper {
+        width: 90px !important;
+        height: 90px !important;
+        min-width: 90px !important;
+        min-height: 90px !important;
+        max-width: 90px !important;
+        max-height: 90px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    #screen-welcome .welcome-title {
+        font-size: 18px !important;
+        margin-bottom: 6px !important;
+    }
+    
+    #screen-welcome .welcome-sub {
+        font-size: 11px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    #screen-welcome .welcome-input {
+        padding: 10px 14px !important;
+        font-size: 13px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    #screen-welcome .welcome-btn {
+        padding: 12px 20px !important;
+        font-size: 14px !important;
+        min-height: 45px !important;
+        margin-top: 8px !important;
     }
 }
 /* ============================================================
-   🆕 صفحه پیش‌نمایش PDF
-   ============================================================ */
-#screen-pdf-preview {
-    background: #f0f7ff;
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    box-sizing: border-box !important;
-}
-
-#screen-pdf-preview.active {
-    display: flex !important;
-}
-
-.pdf-preview-content {
-    flex: 1 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
-    padding: 15px;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    box-sizing: border-box !important;
-    min-height: 0 !important;
-}
-
-.pdf-preview-content .report-graphic-container {
-    width: 100%;
-    max-width: 794px;
-    box-shadow: 0 8px 30px rgba(25, 118, 210, 0.15);
-    border: 2px solid #e3f2fd;
-    margin: 0 auto;
-}
-
-.pdf-preview-footer {
-    flex-shrink: 0 !important;
-    padding: 15px 20px;
-    padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
-    background: #fff;
-    border-top: 2px solid #e3f2fd;
-    box-shadow: 0 -4px 15px rgba(25, 118, 210, 0.08);
-    display: flex;
-    justify-content: center;
-    box-sizing: border-box !important;
-    width: 100% !important;
-}
-
-.pdf-preview-download-btn {
-    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-    color: #fff;
-    border: none;
-    padding: 16px 40px;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: 900;
-    cursor: pointer;
-    font-family: 'Vazirmatn', sans-serif;
-    box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    max-width: 320px;
-    transition: transform 0.15s ease, box-shadow 0.2s ease;
-    min-height: 55px;
-}
-
-.pdf-preview-download-btn:active {
-    transform: scale(0.97);
-}
-
-.pdf-preview-download-btn svg {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-}
-
-.pdf-preview-download-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    background: linear-gradient(135deg, #90a4ae 0%, #607d8b 100%);
-    box-shadow: 0 4px 12px rgba(96, 125, 139, 0.3);
-}
-
-/* انیمیشن اسپین برای دکمه دانلود */
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* حالت شب */
-body.dark-mode #screen-pdf-preview {
-    background: #0f1419;
-}
-
-body.dark-mode .pdf-preview-footer {
-    background: #1a2332;
-    border-color: #2a3444;
-}
-
-body.dark-mode .pdf-preview-content .report-graphic-container {
-    border-color: #2a3444;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-}
-
-/* ریسپانسیو */
-@media (max-width: 400px) {
-    .pdf-preview-content {
-        padding: 10px;
-    }
-    .pdf-preview-download-btn {
-        padding: 14px 30px;
-        font-size: 15px;
-    }
-}
-/* ============================================================
-   سیستم رتبه‌بندی — نسخه ۳.۰.۰
+   🏆 سکوی قهرمانی — آواتار بالای سکو
    ============================================================ */
 
-/* حالت لودینگ */
-.rankings-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 20px;
-    gap: 20px;
-}
-
-.rankings-spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #e3f2fd;
-    border-top-color: #1976d2;
-    border-radius: 50%;
-    animation: rankingsSpin 1s linear infinite;
-}
-
-@keyframes rankingsSpin {
-    to { transform: rotate(360deg); }
-}
-
-.rankings-loading-text {
-    font-size: 15px;
-    font-weight: 900;
-    color: #1976d2;
-}
-
-/* هدر رتبه‌بندی */
-.rankings-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-    border: 2px solid #ffc107;
-    border-radius: 20px;
-    padding: 18px 20px;
+.lb-podium-vector-wrapper {
+    position: relative;
+    width: 100%;
     margin-bottom: 20px;
-    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.25);
-}
-
-.rankings-header-icon {
-    font-size: 44px;
-    flex-shrink: 0;
-    animation: rankingsTrophy 2s ease-in-out infinite;
-}
-
-@keyframes rankingsTrophy {
-    0%, 100% { transform: rotate(-8deg) scale(1); }
-    50% { transform: rotate(8deg) scale(1.1); }
-}
-
-.rankings-header-text {
-    flex: 1;
-    text-align: right;
-}
-
-.rankings-header-title {
-    font-size: 18px;
-    font-weight: 900;
-    color: #e65100;
-    margin-bottom: 5px;
-}
-
-.rankings-header-sub {
-    font-size: 13px;
-    font-weight: bold;
-    color: #ef6c00;
-}
-
-/* سکوی قهرمانی */
-.rankings-podium {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 8px;
-    margin-bottom: 25px;
-    padding: 20px 5px 0 5px;
-    position: relative;
-}
-
-.podium-item {
-    flex: 1;
-    max-width: 120px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    transition: transform 0.3s ease;
-}
-
-.podium-item.is-me-podium {
-    transform: scale(1.05);
-}
-
-.podium-avatar-wrap {
-    position: relative;
-    margin-bottom: 8px;
-}
-
-.podium-avatar {
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 20px;
     overflow: hidden;
-    border: 4px solid #fff;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    font-size: 38px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    /* نسبت ابعاد وکتور */
+    aspect-ratio: 1 / 0.7;
 }
 
-.podium-1 .podium-avatar {
-    width: 80px;
-    height: 80px;
-    border-color: #ffc107;
-    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.3), 0 8px 25px rgba(255, 193, 7, 0.5);
-    animation: podiumGoldPulse 2s ease-in-out infinite;
-}
-
-@keyframes podiumGoldPulse {
-    0%, 100% { box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.3), 0 8px 25px rgba(255, 193, 7, 0.5); }
-    50% { box-shadow: 0 0 0 8px rgba(255, 193, 7, 0.15), 0 8px 30px rgba(255, 193, 7, 0.7); }
-}
-
-.podium-2 .podium-avatar { border-color: #b0bec5; }
-.podium-3 .podium-avatar { border-color: #d7a86e; }
-
-.podium-avatar img {
+.lb-podium-vector-bg {
     width: 100%;
     height: 100%;
+    display: block;
     object-fit: cover;
-}
-
-.podium-avatar .avatar-emoji {
-    font-size: 38px;
-    line-height: 1;
-}
-
-.podium-1 .podium-avatar .avatar-emoji {
-    font-size: 48px;
-}
-
-.podium-medal {
     position: absolute;
-    top: -10px;
-    right: -10px;
-    font-size: 28px;
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
-    animation: medalBounce 1.5s ease-in-out infinite;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }
 
-@keyframes medalBounce {
-    0%, 100% { transform: translateY(0) rotate(-10deg); }
-    50% { transform: translateY(-5px) rotate(10deg); }
-}
-
-.podium-name {
-    font-size: 12px;
-    font-weight: 900;
-    color: #333;
-    text-align: center;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    line-height: 1.3;
-}
-
-.podium-points {
-    font-size: 13px;
-    font-weight: 900;
-    color: #f57c00;
-    margin-bottom: 8px;
-}
-
-.podium-me-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
-    color: #fff;
-    font-size: 9px;
-    padding: 2px 6px;
-    border-radius: 10px;
-    margin-right: 3px;
-}
-
-.podium-base {
-    width: 100%;
-    border-radius: 12px 12px 0 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-.podium-base-1 {
-    height: 80px;
-    background: linear-gradient(180deg, #ffc107 0%, #ff9800 100%);
-    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5);
-}
-
-.podium-base-2 {
-    height: 60px;
-    background: linear-gradient(180deg, #b0bec5 0%, #90a4ae 100%);
-    box-shadow: 0 6px 20px rgba(144, 164, 174, 0.4);
-}
-
-.podium-base-3 {
-    height: 45px;
-    background: linear-gradient(180deg, #d7a86e 0%, #a1744f 100%);
-    box-shadow: 0 6px 20px rgba(161, 116, 79, 0.4);
-}
-
-.podium-rank-num {
-    font-size: 26px;
-    font-weight: 900;
-    color: #fff;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-
-/* لیست رتبه‌بندی */
-.rankings-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.ranking-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 3px 12px rgba(25, 118, 210, 0.08);
-    border: 1.5px solid #e3f2fd;
-    transition: all 0.2s ease;
-}
-
-.ranking-card.is-me {
-    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-    border-color: #4caf50;
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.25);
-    transform: scale(1.02);
-}
-
-.ranking-rank {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: 900;
-    color: #1976d2;
-    flex-shrink: 0;
-    border: 2px solid #fff;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
-}
-
-.ranking-card.is-me .ranking-rank {
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
-    color: #fff;
-    box-shadow: 0 3px 10px rgba(76, 175, 80, 0.4);
-}
-
-.ranking-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border: 2.5px solid #e3f2fd;
-    flex-shrink: 0;
-    font-size: 24px;
-}
-
-.ranking-card.is-me .ranking-avatar {
-    border-color: #4caf50;
-}
-
-.ranking-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.ranking-avatar .avatar-emoji {
-    font-size: 24px;
-    line-height: 1;
-}
-
-.ranking-info {
-    flex: 1;
-    min-width: 0;
-    text-align: right;
-}
-
-.ranking-name {
-    font-size: 14px;
-    font-weight: 900;
-    color: #1a237e;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.ranking-card.is-me .ranking-name {
-    color: #1b5e20;
-}
-
-.ranking-me-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
-    color: #fff;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    margin-right: 6px;
-    vertical-align: middle;
-}
-
-.ranking-stats {
-    font-size: 11px;
-    font-weight: bold;
-    color: #78909c;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.ranking-points {
-    text-align: center;
-    flex-shrink: 0;
-    min-width: 55px;
-}
-
-.ranking-points-value {
-    font-size: 18px;
-    font-weight: 900;
-    color: #f57c00;
-    line-height: 1;
-    margin-bottom: 3px;
-}
-
-.ranking-points-label {
-    font-size: 10px;
-    font-weight: bold;
-    color: #90a4ae;
-}
-
-/* حالت خالی */
-.rankings-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 60px 20px;
-}
-
-.rankings-empty-icon {
-    font-size: 80px;
-    margin-bottom: 20px;
-    animation: rankingsTrophy 2s ease-in-out infinite;
-}
-
-.rankings-empty-title {
-    font-size: 20px;
-    font-weight: 900;
-    color: #7b1fa2;
-    margin-bottom: 12px;
-}
-
-.rankings-empty-text {
-    font-size: 14px;
-    font-weight: bold;
-    color: #607d8b;
-    line-height: 1.8;
-    max-width: 300px;
-}
-
-/* پیام کاربر خارج از لیست */
-.rankings-not-in-list {
-    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-    border: 2px solid #ff9800;
-    border-radius: 16px;
-    padding: 16px;
-    margin-top: 15px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-align: right;
-}
-
-.rankings-not-in-icon {
-    font-size: 30px;
-    flex-shrink: 0;
-}
-
-.rankings-not-in-text {
-    flex: 1;
-    font-size: 13px;
-    font-weight: bold;
-    color: #e65100;
-    line-height: 1.6;
-}
-
-/* حالت شب */
-body.dark-mode .rankings-header {
-    background: linear-gradient(135deg, #2a1a3a, #1a2332);
-    border-color: #4a148c;
-}
-
-body.dark-mode .rankings-header-title { color: #ce93d8; }
-body.dark-mode .rankings-header-sub { color: #ba68c8; }
-
-body.dark-mode .ranking-card {
-    background: #1a2332;
-    border-color: #2a3444;
-}
-
-body.dark-mode .ranking-card.is-me {
-    background: linear-gradient(135deg, #1a2a1a, #2a3a2a);
-    border-color: #43a047;
-}
-
-body.dark-mode .ranking-name { color: #90caf9; }
-body.dark-mode .ranking-card.is-me .ranking-name { color: #a5d6a7; }
-body.dark-mode .ranking-stats { color: #607d8b; }
-
-body.dark-mode .ranking-rank {
-    background: linear-gradient(135deg, #1a2332, #2a3444);
-    color: #90caf9;
-}
-
-body.dark-mode .podium-name { color: #90caf9; }
-body.dark-mode .rankings-empty-title { color: #ce93d8; }
-body.dark-mode .rankings-empty-text { color: #90a4ae; }
-
-/* ریسپانسیو */
-@media (max-width: 400px) {
-    .podium-avatar { width: 55px; height: 55px; font-size: 32px; }
-    .podium-1 .podium-avatar { width: 68px; height: 68px; }
-    .podium-1 .podium-avatar .avatar-emoji { font-size: 40px; }
-    .podium-avatar .avatar-emoji { font-size: 32px; }
-    .podium-name { font-size: 11px; }
-    .podium-points { font-size: 11px; }
-    .ranking-card { padding: 10px 12px; }
-    .ranking-avatar { width: 40px; height: 40px; }
-}
-/* ============================================================
-   🆕 لیگ رتبه‌بندی — طراحی Duolingo
-   ============================================================ */
-
-/* هدر لیگ */
-.dl-leaderboard-header {
-    background: linear-gradient(135deg, #58cc02 0%, #4caf50 100%);
-    border-radius: 20px;
-    padding: 24px 20px;
-    margin-bottom: 20px;
-    text-align: center;
-    color: #fff;
-    box-shadow: 0 6px 20px rgba(88, 204, 2, 0.35);
-    position: relative;
-    overflow: hidden;
-}
-
-.dl-leaderboard-header::before {
-    content: '';
+/* ─────────────────────────────────────
+   کانتینر افراد
+   ───────────────────────────────────── */
+.lb-podium-people {
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
-    animation: dlShine 4s linear infinite;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
     pointer-events: none;
 }
 
-@keyframes dlShine {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.dl-header-icon {
-    font-size: 50px;
-    margin-bottom: 8px;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-    animation: dlTrophyBounce 2s ease-in-out infinite;
-}
-
-@keyframes dlTrophyBounce {
-    0%, 100% { transform: translateY(0) rotate(-5deg); }
-    50% { transform: translateY(-8px) rotate(5deg); }
-}
-
-.dl-header-title {
-    font-size: 22px;
-    font-weight: 900;
-    margin-bottom: 5px;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-
-.dl-header-sub {
-    font-size: 13px;
-    font-weight: bold;
-    opacity: 0.95;
-}
-
-/* Zone Labels */
-.dl-zone-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 20px;
-    border-radius: 50px;
-    margin: 12px auto;
-    font-size: 13px;
-    font-weight: 900;
-    width: fit-content;
-    max-width: 90%;
-}
-
-.dl-zone-promotion {
-    background: linear-gradient(135deg, #d4f7b8 0%, #a8e063 100%);
-    color: #2e7d32;
-    border: 2px solid #58cc02;
-    box-shadow: 0 4px 12px rgba(88, 204, 2, 0.25);
-}
-
-.dl-zone-demotion {
-    background: linear-gradient(135deg, #ffe0e0 0%, #ffb3b3 100%);
-    color: #c62828;
-    border: 2px solid #ff5252;
-    box-shadow: 0 4px 12px rgba(255, 82, 82, 0.25);
-    margin-top: 20px;
-}
-
-/* خط جداکننده */
-.dl-zone-divider {
-    height: 3px;
-    background: repeating-linear-gradient(
-        90deg,
-        #cfd8dc 0px,
-        #cfd8dc 10px,
-        transparent 10px,
-        transparent 20px
-    );
-    margin: 16px 0;
-    border-radius: 3px;
-}
-
-/* لیست */
-.dl-leaderboard-list {
+/* ─────────────────────────────────────
+   هر شخص روی سکو
+   ───────────────────────────────────── */
+.lb-podium-person {
+    position: absolute;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-}
-
-/* ردیف رتبه */
-.dl-rank-row {
-    display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    background: #fff;
-    border-radius: 16px;
-    border: 2px solid #e5e5e5;
-    transition: all 0.2s ease;
-    position: relative;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform 0.2s ease;
+    width: 30%;
+    max-width: 130px;
 }
 
-.dl-rank-row.dl-top-rank {
-    background: #fff;
-    border-color: transparent;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+.lb-podium-person:active {
+    transform: scale(0.95);
 }
 
-.dl-rank-row.dl-is-me {
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    border-color: #1cb0f6;
-    box-shadow: 0 4px 15px rgba(28, 176, 246, 0.3);
-    transform: scale(1.02);
-}
-
-/* شماره رتبه */
-.dl-rank-number {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: 900;
-    color: #777;
-    background: #f5f5f5;
-    flex-shrink: 0;
-    border: 2px solid #fff;
-}
-
-.dl-rank-number.dl-rank-1 {
-    background: linear-gradient(135deg, #ffd700, #ffb300);
-    color: #fff;
-    font-size: 22px;
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.5);
-    border-color: #fff9c4;
-}
-
-.dl-rank-number.dl-rank-2 {
-    background: linear-gradient(135deg, #c0c0c0, #9e9e9e);
-    color: #fff;
-    font-size: 22px;
-    box-shadow: 0 4px 12px rgba(158, 158, 158, 0.5);
-    border-color: #f5f5f5;
-}
-
-.dl-rank-number.dl-rank-3 {
-    background: linear-gradient(135deg, #cd7f32, #a0522d);
-    color: #fff;
-    font-size: 22px;
-    box-shadow: 0 4px 12px rgba(205, 127, 50, 0.5);
-    border-color: #ffccbc;
-}
-
-.dl-medal {
-    line-height: 1;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-}
-
-/* آواتار */
-.dl-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #f5f5f5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
-    border: 3px solid #fff;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-}
-
-.dl-avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.dl-avatar-emoji {
-    font-size: 28px;
-    line-height: 1;
-}
-
-/* اطلاعات */
-.dl-info {
-    flex: 1;
-    min-width: 0;
-    text-align: right;
-}
-
-.dl-name {
-    font-size: 15px;
-    font-weight: 900;
-    color: #3c3c3c;
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    justify-content: flex-end;
-}
-
-.dl-is-me .dl-name {
-    color: #0d47a1;
-}
-
-.dl-you-badge {
-    background: linear-gradient(135deg, #1cb0f6, #0288d1);
-    color: #fff;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 900;
-    flex-shrink: 0;
-}
-
-.dl-stats {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    font-size: 11px;
-    color: #888;
-    font-weight: bold;
-}
-
-.dl-stat-item {
-    white-space: nowrap;
-}
-
-/* امتیاز */
-.dl-points {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: #fff9c4;
-    padding: 8px 12px;
-    border-radius: 50px;
-    flex-shrink: 0;
-    border: 2px solid #ffeb3b;
-    min-width: 70px;
-    justify-content: center;
-}
-
-.dl-is-me .dl-points {
-    background: linear-gradient(135deg, #fff9c4, #fff176);
-    border-color: #fdd835;
-}
-
-.dl-points-value {
-    font-size: 15px;
-    font-weight: 900;
-    color: #f57c00;
-    line-height: 1;
-}
-
-.dl-points-icon {
-    font-size: 13px;
-}
-
-/* کاربر خارج از لیست */
-.dl-not-in-list {
-    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-    border: 2px solid #ff9800;
-    border-radius: 16px;
-    padding: 16px;
-    margin-top: 15px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-align: right;
-}
-
-.dl-not-in-icon {
-    font-size: 30px;
-    flex-shrink: 0;
-}
-
-.dl-not-in-text {
-    flex: 1;
-    font-size: 13px;
-    font-weight: bold;
-    color: #e65100;
-    line-height: 1.6;
-}
-
-/* حالت شب */
-body.dark-mode .dl-rank-row {
-    background: #1a2332;
-    border-color: #2a3444;
-}
-
-body.dark-mode .dl-rank-row.dl-is-me {
-    background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
-    border-color: #1cb0f6;
-}
-
-body.dark-mode .dl-name {
-    color: #e0e0e0;
-}
-
-body.dark-mode .dl-is-me .dl-name {
-    color: #fff;
-}
-
-body.dark-mode .dl-stats {
-    color: #90a4ae;
-}
-
-body.dark-mode .dl-rank-number {
-    background: #2a3444;
-    color: #90a4ae;
-    border-color: #1a2332;
-}
-
-body.dark-mode .dl-avatar {
-    background: #2a3444;
-    border-color: #1a2332;
-}
-
-body.dark-mode .dl-points {
-    background: #4a3a1a;
-    border-color: #fdd835;
-}
-
-body.dark-mode .dl-points-value {
-    color: #fdd835;
-}
-
-body.dark-mode .dl-zone-promotion {
-    background: linear-gradient(135deg, #1a3a1a, #2a5a2a);
-    color: #a5d6a7;
-    border-color: #58cc02;
-}
-
-body.dark-mode .dl-zone-demotion {
-    background: linear-gradient(135deg, #3a1a1a, #5a2a2a);
-    color: #ef9a9a;
-    border-color: #ff5252;
-}
-
-body.dark-mode .dl-zone-divider {
-    background: repeating-linear-gradient(
-        90deg,
-        #2a3444 0px,
-        #2a3444 10px,
-        transparent 10px,
-        transparent 20px
-    );
-}
-
-/* ریسپانسیو */
-@media (max-width: 400px) {
-    .dl-rank-row {
-        padding: 10px 10px;
-        gap: 8px;
-    }
-    .dl-rank-number {
-        width: 34px;
-        height: 34px;
-        font-size: 14px;
-    }
-    .dl-rank-number.dl-rank-1,
-    .dl-rank-number.dl-rank-2,
-    .dl-rank-number.dl-rank-3 {
-        font-size: 18px;
-    }
-    .dl-avatar {
-        width: 42px;
-        height: 42px;
-    }
-    .dl-avatar-emoji {
-        font-size: 24px;
-    }
-    .dl-name {
-        font-size: 13px;
-    }
-    .dl-stats {
-        font-size: 10px;
-    }
-    .dl-points {
-        padding: 6px 8px;
-        min-width: 55px;
-    }
-    .dl-points-value {
-        font-size: 13px;
-    }
-    .dl-header-title {
-        font-size: 18px;
-    }
-    .dl-header-icon {
-        font-size: 40px;
-    }
-}
-/* ============================================================
-   🏆 رتبه‌بندی — طراحی سه‌بعدی
-   ============================================================ */
-
-/* ═══════════════════════════════════════
-   هدر آبی با تاج
-   ═══════════════════════════════════════ */
-.lb-header {
-    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-    border-radius: 20px 20px 0 0;
-    padding: 25px 20px 20px 20px;
-    text-align: center;
-    color: #fff;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
-}
-
-.lb-header::before {
-    content: '';
-    position: absolute;
-    top: -100px;
+/* نفر اول - بالای سکوی وسط */
+.lb-person-1 {
+    bottom: 52%;          /* از پایین وکتور */
     left: 50%;
     transform: translateX(-50%);
-    width: 300px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
+    z-index: 3;
 }
 
-.lb-header-crown {
-    font-size: 42px;
-    margin-bottom: 6px;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25));
-    animation: crownBounce 2.5s ease-in-out infinite;
-    position: relative;
-    z-index: 1;
-}
-
-@keyframes crownBounce {
-    0%, 100% { transform: translateY(0) rotate(-5deg); }
-    50% { transform: translateY(-6px) rotate(5deg); }
-}
-
-.lb-header-title {
-    font-size: 26px;
-    font-weight: 900;
-    margin-bottom: 4px;
-    text-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    position: relative;
-    z-index: 1;
-}
-
-.lb-header-sub {
-    font-size: 14px;
-    font-weight: bold;
-    opacity: 0.95;
-    position: relative;
-    z-index: 1;
-    background: rgba(255,255,255,0.2);
-    display: inline-block;
-    padding: 4px 16px;
-    border-radius: 20px;
-    margin-top: 4px;
-}
-
-/* ═══════════════════════════════════════
-   سکوی قهرمانی سه‌بعدی
-   ═══════════════════════════════════════ */
-.lb-podium-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 6px;
-    padding: 30px 10px 0 10px;
-    margin-bottom: 20px;
-    background: linear-gradient(180deg, #2196f3 0%, #f0f7ff 100%);
-    border-radius: 0 0 20px 20px;
-    min-height: 280px;
-    position: relative;
-}
-
-.lb-podium-item {
-    flex: 1;
-    max-width: 110px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-}
-
-.lb-podium-item.lb-is-me .lb-podium-avatar {
-    box-shadow: 0 0 0 4px #ffeb3b, 0 8px 25px rgba(255, 235, 59, 0.5);
-}
-
-/* آواتار سکو */
-.lb-podium-avatar {
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border: 3px solid #fff;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    margin-bottom: 8px;
-    position: relative;
+/* نفر دوم - بالای سکوی سمت راست */
+.lb-person-2 {
+    bottom: 42%;          /* سکوی راست کوتاه‌تره */
+    right: 11%;
     z-index: 2;
 }
 
-.lb-podium-1 .lb-podium-avatar {
-    width: 85px;
-    height: 85px;
+/* نفر سوم - بالای سکوی سمت چپ */
+.lb-person-3 {
+    bottom: 36%;          /* سکوی چپ کوتاه‌ترینه */
+    left: 11%;
+    z-index: 2;
+}
+
+/* ─────────────────────────────────────
+   تاج بالای نفر اول
+   ───────────────────────────────────── */
+.lb-person-crown {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+    animation: crownBounce 2s ease-in-out infinite;
+    z-index: 4;
+    pointer-events: none;
+}
+
+@keyframes crownBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+    50% { transform: translateX(-50%) translateY(-5px) rotate(5deg); }
+}
+
+/* ─────────────────────────────────────
+   آواتار شخص
+   ───────────────────────────────────── */
+.lb-person-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    margin-bottom: 5px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.lb-podium-person:active .lb-person-avatar {
+    transform: scale(0.95);
+}
+
+/* نفر اول - آواتار بزرگ‌تر با کادر طلایی */
+.lb-person-1 .lb-person-avatar {
+    width: 72px;
+    height: 72px;
     border: 4px solid #ffc107;
-    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.3), 0 8px 30px rgba(255, 193, 7, 0.5);
-    animation: podium1Pulse 2.5s ease-in-out infinite;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.4), 
+                0 8px 25px rgba(255, 193, 7, 0.6);
 }
 
-@keyframes podium1Pulse {
-    0%, 100% { box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.3), 0 8px 30px rgba(255, 193, 7, 0.5); }
-    50% { box-shadow: 0 0 0 8px rgba(255, 193, 7, 0.15), 0 8px 35px rgba(255, 193, 7, 0.7); }
-}
-
-.lb-podium-2 .lb-podium-avatar {
+/* نفر دوم - کادر نقره‌ای */
+.lb-person-2 .lb-person-avatar.lb-avatar-image-mode {
     border-color: #cfd8dc;
-    box-shadow: 0 0 0 3px rgba(207, 216, 220, 0.5), 0 6px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 0 0 3px rgba(207, 216, 220, 0.5), 
+                0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
-.lb-podium-3 .lb-podium-avatar {
+/* نفر سوم - کادر برنزی */
+.lb-person-3 .lb-person-avatar.lb-avatar-image-mode {
     border-color: #d7a86e;
-    box-shadow: 0 0 0 3px rgba(215, 168, 110, 0.5), 0 6px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 0 0 3px rgba(215, 168, 110, 0.5), 
+                0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
-.lb-podium-avatar img {
+/* ایموجی - بدون کادر */
+.lb-person-avatar.lb-avatar-emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+}
+
+.lb-person-1 .lb-person-avatar.lb-avatar-emoji-mode {
+    filter: drop-shadow(0 6px 15px rgba(255, 193, 7, 0.7));
+}
+
+/* آواتار عکس */
+.lb-person-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.lb-avatar-emoji {
+.lb-person-avatar .lb-avatar-emoji {
     font-size: 34px;
     line-height: 1;
 }
 
-.lb-podium-1 .lb-avatar-emoji {
+.lb-person-1 .lb-person-avatar .lb-avatar-emoji {
     font-size: 46px;
 }
 
-/* تاج بالای نفر اول */
-.lb-podium-crown {
-    font-size: 30px;
-    position: absolute;
-    top: -22px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 3;
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
-    animation: crownBounce 2s ease-in-out infinite;
+/* ─────────────────────────────────────
+   اطلاعات (اسم + امتیاز)
+   ───────────────────────────────────── */
+.lb-person-info {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 5px 10px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 75px;
+    max-width: 120px;
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
 }
 
-/* اسم */
-.lb-podium-name {
-    font-size: 12px;
+.lb-person-1 .lb-person-info {
+    padding: 6px 12px;
+    min-width: 85px;
+    max-width: 130px;
+    box-shadow: 0 6px 18px rgba(255, 193, 7, 0.3);
+    border-color: rgba(255, 193, 7, 0.4);
+}
+
+.lb-person-name {
+    font-size: 11px;
     font-weight: 900;
     color: #1a237e;
-    text-align: center;
-    margin-bottom: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
-    line-height: 1.3;
-    position: relative;
-    z-index: 2;
+    margin-bottom: 2px;
+    direction: rtl;
+    line-height: 1.2;
 }
 
-/* امتیاز */
-.lb-podium-points {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    background: #fff;
-    padding: 3px 10px;
-    border-radius: 20px;
+.lb-person-1 .lb-person-name {
     font-size: 12px;
-    font-weight: 900;
-    color: #f57c00;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    margin-bottom: 6px;
-    position: relative;
-    z-index: 2;
+    color: #0d47a1;
 }
 
-.lb-podium-star {
-    font-size: 11px;
-}
-
-/* پایه‌ها */
-.lb-podium-base {
-    width: 100%;
-    border-radius: 12px 12px 0 0;
+.lb-person-points {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #f57c00;
+    line-height: 1;
+}
+
+.lb-person-1 .lb-person-points {
+    font-size: 12px;
+    color: #e65100;
+}
+
+/* ─────────────────────────────────────
+   حالت خودم
+   ───────────────────────────────────── */
+.lb-podium-person.lb-is-me .lb-person-avatar {
+    box-shadow: 0 0 0 4px #ffeb3b, 
+                0 8px 25px rgba(255, 235, 59, 0.6);
+}
+
+.lb-podium-person.lb-is-me .lb-person-info {
+    background: linear-gradient(135deg, #fff9c4, #fff176);
+    border-color: #fdd835;
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 سکوی قهرمانی — آواتار دقیقاً بالای سکو
+   ═══════════════════════════════════════════════════════ */
+
+.lb-podium-vector-wrapper {
     position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    /* نسبت ابعاد وکتور */
+    aspect-ratio: 1080 / 720;
+    background: #f0f7ff;
+}
+
+.lb-podium-vector-bg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    position: absolute;
+    top: 0;
+    left: 0;
     z-index: 1;
 }
 
-.lb-base-1 {
-    height: 75px;
-    background: linear-gradient(180deg, #ffd54f 0%, #ffb300 100%);
-    box-shadow: 0 -4px 15px rgba(255, 193, 7, 0.5), inset 0 4px 0 rgba(255,255,255,0.3);
+.lb-podium-people {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    pointer-events: none;
 }
 
-.lb-base-2 {
-    height: 55px;
-    background: linear-gradient(180deg, #cfd8dc 0%, #90a4ae 100%);
-    box-shadow: 0 -4px 15px rgba(144, 164, 174, 0.4), inset 0 4px 0 rgba(255,255,255,0.3);
-}
+/* ─────────────────────────────────────
+   موقعیت هر شخص روی سکو
+   ───────────────────────────────────── */
 
-.lb-base-3 {
-    height: 40px;
-    background: linear-gradient(180deg, #e8a87c 0%, #c77b3f 100%);
-    box-shadow: 0 -4px 15px rgba(199, 123, 63, 0.4), inset 0 4px 0 rgba(255,255,255,0.3);
-}
-
-.lb-podium-rank {
-    font-size: 26px;
-    font-weight: 900;
-    color: #fff;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-
-/* ═══════════════════════════════════════
-   لیست ردیفی
-   ═══════════════════════════════════════ */
-.lb-list {
+.lb-podium-person {
+    position: absolute;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 15px;
-    background: #f0f7ff;
-    border-radius: 20px;
+    align-items: center;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform 0.2s ease;
+    width: 26%;
+    max-width: 120px;
 }
 
-.lb-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
+.lb-podium-person:active {
+    transform: scale(0.95);
+}
+
+/* نفر اول - بالای سکوی وسط (بلندترین) */
+.lb-person-1 {
+    bottom: 58%;          /* از پایین وکتور به بالا */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم - بالای سکوی سمت راست */
+.lb-person-2 {
+    bottom: 46%;          /* سکوی راست کوتاه‌تر */
+    right: 8%;
+    z-index: 2;
+}
+
+/* نفر سوم - بالای سکوی سمت چپ */
+.lb-person-3 {
+    bottom: 40%;          /* سکوی چپ کوتاه‌ترین */
+    left: 8%;
+    z-index: 2;
+}
+
+/* ─────────────────────────────────────
+   تاج نفر اول
+   ───────────────────────────────────── */
+.lb-person-crown {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+    animation: crownBounce 2s ease-in-out infinite;
+    z-index: 4;
+    pointer-events: none;
+}
+
+@keyframes crownBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+    50% { transform: translateX(-50%) translateY(-5px) rotate(5deg); }
+}
+
+/* ─────────────────────────────────────
+   آواتار شخص
+   ───────────────────────────────────── */
+.lb-person-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
     background: #fff;
-    border-radius: 14px;
-    border: 1.5px solid #e3f2fd;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.05);
-}
-
-.lb-row.lb-row-me {
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    border-color: #1cb0f6;
-    box-shadow: 0 4px 15px rgba(28, 176, 246, 0.3);
-    transform: scale(1.01);
-}
-
-/* رتبه */
-.lb-row-rank {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: #f5f5f5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 15px;
-    font-weight: 900;
-    color: #777;
-    border: 2px solid #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-.lb-row-me .lb-row-rank {
-    background: linear-gradient(135deg, #1cb0f6, #0288d1);
-    color: #fff;
-}
-
-.lb-row-medal {
-    font-size: 22px;
-    line-height: 1;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-}
-
-.lb-row-num {
-    color: #607d8b;
-}
-
-/* آواتار */
-.lb-row-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #f5f5f5;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border: 2.5px solid #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 3px solid #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    margin-bottom: 4px;
     flex-shrink: 0;
+    transition: transform 0.2s ease;
 }
 
-.lb-row-me .lb-row-avatar {
-    border-color: #1cb0f6;
-    box-shadow: 0 0 0 2px rgba(28, 176, 246, 0.3);
+.lb-podium-person:active .lb-person-avatar {
+    transform: scale(0.95);
 }
 
-.lb-avatar-img {
+/* نفر اول - طلایی */
+.lb-person-1 .lb-person-avatar {
+    width: 68px;
+    height: 68px;
+    border: 4px solid #ffc107;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.4),
+                0 8px 25px rgba(255, 193, 7, 0.6);
+}
+
+/* نفر دوم - نقره‌ای */
+.lb-person-2 .lb-person-avatar.lb-avatar-image-mode {
+    border-color: #cfd8dc;
+    box-shadow: 0 0 0 3px rgba(207, 216, 220, 0.5),
+                0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* نفر سوم - برنزی */
+.lb-person-3 .lb-person-avatar.lb-avatar-image-mode {
+    border-color: #d7a86e;
+    box-shadow: 0 0 0 3px rgba(215, 168, 110, 0.5),
+                0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* ایموجی - بدون کادر */
+.lb-person-avatar.lb-avatar-emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+}
+
+.lb-person-1 .lb-person-avatar.lb-avatar-emoji-mode {
+    filter: drop-shadow(0 6px 15px rgba(255, 193, 7, 0.7));
+}
+
+.lb-person-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-/* اطلاعات */
-.lb-row-info {
-    flex: 1;
-    min-width: 0;
-    text-align: right;
+.lb-person-avatar .lb-avatar-emoji {
+    font-size: 32px;
+    line-height: 1;
 }
 
-.lb-row-name {
-    font-size: 14px;
+.lb-person-1 .lb-person-avatar .lb-avatar-emoji {
+    font-size: 42px;
+}
+
+/* ─────────────────────────────────────
+   اطلاعات زیر آواتار (اسم + امتیاز)
+   ───────────────────────────────────── */
+.lb-person-info {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 4px 8px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 70px;
+    max-width: 110px;
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+}
+
+.lb-person-1 .lb-person-info {
+    padding: 5px 10px;
+    min-width: 80px;
+    max-width: 120px;
+    box-shadow: 0 6px 18px rgba(255, 193, 7, 0.3);
+    border-color: rgba(255, 193, 7, 0.4);
+}
+
+.lb-person-name {
+    font-size: 10px;
     font-weight: 900;
     color: #1a237e;
-    margin-bottom: 3px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+    direction: rtl;
+    line-height: 1.2;
 }
 
-.lb-row-me .lb-row-name {
+.lb-person-1 .lb-person-name {
+    font-size: 11px;
     color: #0d47a1;
 }
 
-.lb-row-you {
-    background: linear-gradient(135deg, #1cb0f6, #0288d1);
+.lb-person-points {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 900;
+    color: #f57c00;
+    line-height: 1;
+}
+
+.lb-person-1 .lb-person-points {
+    font-size: 11px;
+    color: #e65100;
+}
+
+.lb-podium-person.lb-is-me .lb-person-avatar {
+    box-shadow: 0 0 0 4px #ffeb3b,
+                0 8px 25px rgba(255, 235, 59, 0.6);
+}
+
+.lb-podium-person.lb-is-me .lb-person-info {
+    background: linear-gradient(135deg, #fff9c4, #fff176);
+    border-color: #fdd835;
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 مودال کارت پروفایل (کوچک و مرتب)
+   ═══════════════════════════════════════════════════════ */
+
+.profile-card-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: pcFadeIn 0.3s ease;
+}
+
+.profile-card-overlay.active {
+    display: flex;
+}
+
+@keyframes pcFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.profile-card-container {
+    width: 100%;
+    max-width: 380px;
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    animation: pcSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-radius: 24px;
+}
+
+@keyframes pcSlideUp {
+    from {
+        transform: translateY(50px) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* کارت کوچک */
+.pc-modal-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 30px 20px 20px 20px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* دکمه بستن */
+.pc-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.pc-close-btn:active {
+    transform: scale(0.9);
+    background: #e0e0e0;
+}
+
+.pc-close-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #555;
+    stroke-width: 2.5;
+    fill: none;
+}
+
+/* بخش آواتار */
+.pc-modal-avatar-section {
+    text-align: center;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.pc-modal-avatar-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-emoji-mode .lb-avatar-emoji {
+    font-size: 100px;
+    line-height: 1;
+    filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.2));
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-image-mode {
+    background: #fff;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #fff;
+    box-shadow: 0 8px 25px rgba(25, 118, 210, 0.3);
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-image-mode img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pc-modal-rank-medal {
+    position: absolute;
+    top: -5px;
+    right: calc(50% - 60px);
+    font-size: 34px;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+    animation: medalFloat 2s ease-in-out infinite;
+    z-index: 3;
+}
+
+@keyframes medalFloat {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-6px) rotate(5deg); }
+}
+
+/* اطلاعات اصلی */
+.pc-modal-main-info {
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.pc-modal-name {
+    font-size: 19px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pc-modal-you-badge {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
     color: #fff;
-    font-size: 9px;
-    padding: 2px 7px;
-    border-radius: 8px;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
     font-weight: 900;
 }
+
+.pc-modal-class {
+    font-size: 13px;
+    color: #78909c;
+    font-weight: bold;
+    background: #f0f7ff;
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+}
+
+/* رتبه و امتیاز */
+.pc-modal-rank-points {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.pc-modal-stat-box {
+    flex: 1;
+    max-width: 130px;
+    padding: 12px 10px;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.pc-modal-stat-rank {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border: 2px solid #ffb74d;
+}
+
+.pc-modal-stat-points {
+    background: linear-gradient(135deg, #fff9c4 0%, #fff176 100%);
+    border: 2px solid #fdd835;
+}
+
+.pc-modal-stat-icon {
+    font-size: 22px;
+    margin-bottom: 3px;
+}
+
+.pc-modal-stat-label {
+    font-size: 10px;
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 3px;
+}
+
+.pc-modal-stat-value {
+    font-size: 20px;
+    font-weight: 900;
+    color: #e65100;
+    line-height: 1;
+}
+
+/* آمار گرید */
+.pc-modal-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.pc-modal-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    border: 1.5px solid #e3f2fd;
+    text-align: right;
+}
+
+.pc-modal-stat-card-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.pc-modal-stat-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.pc-modal-stat-card-label {
+    font-size: 9px;
+    font-weight: bold;
+    color: #78909c;
+    margin-bottom: 2px;
+}
+
+.pc-modal-stat-card-value {
+    font-size: 16px;
+    font-weight: 900;
+    color: #1976d2;
+    line-height: 1;
+}
+
+/* نوار پیشرفت */
+.pc-modal-progress-section {
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 14px;
+    border: 1.5px solid #e3f2fd;
+}
+
+.pc-modal-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 900;
+    color: #546e7a;
+    margin-bottom: 8px;
+}
+
+.pc-modal-progress-label span:last-child {
+    color: #1976d2;
+}
+
+.pc-modal-progress-bar {
+    height: 10px;
+    background: #e3f2fd;
+    border-radius: 50px;
+    overflow: hidden;
+}
+
+.pc-modal-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50 0%, #8bc34a 50%, #cddc39 100%);
+    border-radius: 50px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.pc-modal-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: progressShine 2s linear infinite;
+}
+
+@keyframes progressShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ─────────────────────────────────────
+   حالت شب
+   ───────────────────────────────────── */
+body.dark-mode .pc-modal-card {
+    background: #1a2332;
+}
+
+body.dark-mode .pc-close-btn {
+    background: #2a3444;
+}
+
+body.dark-mode .pc-close-btn svg {
+    stroke: #90caf9;
+}
+
+body.dark-mode .pc-modal-name {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-class {
+    background: #0f1419;
+    color: #90a4ae;
+}
+
+body.dark-mode .pc-modal-stat-card {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-stat-card-value {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-stat-card-label {
+    color: #78909c;
+}
+
+body.dark-mode .pc-modal-progress-section {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-progress-label {
+    color: #90a4ae;
+}
+
+body.dark-mode .pc-modal-progress-bar {
+    background: #2a3444;
+}
+
+/* ریسپانسیو */
+@media (max-width: 400px) {
+    .lb-person-avatar {
+        width: 44px;
+        height: 44px;
+    }
+    .lb-person-1 .lb-person-avatar {
+        width: 56px;
+        height: 56px;
+    }
+    .lb-person-avatar .lb-avatar-emoji {
+        font-size: 26px;
+    }
+    .lb-person-1 .lb-person-avatar .lb-avatar-emoji {
+        font-size: 34px;
+    }
+    .lb-person-name {
+        font-size: 9px;
+        max-width: 70px;
+    }
+    .lb-person-1 .lb-person-name {
+        font-size: 10px;
+        max-width: 80px;
+    }
+    .lb-person-points {
+        font-size: 9px;
+    }
+    .lb-person-1 .lb-person-points {
+        font-size: 10px;
+    }
+    .lb-person-info {
+        padding: 3px 6px;
+        min-width: 60px;
+    }
+    .lb-person-crown {
+        font-size: 22px;
+        top: -24px;
+    }
+
+    .pc-modal-avatar-wrapper {
+        width: 80px;
+        height: 80px;
+    }
+    .pc-modal-avatar-wrapper.lb-avatar-emoji-mode .lb-avatar-emoji {
+        font-size: 80px;
+    }
+    .pc-modal-rank-medal {
+        font-size: 28px;
+        right: calc(50% - 50px);
+    }
+    .pc-modal-name {
+        font-size: 16px;
+    }
+    .pc-modal-stat-value {
+        font-size: 17px;
+    }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 سکوی قهرمانی — موقعیت اصلاح‌شده
+   ═══════════════════════════════════════════════════════ */
+
+.lb-podium-vector-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    aspect-ratio: 1080 / 720;
+    background: #f0f7ff;
+}
+
+.lb-podium-vector-bg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.lb-podium-people {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.lb-podium-person {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform 0.2s ease;
+    width: 26%;
+    max-width: 120px;
+}
+
+.lb-podium-person:active {
+    transform: scale(0.95);
+}
+
+/* نفر اول - بالای سکوی وسط (اصلاح: کمی پایین‌تر) */
+.lb-person-1 {
+    bottom: 54%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم - بالای سکوی سمت راست (اصلاح: کمی بالاتر) */
+.lb-person-2 {
+    bottom: 50%;
+    right: 8%;
+    z-index: 2;
+}
+
+/* نفر سوم - بالای سکوی سمت چپ (اصلاح: کمی پایین‌تر) */
+.lb-person-3 {
+    bottom: 36%;
+    left: 8%;
+    z-index: 2;
+}
+
+.lb-person-crown {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+    animation: crownBounce 2s ease-in-out infinite;
+    z-index: 4;
+    pointer-events: none;
+}
+
+@keyframes crownBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+    50% { transform: translateX(-50%) translateY(-5px) rotate(5deg); }
+}
+
+.lb-person-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    margin-bottom: 4px;
+    flex-shrink: 0;
+}
+
+.lb-podium-person:active .lb-person-avatar {
+    transform: scale(0.95);
+}
+
+.lb-person-1 .lb-person-avatar {
+    width: 68px;
+    height: 68px;
+    border: 4px solid #ffc107;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.4),
+                0 8px 25px rgba(255, 193, 7, 0.6);
+}
+
+.lb-person-2 .lb-person-avatar.lb-avatar-image-mode {
+    border-color: #cfd8dc;
+    box-shadow: 0 0 0 3px rgba(207, 216, 220, 0.5),
+                0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.lb-person-3 .lb-person-avatar.lb-avatar-image-mode {
+    border-color: #d7a86e;
+    box-shadow: 0 0 0 3px rgba(215, 168, 110, 0.5),
+                0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.lb-person-avatar.lb-avatar-emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+}
+
+.lb-person-1 .lb-person-avatar.lb-avatar-emoji-mode {
+    filter: drop-shadow(0 6px 15px rgba(255, 193, 7, 0.7));
+}
+
+/* پیش‌فرض (SVG) */
+.lb-person-avatar.lb-avatar-default-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+}
+
+.lb-person-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lb-person-avatar .lb-avatar-emoji {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.lb-person-1 .lb-person-avatar .lb-avatar-emoji {
+    font-size: 42px;
+}
+
+/* 🆕 SVG پیش‌فرض */
+.lb-avatar-default-svg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lb-avatar-default-svg svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.lb-avatar-default-svg svg circle,
+.lb-avatar-default-svg svg path {
+    transition: all 0.3s ease;
+}
+
+.lb-person-info {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 4px 8px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 70px;
+    max-width: 110px;
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+}
+
+.lb-person-1 .lb-person-info {
+    padding: 5px 10px;
+    min-width: 80px;
+    max-width: 120px;
+    box-shadow: 0 6px 18px rgba(255, 193, 7, 0.3);
+    border-color: rgba(255, 193, 7, 0.4);
+}
+
+.lb-person-name {
+    font-size: 10px;
+    font-weight: 900;
+    color: #1a237e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+    direction: rtl;
+    line-height: 1.2;
+}
+
+.lb-person-1 .lb-person-name {
+    font-size: 11px;
+    color: #0d47a1;
+}
+
+.lb-person-points {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 900;
+    color: #f57c00;
+    line-height: 1;
+}
+
+.lb-person-1 .lb-person-points {
+    font-size: 11px;
+    color: #e65100;
+}
+
+.lb-podium-person.lb-is-me .lb-person-avatar {
+    box-shadow: 0 0 0 4px #ffeb3b,
+                0 8px 25px rgba(255, 235, 59, 0.6);
+}
+
+.lb-podium-person.lb-is-me .lb-person-info {
+    background: linear-gradient(135deg, #fff9c4, #fff176);
+    border-color: #fdd835;
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 کارت پروفایل (مودال)
+   ═══════════════════════════════════════════════════════ */
+
+.profile-card-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: pcFadeIn 0.3s ease;
+}
+
+.profile-card-overlay.active {
+    display: flex;
+}
+
+@keyframes pcFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.profile-card-container {
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    animation: pcSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-radius: 24px;
+}
+
+.profile-card-container::-webkit-scrollbar {
+    width: 0;
+    display: none;
+}
+
+@keyframes pcSlideUp {
+    from {
+        transform: translateY(50px) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.pc-modal-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 30px 20px 20px 20px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.pc-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.pc-close-btn:active {
+    transform: scale(0.9);
+    background: #e0e0e0;
+}
+
+.pc-close-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #555;
+    stroke-width: 2.5;
+    fill: none;
+}
+
+/* دکمه برگشت (برای صفحه مدال‌ها) */
+.pc-modal-back-btn {
+    position: absolute;
+    top: 12px;
+    right: 52px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.pc-modal-back-btn:active {
+    transform: scale(0.9);
+    background: #e0e0e0;
+}
+
+.pc-modal-back-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #555;
+    stroke-width: 2.5;
+    fill: none;
+}
+
+/* آواتار */
+.pc-modal-avatar-section {
+    text-align: center;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.pc-modal-avatar-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-emoji-mode .lb-avatar-emoji {
+    font-size: 100px;
+    line-height: 1;
+    filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.2));
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-image-mode {
+    background: #fff;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #fff;
+    box-shadow: 0 8px 25px rgba(25, 118, 210, 0.3);
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-image-mode img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-default-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-default-mode .lb-avatar-default-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.pc-modal-rank-medal {
+    position: absolute;
+    top: -5px;
+    right: calc(50% - 60px);
+    font-size: 34px;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+    animation: medalFloat 2s ease-in-out infinite;
+    z-index: 3;
+}
+
+@keyframes medalFloat {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-6px) rotate(5deg); }
+}
+
+/* اطلاعات اصلی */
+.pc-modal-main-info {
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.pc-modal-name {
+    font-size: 19px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pc-modal-you-badge {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 900;
+}
+
+.pc-modal-class {
+    font-size: 13px;
+    color: #78909c;
+    font-weight: bold;
+    background: #f0f7ff;
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+}
+
+/* آمار */
+.pc-modal-stats-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 10px;
+    padding-right: 3px;
+}
+
+.pc-modal-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.pc-modal-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    border: 1.5px solid #e3f2fd;
+    text-align: right;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.pc-modal-stat-card:active {
+    transform: scale(0.97);
+    background: #f0f7ff;
+}
+
+/* استایل خاص برای کارت مدال (قابل کلیک) */
+.pc-modal-stat-card.pc-modal-stat-orange {
+    cursor: pointer;
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    border-color: #ffc107;
+}
+
+.pc-modal-stat-card.pc-modal-stat-orange:active {
+    background: linear-gradient(135deg, #ffecb3, #ffe082);
+}
+
+.pc-modal-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pc-modal-stat-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* رنگ‌بندی آیکون‌ها مثل صفحه حساب کاربری */
+.pc-modal-stat-yellow .pc-modal-stat-icon {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+}
+.pc-modal-stat-yellow .pc-modal-stat-icon svg {
+    stroke: #f57c00;
+    fill: #f57c00;
+}
+
+.pc-modal-stat-orange .pc-modal-stat-icon {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+}
+.pc-modal-stat-orange .pc-modal-stat-icon svg {
+    stroke: #ef6c00;
+    fill: none;
+}
+
+.pc-modal-stat-teal .pc-modal-stat-icon {
+    background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+}
+.pc-modal-stat-teal .pc-modal-stat-icon svg {
+    stroke: #00897b;
+    fill: none;
+}
+
+.pc-modal-stat-purple .pc-modal-stat-icon {
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+}
+.pc-modal-stat-purple .pc-modal-stat-icon svg {
+    stroke: #8e24aa;
+    fill: none;
+}
+
+.pc-modal-stat-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.pc-modal-stat-label {
+    font-size: 10px;
+    font-weight: bold;
+    color: #78909c;
+    margin-bottom: 3px;
+}
+
+.pc-modal-stat-value {
+    font-size: 17px;
+    font-weight: 900;
+    color: #1976d2;
+    line-height: 1;
+}
+
+.pc-modal-stat-arrow {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pc-modal-stat-arrow svg {
+    width: 16px;
+    height: 16px;
+    stroke: #f57c00;
+    fill: none;
+}
+
+/* نوار پیشرفت */
+.pc-modal-progress-section {
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 14px;
+    border: 1.5px solid #e3f2fd;
+}
+
+.pc-modal-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 900;
+    color: #546e7a;
+    margin-bottom: 8px;
+}
+
+.pc-modal-progress-label span:last-child {
+    color: #1976d2;
+}
+
+.pc-modal-progress-bar {
+    height: 10px;
+    background: #e3f2fd;
+    border-radius: 50px;
+    overflow: hidden;
+}
+
+.pc-modal-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50 0%, #8bc34a 50%, #cddc39 100%);
+    border-radius: 50px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.pc-modal-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: progressShine 2s linear infinite;
+}
+
+@keyframes progressShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 صفحه مدال‌های کاربر (داخل مودال)
+   ═══════════════════════════════════════════════════════ */
+
+.pc-modal-medals-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-top: 10px;
+}
+
+.pc-modal-medals-icon {
+    font-size: 50px;
+    margin-bottom: 8px;
+    animation: medalBounceHeader 2s ease-in-out infinite;
+}
+
+@keyframes medalBounceHeader {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-8px) rotate(5deg); }
+}
+
+.pc-modal-medals-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 5px;
+}
+
+.pc-modal-medals-sub {
+    font-size: 13px;
+    font-weight: bold;
+    color: #78909c;
+    background: #f0f7ff;
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+}
+
+.pc-modal-medals-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    padding: 5px 0;
+}
+
+.pc-modal-medal-item {
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px 8px;
+    text-align: center;
+    border: 2px solid #e3f2fd;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.pc-modal-medal-item.unlocked {
+    border-color: #ffc107;
+    background: linear-gradient(135deg, #fff8e1, #ffffff);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.25);
+}
+
+.pc-modal-medal-item.locked {
+    opacity: 0.5;
+    filter: grayscale(1);
+    background: #f8f9fa;
+}
+
+.pc-modal-medal-icon {
+    font-size: 32px;
+    margin-bottom: 6px;
+    display: block;
+    line-height: 1;
+}
+
+.pc-modal-medal-title {
+    font-size: 11px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 3px;
+}
+
+.pc-modal-medal-item.locked .pc-modal-medal-title {
+    color: #90a4ae;
+}
+
+.pc-modal-medal-desc {
+    font-size: 9px;
+    color: #90a4ae;
+    font-weight: bold;
+    line-height: 1.3;
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 لیست ردیفی — اصلاح
+   ═══════════════════════════════════════════════════════ */
 
 .lb-row-class {
     font-size: 11px;
     font-weight: bold;
     color: #90a4ae;
+    /* زیر اسم کاربر */
+    display: block;
+    margin-top: 1px;
 }
 
-/* امتیاز */
-.lb-row-points {
+/* حالت شب */
+body.dark-mode .pc-modal-card {
+    background: #1a2332;
+}
+
+body.dark-mode .pc-close-btn,
+body.dark-mode .pc-modal-back-btn {
+    background: #2a3444;
+}
+
+body.dark-mode .pc-close-btn svg,
+body.dark-mode .pc-modal-back-btn svg {
+    stroke: #90caf9;
+}
+
+body.dark-mode .pc-modal-name {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-class {
+    background: #0f1419;
+    color: #90a4ae;
+}
+
+body.dark-mode .pc-modal-stat-card {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-stat-card.pc-modal-stat-orange {
+    background: linear-gradient(135deg, #4a3a1a, #5a4a1a);
+    border-color: #f57c00;
+}
+
+body.dark-mode .pc-modal-stat-value {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-stat-label {
+    color: #78909c;
+}
+
+body.dark-mode .pc-modal-progress-section {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-progress-label {
+    color: #90a4ae;
+}
+
+body.dark-mode .pc-modal-progress-bar {
+    background: #2a3444;
+}
+
+body.dark-mode .pc-modal-stats-title {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-medals-title {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-medals-sub {
+    background: #0f1419;
+    color: #90a4ae;
+}
+
+body.dark-mode .pc-modal-medal-item {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-medal-item.unlocked {
+    background: linear-gradient(135deg, #4a3a1a, #1a2332);
+    border-color: #f57c00;
+}
+
+body.dark-mode .pc-modal-medal-title {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-medal-desc {
+    color: #607d8b;
+}
+
+/* ریسپانسیو */
+@media (max-width: 400px) {
+    .lb-person-avatar {
+        width: 44px;
+        height: 44px;
+    }
+    .lb-person-1 .lb-person-avatar {
+        width: 56px;
+        height: 56px;
+    }
+    .lb-person-avatar .lb-avatar-emoji {
+        font-size: 26px;
+    }
+    .lb-person-1 .lb-person-avatar .lb-avatar-emoji {
+        font-size: 34px;
+    }
+    .lb-person-name {
+        font-size: 9px;
+        max-width: 70px;
+    }
+    .lb-person-1 .lb-person-name {
+        font-size: 10px;
+        max-width: 80px;
+    }
+    .lb-person-points {
+        font-size: 9px;
+    }
+    .lb-person-1 .lb-person-points {
+        font-size: 10px;
+    }
+    .lb-person-info {
+        padding: 3px 6px;
+        min-width: 60px;
+    }
+    .lb-person-crown {
+        font-size: 22px;
+        top: -24px;
+    }
+
+    .pc-modal-avatar-wrapper {
+        width: 80px;
+        height: 80px;
+    }
+    .pc-modal-avatar-wrapper.lb-avatar-emoji-mode .lb-avatar-emoji {
+        font-size: 80px;
+    }
+    .pc-modal-rank-medal {
+        font-size: 28px;
+        right: calc(50% - 50px);
+    }
+    .pc-modal-name {
+        font-size: 16px;
+    }
+    .pc-modal-stat-value {
+        font-size: 15px;
+    }
+    .pc-modal-medals-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .pc-modal-medal-icon {
+        font-size: 28px;
+    }
+    .pc-modal-medal-title {
+        font-size: 10px;
+    }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم مجدد موقعیت آواتار بالای سکو
+   ═══════════════════════════════════════════════════════ */
+
+.lb-podium-vector-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    aspect-ratio: 1080 / 720;
+    background: #f0f7ff;
+}
+
+.lb-podium-vector-bg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.lb-podium-people {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.lb-podium-person {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform 0.2s ease;
+    width: 26%;
+    max-width: 120px;
+}
+
+.lb-podium-person:active {
+    transform: scale(0.95);
+}
+
+/* نفر اول - پایین‌تر (کمی) */
+.lb-person-1 {
+    bottom: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم - بالاتر */
+.lb-person-2 {
+    bottom: 50%;
+    right: 8%;
+    z-index: 2;
+}
+
+/* نفر سوم - پایین‌تر */
+.lb-person-3 {
+    bottom: 33%;
+    left: 8%;
+    z-index: 2;
+}
+
+/* بقیه‌ی استایل‌های سکو (تاج، آواتار، اطلاعات) بدون تغییر */
+
+.lb-person-crown {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+    animation: crownBounce 2s ease-in-out infinite;
+    z-index: 4;
+    pointer-events: none;
+}
+
+@keyframes crownBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+    50% { transform: translateX(-50%) translateY(-5px) rotate(5deg); }
+}
+
+.lb-person-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: #fff;
     display: flex;
     align-items: center;
-    gap: 4px;
-    background: linear-gradient(135deg, #fff9c4, #fff176);
-    padding: 7px 12px;
-    border-radius: 50px;
-    flex-shrink: 0;
-    border: 1.5px solid #fdd835;
-    box-shadow: 0 2px 6px rgba(253, 216, 53, 0.3);
-    min-width: 72px;
     justify-content: center;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    margin-bottom: 4px;
+    flex-shrink: 0;
 }
 
-.lb-row-star {
-    font-size: 13px;
+.lb-person-1 .lb-person-avatar {
+    width: 68px;
+    height: 68px;
+    border: 4px solid #ffc107;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.4), 0 8px 25px rgba(255, 193, 7, 0.6);
 }
 
-.lb-row-points-value {
-    font-size: 15px;
+.lb-person-2 .lb-person-avatar.lb-avatar-image-mode {
+    border-color: #cfd8dc;
+    box-shadow: 0 0 0 3px rgba(207, 216, 220, 0.5), 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.lb-person-3 .lb-person-avatar.lb-avatar-image-mode {
+    border-color: #d7a86e;
+    box-shadow: 0 0 0 3px rgba(215, 168, 110, 0.5), 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.lb-person-avatar.lb-avatar-emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+}
+
+.lb-person-1 .lb-person-avatar.lb-avatar-emoji-mode {
+    filter: drop-shadow(0 6px 15px rgba(255, 193, 7, 0.7));
+}
+
+.lb-person-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lb-person-avatar .lb-avatar-emoji {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.lb-person-1 .lb-person-avatar .lb-avatar-emoji {
+    font-size: 42px;
+}
+
+.lb-person-info {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 4px 8px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 70px;
+    max-width: 110px;
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+}
+
+.lb-person-name {
+    font-size: 10px;
+    font-weight: 900;
+    color: #1a237e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+    direction: rtl;
+}
+
+.lb-person-points {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 10px;
     font-weight: 900;
     color: #f57c00;
     line-height: 1;
 }
 
-/* کاربر خارج از لیست */
-.lb-not-in-list {
-    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-    border: 2px solid #ff9800;
-    border-radius: 16px;
-    padding: 16px;
-    margin: 15px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-align: right;
+.lb-podium-person.lb-is-me .lb-person-avatar {
+    box-shadow: 0 0 0 4px #ffeb3b, 0 8px 25px rgba(255, 235, 59, 0.6);
 }
 
-.lb-not-in-icon {
-    font-size: 30px;
+.lb-podium-person.lb-is-me .lb-person-info {
+    background: linear-gradient(135deg, #fff9c4, #fff176);
+    border-color: #fdd835;
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 آیکون پیش‌فرض گرافیکی (SVG)
+   ═══════════════════════════════════════════════════════ */
+
+.lb-default-avatar-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 کارت پروفایل کوچک (بدون تکه‌ی اضافی)
+   ═══════════════════════════════════════════════════════ */
+
+.profile-card-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: pcFadeIn 0.3s ease;
+}
+
+.profile-card-overlay.active {
+    display: flex;
+}
+
+@keyframes pcFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.profile-card-container {
+    width: 100%;
+    max-width: 380px;
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    animation: pcSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-radius: 24px;
+}
+
+@keyframes pcSlideUp {
+    from {
+        transform: translateY(50px) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.pc-modal-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 30px 20px 20px 20px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.pc-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.pc-close-btn:active {
+    transform: scale(0.9);
+}
+
+.pc-close-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #555;
+    stroke-width: 2.5;
+    fill: none;
+}
+
+.pc-modal-avatar-section {
+    text-align: center;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.pc-modal-avatar-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-emoji-mode {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-emoji-mode .lb-avatar-emoji {
+    font-size: 100px;
+    line-height: 1;
+    filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.2));
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-image-mode {
+    background: #fff;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #fff;
+    box-shadow: 0 8px 25px rgba(25, 118, 210, 0.3);
+}
+
+.pc-modal-avatar-wrapper.lb-avatar-image-mode img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pc-modal-rank-medal {
+    position: absolute;
+    top: -5px;
+    right: calc(50% - 60px);
+    font-size: 34px;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+    animation: medalFloat 2s ease-in-out infinite;
+    z-index: 3;
+}
+
+@keyframes medalFloat {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-6px) rotate(5deg); }
+}
+
+.pc-modal-main-info {
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.pc-modal-name {
+    font-size: 19px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pc-modal-you-badge {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 900;
+}
+
+.pc-modal-class {
+    font-size: 13px;
+    color: #78909c;
+    font-weight: bold;
+    background: #f0f7ff;
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+}
+
+/* جدول اطلاعات (شبیه صفحه‌ی حساب کاربری) */
+.pc-modal-info-table {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 4px 16px;
+    margin-bottom: 18px;
+    border: 1.5px solid #e3f2fd;
+}
+
+.pc-modal-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed #e3f2fd;
+    font-size: 14px;
+}
+
+.pc-modal-info-row:last-child {
+    border-bottom: none;
+}
+
+.pc-modal-info-label {
+    color: #78909c;
+    font-weight: bold;
+}
+
+.pc-modal-info-value {
+    color: #1976d2;
+    font-weight: 900;
+}
+
+/* عنوان آمار */
+.pc-modal-stats-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 10px;
+    padding-right: 5px;
+}
+
+/* گرید آمار جدید */
+.pc-modal-stats-grid-v2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.pc-modal-stat-card-v2 {
+    background: #fff;
+    border-radius: 16px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid #e3f2fd;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.pc-modal-stat-card-v2[onclick] {
+    cursor: pointer;
+}
+
+.pc-modal-stat-card-v2[onclick]:active {
+    transform: scale(0.96);
+}
+
+.pc-modal-stat-icon-v2 {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
 
-.lb-not-in-text {
+.pc-modal-stat-icon-v2 svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.pc-modal-stat-yellow .pc-modal-stat-icon-v2 {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+}
+.pc-modal-stat-yellow .pc-modal-stat-icon-v2 svg {
+    stroke: #f57c00;
+    fill: #f57c00;
+}
+
+.pc-modal-stat-orange .pc-modal-stat-icon-v2 {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+}
+.pc-modal-stat-orange .pc-modal-stat-icon-v2 svg {
+    stroke: #ef6c00;
+    fill: none;
+}
+
+.pc-modal-stat-teal .pc-modal-stat-icon-v2 {
+    background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+}
+.pc-modal-stat-teal .pc-modal-stat-icon-v2 svg {
+    stroke: #00897b;
+    fill: none;
+}
+
+.pc-modal-stat-purple .pc-modal-stat-icon-v2 {
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+}
+.pc-modal-stat-purple .pc-modal-stat-icon-v2 svg {
+    stroke: #8e24aa;
+    fill: none;
+}
+
+.pc-modal-stat-content-v2 {
     flex: 1;
+    min-width: 0;
+}
+
+.pc-modal-stat-label-v2 {
+    font-size: 10px;
+    color: #78909c;
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.pc-modal-stat-value-v2 {
+    font-size: 16px;
+    font-weight: 900;
+    color: #1976d2;
+}
+
+.pc-modal-stat-arrow {
+    color: #90a4ae;
+    font-size: 20px;
+    font-weight: bold;
+    margin-left: auto;
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 مودال مدال‌های کاربر
+   ═══════════════════════════════════════════════════════ */
+
+.user-medals-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 0;
+    animation: pcFadeIn 0.3s ease;
+}
+
+.user-medals-overlay.active {
+    display: flex;
+}
+
+.user-medals-container {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    animation: pcSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: #f0f7ff;
+}
+
+.um-card {
+    background: #f0f7ff;
+    min-height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.um-header {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    padding: 20px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(245, 124, 0, 0.3);
+}
+
+.um-back-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.um-back-btn:active {
+    transform: scale(0.92);
+}
+
+.um-back-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: #fff;
+    stroke-width: 2.5;
+    fill: none;
+}
+
+.um-header-title {
+    font-size: 17px;
+    font-weight: 900;
+    flex: 1;
+}
+
+.um-header-sub {
+    font-size: 12px;
+    opacity: 0.9;
+    font-weight: bold;
+}
+
+.um-scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 15px 25px 15px;
+}
+
+/* کارت پیشرفت */
+.um-progress-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid #e3f2fd;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.um-progress-icon {
+    font-size: 44px;
+    flex-shrink: 0;
+    animation: medalFloat 2s ease-in-out infinite;
+}
+
+.um-progress-info {
+    flex: 1;
+    min-width: 120px;
+}
+
+.um-progress-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 5px;
+}
+
+.um-progress-count {
     font-size: 13px;
     font-weight: bold;
-    color: #e65100;
-    line-height: 1.6;
+    color: #78909c;
 }
 
-/* ═══════════════════════════════════════
-   حالت شب
-   ═══════════════════════════════════════ */
-body.dark-mode .lb-header {
-    background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+.um-progress-bar-wrapper {
+    width: 100%;
+    margin-top: 10px;
 }
 
-body.dark-mode .lb-podium-wrapper {
-    background: linear-gradient(180deg, #1565c0 0%, #0f1419 100%);
+.um-progress-bar {
+    width: 100%;
+    height: 10px;
+    background: #e3f2fd;
+    border-radius: 50px;
+    overflow: hidden;
 }
 
-body.dark-mode .lb-podium-name {
+.um-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+    border-radius: 50px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.um-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: progressShine 2s linear infinite;
+}
+
+/* گرید مدال‌ها */
+.um-medals-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.um-medal-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 16px 12px;
+    text-align: center;
+    border: 2px solid #e3f2fd;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.um-medal-card.um-unlocked {
+    border-color: #ffc107;
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.25);
+}
+
+.um-medal-card.um-locked {
+    opacity: 0.5;
+    filter: grayscale(0.8);
+}
+
+.um-medal-icon-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.um-medal-icon {
+    font-size: 48px;
+    display: block;
+    line-height: 1;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+}
+
+.um-medal-card.um-unlocked .um-medal-icon {
+    animation: medalBounce 2s ease-in-out infinite;
+}
+
+@keyframes medalBounce {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+.um-medal-locked-icon {
+    opacity: 0.5;
+}
+
+.um-medal-check {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 900;
+    border: 2px solid #fff;
+    box-shadow: 0 3px 8px rgba(76, 175, 80, 0.4);
+}
+
+.um-medal-title {
+    font-size: 13px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 4px;
+}
+
+.um-medal-card.um-locked .um-medal-title {
+    color: #90a4ae;
+}
+
+.um-medal-desc {
+    font-size: 10px;
+    color: #90a4ae;
+    font-weight: bold;
+    line-height: 1.4;
+}
+
+/* حالت شب */
+body.dark-mode .pc-modal-card {
+    background: #1a2332;
+}
+
+body.dark-mode .pc-close-btn {
+    background: #2a3444;
+}
+
+body.dark-mode .pc-close-btn svg {
+    stroke: #90caf9;
+}
+
+body.dark-mode .pc-modal-name {
     color: #90caf9;
 }
 
-body.dark-mode .lb-list {
+body.dark-mode .pc-modal-class {
+    background: #0f1419;
+    color: #90a4ae;
+}
+
+body.dark-mode .pc-modal-info-table {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-info-row {
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-info-value {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-stat-card-v2 {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-stat-value-v2 {
+    color: #90caf9;
+}
+
+body.dark-mode .user-medals-container {
     background: #0f1419;
 }
 
-body.dark-mode .lb-row {
+body.dark-mode .um-card {
+    background: #0f1419;
+}
+
+body.dark-mode .um-progress-card,
+body.dark-mode .um-medal-card {
     background: #1a2332;
     border-color: #2a3444;
 }
 
-body.dark-mode .lb-row.lb-row-me {
-    background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
-    border-color: #1cb0f6;
-}
-
-body.dark-mode .lb-row-name {
+body.dark-mode .um-medal-title {
     color: #90caf9;
 }
 
-body.dark-mode .lb-row.lb-row-me .lb-row-name {
-    color: #fff;
-}
-
-body.dark-mode .lb-row-class {
+body.dark-mode .um-medal-card.um-locked .um-medal-title {
     color: #607d8b;
 }
 
-body.dark-mode .lb-row-rank {
+body.dark-mode .um-progress-bar {
     background: #2a3444;
+}
+
+/* ریسپانسیو */
+@media (max-width: 400px) {
+    .lb-person-avatar {
+        width: 44px;
+        height: 44px;
+    }
+    .lb-person-1 .lb-person-avatar {
+        width: 56px;
+        height: 56px;
+    }
+    .lb-person-avatar .lb-avatar-emoji {
+        font-size: 26px;
+    }
+    .lb-person-1 .lb-person-avatar .lb-avatar-emoji {
+        font-size: 34px;
+    }
+    .lb-person-name {
+        font-size: 9px;
+        max-width: 70px;
+    }
+    .lb-person-points {
+        font-size: 9px;
+    }
+    .lb-person-info {
+        padding: 3px 6px;
+        min-width: 60px;
+    }
+
+    .pc-modal-avatar-wrapper {
+        width: 80px;
+        height: 80px;
+    }
+    .pc-modal-avatar-wrapper.lb-avatar-emoji-mode .lb-avatar-emoji {
+        font-size: 80px;
+    }
+    .pc-modal-rank-medal {
+        font-size: 28px;
+        right: calc(50% - 50px);
+    }
+    .pc-modal-name {
+        font-size: 16px;
+    }
+    .pc-modal-stat-value-v2 {
+        font-size: 14px;
+    }
+    .pc-modal-stat-icon-v2 {
+        width: 34px;
+        height: 34px;
+    }
+    .pc-modal-stat-icon-v2 svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .um-medal-icon {
+        font-size: 40px;
+    }
+    .um-medal-title {
+        font-size: 11px;
+    }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم مجدد موقعیت آواتار بالای سکو
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - پایین‌تر */
+.lb-person-1 {
+    bottom: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم - بالاتر */
+.lb-person-2 {
+    bottom: 56%;
+    right: 8%;
+    z-index: 2;
+}
+
+/* نفر سوم - پایین‌تر */
+.lb-person-3 {
+    bottom: 28%;
+    left: 8%;
+    z-index: 2;
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 مودال مدال‌های کاربر (کادر کوچیک)
+   ═══════════════════════════════════════════════════════ */
+
+.user-medals-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+    animation: pcFadeIn 0.3s ease;
+}
+
+.user-medals-overlay.active {
+    display: flex;
+}
+
+.user-medals-container {
+    width: 100%;
+    max-width: 420px;
+    max-height: 85vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    animation: pcSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-radius: 24px;
+}
+
+/* کارت مودال */
+.um-modal-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 25px 20px 20px 20px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* دکمه بستن */
+.um-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.um-close-btn:active {
+    transform: scale(0.9);
+    background: #e0e0e0;
+}
+
+.um-close-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #555;
+    stroke-width: 2.5;
+    fill: none;
+}
+
+/* هدر */
+.um-modal-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px dashed #e3f2fd;
+}
+
+.um-modal-header-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+    animation: medalFloat 2s ease-in-out infinite;
+}
+
+@keyframes medalFloat {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-6px) rotate(5deg); }
+}
+
+.um-modal-header-title {
+    font-size: 17px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 4px;
+}
+
+.um-modal-header-sub {
+    font-size: 12px;
+    font-weight: bold;
+    color: #78909c;
+    background: #f0f7ff;
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+}
+
+/* لیست مدال‌ها */
+.um-modal-medals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* هر مدال */
+.um-modal-medal-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+    border-radius: 16px;
+    border: 2px solid #ffc107;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.um-modal-medal-item:active {
+    transform: scale(0.98);
+}
+
+.um-modal-medal-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.15));
+    animation: medalIconBounce 2s ease-in-out infinite;
+}
+
+@keyframes medalIconBounce {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-3px) rotate(5deg); }
+}
+
+.um-modal-medal-info {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+}
+
+.um-modal-medal-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #e65100;
+    margin-bottom: 3px;
+}
+
+.um-modal-medal-desc {
+    font-size: 11px;
+    color: #bf360c;
+    font-weight: bold;
+    line-height: 1.4;
+}
+
+.um-modal-medal-check {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 900;
+    border: 2px solid #fff;
+    box-shadow: 0 3px 8px rgba(76, 175, 80, 0.4);
+    flex-shrink: 0;
+}
+
+/* حالت خالی */
+.um-modal-empty {
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.um-modal-empty-icon {
+    font-size: 60px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.um-modal-empty-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: #78909c;
+    margin-bottom: 8px;
+}
+
+.um-modal-empty-text {
+    font-size: 13px;
+    color: #90a4ae;
+    font-weight: bold;
+    line-height: 1.6;
+}
+
+/* حالت شب */
+body.dark-mode .um-modal-card {
+    background: #1a2332;
+}
+
+body.dark-mode .um-close-btn {
+    background: #2a3444;
+}
+
+body.dark-mode .um-close-btn svg {
+    stroke: #90caf9;
+}
+
+body.dark-mode .um-modal-header {
+    border-color: #2a3444;
+}
+
+body.dark-mode .um-modal-header-title {
+    color: #90caf9;
+}
+
+body.dark-mode .um-modal-header-sub {
+    background: #0f1419;
     color: #90a4ae;
 }
 
-body.dark-mode .lb-row-avatar {
-    background: #2a3444;
+body.dark-mode .um-modal-medal-item {
+    background: linear-gradient(135deg, #2a1f0a 0%, #3a2a0a 100%);
+    border-color: #ffc107;
 }
 
-body.dark-mode .lb-row-points {
-    background: linear-gradient(135deg, #4a3a1a, #5a4a1a);
-    border-color: #fdd835;
+body.dark-mode .um-modal-medal-title {
+    color: #ffcc80;
 }
 
-body.dark-mode .lb-row-points-value {
-    color: #fdd835;
+body.dark-mode .um-modal-medal-desc {
+    color: #ffb74d;
 }
 
-/* ═══════════════════════════════════════
-   ریسپانسیو
-   ═══════════════════════════════════════ */
+body.dark-mode .um-modal-empty-title {
+    color: #607d8b;
+}
+
+/* ریسپانسیو */
 @media (max-width: 400px) {
-    .lb-header-title { font-size: 22px; }
-    .lb-header-crown { font-size: 36px; }
-    
-    .lb-podium-avatar { width: 55px; height: 55px; }
-    .lb-podium-1 .lb-podium-avatar { width: 72px; height: 72px; }
-    .lb-podium-1 .lb-avatar-emoji { font-size: 38px; }
-    .lb-avatar-emoji { font-size: 28px; }
-    
-    .lb-podium-name { font-size: 11px; }
-    .lb-podium-points { font-size: 11px; padding: 2px 8px; }
-    .lb-base-1 { height: 65px; }
-    .lb-base-2 { height: 48px; }
-    .lb-base-3 { height: 35px; }
-    
-    .lb-row { padding: 10px 12px; gap: 8px; }
-    .lb-row-rank { width: 32px; height: 32px; font-size: 13px; }
-    .lb-row-avatar { width: 38px; height: 38px; }
-    .lb-row-name { font-size: 12px; }
-    .lb-row-class { font-size: 10px; }
-    .lb-row-points { padding: 6px 10px; min-width: 62px; }
-    .lb-row-points-value { font-size: 13px; }
+    .user-medals-container {
+        max-width: 100%;
+    }
+    .um-modal-medal-icon {
+        font-size: 30px;
+    }
+    .um-modal-medal-title {
+        font-size: 13px;
+    }
+    .um-modal-medal-desc {
+        font-size: 10px;
+    }
+    .um-modal-header-icon {
+        font-size: 40px;
+    }
+    .um-modal-header-title {
+        font-size: 15px;
+    }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم نهایی موقعیت آواتارها روی سکو
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - وسط (بالاترین) */
+.lb-person-1 {
+    bottom: 52%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم - سمت راست (بالاتر از قبل) */
+.lb-person-2 {
+    bottom: 60%;
+    right: 8%;
+    z-index: 2;
+}
+
+/* نفر سوم - سمت چپ (پایین‌تر از قبل) */
+.lb-person-3 {
+    bottom: 24%;
+    left: 8%;
+    z-index: 2;
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 تاج روی سر نفر اول (نه شناور بالای آواتار)
+   ═══════════════════════════════════════════════════════ */
+
+.lb-person-crown {
+    position: absolute;
+    top: -18px;              /* 🆕 روی سر آواتار، نه بالا */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم آواتارها بالای تاج‌ها
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - بالای تاج سکوی وسط */
+.lb-person-1 {
+    bottom: 56%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم - بالای تاج سکوی راست */
+.lb-person-2 {
+    bottom: 52%;
+    right: 8%;
+    z-index: 2;
+}
+
+/* نفر سوم - بالای تاج سکوی چپ */
+.lb-person-3 {
+    bottom: 46%;
+    left: 8%;
+    z-index: 2;
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 تاج روی سر نفر اول (نه شناور)
+   ═══════════════════════════════════════════════════════ */
+
+.lb-person-crown {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم نهایی موقعیت آواتارها
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - بالای تاج سکوی وسط */
+.lb-person-1 {
+    bottom: 56%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم - بالای تاج سکوی راست */
+.lb-person-2 {
+    bottom: 52%;
+    right: 8%;
+    z-index: 2;
+}
+
+/* نفر سوم - پایین‌تر روی سکوی چپ */
+.lb-person-3 {
+    bottom: 36%;
+    left: 8%;
+    z-index: 2;
+}
+
+/* تاج روی سر نفر اول */
+.lb-person-crown {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم نهایی — نفر سوم روی تاج برنزی
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - بالای تاج طلایی (وسط) */
+.lb-person-1 {
+    bottom: 56%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم - بالای تاج نقره‌ای (راست) */
+.lb-person-2 {
+    bottom: 52%;
+    right: 8%;
+    z-index: 2;
+}
+
+/* نفر سوم - روی تاج برنزی (چپ) */
+.lb-person-3 {
+    bottom: 18%;
+    left: 8%;
+    z-index: 2;
+}
+
+/* تاج نفر اول */
+.lb-person-crown {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم نهایی موقعیت آواتارها
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - بالای تاج سکوی وسط */
+.lb-person-1 {
+    bottom: 56%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم - بالای تاج سکوی راست */
+.lb-person-2 {
+    bottom: 52%;
+    right: 8%;
+    z-index: 2;
+}
+
+/* نفر سوم - پایین‌تر روی سکوی چپ */
+.lb-person-3 {
+    bottom: 36%;
+    left: 8%;
+    z-index: 2;
+}
+
+/* تاج روی سر نفر اول */
+.lb-person-crown {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم نهایی — نفر دوم چپ، نفر سوم راست
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - وسط (امین) */
+.lb-person-1 {
+    bottom: 56%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم (هادی) - سمت چپ */
+.lb-person-2 {
+    bottom: 52%;
+    left: 8%;
+    right: auto;
+    z-index: 2;
+}
+
+/* نفر سوم (هادی ۳) - سمت راست */
+.lb-person-3 {
+    bottom: 4%;
+    right: 8%;
+    left: auto;
+    z-index: 2;
+}
+
+/* تاج نفر اول */
+.lb-person-crown {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم نهایی موقعیت آواتارها
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - وسط (امین) */
+.lb-person-1 {
+    bottom: 56%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم (هادی) - سمت چپ */
+.lb-person-2 {
+    bottom: 52%;
+    left: 8%;
+    right: auto;
+    z-index: 2;
+}
+
+/* نفر سوم (هادی ۳) - سمت راست، روی تاج برنزی */
+.lb-person-3 {
+    bottom: 12%;
+    right: 8%;
+    left: auto;
+    z-index: 2;
+}
+
+/* تاج نفر اول */
+.lb-person-crown {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم نهایی موقعیت آواتارها
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - وسط (امین) */
+.lb-person-1 {
+    bottom: 56%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم (هادی) - سمت چپ */
+.lb-person-2 {
+    bottom: 52%;
+    left: 8%;
+    right: auto;
+    z-index: 2;
+}
+
+/* نفر سوم (هادی ۳) - سمت راست، بالاتر */
+.lb-person-3 {
+    bottom: 22%;
+    right: 8%;
+    left: auto;
+    z-index: 2;
+}
+
+/* تاج نفر اول */
+.lb-person-crown {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم نهایی موقعیت آواتارها
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - وسط (امین) */
+.lb-person-1 {
+    bottom: 56%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم (هادی) - سمت چپ */
+.lb-person-2 {
+    bottom: 52%;
+    left: 8%;
+    right: auto;
+    z-index: 2;
+}
+
+/* نفر سوم (هادی ۳) - سمت راست، یه وجب بالاتر */
+.lb-person-3 {
+    bottom: 32%;
+    right: 8%;
+    left: auto;
+    z-index: 2;
+}
+
+/* تاج نفر اول */
+.lb-person-crown {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم نهایی موقعیت آواتارها
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - وسط (امین) */
+.lb-person-1 {
+    bottom: 56%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم (هادی) - سمت چپ */
+.lb-person-2 {
+    bottom: 52%;
+    left: 8%;
+    right: auto;
+    z-index: 2;
+}
+
+/* نفر سوم (هادی ۳) - سمت راست، یه ذره بالاتر */
+.lb-person-3 {
+    bottom: 36%;
+    right: 8%;
+    left: auto;
+    z-index: 2;
+}
+
+/* تاج نفر اول */
+.lb-person-crown {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 تنظیم نهایی موقعیت آواتارها
+   ═══════════════════════════════════════════════════════ */
+
+/* نفر اول - وسط (امین) */
+.lb-person-1 {
+    bottom: 56%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* نفر دوم (هادی) - سمت چپ */
+.lb-person-2 {
+    bottom: 52%;
+    left: 8%;
+    right: auto;
+    z-index: 2;
+}
+
+/* نفر سوم (هادی ۳) - سمت راست */
+.lb-person-3 {
+    bottom: 42%;
+    right: 8%;
+    left: auto;
+    z-index: 2;
+}
+
+/* تاج نفر اول */
+.lb-person-crown {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    z-index: 5;
+    pointer-events: none;
+    animation: crownTilt 2.5s ease-in-out infinite;
+}
+
+@keyframes crownTilt {
+    0%, 100% { transform: translateX(-50%) rotate(-8deg); }
+    50% { transform: translateX(-50%) rotate(8deg); }
 }
