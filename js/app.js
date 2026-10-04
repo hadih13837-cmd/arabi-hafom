@@ -1,11 +1,44 @@
 // ============================================================
 // app.js — نقطه شروع برنامه (باید آخرین فایل لود بشه)
+// نسخه: ۲.۲.۰ — همگام‌سازی خودکار کامل
 // ============================================================
 
 // ============================================================
 // متغیر سراسری برای حالت انتشار
 // ============================================================
 let isPublished = true;
+
+// ============================================================
+// 🆕 تابع مرکزی برای همگام‌سازی خودکار
+// این تابع رو هر جا که نیاز به sync باشه صدا می‌زنیم
+// ============================================================
+function autoSyncRanking(reason = 'unknown') {
+    // چک کن کاربر ثبت‌نام کرده و تابع موجوده
+    if (localStorage.getItem('userRegistered') !== 'true') {
+        return;
+    }
+    
+    if (typeof saveRankingToSupabase !== 'function') {
+        console.warn('⚠️ تابع saveRankingToSupabase موجود نیست');
+        return;
+    }
+    
+    console.log(`🔄 همگام‌سازی خودکار (دلیل: ${reason})`);
+    
+    // با تأخیر کوتاه، تا اطلاعات جدید اول توی localStorage ذخیره بشن
+    setTimeout(async () => {
+        try {
+            const success = await saveRankingToSupabase();
+            if (success) {
+                console.log(`✅ همگام‌سازی موفق (${reason})`);
+            } else {
+                console.warn(`⚠️ همگام‌سازی ناموفق (${reason})`);
+            }
+        } catch (e) {
+            console.error(`❌ خطا در همگام‌سازی (${reason}):`, e);
+        }
+    }, 500);
+}
 
 // ============================================================
 // بررسی حالت بروزرسانی و وضعیت انتشار
@@ -62,7 +95,21 @@ async function startApp() {
 }
 
 // ============================================================
-// 🆕 PWA — نصب اپلیکیشن + آپدیت خودکار
+// 🆕 ساخت UUID برای کاربر
+// ============================================================
+function generateUUID() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+// ============================================================
+// PWA — نصب اپلیکیشن + آپدیت خودکار
 // ============================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -70,12 +117,10 @@ if ('serviceWorker' in navigator) {
             const registration = await navigator.serviceWorker.register('./service-worker.js');
             console.log('✅ Service Worker ثبت شد');
 
-            // 🆕 بررسی آپدیت هر ۳۰ ثانیه یه بار
             setInterval(() => {
                 registration.update();
             }, 30000);
 
-            // 🆕 وقتی Service Worker جدید پیدا شد
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 console.log('🔄 نسخه‌ی جدید پیدا شد');
@@ -89,7 +134,6 @@ if ('serviceWorker' in navigator) {
                 });
             });
 
-            // 🆕 وقتی Service Worker جدید فعال شد، صفحه رو رفرش کن
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
@@ -207,24 +251,17 @@ window.addEventListener('load', async () => {
     loadUserInfo();
     loadTheme();
 
-    // 🆕 اگه کاربر ثبت‌نام کرده ولی UUID نداره، بسازش
+    // 🆕 ۳. اگه کاربر ثبت‌نام کرده ولی UUID نداره، بسازش
     if (localStorage.getItem('userRegistered') === 'true' && !localStorage.getItem('studentUUID')) {
         console.log('🆕 کاربر قدیمی - ساخت UUID...');
-        const newUUID = (typeof crypto !== 'undefined' && crypto.randomUUID) 
-            ? crypto.randomUUID() 
-            : generateUUID();
+        const newUUID = generateUUID();
         localStorage.setItem('studentUUID', newUUID);
         console.log('✅ UUID ساخته شد:', newUUID);
     }
 
-    // 🆕 آپدیت خودکار امتیاز در Supabase (برای کاربرای قدیمی و جدید)
-    if (localStorage.getItem('userRegistered') === 'true' && localStorage.getItem('studentUUID')) {
-        setTimeout(() => {
-            if (typeof saveRankingToSupabase === 'function') {
-                console.log('📤 ارسال اطلاعات به Supabase...');
-                saveRankingToSupabase();
-            }
-        }, 2500);
+    // 🆕 ۴. همگام‌سازی خودکار بعد از ورود به برنامه
+    if (localStorage.getItem('userRegistered') === 'true') {
+        autoSyncRanking('ورود به برنامه');
     }
 
     if (localStorage.getItem('soundsEnabled') === 'false') {
@@ -239,10 +276,10 @@ window.addEventListener('load', async () => {
         document.body.classList.add('dark-mode');
     }
 
-    // ۳. فعال‌سازی swipe روی اعلان‌ها
+    // ۵. فعال‌سازی swipe روی اعلان‌ها
     initNotificationSwipe();
 
-    // ۴. تصمیم‌گیری درباره صفحه اولیه
+    // ۶. تصمیم‌گیری درباره صفحه اولیه
     const cameFromClips = sessionStorage.getItem('cameFromClips') === 'true';
     const isRegistered = localStorage.getItem('userRegistered') === 'true';
 
@@ -273,5 +310,17 @@ window.addEventListener('load', async () => {
     } else {
         pushHistory('screen-splash');
         setTimeout(typeMotivation, 500);
+    }
+});
+
+// ============================================================
+// 🆕 همگام‌سازی خودکار وقتی کاربر برگشت به برنامه
+// (مثلاً بعد از minimize یا باز کردن دوباره)
+// ============================================================
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        if (localStorage.getItem('userRegistered') === 'true') {
+            autoSyncRanking('بازگشت به برنامه');
+        }
     }
 });

@@ -1,5 +1,6 @@
 // ============================================================
 // avatars.js — مجموعه ایموجی‌ها و منطق آواتار
+// نسخه: ۲.۱.۰ — با همگام‌سازی خودکار
 // ============================================================
 
 // ============================================================
@@ -8,7 +9,7 @@
 const DEFAULT_AVATAR = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
 
 // ============================================================
-// مجموعه ایموجی‌ها (فقط دسته‌های آموزشی و سرگرم‌کننده)
+// مجموعه ایموجی‌ها
 // ============================================================
 const AVATAR_EMOJIS = {
     'حیوانات': ['🐱', '🐶', '🦊', '🐰', '🐼', '🐨', '🦁', '🐯', '🐮', '🐷', '🐸', '🐵', '🐔', '🦉', '🦄', '🐲'],
@@ -35,7 +36,7 @@ function getAvatarForRanking() {
 }
 
 // ============================================================
-// گرفتن آواتار برای نمایش توی خود برنامه
+// گرفتن آواتار برای نمایش در برنامه
 // ============================================================
 function getAvatarDisplay() {
     const avatarImg = localStorage.getItem('userAvatar');
@@ -68,13 +69,11 @@ function applyAvatarToElements() {
             if (parent) {
                 const emojiSpan = parent.querySelector('.emoji-avatar');
                 if (emojiSpan) emojiSpan.remove();
-                // 🆕 حذف کلاس حالت ایموجی
                 parent.classList.remove('emoji-mode');
             }
         } else if (avatar.type === 'emoji') {
             el.style.display = 'none';
             if (parent) {
-                // 🆕 اضافه کردن کلاس حالت ایموجی (بدون کادر)
                 parent.classList.add('emoji-mode');
                 
                 let emojiSpan = parent.querySelector('.emoji-avatar');
@@ -113,12 +112,14 @@ function selectEmojiAvatar(emoji, element) {
 
     vibrate(15);
     
-    // 🆕 بستن مودال بعد از انتخاب
     setTimeout(() => {
         closeEmojiPicker();
         showModal('موفق', 'ایموجی پروفایل با موفقیت تغییر کرد.', '✅');
-        // آپدیت رتبه‌بندی
-        if (typeof saveRankingToSupabase === 'function') {
+        
+        // 🆕 همگام‌سازی خودکار بعد از تغییر ایموجی
+        if (typeof autoSyncRanking === 'function') {
+            autoSyncRanking('تغییر ایموجی آواتار');
+        } else if (typeof saveRankingToSupabase === 'function') {
             saveRankingToSupabase();
         }
     }, 300);
@@ -170,7 +171,7 @@ function closeEmojiPicker() {
 }
 
 // ============================================================
-// 🆕 مودال انتخاب نوع آواتار (ایموجی یا گالری)
+// مودال انتخاب نوع آواتار
 // ============================================================
 function openAvatarOptionsModal() {
     document.getElementById('avatar-options-modal').classList.add('active');
@@ -180,7 +181,6 @@ function closeAvatarOptionsModal() {
     document.getElementById('avatar-options-modal').classList.remove('active');
 }
 
-// 🆕 انتخاب ایموجی از مودال گزینه‌ها
 function chooseEmojiOption() {
     closeAvatarOptionsModal();
     setTimeout(() => {
@@ -188,7 +188,6 @@ function chooseEmojiOption() {
     }, 200);
 }
 
-// 🆕 انتخاب گالری از مودال گزینه‌ها
 function chooseGalleryOption() {
     closeAvatarOptionsModal();
     setTimeout(() => {

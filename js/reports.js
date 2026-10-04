@@ -1,6 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۶.۰.۰ — راه‌حل قطعی مشکل هاله سفید در PDF
+// نسخه: ۷.۰.۰ — با صفحه پیش‌نمایش PDF + همگام‌سازی خودکار
 // ============================================================
 
 // ============================================================
@@ -274,19 +274,16 @@ async function downloadPdfFromPreview() {
 }
 
 // ============================================================
-// 🆕 دانلود PDF — راه‌حل قطعی (بدون هاله سفید)
-// کانتینر به صورت موقت توی صفحه قرار می‌گیره و بلافاصله پاک میشه
+// دانلود PDF — با html2canvas + jsPDF مستقیم
 // ============================================================
 async function downloadReportFast(report, filename) {
     let container = null;
     try {
-        // ۱. ساخت کانتینر با position: absolute (نه fixed)
-        // نکته مهم: نباید opacity کم باشه، وگرنه html2canvas هاله سفید می‌سازه
         container = document.createElement('div');
         container.id = 'pdf-render-container';
         container.style.position = 'absolute';
         container.style.top = '0';
-        container.style.left = '-9999px';          // 🆕 خارج از دید ولی داخل DOM
+        container.style.left = '-9999px';
         container.style.width = '794px';
         container.style.background = '#ffffff';
         container.style.direction = 'rtl';
@@ -294,16 +291,13 @@ async function downloadReportFast(report, filename) {
         container.style.padding = '30px';
         container.style.boxSizing = 'border-box';
         container.style.zIndex = '1';
-        // 🆕 opacity رو دست نمی‌زنیم — کاملاً قابل مشاهده
         container.style.overflow = 'visible';
         
         container.innerHTML = generateGraphicReport(report);
         document.body.appendChild(container);
         
-        // ۲. صبر برای رندر
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // ۳. صبر برای لود تصاویر
         const images = container.querySelectorAll('img');
         await Promise.all(Array.from(images).map(img => {
             if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
@@ -317,14 +311,8 @@ async function downloadReportFast(report, filename) {
         await new Promise(resolve => setTimeout(resolve, 500));
         
         console.log('🎨 شروع رندر با html2canvas...');
-        console.log('📐 ابعاد کانتینر:', container.offsetWidth, 'x', container.offsetHeight);
         
-        // ۴. رندر با html2canvas
-        // نکته مهم: باید کانتینر رو از سمت چپ بیاریم برای رندر
-        // وگرنه html2canvas بخش‌های خارج از viewport رو رندر نمی‌کنه
         container.style.left = '0';
-        
-        // یه صبر کوتاه برای اعمال تغییر
         await new Promise(resolve => setTimeout(resolve, 100));
         
         const canvas = await html2canvas(container, {
@@ -347,13 +335,10 @@ async function downloadReportFast(report, filename) {
         
         console.log('✅ canvas ساخته شد:', canvas.width, 'x', canvas.height);
         
-        // ۵. مخفی کردن کانتینر بلافاصله بعد از رندر
         container.style.left = '-9999px';
         
-        // ۶. تبدیل به تصویر
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         
-        // ۷. ساخت PDF
         const { jsPDF } = window.jspdf;
         
         const pdfWidth = 595.28;
@@ -371,7 +356,6 @@ async function downloadReportFast(report, filename) {
         
         console.log('✅ PDF با موفقیت ساخته شد');
         
-        // ۸. پاک کردن کانتینر
         if (container && container.parentNode) {
             container.parentNode.removeChild(container);
         }
@@ -387,7 +371,7 @@ async function downloadReportFast(report, filename) {
 }
 
 // ============================================================
-// دانلود کارنامه با index — می‌ره به صفحه پیش‌نمایش
+// دانلود کارنامه با index
 // ============================================================
 async function downloadReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
@@ -407,7 +391,7 @@ async function downloadReportByData(index) {
 }
 
 // ============================================================
-// نمایش کارنامه بعد از تکلیف
+// نمایش کارنامه بعد از تکلیف + ثبت امتیاز
 // ============================================================
 function showReportCard() {
     if (isPracticeMode) {
@@ -465,15 +449,16 @@ function showReportCard() {
     
     setTimeout(() => checkForNewMedals(), 1500);
     
-    setTimeout(() => {
-        if (typeof saveRankingToSupabase === 'function') {
-            saveRankingToSupabase();
-        }
-    }, 1000);
+    // 🆕 همگام‌سازی خودکار بعد از ثبت کارنامه
+    if (typeof autoSyncRanking === 'function') {
+        autoSyncRanking('ثبت کارنامه جدید');
+    } else if (typeof saveRankingToSupabase === 'function') {
+        setTimeout(() => saveRankingToSupabase(), 1000);
+    }
 }
 
 // ============================================================
-// دانلود کارنامه فعلی — می‌ره به صفحه پیش‌نمایش
+// دانلود کارنامه فعلی
 // ============================================================
 async function downloadCurrentReport() {
     const percent = Math.round((correctCount / currentLesson.questions.length) * 100);

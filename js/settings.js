@@ -1,5 +1,6 @@
 // ============================================================
 // settings.js — تنظیمات، پروفایل، موسیقی، صداها، UUID، بروزرسانی
+// نسخه: ۳.۰.۰ — با همگام‌سازی خودکار
 // ============================================================
 
 // ============================================================
@@ -28,10 +29,12 @@ function saveUserInfo() {
         document.getElementById('welcome-graphic-modal').classList.add('active');
     }, 400);
     
-    // بعد از ثبت‌نام، امتیاز اولیه ثبت کن
-    setTimeout(() => {
-        saveRankingToSupabase();
-    }, 2000);
+    // 🆕 همگام‌سازی خودکار بعد از ثبت‌نام
+    if (typeof autoSyncRanking === 'function') {
+        autoSyncRanking('ثبت‌نام جدید');
+    } else if (typeof saveRankingToSupabase === 'function') {
+        setTimeout(() => saveRankingToSupabase(), 1500);
+    }
 }
 
 function updateHomeUI() {
@@ -219,7 +222,7 @@ function typeMotivation() {
 }
 
 // ============================================================
-// بروزرسانی اطلاعات (با حفظ اطلاعات کاربر + بدون خطا)
+// بروزرسانی اطلاعات
 // ============================================================
 function openUpdateDataModal() {
     document.getElementById('update-data-modal').classList.add('active');
@@ -332,18 +335,20 @@ function changeAvatar(event) {
 
         showModal('موفق', 'عکس پروفایل با موفقیت تغییر کرد.', '✅');
 
-        if (typeof saveRankingToSupabase === 'function') {
-            saveRankingToSupabase();
+        // 🆕 همگام‌سازی خودکار بعد از تغییر آواتار
+        if (typeof autoSyncRanking === 'function') {
+            autoSyncRanking('تغییر آواتار');
+        } else if (typeof saveRankingToSupabase === 'function') {
+            setTimeout(() => saveRankingToSupabase(), 800);
         }
     };
     reader.readAsDataURL(file);
 
-    // ریست کردن input برای اینکه بشه دوباره انتخاب کرد
     event.target.value = '';
 }
 
 // ============================================================
-// 🆕 باز کردن مودال انتخاب نوع آواتار (ایموجی یا گالری)
+// مودال انتخاب نوع آواتار
 // ============================================================
 function openAvatarOptionsModal() {
     if (typeof openAvatarOptionsModalGlobal === 'function') {
@@ -359,7 +364,6 @@ function closeAvatarOptionsModal() {
     if (modal) modal.classList.remove('active');
 }
 
-// 🆕 رفتن به گزینه‌ی ایموجی
 function chooseEmojiOption() {
     closeAvatarOptionsModal();
     setTimeout(() => {
@@ -369,11 +373,49 @@ function chooseEmojiOption() {
     }, 250);
 }
 
-// 🆕 رفتن به گزینه‌ی گالری
 function chooseGalleryOption() {
     closeAvatarOptionsModal();
     setTimeout(() => {
         const fileInput = document.getElementById('avatar-input');
         if (fileInput) fileInput.click();
     }, 250);
+}
+
+// ============================================================
+// مودال ویرایش پروفایل
+// ============================================================
+function openEditProfile() {
+    document.getElementById('edit-name').value = localStorage.getItem('userName') || '';
+    document.getElementById('edit-class').value = localStorage.getItem('userClass') || 'هفتم یک';
+    document.getElementById('edit-school').value = localStorage.getItem('userSchool') || '';
+    document.getElementById('edit-year').value = '۱۴۰۵-۱۴۰۶';
+    document.getElementById('edit-profile-modal').classList.add('active');
+}
+
+function closeEditProfile() {
+    document.getElementById('edit-profile-modal').classList.remove('active');
+}
+
+function saveProfileChanges() {
+    const newName = document.getElementById('edit-name').value.trim();
+    const newClass = document.getElementById('edit-class').value;
+    const newSchool = document.getElementById('edit-school').value.trim();
+    if (!newName) {
+        showModal('خطا', 'لطفاً نام خود را وارد کنید.', '⚠️');
+        return;
+    }
+    localStorage.setItem('userName', newName);
+    localStorage.setItem('userClass', newClass);
+    localStorage.setItem('userSchool', newSchool || 'تعیین نشده');
+    updateHomeUI();
+    loadProfileData();
+    closeEditProfile();
+    showModal('موفق', 'اطلاعات شما با موفقیت ذخیره شد.', '✅');
+
+    // 🆕 همگام‌سازی خودکار بعد از ویرایش
+    if (typeof autoSyncRanking === 'function') {
+        autoSyncRanking('ویرایش پروفایل');
+    } else if (typeof saveRankingToSupabase === 'function') {
+        setTimeout(() => saveRankingToSupabase(), 800);
+    }
 }

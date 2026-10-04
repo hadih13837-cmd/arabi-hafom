@@ -1,6 +1,6 @@
 // ============================================================
 // supabase.js — اتصال به Supabase + توابع رتبه‌بندی
-// نسخه: ۳.۰.۰
+// نسخه: ۳.۱.۰ — با ساخت خودکار UUID
 // ============================================================
 
 // ============================================================
@@ -24,7 +24,7 @@ function classNameToSlug(className) {
 }
 
 // ============================================================
-// تبدیل slug انگلیسی به نام کلاس فارسی (برای نمایش)
+// تبدیل slug انگلیسی به نام کلاس فارسی
 // ============================================================
 function slugToClassName(slug) {
     const map = {
@@ -82,11 +82,25 @@ async function supabaseRequest(endpoint, options = {}) {
 // ============================================================
 async function saveRankingToSupabase() {
     try {
-        const studentId = localStorage.getItem('studentUUID');
+        // اگه studentUUID نداره، خودش بساز
+        let studentId = localStorage.getItem('studentUUID');
+        if (!studentId) {
+            console.log('🆕 studentUUID نداشت - در حال ساخت...');
+            studentId = (typeof crypto !== 'undefined' && crypto.randomUUID) 
+                ? crypto.randomUUID() 
+                : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            localStorage.setItem('studentUUID', studentId);
+            console.log('✅ UUID ساخته شد:', studentId);
+        }
+        
         const userName = localStorage.getItem('userName');
         const userClass = localStorage.getItem('userClass');
         
-        if (!studentId || !userName || !userClass) {
+        if (!userName || !userClass) {
             console.log('⚠️ اطلاعات کاربر ناقص - ثبت امتیاز انجام نشد');
             return false;
         }

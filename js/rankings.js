@@ -1,6 +1,6 @@
 // ============================================================
 // rankings.js — سیستم رتبه‌بندی کلاسی
-// نسخه: ۳.۰.۰
+// نسخه: ۳.۱.۰ — با همگام‌سازی خودکار
 // ============================================================
 
 // متغیرهای سراسری
@@ -15,7 +15,6 @@ async function loadRankingsPage() {
     const container = document.getElementById('rankings-content');
     if (!container) return;
     
-    // نمایش حالت لودینگ
     container.innerHTML = `
         <div class="rankings-loading">
             <div class="rankings-spinner"></div>
@@ -29,16 +28,14 @@ async function loadRankingsPage() {
         
         currentRankingsClass = userClass;
         
-        // قبل از بارگذاری، اطلاعات خودم رو sync کن
-        if (studentId && typeof saveRankingToSupabase === 'function') {
-            try {
-                await saveRankingToSupabase();
-            } catch (e) {
-                console.warn('⚠️ خطا در sync اولیه:', e);
-            }
+        // 🆕 sync خودکار وقتی وارد صفحه رتبه‌بندی میشه
+        if (studentId && typeof autoSyncRanking === 'function') {
+            autoSyncRanking('ورود به صفحه رتبه‌بندی');
         }
         
-        // گرفتن رتبه‌بندی کلاس کاربر
+        // با یه تأخیر کوچیک، صبر کن تا sync انجام بشه
+        await new Promise(resolve => setTimeout(resolve, 700));
+        
         const rankings = await getRankingsByClass(userClass);
         currentRankings = rankings || [];
         
@@ -69,7 +66,6 @@ async function loadRankingsPage() {
 function renderRankingsList(rankings, userClass, studentId) {
     let html = '';
     
-    // هدر
     html += `
         <div class="rankings-header">
             <div class="rankings-header-icon">🏆</div>
@@ -80,12 +76,10 @@ function renderRankingsList(rankings, userClass, studentId) {
         </div>
     `;
     
-    // سکوی قهرمانی (اگه ۳ نفر یا بیشتر)
     if (rankings.length >= 3) {
         html += renderTopThree(rankings, studentId);
     }
     
-    // بقیه لیست
     const startIndex = rankings.length >= 3 ? 3 : 0;
     
     if (startIndex < rankings.length) {
@@ -96,7 +90,6 @@ function renderRankingsList(rankings, userClass, studentId) {
         html += `</div>`;
     }
     
-    // اگه کاربر توی لیست نیست
     if (studentId) {
         const myIndex = rankings.findIndex(r => r.student_id === studentId);
         if (myIndex === -1) {
@@ -253,19 +246,16 @@ function renderEmptyRankings() {
 async function refreshRankings() {
     vibrate(20);
     
-    if (typeof saveRankingToSupabase === 'function') {
-        try {
-            await saveRankingToSupabase();
-        } catch (e) {
-            console.warn('خطا در sync:', e);
-        }
+    if (typeof autoSyncRanking === 'function') {
+        autoSyncRanking('رفرش دستی رتبه‌بندی');
+        await new Promise(resolve => setTimeout(resolve, 700));
     }
     
     await loadRankingsPage();
 }
 
 // ============================================================
-// راه‌اندازی auto-refresh وقتی کاربر توی صفحه رتبه‌بندی هست
+// راه‌اندازی auto-refresh
 // ============================================================
 function startRankingsAutoRefresh() {
     if (rankingsRefreshInterval) return;
@@ -273,12 +263,10 @@ function startRankingsAutoRefresh() {
     rankingsRefreshInterval = setInterval(async () => {
         const activeScreen = document.querySelector('.screen.active');
         if (activeScreen && activeScreen.id === 'screen-rankings') {
-            // فقط اگه هنوز توی صفحه رتبه‌بندی هستیم
             const rankings = await getRankingsByClass(currentRankingsClass);
             const container = document.getElementById('rankings-content');
             const studentId = localStorage.getItem('studentUUID');
             
-            // فقط اگه تعداد نفرات تغییر کرده، دوباره رندر کن
             if (rankings && rankings.length !== currentRankings.length) {
                 currentRankings = rankings;
                 if (container) {
@@ -286,7 +274,7 @@ function startRankingsAutoRefresh() {
                 }
             }
         }
-    }, 30000); // هر ۳۰ ثانیه
+    }, 30000);
 }
 
 function stopRankingsAutoRefresh() {
