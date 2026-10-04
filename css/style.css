@@ -4098,3 +4098,468 @@ body.dark-mode .pdf-preview-content .report-graphic-container {
         font-size: 15px;
     }
 }
+/* ============================================================
+   سیستم رتبه‌بندی — نسخه ۳.۰.۰
+   ============================================================ */
+
+/* حالت لودینگ */
+.rankings-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    gap: 20px;
+}
+
+.rankings-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #e3f2fd;
+    border-top-color: #1976d2;
+    border-radius: 50%;
+    animation: rankingsSpin 1s linear infinite;
+}
+
+@keyframes rankingsSpin {
+    to { transform: rotate(360deg); }
+}
+
+.rankings-loading-text {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1976d2;
+}
+
+/* هدر رتبه‌بندی */
+.rankings-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+    border: 2px solid #ffc107;
+    border-radius: 20px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.25);
+}
+
+.rankings-header-icon {
+    font-size: 44px;
+    flex-shrink: 0;
+    animation: rankingsTrophy 2s ease-in-out infinite;
+}
+
+@keyframes rankingsTrophy {
+    0%, 100% { transform: rotate(-8deg) scale(1); }
+    50% { transform: rotate(8deg) scale(1.1); }
+}
+
+.rankings-header-text {
+    flex: 1;
+    text-align: right;
+}
+
+.rankings-header-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: #e65100;
+    margin-bottom: 5px;
+}
+
+.rankings-header-sub {
+    font-size: 13px;
+    font-weight: bold;
+    color: #ef6c00;
+}
+
+/* سکوی قهرمانی */
+.rankings-podium {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 8px;
+    margin-bottom: 25px;
+    padding: 20px 5px 0 5px;
+    position: relative;
+}
+
+.podium-item {
+    flex: 1;
+    max-width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.podium-item.is-me-podium {
+    transform: scale(1.05);
+}
+
+.podium-avatar-wrap {
+    position: relative;
+    margin-bottom: 8px;
+}
+
+.podium-avatar {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 4px solid #fff;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    font-size: 38px;
+}
+
+.podium-1 .podium-avatar {
+    width: 80px;
+    height: 80px;
+    border-color: #ffc107;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.3), 0 8px 25px rgba(255, 193, 7, 0.5);
+    animation: podiumGoldPulse 2s ease-in-out infinite;
+}
+
+@keyframes podiumGoldPulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.3), 0 8px 25px rgba(255, 193, 7, 0.5); }
+    50% { box-shadow: 0 0 0 8px rgba(255, 193, 7, 0.15), 0 8px 30px rgba(255, 193, 7, 0.7); }
+}
+
+.podium-2 .podium-avatar { border-color: #b0bec5; }
+.podium-3 .podium-avatar { border-color: #d7a86e; }
+
+.podium-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.podium-avatar .avatar-emoji {
+    font-size: 38px;
+    line-height: 1;
+}
+
+.podium-1 .podium-avatar .avatar-emoji {
+    font-size: 48px;
+}
+
+.podium-medal {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 28px;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+    animation: medalBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes medalBounce {
+    0%, 100% { transform: translateY(0) rotate(-10deg); }
+    50% { transform: translateY(-5px) rotate(10deg); }
+}
+
+.podium-name {
+    font-size: 12px;
+    font-weight: 900;
+    color: #333;
+    text-align: center;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    line-height: 1.3;
+}
+
+.podium-points {
+    font-size: 13px;
+    font-weight: 900;
+    color: #f57c00;
+    margin-bottom: 8px;
+}
+
+.podium-me-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-right: 3px;
+}
+
+.podium-base {
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.podium-base-1 {
+    height: 80px;
+    background: linear-gradient(180deg, #ffc107 0%, #ff9800 100%);
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5);
+}
+
+.podium-base-2 {
+    height: 60px;
+    background: linear-gradient(180deg, #b0bec5 0%, #90a4ae 100%);
+    box-shadow: 0 6px 20px rgba(144, 164, 174, 0.4);
+}
+
+.podium-base-3 {
+    height: 45px;
+    background: linear-gradient(180deg, #d7a86e 0%, #a1744f 100%);
+    box-shadow: 0 6px 20px rgba(161, 116, 79, 0.4);
+}
+
+.podium-rank-num {
+    font-size: 26px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* لیست رتبه‌بندی */
+.rankings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ranking-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 3px 12px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid #e3f2fd;
+    transition: all 0.2s ease;
+}
+
+.ranking-card.is-me {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-color: #4caf50;
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.25);
+    transform: scale(1.02);
+}
+
+.ranking-rank {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 900;
+    color: #1976d2;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
+}
+
+.ranking-card.is-me .ranking-rank {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(76, 175, 80, 0.4);
+}
+
+.ranking-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2.5px solid #e3f2fd;
+    flex-shrink: 0;
+    font-size: 24px;
+}
+
+.ranking-card.is-me .ranking-avatar {
+    border-color: #4caf50;
+}
+
+.ranking-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ranking-avatar .avatar-emoji {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.ranking-info {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+}
+
+.ranking-name {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ranking-card.is-me .ranking-name {
+    color: #1b5e20;
+}
+
+.ranking-me-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.ranking-stats {
+    font-size: 11px;
+    font-weight: bold;
+    color: #78909c;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ranking-points {
+    text-align: center;
+    flex-shrink: 0;
+    min-width: 55px;
+}
+
+.ranking-points-value {
+    font-size: 18px;
+    font-weight: 900;
+    color: #f57c00;
+    line-height: 1;
+    margin-bottom: 3px;
+}
+
+.ranking-points-label {
+    font-size: 10px;
+    font-weight: bold;
+    color: #90a4ae;
+}
+
+/* حالت خالی */
+.rankings-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.rankings-empty-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: rankingsTrophy 2s ease-in-out infinite;
+}
+
+.rankings-empty-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #7b1fa2;
+    margin-bottom: 12px;
+}
+
+.rankings-empty-text {
+    font-size: 14px;
+    font-weight: bold;
+    color: #607d8b;
+    line-height: 1.8;
+    max-width: 300px;
+}
+
+/* پیام کاربر خارج از لیست */
+.rankings-not-in-list {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    border: 2px solid #ff9800;
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+}
+
+.rankings-not-in-icon {
+    font-size: 30px;
+    flex-shrink: 0;
+}
+
+.rankings-not-in-text {
+    flex: 1;
+    font-size: 13px;
+    font-weight: bold;
+    color: #e65100;
+    line-height: 1.6;
+}
+
+/* حالت شب */
+body.dark-mode .rankings-header {
+    background: linear-gradient(135deg, #2a1a3a, #1a2332);
+    border-color: #4a148c;
+}
+
+body.dark-mode .rankings-header-title { color: #ce93d8; }
+body.dark-mode .rankings-header-sub { color: #ba68c8; }
+
+body.dark-mode .ranking-card {
+    background: #1a2332;
+    border-color: #2a3444;
+}
+
+body.dark-mode .ranking-card.is-me {
+    background: linear-gradient(135deg, #1a2a1a, #2a3a2a);
+    border-color: #43a047;
+}
+
+body.dark-mode .ranking-name { color: #90caf9; }
+body.dark-mode .ranking-card.is-me .ranking-name { color: #a5d6a7; }
+body.dark-mode .ranking-stats { color: #607d8b; }
+
+body.dark-mode .ranking-rank {
+    background: linear-gradient(135deg, #1a2332, #2a3444);
+    color: #90caf9;
+}
+
+body.dark-mode .podium-name { color: #90caf9; }
+body.dark-mode .rankings-empty-title { color: #ce93d8; }
+body.dark-mode .rankings-empty-text { color: #90a4ae; }
+
+/* ریسپانسیو */
+@media (max-width: 400px) {
+    .podium-avatar { width: 55px; height: 55px; font-size: 32px; }
+    .podium-1 .podium-avatar { width: 68px; height: 68px; }
+    .podium-1 .podium-avatar .avatar-emoji { font-size: 40px; }
+    .podium-avatar .avatar-emoji { font-size: 32px; }
+    .podium-name { font-size: 11px; }
+    .podium-points { font-size: 11px; }
+    .ranking-card { padding: 10px 12px; }
+    .ranking-avatar { width: 40px; height: 40px; }
+}
