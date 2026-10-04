@@ -12,7 +12,7 @@
     <link rel="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="./icon-512.png">
     
-    <!-- 🆕 کتابخانه‌های PDF (ترتیب مهمه!) -->
+    <!-- 🆕 کتابخانه‌های PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
@@ -440,11 +440,24 @@
     </div>
 </div>
 
+<!-- 🆕 مودال کارت پروفایل (برای رتبه‌بندی) -->
+<div class="profile-card-overlay" id="profile-card-modal" onclick="if(event.target===this) closeProfileCard()">
+    <div class="profile-card-container" id="profile-card-content">
+        <!-- محتوا توسط جاوااسکریپت پر میشه -->
+    </div>
+</div>
+
+<!-- ============ 🆕 مودال مدال‌های کاربر ============ -->
+<div class="user-medals-overlay" id="user-medals-modal" onclick="if(event.target===this) closeUserMedals()">
+    <div class="user-medals-container" id="user-medals-content">
+        <!-- محتوا توسط جاوااسکریپت پر میشه -->
+    </div>
+</div>
+
 <div id="app-container">
     
     <audio id="bg-music" src="https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3" loop preload="none"></audio>
     <video id="audio-video-player" style="display:none;" preload="auto"></video>
-
     <!-- ============ صفحه Splash ============ -->
     <div id="screen-splash" class="screen active">
         <img src="https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png" alt="پس زمینه" class="splash-bg-image">
@@ -726,7 +739,6 @@
         </div>
         <div class="calendar-scroll-content" id="calendar-content"></div>
     </div>
-
     <!-- ============ صفحه رتبه‌بندی ============ -->
     <div id="screen-rankings" class="screen">
         <div class="page-header">

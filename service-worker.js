@@ -1,9 +1,9 @@
 // ============================================================
 // service-worker.js — کش کردن فایل‌ها برای کارکرد آفلاین
-// نسخه: v62
+// نسخه: v110
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v65';
+const CACHE_NAME = 'arabi-hafom-v110';
 
 // ============================================================
 // لیست فایل‌های ضروری برای کش
@@ -38,6 +38,8 @@ const urlsToCache = [
     './lessons/lesson2.json',
 
     'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
 
     'https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png',
@@ -57,7 +59,9 @@ const urlsToCache = [
     'https://cdn.imgurl.ir/uploads/k1280_IMG__.png',
     'https://cdn.imgurl.ir/uploads/q178853_IMG__.png',
     'https://cdn.imgurl.ir/uploads/a3501_IMG__.png',
-    'https://cdn.imgurl.ir/uploads/i392811_file_000000004034822fab3dfb7fe4276696.png'
+    'https://cdn.imgurl.ir/uploads/i392811_file_000000004034822fab3dfb7fe4276696.png',
+    'https://cdn.imgurl.ir/uploads/y68091_ChatGPT_Image_Oct_4_2026_02_36_15_PM.png',
+    'https://cdn.imgurl.ir/uploads/w806666_ChatGPT_Image_Oct_4_2026_02_49_35_PM.png'
 ];
 
 // ============================================================
@@ -110,10 +114,10 @@ self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
 
     // ۱. درخواست‌های Google Apps Script — همیشه از شبکه
-if (event.request.url.includes('script.google.com')) {
-    event.respondWith(fetch(event.request));
-    return;
-}
+    if (event.request.url.includes('script.google.com')) {
+        event.respondWith(fetch(event.request));
+        return;
+    }
 
     // ۲. فایل maintenance.json — همیشه از شبکه
     if (event.request.url.includes('maintenance.json')) {
