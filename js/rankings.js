@@ -1,59 +1,54 @@
 // ============================================================
-// rankings.js — منطق رتبه‌بندی و نمایش
+// rankings.js — سیستم رتبه‌بندی کلاسی
+// نسخه: ۳.۰.۰
 // ============================================================
 
-// متغیر سراسری برای ذخیره‌ی رتبه‌بندی
+// متغیرهای سراسری
 let currentRankings = [];
-let currentRankingFilter = 'my-class';
+let currentRankingsClass = '';
+let rankingsRefreshInterval = null;
 
 // ============================================================
-// بارگذاری و نمایش صفحه‌ی رتبه‌بندی
+// بارگذاری صفحه رتبه‌بندی
 // ============================================================
 async function loadRankingsPage() {
     const container = document.getElementById('rankings-content');
     if (!container) return;
-
-    // 🆕 نمایش پیام «در حال ساخت»
-    container.innerHTML = `
-        <div class="rankings-coming-soon">
-            <div class="rankings-coming-icon">🚧</div>
-            <div class="rankings-coming-title">در حال ساخت</div>
-            <div class="rankings-coming-text">
-                بخش رتبه‌بندی به‌زودی راه‌اندازی می‌شه!<br>
-                <span style="font-size: 12px; opacity: 0.7;">با انجام تکالیف، امتیاز جمع کن تا وقتی رتبه‌بندی فعال شد، جزو نفرات برتر باشی! 🏆</span>
-            </div>
-            <div class="rankings-coming-decoration">✨</div>
-        </div>
-    `;
-}
-
-// ============================================================
-// تابع قدیمی (برای زمانی که رتبه‌بندی فعال شد)
-// ============================================================
-async function loadRankingsPageReal() {
-    const container = document.getElementById('rankings-content');
-    if (!container) return;
-
+    
+    // نمایش حالت لودینگ
     container.innerHTML = `
         <div class="rankings-loading">
             <div class="rankings-spinner"></div>
             <div class="rankings-loading-text">در حال بارگذاری رتبه‌بندی...</div>
         </div>
     `;
-
+    
     try {
         const userClass = localStorage.getItem('userClass') || 'هفتم یک';
         const studentId = localStorage.getItem('studentUUID');
-
-        currentRankings = await getRankingsByClass(userClass);
-
-        if (!currentRankings || currentRankings.length === 0) {
+        
+        currentRankingsClass = userClass;
+        
+        // قبل از بارگذاری، اطلاعات خودم رو sync کن
+        if (studentId && typeof saveRankingToSupabase === 'function') {
+            try {
+                await saveRankingToSupabase();
+            } catch (e) {
+                console.warn('⚠️ خطا در sync اولیه:', e);
+            }
+        }
+        
+        // گرفتن رتبه‌بندی کلاس کاربر
+        const rankings = await getRankingsByClass(userClass);
+        currentRankings = rankings || [];
+        
+        if (currentRankings.length === 0) {
             container.innerHTML = renderEmptyRankings();
             return;
         }
-
+        
         container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
-
+        
     } catch (error) {
         console.error('❌ خطا در بارگذاری رتبه‌بندی:', error);
         container.innerHTML = `
@@ -73,7 +68,8 @@ async function loadRankingsPageReal() {
 // ============================================================
 function renderRankingsList(rankings, userClass, studentId) {
     let html = '';
-
+    
+    // هدر
     html += `
         <div class="rankings-header">
             <div class="rankings-header-icon">🏆</div>
@@ -83,26 +79,24 @@ function renderRankingsList(rankings, userClass, studentId) {
             </div>
         </div>
     `;
-
+    
+    // سکوی قهرمانی (اگه ۳ نفر یا بیشتر)
     if (rankings.length >= 3) {
-        html += renderTopThree(rankings);
+        html += renderTopThree(rankings, studentId);
     }
-
+    
+    // بقیه لیست
     const startIndex = rankings.length >= 3 ? 3 : 0;
-    html += `<div class="rankings-list">`;
-
-    if (startIndex === 0) {
-        rankings.forEach((r, index) => {
-            html += renderRankingCard(r, index + 1, studentId);
-        });
-    } else {
+    
+    if (startIndex < rankings.length) {
+        html += `<div class="rankings-list">`;
         for (let i = startIndex; i < rankings.length; i++) {
             html += renderRankingCard(rankings[i], i + 1, studentId);
         }
+        html += `</div>`;
     }
-
-    html += `</div>`;
-
+    
+    // اگه کاربر توی لیست نیست
     if (studentId) {
         const myIndex = rankings.findIndex(r => r.student_id === studentId);
         if (myIndex === -1) {
@@ -117,50 +111,59 @@ function renderRankingsList(rankings, userClass, studentId) {
             `;
         }
     }
-
+    
     return html;
 }
 
 // ============================================================
 // رندر سکوی قهرمانی
 // ============================================================
-function renderTopThree(rankings) {
+function renderTopThree(rankings, studentId) {
     const first = rankings[0];
     const second = rankings[1];
     const third = rankings[2];
-
+    
     return `
         <div class="rankings-podium">
-            <div class="podium-item podium-2">
+            <div class="podium-item podium-2 ${second.student_id === studentId ? 'is-me-podium' : ''}">
                 <div class="podium-avatar-wrap">
                     <div class="podium-avatar">${renderAvatar(second)}</div>
                     <div class="podium-medal">🥈</div>
                 </div>
-                <div class="podium-name">${truncateName(second.name)}</div>
+                <div class="podium-name">
+                    ${truncateName(second.name)}
+                    ${second.student_id === studentId ? '<span class="podium-me-badge">شما</span>' : ''}
+                </div>
                 <div class="podium-points">${toPersianNum(second.total_points)} ⭐</div>
                 <div class="podium-base podium-base-2">
                     <span class="podium-rank-num">۲</span>
                 </div>
             </div>
-
-            <div class="podium-item podium-1">
+            
+            <div class="podium-item podium-1 ${first.student_id === studentId ? 'is-me-podium' : ''}">
                 <div class="podium-avatar-wrap">
                     <div class="podium-avatar">${renderAvatar(first)}</div>
                     <div class="podium-medal">🥇</div>
                 </div>
-                <div class="podium-name">${truncateName(first.name)}</div>
+                <div class="podium-name">
+                    ${truncateName(first.name)}
+                    ${first.student_id === studentId ? '<span class="podium-me-badge">شما</span>' : ''}
+                </div>
                 <div class="podium-points">${toPersianNum(first.total_points)} ⭐</div>
                 <div class="podium-base podium-base-1">
                     <span class="podium-rank-num">۱</span>
                 </div>
             </div>
-
-            <div class="podium-item podium-3">
+            
+            <div class="podium-item podium-3 ${third.student_id === studentId ? 'is-me-podium' : ''}">
                 <div class="podium-avatar-wrap">
                     <div class="podium-avatar">${renderAvatar(third)}</div>
                     <div class="podium-medal">🥉</div>
                 </div>
-                <div class="podium-name">${truncateName(third.name)}</div>
+                <div class="podium-name">
+                    ${truncateName(third.name)}
+                    ${third.student_id === studentId ? '<span class="podium-me-badge">شما</span>' : ''}
+                </div>
                 <div class="podium-points">${toPersianNum(third.total_points)} ⭐</div>
                 <div class="podium-base podium-base-3">
                     <span class="podium-rank-num">۳</span>
@@ -176,13 +179,11 @@ function renderTopThree(rankings) {
 function renderRankingCard(ranking, rank, myStudentId) {
     const isMe = (ranking.student_id === myStudentId);
     const meClass = isMe ? 'is-me' : '';
-
+    
     return `
         <div class="ranking-card ${meClass}">
             <div class="ranking-rank">${toPersianNum(rank)}</div>
-            <div class="ranking-avatar">
-                ${renderAvatar(ranking)}
-            </div>
+            <div class="ranking-avatar">${renderAvatar(ranking)}</div>
             <div class="ranking-info">
                 <div class="ranking-name">
                     ${truncateName(ranking.name)}
@@ -206,14 +207,14 @@ function renderRankingCard(ranking, rank, myStudentId) {
 // ============================================================
 function renderAvatar(ranking) {
     const avatarUrl = ranking.avatar_url || 'emoji:👤';
-
+    
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '');
         return `<span class="avatar-emoji">${emoji}</span>`;
     } else if (avatarUrl.startsWith('data:image')) {
         return `<img src="${avatarUrl}" alt="آواتار" class="avatar-img">`;
     } else if (avatarUrl.startsWith('http')) {
-        return `<img src="${avatarUrl}" alt="آواتار" class="avatar-img">`;
+        return `<img src="${avatarUrl}" alt="آواتار" class="avatar-img" crossorigin="anonymous">`;
     } else {
         return `<span class="avatar-emoji">👤</span>`;
     }
@@ -251,5 +252,46 @@ function renderEmptyRankings() {
 // ============================================================
 async function refreshRankings() {
     vibrate(20);
+    
+    if (typeof saveRankingToSupabase === 'function') {
+        try {
+            await saveRankingToSupabase();
+        } catch (e) {
+            console.warn('خطا در sync:', e);
+        }
+    }
+    
     await loadRankingsPage();
+}
+
+// ============================================================
+// راه‌اندازی auto-refresh وقتی کاربر توی صفحه رتبه‌بندی هست
+// ============================================================
+function startRankingsAutoRefresh() {
+    if (rankingsRefreshInterval) return;
+    
+    rankingsRefreshInterval = setInterval(async () => {
+        const activeScreen = document.querySelector('.screen.active');
+        if (activeScreen && activeScreen.id === 'screen-rankings') {
+            // فقط اگه هنوز توی صفحه رتبه‌بندی هستیم
+            const rankings = await getRankingsByClass(currentRankingsClass);
+            const container = document.getElementById('rankings-content');
+            const studentId = localStorage.getItem('studentUUID');
+            
+            // فقط اگه تعداد نفرات تغییر کرده، دوباره رندر کن
+            if (rankings && rankings.length !== currentRankings.length) {
+                currentRankings = rankings;
+                if (container) {
+                    container.innerHTML = renderRankingsList(currentRankings, currentRankingsClass, studentId);
+                }
+            }
+        }
+    }, 30000); // هر ۳۰ ثانیه
+}
+
+function stopRankingsAutoRefresh() {
+    if (rankingsRefreshInterval) {
+        clearInterval(rankingsRefreshInterval);
+        rankingsRefreshInterval = null;
+    }
 }
