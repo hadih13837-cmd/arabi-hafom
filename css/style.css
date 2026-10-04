@@ -8482,3 +8482,94 @@ body.dark-mode .um-modal-empty-title {
     box-shadow: none !important;
     padding: 0 !important;
 }
+/* ═══════════════════════════════════════════════════════
+   🆕 لیست ردیفی — اسم و کلاس سمت راست
+   ═══════════════════════════════════════════════════════ */
+
+/* ترتیب جدید: رتبه | آواتار | امتیاز | اطلاعات (سمت راست) */
+.lb-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1.5px solid #e3f2fd;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.05);
+    cursor: pointer;
+    /* 🆕 ترتیب راست به چپ */
+    direction: rtl;
+}
+
+/* ترتیب المان‌ها */
+.lb-row-rank {
+    order: 1;  /* چپ‌ترین */
+}
+
+.lb-row-info {
+    order: 2;
+    flex: 1;
+    min-width: 0;
+    text-align: right;  /* 🆕 سمت راست */
+}
+
+.lb-row-points {
+    order: 3;
+}
+
+.lb-row-avatar {
+    order: 4;  /* راست‌ترین */
+}
+
+/* اطلاعات (سمت راست) */
+.lb-row-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;  /* 🆕 از راست شروع کن */
+    text-align: right;
+}
+
+.lb-row-name {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-start;  /* 🆕 راست‌چین */
+    flex-wrap: wrap;
+    width: 100%;
+    text-align: right;
+}
+
+.lb-row-class {
+    font-size: 11px;
+    font-weight: bold;
+    color: #90a4ae;
+    text-align: right;
+    width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════
+   🆕 دکمه‌ی رفرش (سریع‌تر)
+   ═══════════════════════════════════════════════════════ */
+
+#screen-rankings .rankings-refresh-btn {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+#screen-rankings .rankings-refresh-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+#screen-rankings .rankings-refresh-btn svg {
+    transition: transform 0.3s ease;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
