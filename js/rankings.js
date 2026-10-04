@@ -1,13 +1,15 @@
 // ============================================================
 // rankings.js — سیستم رتبه‌بندی
-// نسخه: ۱۵.۰.۰ — با کش، رفرش سریع، و اسم سمت راست
+// نسخه: ۱۶.۰.۰ — با auto-refresh هر ۳ ثانیه
 // ============================================================
 
 let currentRankings = [];
 let currentRankingsClass = '';
+let autoRefreshInterval = null;  // 🆕
+let lastRankingsHash = '';        // 🆕
 
 // ============================================================
-// بارگذاری صفحه رتبه‌بندی (با کش برای سرعت بالا)
+// بارگذاری صفحه رتبه‌بندی (با کش + auto-refresh)
 // ============================================================
 async function loadRankingsPage() {
     const container = document.getElementById('rankings-content');
@@ -17,7 +19,7 @@ async function loadRankingsPage() {
     const studentId = localStorage.getItem('studentUUID');
     const cacheKey = 'rankings_cache_' + userClass;
     
-    // ⚡ اول از کش نشون بده (فوری)
+    // ⚡ اول از کش نشون بده
     const cachedData = localStorage.getItem(cacheKey);
     let hasCachedData = false;
     
@@ -27,6 +29,7 @@ async function loadRankingsPage() {
             if (parsed.data && parsed.data.length > 0) {
                 currentRankings = parsed.data;
                 currentRankingsClass = userClass;
+                lastRankingsHash = getRankingsHash(currentRankings);
                 container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
                 hasCachedData = true;
                 console.log('⚡ از کش نشون داده شد:', currentRankings.length, 'نفر');
@@ -48,20 +51,20 @@ async function loadRankingsPage() {
     try {
         currentRankingsClass = userClass;
         
-        // 🆕 sync توی پس‌زمینه
+        // sync توی پس‌زمینه
         if (studentId && typeof saveRankingToSupabase === 'function') {
             saveRankingToSupabase().catch(e => console.warn('sync در پس‌زمینه:', e));
         }
         
-        // 🆕 صبر کوتاه (200ms)
+        // صبر کوتاه
         await new Promise(resolve => setTimeout(resolve, 200));
         
         const rankings = await getRankingsByClass(userClass);
         
         if (rankings && rankings.length > 0) {
             currentRankings = rankings;
+            lastRankingsHash = getRankingsHash(currentRankings);
             
-            // 🆕 ذخیره در کش
             try {
                 localStorage.setItem(cacheKey, JSON.stringify({
                     data: currentRankings,
@@ -74,6 +77,9 @@ async function loadRankingsPage() {
         } else if (!hasCachedData) {
             container.innerHTML = renderEmptyRankings();
         }
+        
+        // 🆕 شروع auto-refresh
+        startAutoRefresh();
         
     } catch (error) {
         console.error('❌ خطا:', error);
@@ -88,6 +94,80 @@ async function loadRankingsPage() {
                 </div>
             `;
         }
+    }
+}
+
+// ============================================================
+// 🆕 ساخت hash از رتبه‌بندی
+// ============================================================
+function getRankingsHash(rankings) {
+    if (!rankings || rankings.length === 0) return '';
+    return rankings.map(r => 
+        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.avg_percent}`
+    ).join('|');
+}
+
+// ============================================================
+// 🆕 شروع auto-refresh (هر ۳ ثانیه)
+// ============================================================
+function startAutoRefresh() {
+    stopAutoRefresh();
+    
+    console.log('🔄 Auto-refresh شروع شد (هر ۳ ثانیه)');
+    
+    autoRefreshInterval = setInterval(async () => {
+        const activeScreen = document.querySelector('.screen.active');
+        if (!activeScreen || activeScreen.id !== 'screen-rankings') {
+            return;
+        }
+        
+        const anyModalOpen = document.querySelector('.profile-card-overlay.active, .user-medals-overlay.active, .exit-modal-overlay.active, .modal-overlay.active');
+        if (anyModalOpen) return;
+        
+        try {
+            const userClass = localStorage.getItem('userClass') || 'هفتم یک';
+            const studentId = localStorage.getItem('studentUUID');
+            
+            const rankings = await getRankingsByClass(userClass);
+            
+            if (!rankings || rankings.length === 0) return;
+            
+            const newHash = getRankingsHash(rankings);
+            
+            if (newHash !== lastRankingsHash) {
+                console.log('🆕 تغییر در رتبه‌بندی تشخیص داده شد!');
+                
+                currentRankings = rankings;
+                lastRankingsHash = newHash;
+                
+                try {
+                    localStorage.setItem('rankings_cache_' + userClass, JSON.stringify({
+                        data: currentRankings,
+                        timestamp: Date.now()
+                    }));
+                } catch (e) {}
+                
+                const container = document.getElementById('rankings-content');
+                if (container) {
+                    container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
+                }
+                
+                vibrate(10);
+            }
+        } catch (error) {
+            console.warn('auto-refresh error:', error.message);
+        }
+    }, 3000);
+}
+
+// ============================================================
+// 🆕 توقف auto-refresh
+// ============================================================
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+        console.log('⏹️ Auto-refresh متوقف شد');
     }
 }
 
@@ -186,7 +266,6 @@ function renderRankingsList(rankings, userClass, studentId) {
         
         html += `
             <div class="lb-row ${isMe ? 'lb-row-me' : ''}" onclick="openProfileCard('${ranking.student_id}')">
-                <!-- رتبه (چپ‌ترین) -->
                 <div class="lb-row-rank">
                     ${medalEmoji 
                         ? `<span class="lb-row-medal">${medalEmoji}</span>` 
@@ -194,7 +273,6 @@ function renderRankingsList(rankings, userClass, studentId) {
                     }
                 </div>
                 
-                <!-- اطلاعات (وسط-راست) -->
                 <div class="lb-row-info">
                     <div class="lb-row-name">
                         ${ranking.name}
@@ -203,13 +281,11 @@ function renderRankingsList(rankings, userClass, studentId) {
                     <div class="lb-row-class">${classPersian}</div>
                 </div>
                 
-                <!-- امتیاز (وسط-چپ) -->
                 <div class="lb-row-points">
                     <span class="lb-row-star">⭐</span>
                     <span class="lb-row-points-value">${toPersianNum(ranking.total_points)}</span>
                 </div>
                 
-                <!-- آواتار (راست‌ترین) -->
                 <div class="lb-row-avatar ${getAvatarClass(ranking)}">
                     ${renderAvatar(ranking)}
                 </div>
@@ -274,7 +350,7 @@ function getClassNumberFromSlug(slug) {
 }
 
 // ============================================================
-// رندر آواتار (با ایموجی پیش‌فرض 👦🏻)
+// رندر آواتار
 // ============================================================
 function renderAvatar(ranking) {
     const avatarUrl = ranking.avatar_url || 'emoji:👦🏻';
@@ -324,7 +400,7 @@ function renderEmptyRankings() {
 }
 
 // ============================================================
-// 🆕 رفرش سریع (بدون گیر کردن)
+// رفرش دستی
 // ============================================================
 async function refreshRankings() {
     vibrate(20);
@@ -338,15 +414,12 @@ async function refreshRankings() {
     }
     
     try {
-        // sync در پس‌زمینه
         if (typeof saveRankingToSupabase === 'function') {
             saveRankingToSupabase().catch(e => console.warn('sync:', e));
         }
         
-        // صبر کوتاه
         await new Promise(resolve => setTimeout(resolve, 300));
         
-        // دریافت از شبکه
         const userClass = localStorage.getItem('userClass') || 'هفتم یک';
         const studentId = localStorage.getItem('studentUUID');
         
@@ -355,8 +428,8 @@ async function refreshRankings() {
         if (rankings && rankings.length > 0) {
             currentRankings = rankings;
             currentRankingsClass = userClass;
+            lastRankingsHash = getRankingsHash(currentRankings);
             
-            // آپدیت کش
             try {
                 localStorage.setItem('rankings_cache_' + userClass, JSON.stringify({
                     data: currentRankings,
@@ -369,7 +442,7 @@ async function refreshRankings() {
                 container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
             }
             
-            console.log('✅ رفرش شد:', currentRankings.length, 'نفر');
+            console.log('✅ رفرش دستی شد:', currentRankings.length, 'نفر');
         }
     } catch (error) {
         console.error('❌ خطا در رفرش:', error);
@@ -510,7 +583,7 @@ function openProfileCard(studentId) {
 }
 
 // ============================================================
-// باز کردن صفحه‌ی مدال‌های یک کاربر
+// باز کردن صفحه‌ی مدال‌ها
 // ============================================================
 function openMedalsPage(studentId) {
     const ranking = currentRankings.find(r => r.student_id === studentId);
@@ -566,7 +639,7 @@ function openMedalsPage(studentId) {
 }
 
 // ============================================================
-// گرفتن مدال‌های گرفته‌شده‌ی کاربر
+// گرفتن مدال‌های گرفته‌شده
 // ============================================================
 function getUserEarnedMedals(ranking) {
     const points = ranking.total_points || 0;
@@ -601,7 +674,7 @@ function getUserEarnedMedals(ranking) {
 }
 
 // ============================================================
-// بستن صفحه‌ی مدال‌های کاربر
+// بستن صفحه‌ی مدال‌ها
 // ============================================================
 function closeUserMedals() {
     const modal = document.getElementById('user-medals-modal');

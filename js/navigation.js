@@ -1,5 +1,6 @@
 // ============================================================
 // navigation.js — ناوبری، منو، مودال‌ها، راهنما، تم
+// نسخه: ۳.۰.۰ — با توقف auto-refresh در خروج از رتبه‌بندی
 // ============================================================
 
 // ============================================================
@@ -52,7 +53,22 @@ function goToScreen(screenId, addToHistory = true) {
     if (targetScreen) targetScreen.classList.add('active');
     document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
     
-    // 🆕 ترتیب جدید نوار پایین: مدال‌ها → رتبه‌بندی → خانه (وسط) → تنظیمات → پروفایل
+    // 🆕 اگه از صفحه رتبه‌بندی خارج شدیم، auto-refresh رو متوقف کن
+    if (screenId !== 'screen-rankings' && typeof stopAutoRefresh === 'function') {
+        stopAutoRefresh();
+    }
+    
+    // 🆕 اگه کاربر برگشت به صفحه رتبه‌بندی، auto-refresh رو دوباره شروع کن
+    if (screenId === 'screen-rankings' && typeof startAutoRefresh === 'function') {
+        setTimeout(() => {
+            const activeScreen = document.querySelector('.screen.active');
+            if (activeScreen && activeScreen.id === 'screen-rankings') {
+                startAutoRefresh();
+            }
+        }, 500);
+    }
+    
+    // ترتیب جدید نوار پایین: مدال‌ها → رتبه‌بندی → خانه (وسط) → تنظیمات → پروفایل
     document.querySelectorAll('.bottom-nav').forEach(nav => {
         const items = nav.querySelectorAll('.bottom-nav-item');
         if (screenId === 'screen-medals' && items[0]) items[0].classList.add('active');
