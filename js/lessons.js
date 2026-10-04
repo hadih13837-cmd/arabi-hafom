@@ -1,5 +1,6 @@
 // ============================================================
 // lessons.js — سیستم تکالیف (لیست، فیلتر، جزئیات، شروع)
+// نسخه: ۳.۰.۰ — با مودال ادامه یا شروع مجدد
 // ============================================================
 
 // متغیرهای سراسری تکالیف
@@ -251,34 +252,52 @@ function openLessonDetail(lessonId) {
 }
 
 // ============================================================
-// ذخیره و بازیابی پیشرفت تکلیف
+// 🆕 ذخیره پیشرفت تکلیف (با اعتبارسنجی)
 // ============================================================
 function saveCurrentProgress() {
     if (!currentLesson) return;
+    
+    const totalQuestions = currentLesson.questions.length;
+    if (currentQuestionIndex >= totalQuestions) {
+        console.log('⚠️ questionIndex از تعداد سوالات بیشتره - ذخیره نمیشه');
+        return;
+    }
+    
     const progress = {
         lessonId: currentLesson.lessonId,
         questionIndex: currentQuestionIndex,
-        score, correctCount, wrongCount,
-        isPracticeMode,
+        score: score || 0,
+        correctCount: correctCount || 0,
+        wrongCount: wrongCount || 0,
+        isPracticeMode: isPracticeMode || false,
         startTime: startTime ? startTime.getTime() : Date.now(),
-        totalQuestions: currentLesson.questions.length,
+        totalQuestions: totalQuestions,
         lessonTitle: currentLesson.title
     };
+    
     localStorage.setItem('currentLessonProgress', JSON.stringify(progress));
+    console.log('💾 Progress ذخیره شد:', progress);
 }
 
+// ============================================================
+// 🆕 بازیابی پیشرفت
+// ============================================================
 function getCurrentProgress() {
     const data = localStorage.getItem('currentLessonProgress');
     if (!data) return null;
     try { return JSON.parse(data); } catch(e) { return null; }
 }
 
+// ============================================================
+// 🆕 پاک کردن پیشرفت
+// ============================================================
 function clearCurrentProgress() {
     localStorage.removeItem('currentLessonProgress');
+    console.log('🗑️ Progress پاک شد');
 }
 
 // ============================================================
-// شروع تکلیف
+// 🆕 شروع تکلیف (با مودال ادامه یا از اول)
 // ============================================================
 async function startLesson(lessonId) {
     const lesson = allLessons.find(l => l.id === lessonId);
@@ -286,66 +305,87 @@ async function startLesson(lessonId) {
     const expired = isExpired(dueDate);
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const alreadyDone = reports.some(r => r.lessonId === lessonId);
+    
+    // منقضی شده و قبلاً انجام نداده
     if (expired && !alreadyDone) {
+        clearCurrentProgress();
         await runLesson(lessonId, true, 0, true);
         return;
     }
-    const progress = getCurrentProgress();
-    if (progress && progress.lessonId === lessonId && !alreadyDone) {
-        await runLesson(lessonId, progress.isPracticeMode, progress.questionIndex);
-        return;
-    }
+    
+    // قبلاً انجام داده (تمرین مجدد)
     if (alreadyDone) {
         pendingLessonId = lessonId;
         document.getElementById('repeat-modal').classList.add('active');
         return;
     }
+    
+    // 🆕 اگه progress قبلی هست، مودال نشون بده
+    const progress = getCurrentProgress();
+    if (progress && progress.lessonId === lessonId) {
+        showResumeModal(lessonId, progress);
+        return;
+    }
+    
+    // شروع از صفر
+    clearCurrentProgress();
     await runLesson(lessonId, false, 0);
 }
 
 // ============================================================
-// اجرای تکلیف
+// 🆕 مودال "ادامه یا از اول"
 // ============================================================
-async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracticeMode = false) {
-    try {
-        const lessonMeta = allLessons.find(l => l.id === lessonId);
-        if (!lessonMeta) return;
-        const response = await fetch('./lessons/' + lessonMeta.file);
-        if (!response.ok) throw new Error('خطا در بارگذاری');
-        currentLesson = await response.json();
-        const lessonIndex = allLessons.findIndex(l => l.id === lessonId);
-        const taskTitle = lessonMeta.title || LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
-        if (startFromIndex > 0 && !practiceMode) {
-            const progress = getCurrentProgress();
-            if (progress && progress.lessonId === lessonId) {
-                currentQuestionIndex = progress.questionIndex;
-                score = progress.score;
-                correctCount = progress.correctCount;
-                wrongCount = progress.wrongCount;
-                isPracticeMode = progress.isPracticeMode;
-                startTime = new Date(progress.startTime);
-            } else {
-                currentQuestionIndex = 0;
-                score = 0;
-                correctCount = 0;
-                wrongCount = 0;
-                isPracticeMode = practiceMode || forcePracticeMode;
-                startTime = new Date();
-            }
-        } else {
-            currentQuestionIndex = startFromIndex;
-            score = 0;
-            correctCount = 0;
-            wrongCount = 0;
-            isPracticeMode = practiceMode || forcePracticeMode;
-            startTime = new Date();
-        }
-        // عنوان تکلیف دیگه نمایش داده نمیشه
-        // document.getElementById('quiz-lesson-title').textContent = taskTitle;
-        goToScreen('screen-quiz');
-        renderQuestion();
-    } catch (error) {
-        console.error('خطا:', error);
-        showModal('خطا', 'مشکلی در بارگذاری تکلیف پیش آمد.', '❌');
+function showResumeModal(lessonId, progress) {
+    const answeredCount = progress.questionIndex;
+    const totalQuestions = progress.totalQuestions || 12;
+    
+    const existing = document.getElementById('resume-modal');
+    if (existing) existing.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'resume-modal';
+    modal.className = 'exit-modal-overlay active';
+    modal.innerHTML = `
+        <div class="exit-modal-box">
+            <div class="exit-icon-wrapper" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="stroke: #1976d2; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                    <path d="M12 8V12L15 15"/>
+                    <circle cx="12" cy="12" r="10"/>
+                </svg>
+            </div>
+            <div class="exit-title">ادامه بده یا از اول؟</div>
+            <div class="exit-text">
+                شما قبلاً این تکلیف رو تا <strong>سوال ${toPersianNum(answeredCount)} از ${toPersianNum(totalQuestions)}</strong> انجام دادید.<br><br>
+                آیا می‌خواید ادامه بدید یا از اول شروع کنید؟
+            </div>
+            <div class="exit-buttons">
+                <button class="exit-btn-cancel" onclick="closeResumeModal(); startLessonFromScratch('${lessonId}')">
+                    از اول
+                </button>
+                <button class="exit-btn-confirm" style="background: linear-gradient(135deg, #4caf50, #2e7d32);" onclick="closeResumeModal(); continueLesson('${lessonId}')">
+                    ادامه بده
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeResumeModal() {
+    const modal = document.getElementById('resume-modal');
+    if (modal) modal.remove();
+}
+
+function startLessonFromScratch(lessonId) {
+    clearCurrentProgress();
+    runLesson(lessonId, false, 0);
+}
+
+function continueLesson(lessonId) {
+    const progress = getCurrentProgress();
+    if (progress && progress.lessonId === lessonId) {
+        runLesson(lessonId, progress.isPracticeMode, progress.questionIndex);
+    } else {
+        runLesson(lessonId, false, 0);
     }
 }

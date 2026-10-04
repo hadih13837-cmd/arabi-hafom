@@ -1,5 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
+// نسخه: ۳.۰.۰ — با ذخیره‌سازی درست progress
 // ============================================================
 
 // متغیرهای سراسری سوالات
@@ -19,14 +20,14 @@ let matchedAudioPairs = [];
 let selectedErrorWord = null;
 let surveyAnswerText = '';
 
-// 🆕 متغیرهای مربوط به match-flip (بازی حافظه)
+// متغیرهای match-flip
 let flippedCards = [];
 let matchedFlipPairs = 0;
 let flipLocked = false;
 let totalFlipPairs = 0;
-let matchFlipChecking = false; // 🆕 جلوگیری از checkAnswer دوباره
+let matchFlipChecking = false;
 
-// 🆕 متغیرهای مربوط به word-attach (چسباندن ضمیر)
+// متغیرهای word-attach
 let selectedAttachOption = null;
 let attachedWord = '';
 
@@ -71,6 +72,61 @@ function playAudioFromVideo(videoUrl, btnElement) {
 }
 
 // ============================================================
+// 🆕 اجرای تکلیف (با ریست کامل شمارنده‌ها)
+// ============================================================
+async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracticeMode = false) {
+    try {
+        const lessonMeta = allLessons.find(l => l.id === lessonId);
+        if (!lessonMeta) return;
+        
+        const response = await fetch('./lessons/' + lessonMeta.file);
+        if (!response.ok) throw new Error('خطا در بارگذاری');
+        currentLesson = await response.json();
+        
+        const lessonIndex = allLessons.findIndex(l => l.id === lessonId);
+        const taskTitle = lessonMeta.title || LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
+        
+        // 🆕 اگه startFromIndex > 0 (ادامه)، مقادیر رو از progress بگیر
+        if (startFromIndex > 0 && !forcePracticeMode) {
+            const progress = getCurrentProgress();
+            if (progress && progress.lessonId === lessonId) {
+                currentQuestionIndex = progress.questionIndex || 0;
+                score = progress.score || 0;
+                correctCount = progress.correctCount || 0;
+                wrongCount = progress.wrongCount || 0;
+                isPracticeMode = progress.isPracticeMode || false;
+                startTime = progress.startTime ? new Date(progress.startTime) : new Date();
+                console.log('▶️ ادامه از سوال:', currentQuestionIndex + 1);
+                console.log('📊 شمارنده‌ها:', { correct: correctCount, wrong: wrongCount, score: score });
+            } else {
+                currentQuestionIndex = 0;
+                score = 0;
+                correctCount = 0;
+                wrongCount = 0;
+                isPracticeMode = practiceMode || forcePracticeMode;
+                startTime = new Date();
+                console.log('🆕 شروع از صفر (progress نبود)');
+            }
+        } else {
+            // 🆕 شروع از صفر
+            currentQuestionIndex = 0;
+            score = 0;
+            correctCount = 0;
+            wrongCount = 0;
+            isPracticeMode = practiceMode || forcePracticeMode;
+            startTime = new Date();
+            console.log('🆕 شروع از صفر');
+        }
+        
+        goToScreen('screen-quiz');
+        renderQuestion();
+    } catch (error) {
+        console.error('خطا:', error);
+        showModal('خطا', 'مشکلی در بارگذاری تکلیف پیش آمد.', '❌');
+    }
+}
+
+// ============================================================
 // رندر سوال
 // ============================================================
 function renderQuestion() {
@@ -97,7 +153,6 @@ function renderQuestion() {
     selectedErrorWord = null;
     surveyAnswerText = '';
     
-    // 🆕 ریست متغیرهای جدید
     flippedCards = [];
     matchedFlipPairs = 0;
     flipLocked = false;
@@ -108,7 +163,10 @@ function renderQuestion() {
     
     submitBtn.disabled = false;
     submitBtn.textContent = 'بررسی سوال';
+    
+    // 🆕 ذخیره progress بعد از رندر
     saveCurrentProgress();
+    
     const qType = q.type || 'multiple';
     const iconData = QUESTION_ICONS[qType] || QUESTION_ICONS.multiple;
     let html = '';
@@ -294,7 +352,7 @@ function renderQuestion() {
 }
 
 // ============================================================
-// 🆕 توابع مربوط به match-flip (بازی حافظه) - اصلاح شده
+// توابع match-flip
 // ============================================================
 function flipCard(el, cardIdx) {
     if (isAnswered) return;
@@ -312,22 +370,18 @@ function flipCard(el, cardIdx) {
         cardIdx: cardIdx
     });
     
-    // اگه دو تا کارت برگردونده شد
     if (flippedCards.length === 2) {
         flipLocked = true;
         const card1 = flippedCards[0];
         const card2 = flippedCards[1];
         
-        // چک کن جفت هستن یا نه
         if (card1.pairId === card2.pairId && card1.type !== card2.type) {
-            // ✅ درست
             setTimeout(() => {
                 card1.el.classList.add('matched');
                 card2.el.classList.add('matched');
                 matchedFlipPairs++;
                 vibrate([30, 50, 30]);
                 
-                // آپدیت وضعیت
                 const statusEl = document.getElementById('match-flip-status');
                 if (statusEl) {
                     statusEl.textContent = `جفت‌های پیدا شده: ${toPersianNum(matchedFlipPairs)} از ${toPersianNum(totalFlipPairs)}`;
@@ -336,7 +390,6 @@ function flipCard(el, cardIdx) {
                 flippedCards = [];
                 flipLocked = false;
                 
-                // 🆕 اگه همه جفت‌ها پیدا شدن، خودکار بررسی کن (فقط یه بار)
                 if (matchedFlipPairs === totalFlipPairs && !isAnswered && !matchFlipChecking) {
                     matchFlipChecking = true;
                     setTimeout(() => {
@@ -347,7 +400,6 @@ function flipCard(el, cardIdx) {
                 }
             }, 400);
         } else {
-            // ❌ اشتباه - برگردون
             setTimeout(() => {
                 card1.el.classList.remove('flipped');
                 card2.el.classList.remove('flipped');
@@ -360,7 +412,7 @@ function flipCard(el, cardIdx) {
 }
 
 // ============================================================
-// 🆕 توابع مربوط به word-attach (چسباندن ضمیر)
+// توابع word-attach
 // ============================================================
 function selectAttachOption(el, option) {
     if (isAnswered) return;
@@ -443,7 +495,7 @@ function selectFaWord(el, word, faOrigIdx) {
 }
 
 // ============================================================
-// انتخاب‌های سوال find-error
+// انتخاب‌های find-error
 // ============================================================
 function selectErrorWord(el, index) {
     if (isAnswered) return;
@@ -454,7 +506,7 @@ function selectErrorWord(el, index) {
 }
 
 // ============================================================
-// انتخاب‌های سوال word-build
+// انتخاب‌های word-build
 // ============================================================
 function playWordBuildAudio(el) {
     if (isAnswered) return;
@@ -580,7 +632,7 @@ function selectOrder(el, word) {
 }
 
 // ============================================================
-// بررسی پاسخ
+// 🆕 بررسی پاسخ (با شمارنده‌های درست)
 // ============================================================
 function checkAnswer() {
     if (isAnswered) return;
@@ -716,6 +768,7 @@ function checkAnswer() {
     isAnswered = true;
     document.getElementById('submit-btn').disabled = true;
 
+    // 🆕 افزایش شمارنده‌ها **فقط یک بار**
     if (isCorrect) {
         if (!isPracticeMode) score += q.points;
         correctCount++;
@@ -728,11 +781,13 @@ function checkAnswer() {
         vibrate([50, 30, 50]);
         showFeedback(false, 0, q);
     }
+    
+    // 🆕 ذخیره progress بعد از افزایش شمارنده
     saveCurrentProgress();
 }
 
 // ============================================================
-// گرفتن متن پاسخ صحیح برای نمایش
+// گرفتن متن پاسخ صحیح
 // ============================================================
 function getCorrectAnswerText(q) {
     if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image') return q.options[q.correct];
@@ -796,7 +851,6 @@ function showFeedback(isCorrect, points, q) {
             pts.style.fontSize = '24px';
         }
         
-        // 🆕 برای match-flip
         if (q.type === 'match-flip') {
             answerBox.className = 'correct-answer-box';
             answerBox.style.display = 'block';
@@ -949,6 +1003,7 @@ function showFeedback(isCorrect, points, q) {
 function nextQuestion() {
     currentQuestionIndex++;
     if (currentQuestionIndex < currentLesson.questions.length) {
+        // 🆕 ذخیره progress قبل از رفتن به سوال بعدی
         saveCurrentProgress();
         goToScreen('screen-quiz');
         renderQuestion();
@@ -990,5 +1045,7 @@ function showResult() {
         pointsRow.style.display = 'flex';
         if (percent >= 80) showConfetti();
     }
+    
+    // 🆕 پاک کردن progress بعد از اتمام
     clearCurrentProgress();
 }
