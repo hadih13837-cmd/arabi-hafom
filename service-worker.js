@@ -3,7 +3,7 @@
 // نسخه: v62
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v80';
+const CACHE_NAME = 'arabi-hafom-v62';
 
 // ============================================================
 // لیست فایل‌های ضروری برای کش
@@ -21,7 +21,7 @@ const urlsToCache = [
 
     './js/config.js',
     './js/utils.js',
-    './js/supabase.js',
+    './js/api.js',
     './js/avatars.js',
     './js/navigation.js',
     './js/notifications.js',
@@ -109,18 +109,11 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
 
-    // ۱. درخواست‌های Supabase — همیشه از شبکه
-    if (event.request.url.includes('supabase.co')) {
-        event.respondWith(
-            fetch(event.request, { cache: 'no-store' })
-                .catch(() => {
-                    return new Response(JSON.stringify([]), {
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                })
-        );
-        return;
-    }
+    // ۱. درخواست‌های Google Apps Script — همیشه از شبکه
+if (event.request.url.includes('script.google.com')) {
+    event.respondWith(fetch(event.request));
+    return;
+}
 
     // ۲. فایل maintenance.json — همیشه از شبکه
     if (event.request.url.includes('maintenance.json')) {
