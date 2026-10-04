@@ -1,7 +1,6 @@
 // ============================================================
 // api.js — اتصال به Google Sheets API
-// جایگزین supabase.js
-// نسخه: ۱.۰.۰
+// نسخه: ۱.۱.۰ — با پشتیبانی از آواتار
 // ============================================================
 
 // ============================================================
@@ -38,21 +37,19 @@ function slugToClassName(slug) {
 }
 
 // ============================================================
-// درخواست POST به API (برای ذخیره)
+// درخواست POST به API
 // ============================================================
 async function apiPost(data) {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
-            mode: 'no-cors',  // 🆕 مهم برای Google Apps Script
+            mode: 'no-cors',
             headers: {
                 'Content-Type': 'text/plain;charset=utf-8'
             },
             body: JSON.stringify(data)
         });
         
-        // چون no-cors هست، نمی‌تونیم response رو بخونیم
-        // ولی درخواست فرستاده شده
         console.log('📤 POST ارسال شد');
         return { success: true };
     } catch (error) {
@@ -62,7 +59,7 @@ async function apiPost(data) {
 }
 
 // ============================================================
-// درخواست GET از API (برای خواندن)
+// درخواست GET از API
 // ============================================================
 async function apiGet(params = {}) {
     try {
@@ -135,7 +132,7 @@ async function saveRankingToSupabase() {
             completed_lessons: completedLessons,
             avg_percent: avgPercent,
             streak_days: streakDays,
-            avatar_url: avatarUrl,
+            avatar_url: String(avatarUrl),
             last_update: new Date().toISOString()
         };
         
@@ -159,7 +156,6 @@ async function getRankingsByClass(className) {
         const classSlug = classNameToSlug(className);
         console.log('🔍 گرفتن رتبه‌بندی برای کلاس:', className, '→', classSlug);
         
-        // اضافه کردن cache-buster برای جلوگیری از کش
         const result = await apiGet({ 
             class_name: classSlug,
             t: Date.now()

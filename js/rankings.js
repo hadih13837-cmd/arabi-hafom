@@ -1,6 +1,6 @@
 // ============================================================
-// rankings.js — سیستم رتبه‌بندی (طراحی Duolingo)
-// نسخه: ۴.۰.۰
+// rankings.js — سیستم رتبه‌بندی (طراحی سه‌بعدی)
+// نسخه: ۵.۱.۰ — با نمایش آواتار واقعی کاربر
 // ============================================================
 
 let currentRankings = [];
@@ -58,78 +58,132 @@ async function loadRankingsPage() {
 }
 
 // ============================================================
-// 🆕 رندر لیست رتبه‌بندی (طراحی Duolingo)
+// رندر لیست رتبه‌بندی
 // ============================================================
 function renderRankingsList(rankings, userClass, studentId) {
     let html = '';
     
-    // پیدا کردن رتبه‌ی کاربر
     const myIndex = studentId ? rankings.findIndex(r => r.student_id === studentId) : -1;
-    const myRank = myIndex >= 0 ? myIndex + 1 : null;
     
-    // هدر Duolingo-style
+    // ═══════════════════════════════════════════════════
+    // ۱. هدر آبی با تاج
+    // ═══════════════════════════════════════════════════
     html += `
-        <div class="dl-leaderboard-header">
-            <div class="dl-header-icon">🏆</div>
-            <div class="dl-header-title">لیگ ${userClass}</div>
-            <div class="dl-header-sub">${toPersianNum(rankings.length)} دانش‌آموز</div>
+        <div class="lb-header">
+            <div class="lb-header-crown">👑</div>
+            <div class="lb-header-title">رتبه‌بندی</div>
+            <div class="lb-header-sub">${userClass}</div>
         </div>
     `;
     
-    // Zone Promotion (نفرات ۱-۳)
+    // ═══════════════════════════════════════════════════
+    // ۲. سکوی قهرمانی سه‌بعدی (نفرات ۱-۲-۳)
+    // ═══════════════════════════════════════════════════
     if (rankings.length >= 3) {
-        html += `<div class="dl-zone-label dl-zone-promotion">
-            <span>⬆️ منطقه‌ی صعود</span>
-        </div>`;
+        const first = rankings[0];
+        const second = rankings[1];
+        const third = rankings[2];
+        const isFirstMe = first.student_id === studentId;
+        const isSecondMe = second.student_id === studentId;
+        const isThirdMe = third.student_id === studentId;
+        
+        html += `
+            <div class="lb-podium-wrapper">
+                <!-- نفر دوم - سمت راست -->
+                <div class="lb-podium-item lb-podium-2 ${isSecondMe ? 'lb-is-me' : ''}">
+                    <div class="lb-podium-avatar">
+                        ${renderAvatar(second)}
+                    </div>
+                    <div class="lb-podium-name">${truncateName(second.name)}</div>
+                    <div class="lb-podium-points">
+                        <span class="lb-podium-star">⭐</span>
+                        <span>${toPersianNum(second.total_points)}</span>
+                    </div>
+                    <div class="lb-podium-base lb-base-2">
+                        <span class="lb-podium-rank">۲</span>
+                    </div>
+                </div>
+                
+                <!-- نفر اول - وسط (بلندتر) -->
+                <div class="lb-podium-item lb-podium-1 ${isFirstMe ? 'lb-is-me' : ''}">
+                    <div class="lb-podium-crown">👑</div>
+                    <div class="lb-podium-avatar">
+                        ${renderAvatar(first)}
+                    </div>
+                    <div class="lb-podium-name">${truncateName(first.name)}</div>
+                    <div class="lb-podium-points">
+                        <span class="lb-podium-star">⭐</span>
+                        <span>${toPersianNum(first.total_points)}</span>
+                    </div>
+                    <div class="lb-podium-base lb-base-1">
+                        <span class="lb-podium-rank">۱</span>
+                    </div>
+                </div>
+                
+                <!-- نفر سوم - سمت چپ -->
+                <div class="lb-podium-item lb-podium-3 ${isThirdMe ? 'lb-is-me' : ''}">
+                    <div class="lb-podium-avatar">
+                        ${renderAvatar(third)}
+                    </div>
+                    <div class="lb-podium-name">${truncateName(third.name)}</div>
+                    <div class="lb-podium-points">
+                        <span class="lb-podium-star">⭐</span>
+                        <span>${toPersianNum(third.total_points)}</span>
+                    </div>
+                    <div class="lb-podium-base lb-base-3">
+                        <span class="lb-podium-rank">۳</span>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     
-    html += `<div class="dl-leaderboard-list">`;
+    // ═══════════════════════════════════════════════════
+    // ۳. لیست ردیفی (از نفر ۱ تا آخر)
+    // ═══════════════════════════════════════════════════
+    html += `<div class="lb-list">`;
     
     rankings.forEach((ranking, index) => {
         const rank = index + 1;
         const isMe = ranking.student_id === studentId;
-        const isTop3 = rank <= 3;
         
-        // بعد از نفر ۳، خط جداکننده
-        if (index === 3 && rankings.length > 3) {
-            html += `</div><div class="dl-zone-divider"></div><div class="dl-leaderboard-list">`;
-        }
+        // مدال برای نفرات اول تا سوم
+        let medalEmoji = '';
+        if (rank === 1) medalEmoji = '🥇';
+        else if (rank === 2) medalEmoji = '🥈';
+        else if (rank === 3) medalEmoji = '🥉';
         
-        // مدال برای سه نفر اول
-        let medalHTML = '';
-        let rankClass = 'dl-rank-default';
-        if (rank === 1) {
-            medalHTML = '<span class="dl-medal">🥇</span>';
-            rankClass = 'dl-rank-1';
-        } else if (rank === 2) {
-            medalHTML = '<span class="dl-medal">🥈</span>';
-            rankClass = 'dl-rank-2';
-        } else if (rank === 3) {
-            medalHTML = '<span class="dl-medal">🥉</span>';
-            rankClass = 'dl-rank-3';
-        }
+        // کلاس (مثلاً «پایه هفتم - کلاس ۱»)
+        const classNum = getClassNumberFromSlug(ranking.class_name);
         
         html += `
-            <div class="dl-rank-row ${isMe ? 'dl-is-me' : ''} ${isTop3 ? 'dl-top-rank' : ''}">
-                <div class="dl-rank-number ${rankClass}">
-                    ${medalHTML || toPersianNum(rank)}
+            <div class="lb-row ${isMe ? 'lb-row-me' : ''}">
+                <!-- رتبه -->
+                <div class="lb-row-rank">
+                    ${medalEmoji 
+                        ? `<span class="lb-row-medal">${medalEmoji}</span>` 
+                        : `<span class="lb-row-num">${toPersianNum(rank)}</span>`
+                    }
                 </div>
-                <div class="dl-avatar">
+                
+                <!-- آواتار -->
+                <div class="lb-row-avatar">
                     ${renderAvatar(ranking)}
                 </div>
-                <div class="dl-info">
-                    <div class="dl-name">
+                
+                <!-- اطلاعات -->
+                <div class="lb-row-info">
+                    <div class="lb-row-name">
                         ${ranking.name}
-                        ${isMe ? '<span class="dl-you-badge">شما</span>' : ''}
+                        ${isMe ? '<span class="lb-row-you">شما</span>' : ''}
                     </div>
-                    <div class="dl-stats">
-                        <span class="dl-stat-item">📚 ${toPersianNum(ranking.completed_lessons)} تکلیف</span>
-                        <span class="dl-stat-item">📊 ${toPersianNum(ranking.avg_percent)}%</span>
-                    </div>
+                    <div class="lb-row-class">پایه هفتم - کلاس ${classNum}</div>
                 </div>
-                <div class="dl-points">
-                    <span class="dl-points-value">${toPersianNum(ranking.total_points)}</span>
-                    <span class="dl-points-icon">⭐</span>
+                
+                <!-- امتیاز -->
+                <div class="lb-row-points">
+                    <span class="lb-row-star">⭐</span>
+                    <span class="lb-row-points-value">${toPersianNum(ranking.total_points)}</span>
                 </div>
             </div>
         `;
@@ -140,50 +194,67 @@ function renderRankingsList(rankings, userClass, studentId) {
     // اگه کاربر توی لیست نیست
     if (studentId && myIndex === -1) {
         html += `
-            <div class="dl-not-in-list">
-                <div class="dl-not-in-icon">📝</div>
-                <div class="dl-not-in-text">
-                    شما هنوز توی لیگ نیستید!<br>
-                    <span style="font-size: 12px;">با انجام اولین تکلیف، وارد لیگ می‌شید.</span>
+            <div class="lb-not-in-list">
+                <div class="lb-not-in-icon">📝</div>
+                <div class="lb-not-in-text">
+                    شما هنوز توی رتبه‌بندی نیستید!<br>
+                    <span style="font-size: 12px;">با انجام اولین تکلیف، وارد لیست می‌شید.</span>
                 </div>
             </div>
         `;
-    }
-    
-    // Zone Demotion (آخرین ۲ نفر)
-    if (rankings.length >= 5) {
-        html += `<div class="dl-zone-label dl-zone-demotion">
-            <span>⬇️ منطقه‌ی سقوط</span>
-        </div>`;
     }
     
     return html;
 }
 
 // ============================================================
-// رندر کارت رتبه‌بندی (ساده - بدون استفاده)
+// گرفتن شماره کلاس از slug
 // ============================================================
-function renderRankingCard(ranking, rank, myStudentId) {
-    // این تابع دیگه استفاده نمی‌شه
-    return '';
+function getClassNumberFromSlug(slug) {
+    const map = {
+        'hafom-1': '۱',
+        'hafom-2': '۲',
+        'hafom-3': '۳',
+        'hafom-4': '۴',
+        'hafom-5': '۵'
+    };
+    return map[slug] || '؟';
 }
 
 // ============================================================
-// رندر آواتار
+// 🆕 رندر آواتار (پشتیبانی از ایموجی، عکس base64، و URL)
 // ============================================================
 function renderAvatar(ranking) {
     const avatarUrl = ranking.avatar_url || 'emoji:👤';
     
+    // حالت ایموجی
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '');
-        return `<span class="dl-avatar-emoji">${emoji}</span>`;
-    } else if (avatarUrl.startsWith('data:image')) {
-        return `<img src="${avatarUrl}" alt="آواتار" class="dl-avatar-img">`;
-    } else if (avatarUrl.startsWith('http')) {
-        return `<img src="${avatarUrl}" alt="آواتار" class="dl-avatar-img" crossorigin="anonymous">`;
-    } else {
-        return `<span class="dl-avatar-emoji">👤</span>`;
+        return `<span class="lb-avatar-emoji">${emoji}</span>`;
     }
+    
+    // حالت عکس base64 (کاربر آپلود کرده)
+    if (avatarUrl.startsWith('data:image')) {
+        return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img">`;
+    }
+    
+    // حالت URL عکس
+    if (avatarUrl.startsWith('http')) {
+        return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img" crossorigin="anonymous">`;
+    }
+    
+    // حالت پیش‌فرض
+    return `<span class="lb-avatar-emoji">👤</span>`;
+}
+
+// ============================================================
+// کوتاه کردن اسم
+// ============================================================
+function truncateName(fullName) {
+    if (!fullName) return 'دانش‌آموز';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0];
+    return `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
 }
 
 // ============================================================
@@ -193,9 +264,9 @@ function renderEmptyRankings() {
     return `
         <div class="rankings-empty">
             <div class="rankings-empty-icon">🏆</div>
-            <div class="rankings-empty-title">هنوز لیگی وجود نداره!</div>
+            <div class="rankings-empty-title">هنوز رتبه‌بندی‌ای نیست!</div>
             <div class="rankings-empty-text">
-                با انجام اولین تکلیف، اولین نفر توی لیگ کلاس می‌شی!
+                با انجام اولین تکلیف، اولین نفر توی لیست رتبه‌بندی کلاس می‌شی!
             </div>
         </div>
     `;
