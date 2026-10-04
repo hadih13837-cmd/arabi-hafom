@@ -8388,3 +8388,97 @@ body.dark-mode .um-modal-empty-title {
     0%, 100% { transform: translateX(-50%) rotate(-8deg); }
     50% { transform: translateX(-50%) rotate(8deg); }
 }
+
+/* ═══════════════════════════════════════════════════════
+   🆕 حذف کادر شفاف روی صفحه رتبه‌بندی
+   ═══════════════════════════════════════════════════════ */
+
+#screen-rankings::before {
+    display: none !important;
+    background: none !important;
+    opacity: 0 !important;
+}
+
+/* اگه blur روی هدر هم هست، این رو هم اضافه کن */
+#screen-rankings .page-header {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #fff !important;
+}
+
+/* کارت پروفایل هم اگه blur داشت */
+.profile-card-overlay {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* مودال مدال‌ها هم اگه blur داشت */
+.user-medals-overlay {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 حذف لایه‌ی سفید شفاف روی پس‌زمینه رتبه‌بندی
+   ═══════════════════════════════════════════════════════ */
+
+#screen-rankings::before {
+    background: transparent !important;
+    display: none !important;
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 حذف کامل لایه‌ی سفید شفاف روی پس‌زمینه رتبه‌بندی
+   ═══════════════════════════════════════════════════════ */
+
+#screen-rankings {
+    background: url('https://cdn.imgurl.ir/uploads/y68091_ChatGPT_Image_Oct_4_2026_02_36_15_PM.png') center center / cover no-repeat fixed !important;
+    position: relative !important;
+}
+
+/* لایه‌ی شفاف رو کاملاً حذف کن */
+#screen-rankings::before,
+#screen-rankings::after {
+    content: none !important;
+    display: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* محتوای رتبه‌بندی — پس‌زمینه شفاف */
+#screen-rankings .rankings-scroll-content {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* هدر رتبه‌بندی — پس‌زمینه‌ی نیمه‌شفاف کم‌رنگ‌تر */
+#screen-rankings .page-header {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+/* ═══════════════════════════════════════════════════════
+   🆕 حذف کادر شفاف پشت سکوها
+   ═══════════════════════════════════════════════════════ */
+
+.lb-podium-vector-wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+}
+
+.lb-podium-vector-bg {
+    background: transparent !important;
+}
+
+/* حذف پس‌زمینه‌ی سفید از ردیف‌های داخل سکو (اگه منظورت لیست ردیفی هم هست) */
+.lb-list {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
