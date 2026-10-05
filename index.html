@@ -16,6 +16,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
     
+    <!-- 🆕 Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -704,7 +707,6 @@
     </div>
 
     <!-- ============ صفحه پیام‌های معلم ============ -->
-    <!-- ============ صفحه پیام‌های معلم ============ -->
 <div id="screen-teacher-messages" class="screen">
     <div class="page-header">
         <button class="page-back" onclick="goBackToHome()" title="بازگشت">
@@ -722,7 +724,6 @@
         </button>
     </div>
     
-    <!-- 🆕 تب‌های پیام‌رسان -->
     <div class="student-messages-tabs">
         <button class="student-messages-tab active" data-tab="class" onclick="switchStudentMessagesTab('class')">
             <span class="tab-icon">📢</span>
@@ -736,19 +737,13 @@
         </button>
     </div>
     
-    <!-- تب ۱: پیام‌های کلاس -->
     <div class="student-messages-tab-content active" id="student-tab-class">
-        <div class="student-class-messages-content" id="student-class-messages-content">
-            <!-- توسط JS پر میشه -->
-        </div>
+        <div class="student-class-messages-content" id="student-class-messages-content"></div>
     </div>
     
-    <!-- تب ۲: چت با معلم -->
     <div class="student-messages-tab-content" id="student-tab-chat">
         <div class="student-chat-wrapper">
-            <div class="student-chat-messages" id="student-chat-messages">
-                <!-- پیام‌های چت -->
-            </div>
+            <div class="student-chat-messages" id="student-chat-messages"></div>
             <div class="student-chat-input-wrapper">
                 <input 
                     type="text" 
@@ -897,7 +892,7 @@
                     <span>اطلاعات برنامه</span>
                 </div>
                 <div class="about-info-row"><span class="label">نام برنامه</span><span class="value">عربی هفتم</span></div>
-                <div class="about-info-row"><span class="label">نسخه</span><span class="value">۲.۰.۰</span></div>
+                <div class="about-info-row"><span class="label">نسخه</span><span class="value">۳.۰.۰</span></div>
                 <div class="about-info-row"><span class="label">پایه تحصیلی</span><span class="value">هفتم</span></div>
                 <div class="about-info-row"><span class="label">سال تحصیلی</span><span class="value">۱۴۰۵-۱۴۰۶</span></div>
             </div>
@@ -1391,6 +1386,7 @@
      ============================================================ -->
 <script src="./js/config.js"></script>
 <script src="./js/utils.js"></script>
+<script src="./js/supabase-config.js"></script>
 <script src="./js/api.js"></script>
 <script src="./js/avatars.js"></script>
 <script src="./js/navigation.js"></script>

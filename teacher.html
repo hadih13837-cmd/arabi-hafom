@@ -10,6 +10,10 @@
     <meta name="apple-mobile-web-app-title" content="پنل معلم">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+    
+    <!-- 🆕 Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <link rel="stylesheet" href="./css/teacher.css">
 </head>
 <body>
@@ -201,7 +205,6 @@
              ═══════════════════════════════════════════════════ -->
         <section class="page" id="page-rankings">
             
-            <!-- انتخاب کلاس (تب‌های افقی) -->
             <div class="rankings-class-tabs" id="rankings-class-tabs">
                 <button class="rankings-class-tab active" data-class="hafom-1" onclick="switchRankingClass('hafom-1', this)">
                     هفتم یک
@@ -554,7 +557,7 @@
                 <div class="settings-item">
                     <div class="settings-item-info">
                         <div class="settings-item-title">آدرس API</div>
-                        <div class="settings-item-desc">Google Apps Script</div>
+                        <div class="settings-item-desc">Supabase URL</div>
                     </div>
                     <input type="text" class="settings-item-input" id="setting-api-url" readonly>
                 </div>
@@ -593,6 +596,8 @@
     <div class="toast-text" id="toast-text">پیام</div>
 </div>
 
+<!-- 🆕 لود Supabase Config قبل از teacher.js -->
+<script src="./js/supabase-config.js"></script>
 <script src="./js/teacher.js"></script>
 
 </body>
