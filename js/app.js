@@ -1,6 +1,6 @@
 // ============================================================
 // app.js — نقطه شروع برنامه (باید آخرین فایل لود بشه)
-// نسخه: ۳.۰.۰ — با پیام‌های معلم و auto-sync
+// نسخه: ۴.۰.۰ — با Badge polling و auto-sync
 // ============================================================
 
 // ============================================================
@@ -66,9 +66,16 @@ async function startApp() {
             checkDeadlineWarning();
             updateNotificationBadge();
             checkVideoNotification();
+            
             if (typeof checkTeacherMessagesBadge === 'function') {
                 checkTeacherMessagesBadge();
             }
+            
+            // 🆕 شروع Badge polling
+            if (typeof startBadgePolling === 'function') {
+                startBadgePolling();
+            }
+            
             if (localStorage.getItem('guideCompleted') !== 'true') {
                 currentGuideStep = 0;
                 showGuideStep();
@@ -402,7 +409,7 @@ function dismissTeacherNotification(messageId, btn) {
 
 function goToTeacherMessage() {
     document.querySelectorAll('.teacher-message-notification').forEach(n => n.remove());
-    goToScreen('screen-notifications');
+    goToScreen('screen-teacher-messages');
 }
 
 // ============================================================
@@ -471,9 +478,16 @@ window.addEventListener('load', async () => {
                     updateNotificationBadge();
                 }
                 checkVideoNotification();
+                
                 if (typeof checkTeacherMessagesBadge === 'function') {
                     checkTeacherMessagesBadge();
                 }
+                
+                // 🆕 شروع Badge polling
+                if (typeof startBadgePolling === 'function') {
+                    startBadgePolling();
+                }
+                
                 setTimeout(() => showStreakMessage(), 800);
             }, 300);
         } else {
@@ -484,17 +498,15 @@ window.addEventListener('load', async () => {
         setTimeout(typeMotivation, 500);
     }
 
-    // ۷. چک کردن پیام‌های معلم (هر ۳۰ ثانیه)
-    setInterval(() => {
-        if (localStorage.getItem('userRegistered') === 'true') {
-            const activeScreen = document.querySelector('.screen.active');
-            if (activeScreen && activeScreen.id !== 'screen-teacher-messages') {
-                if (typeof checkTeacherMessagesBadge === 'function') {
-                    checkTeacherMessagesBadge();
-                }
+    // ۷. 🆕 شروع Badge polling (برای کاربران ثبت‌نام‌شده)
+    if (isRegistered) {
+        setTimeout(() => {
+            if (typeof startBadgePolling === 'function') {
+                startBadgePolling();
+                console.log('✅ Badge polling شروع شد');
             }
-        }
-    }, 30000);
+        }, 2000);
+    }
 
     // ۸. بارگذاری مسابقات و کتابخانه
     setTimeout(() => {
@@ -512,6 +524,11 @@ document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         if (localStorage.getItem('userRegistered') === 'true') {
             autoSyncRanking('بازگشت به برنامه');
+            
+            // 🆕 یک بار Badge رو آپدیت کن
+            if (typeof fetchAndUpdateBadge === 'function') {
+                fetchAndUpdateBadge();
+            }
         }
     }
 });

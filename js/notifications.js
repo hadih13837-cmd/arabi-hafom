@@ -1,6 +1,6 @@
 // ============================================================
-// notifications.js — نسخه ۹.۰.۰
-// با Badge دقیق، تیک دوگانه و سرعت بالا
+// notifications.js — نسخه ۱۰.۰.۰
+// با Badge دقیق از سرور، تیک دوگانه و سرعت بالا
 // ============================================================
 
 // ============================================================
@@ -8,6 +8,7 @@
 // ============================================================
 const MESSAGES_CACHE_DURATION = 300000;
 const POLLING_INTERVAL = 1500;
+const BADGE_POLLING_INTERVAL = 5000; // 🆕 هر ۵ ثانیه
 const BADGE_CACHE_KEY = 'studentBadgeCache';
 const SEEN_CHAT_KEY = 'seenChatMessages';
 const SEEN_CLASS_KEY = 'seenClassMessages';
@@ -787,7 +788,7 @@ function renderStudentClassMessages(messages) {
 }
 
 // ============================================================
-// 🆕 چت با معلم (تصحیح شده — با تیک)
+// 🆕 چت با معلم
 // ============================================================
 async function loadStudentChat() {
     const container = document.getElementById('student-chat-messages');
@@ -903,7 +904,7 @@ function renderStudentChatMessages(messages) {
 }
 
 // ============================================================
-// 🆕 ارسال پیام (تصحیح قطعی)
+// 🆕 ارسال پیام
 // ============================================================
 async function sendStudentMessage() {
     const input = document.getElementById('student-chat-input');
@@ -921,7 +922,6 @@ async function sendStudentMessage() {
         return;
     }
     
-    // 🆕 تعریف صحیح cacheKey
     const cacheKey = 'studentChatCache_' + studentId;
     
     const messageData = {
@@ -977,7 +977,7 @@ async function sendStudentMessage() {
 }
 
 // ============================================================
-// 🆕 Polling چت (۱.۵ ثانیه) با تشخیص تیک و پیام جدید
+// 🆕 Polling چت (۱.۵ ثانیه)
 // ============================================================
 function startStudentChatPolling() {
     stopStudentChatPolling();
@@ -1002,7 +1002,6 @@ function startStudentChatPolling() {
             
             const messages = result.data.sort((a, b) => new Date(a.date) - new Date(b.date));
             
-            // 🆕 تشخیص پیام جدید
             let hasNew = false;
             let hasTickChange = false;
             
@@ -1018,12 +1017,10 @@ function startStudentChatPolling() {
                 }
             }
             
-            // 🆕 تشخیص تغییر تیک
             const seenChat = getSeenChat();
             const newTeacherMsgs = messages.filter(m => m.sender === 'teacher' && !seenChat.includes(m.message_id));
             if (newTeacherMsgs.length > 0) hasNew = true;
             
-            // 🆕 تغییر تیک (پیام‌های دانش‌آموز که is_seen شدن)
             if (!hasNew) {
                 const studentMsgs = messages.filter(m => m.sender === 'student' && m.is_seen);
                 const prevStudentMsgs = JSON.parse(localStorage.getItem('prevStudentMsgs') || '[]');
@@ -1050,7 +1047,6 @@ function startStudentChatPolling() {
                 lastChatMessageCount = messages.length;
                 lastKnownMessageIds = currentIds;
                 
-                // 🆕 علامت‌گذاری سمت سرور
                 if (hasNew) {
                     try {
                         await fetch(TEACHER_API_URL, {
@@ -1081,20 +1077,73 @@ function stopStudentChatPolling() {
 }
 
 // ============================================================
-// 🆕 Polling Badge (۱ ثانیه) — فقط LocalStorage
+// 🆕 Polling Badge (هر ۵ ثانیه) — از سرور
 // ============================================================
 function startBadgePolling() {
     stopBadgePolling();
+    
+    // اجرای فوری اول
+    fetchAndUpdateBadge();
     
     badgePollingInterval = setInterval(async () => {
         if (localStorage.getItem('userRegistered') !== 'true') return;
         
         const activeScreen = document.querySelector('.screen.active');
-        if (activeScreen && activeScreen.id === 'screen-teacher-messages') return;
+        if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
+            // اگه توی صفحه پیام‌ها هستیم، فقط از کش استفاده کن
+            updateBadgeImmediately();
+            return;
+        }
         
-        // 🆕 فقط از LocalStorage (فوری)
+        await fetchAndUpdateBadge();
+    }, BADGE_POLLING_INTERVAL);
+}
+
+// 🆕 دریافت پیام‌ها از سرور و آپدیت Badge
+async function fetchAndUpdateBadge() {
+    try {
+        const userClass = localStorage.getItem('userClass') || 'هفتم یک';
+        const studentId = localStorage.getItem('studentUUID');
+        const classSlug = typeof classNameToSlug === 'function' ? classNameToSlug(userClass) : userClass;
+        
+        if (typeof TEACHER_API_URL === 'undefined') {
+            updateBadgeImmediately();
+            return;
+        }
+        
+        // ۱. پیام‌های کلاسی
+        try {
+            const classResponse = await fetch(TEACHER_API_URL + '?action=getClassMessages&class_name=' + classSlug + '&t=' + Date.now(), {
+                cache: 'no-store'
+            });
+            const classResult = await classResponse.json();
+            
+            if (classResult.success && classResult.data) {
+                setCachedData('studentClassMessagesCache', classResult.data);
+            }
+        } catch (e) {}
+        
+        // ۲. پیام‌های چت
+        if (studentId) {
+            try {
+                const chatResponse = await fetch(TEACHER_API_URL + '?action=getPersonalMessages&student_id=' + studentId + '&t=' + Date.now(), {
+                    cache: 'no-store'
+                });
+                const chatResult = await chatResponse.json();
+                
+                if (chatResult.success && chatResult.data) {
+                    setCachedData('studentChatCache_' + studentId, chatResult.data);
+                }
+            } catch (e) {}
+        }
+        
+        // ۳. آپدیت Badge
         updateBadgeImmediately();
-    }, 1000);
+        
+    } catch (error) {
+        // در صورت خطا، از کش استفاده کن
+        updateBadgeImmediately();
+    }
 }
 
 function stopBadgePolling() {
@@ -1204,12 +1253,10 @@ async function updateMessagesFab(forcedCount) {
         return;
     }
     
-    // 🆕 FAB همیشه نمایش داده بشه
     fab.style.display = 'flex';
     
     let count = forcedCount !== undefined ? forcedCount : getBadgeCount();
     
-    // 🆕 اگه صفر بود، مخفی کن
     if (badge) {
         if (count > 0) {
             badge.textContent = count > 9 ? '۹+' : toPersianNum(count);
