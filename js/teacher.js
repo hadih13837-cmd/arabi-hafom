@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۱۳.۰.۰ — Realtime بدون polling
+// نسخه: ۱۴.۰.۰ — با آواتار قطعی
 // ============================================================
 
 // ============================================================
@@ -9,7 +9,7 @@
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
 const DEFAULT_PASSWORD = 'hadi1383';
 const READ_TIMES_KEY = 'teacherReadTimes';
-const MESSAGES_CACHE_DURATION = 1800000;  // ۳۰ دقیقه
+const MESSAGES_CACHE_DURATION = 1800000;
 const CONVERSATIONS_CACHE_KEY = 'teacherConversationsCache';
 const CLASS_MESSAGES_CACHE_KEY = 'teacherClassMessagesCache';
 const STUDENTS_CACHE_KEY = 'teacherStudentsCache';
@@ -18,15 +18,16 @@ const EVENTS_CACHE_KEY = 'teacherEventsCache';
 const CONTESTS_CACHE_KEY = 'teacherContestsCache';
 const LIBRARY_CACHE_KEY = 'teacherLibraryCache';
 
+// 🆕 آواتار پیش‌فرض (پسر با پس‌زمینه آبی)
+const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
+
 let allStudents = [];
 let currentConversations = [];
 let currentChatStudent = null;
 let currentRankingClass = 'hafom-1';
 let pageHistory = ['home'];
 
-// 🆕 Realtime channels
 let conversationsChannel = null;
-let chatChannel = null;
 
 // ============================================================
 // توابع کمکی
@@ -130,6 +131,40 @@ function setCachedData(key, data) {
 }
 
 // ============================================================
+// 🆕 رندر آواتار (نسخه قطعی)
+// ============================================================
+function renderAvatarHTML(student) {
+    const avatarUrl = (student && student.avatar_url) ? String(student.avatar_url).trim() : '';
+    
+    // حالت ۱: خالی یا default → عکس پسر پیش‌فرض
+    if (!avatarUrl || avatarUrl === '' || avatarUrl === 'null' || avatarUrl === 'undefined' || avatarUrl === 'default') {
+        return `<img src="${DEFAULT_AVATAR_URL}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+    
+    // حالت ۲: ایموجی
+    if (avatarUrl.startsWith('emoji:')) {
+        const emoji = avatarUrl.replace('emoji:', '').trim();
+        if (!emoji || emoji === '👤' || emoji === '👦🏻' || emoji === '👦') {
+            return `<img src="${DEFAULT_AVATAR_URL}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        }
+        return `<span>${emoji}</span>`;
+    }
+    
+    // حالت ۳: عکس base64
+    if (avatarUrl.startsWith('data:image')) {
+        return `<img src="${avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+    
+    // حالت ۴: URL عکس
+    if (avatarUrl.startsWith('http')) {
+        return `<img src="${avatarUrl}" alt="" onerror="this.src='${DEFAULT_AVATAR_URL}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+    
+    // پیش‌فرض
+    return `<img src="${DEFAULT_AVATAR_URL}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+}
+
+// ============================================================
 // ورود
 // ============================================================
 function checkPassword() {
@@ -146,7 +181,9 @@ function checkPassword() {
         
         setTimeout(() => {
             const apiInput = document.getElementById('setting-api-url');
-            if (apiInput) apiInput.value = SUPABASE_URL;
+            if (apiInput && typeof SUPABASE_URL !== 'undefined') {
+                apiInput.value = SUPABASE_URL;
+            }
         }, 500);
         
     } else {
@@ -175,7 +212,9 @@ window.addEventListener('load', () => {
         
         setTimeout(() => {
             const apiInput = document.getElementById('setting-api-url');
-            if (apiInput) apiInput.value = SUPABASE_URL;
+            if (apiInput && typeof SUPABASE_URL !== 'undefined') {
+                apiInput.value = SUPABASE_URL;
+            }
         }, 500);
         
         setTimeout(() => {
@@ -198,10 +237,14 @@ window.addEventListener('load', () => {
 function startConversationsRealtime() {
     if (conversationsChannel) return;
     
+    if (typeof subscribeToConversations !== 'function') {
+        console.warn('subscribeToConversations تعریف نشده');
+        return;
+    }
+    
     conversationsChannel = subscribeToConversations(async (payload) => {
-        console.log('💬 Realtime conversations:', payload);
+        console.log('💬 Realtime conversations:', payload.eventType);
         
-        // رفرش مکالمات
         const conversations = await getStudentConversationsFromSupabase();
         conversations.forEach(conv => {
             conv.unread_count = computeUnreadForConversation(conv);
@@ -210,7 +253,6 @@ function startConversationsRealtime() {
         currentConversations = conversations;
         setCachedData(CONVERSATIONS_CACHE_KEY, conversations);
         
-        // اگه توی صفحه پیام‌ها هستیم، رندر کن
         const activeScreen = document.querySelector('.page.active');
         if (activeScreen && activeScreen.id === 'page-messages') {
             const activeTab = document.querySelector('.messages-tab-btn.active');
@@ -221,8 +263,7 @@ function startConversationsRealtime() {
         
         updateHomeBadgesImmediately();
         
-        // 🆕 اگه پیام جدید از دانش‌آموز اومده، نوتیف بده
-        if (payload.eventType === 'INSERT' && payload.new.sender === 'student') {
+        if (payload.eventType === 'INSERT' && payload.new && payload.new.sender === 'student') {
             playDingSound();
             vibrate([30, 50, 30]);
             showTeacherInAppNotification(
@@ -232,18 +273,10 @@ function startConversationsRealtime() {
             );
         }
         
-        // اگه چت با این دانش‌آموز بازه، رفرش کن
-        if (currentChatStudent && currentChatStudent.student_id === payload.new?.student_id) {
+        if (currentChatStudent && payload.new && currentChatStudent.student_id === payload.new.student_id) {
             await loadChatMessages(currentChatStudent.student_id);
         }
     });
-    
-    console.log('📡 Realtime مکالمات شروع شد');
-}
-
-function startChatRealtime(studentId) {
-    // از همون channel مکالمات استفاده می‌کنیم
-    // نیازی به channel جداگانه نیست
 }
 
 function stopAllRealtime() {
@@ -253,14 +286,6 @@ function stopAllRealtime() {
             if (client) client.removeChannel(conversationsChannel);
         } catch(e) {}
         conversationsChannel = null;
-    }
-    
-    if (chatChannel) {
-        try {
-            const client = getSupabase();
-            if (client) client.removeChannel(chatChannel);
-        } catch(e) {}
-        chatChannel = null;
     }
 }
 
@@ -393,7 +418,6 @@ function updateHomeBadgesImmediately() {
 // ============================================================
 async function loadHomeData() {
     try {
-        // ⚡ از کش
         const cachedStudents = getCachedData(STUDENTS_CACHE_KEY);
         const cachedConvs = getCachedData(CONVERSATIONS_CACHE_KEY);
         
@@ -412,13 +436,11 @@ async function loadHomeData() {
             updateHomeBadgesImmediately();
         }
         
-        // 🔄 آپدیت از Supabase (موازی)
         const [students, conversations] = await Promise.all([
             getAllStudents(),
             getStudentConversationsFromSupabase()
         ]);
         
-        // دانش‌آموزان
         if (students && students.length > 0) {
             allStudents = students;
             setCachedData(STUDENTS_CACHE_KEY, students);
@@ -431,7 +453,6 @@ async function loadHomeData() {
             renderHomeTopStudents(students);
         }
         
-        // مکالمات
         if (conversations && conversations.length > 0) {
             conversations.forEach(conv => {
                 conv.unread_count = computeUnreadForConversation(conv);
@@ -491,8 +512,11 @@ function switchMessagesTab(tab) {
     document.querySelectorAll('.messages-tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.messages-tab-content').forEach(c => c.classList.remove('active'));
     
-    document.querySelector(`.messages-tab-btn[data-tab="${tab}"]`)?.classList.add('active');
-    document.getElementById('tab-' + tab)?.classList.add('active');
+    const tabBtn = document.querySelector(`.messages-tab-btn[data-tab="${tab}"]`);
+    if (tabBtn) tabBtn.classList.add('active');
+    
+    const tabContent = document.getElementById('tab-' + tab);
+    if (tabContent) tabContent.classList.add('active');
     
     if (tab === 'personal') {
         loadStudentConversations();
@@ -671,21 +695,8 @@ function renderMessengerList(conversations) {
     conversations.forEach(conv => {
         const isActive = currentChatStudent && currentChatStudent.student_id === conv.student_id;
         
-        let avatarHtml = '👤';
-        if (conv.avatar_url) {
-            if (conv.avatar_url.startsWith('emoji:')) {
-                const emoji = conv.avatar_url.replace('emoji:', '');
-                if (emoji && emoji !== '👤' && emoji !== '👦🏻') {
-                    avatarHtml = emoji;
-                } else {
-                    avatarHtml = `<img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" alt="آواتار">`;
-                }
-            } else if (conv.avatar_url.startsWith('data:image') || conv.avatar_url.startsWith('http')) {
-                avatarHtml = `<img src="${conv.avatar_url}" alt="آواتار" onerror="this.src='https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png'">`;
-            }
-        } else {
-            avatarHtml = `<img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" alt="آواتار">`;
-        }
+        // 🆕 استفاده از تابع رندر آواتار
+        const avatarHtml = renderAvatarHTML(conv);
         
         const unreadCount = conv.unread_count || 0;
         
@@ -741,19 +752,11 @@ async function openChatWith(studentId, studentName, className) {
     
     const avatarEl = document.getElementById('messenger-chat-avatar');
     const conv = currentConversations.find(c => c.student_id === studentId);
-    if (conv && conv.avatar_url) {
-        if (conv.avatar_url.startsWith('emoji:')) {
-            const emoji = conv.avatar_url.replace('emoji:', '');
-            if (emoji && emoji !== '👤' && emoji !== '👦🏻') {
-                avatarEl.innerHTML = emoji;
-            } else {
-                avatarEl.innerHTML = `<img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" alt="آواتار">`;
-            }
-        } else if (conv.avatar_url.startsWith('data:image') || conv.avatar_url.startsWith('http')) {
-            avatarEl.innerHTML = `<img src="${conv.avatar_url}" alt="آواتار" onerror="this.src='https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png'">`;
-        }
+    
+    if (conv) {
+        avatarEl.innerHTML = renderAvatarHTML(conv);
     } else {
-        avatarEl.innerHTML = `<img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" alt="آواتار">`;
+        avatarEl.innerHTML = `<img src="${DEFAULT_AVATAR_URL}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
     }
     
     setReadTime(studentId);
@@ -769,7 +772,6 @@ async function openChatWith(studentId, studentName, className) {
     
     await loadChatMessages(studentId);
     
-    // علامت‌گذاری سرور
     markAllMessagesAsSeenSupabase(studentId, 'teacher').catch(() => {});
 }
 
@@ -926,7 +928,7 @@ function showTeacherInAppNotification(studentName, message, studentId) {
         <div class="inapp-icon">💬</div>
         <div class="inapp-content">
             <div class="inapp-title">پیام از ${studentName}</div>
-            <div class="inapp-text">${message.substring(0, 60)}${message.length > 60 ? '...' : ''}</div>
+            <div class="inapp-text">${(message || '').substring(0, 60)}${(message || '').length > 60 ? '...' : ''}</div>
         </div>
     `;
     notif.onclick = () => {
@@ -1058,24 +1060,6 @@ function filterStudents() {
     }
     
     renderStudents(filtered);
-}
-
-function renderAvatarHTML(student) {
-    const avatarUrl = student.avatar_url || '';
-    
-    if (avatarUrl.startsWith('emoji:')) {
-        const emoji = avatarUrl.replace('emoji:', '');
-        if (!emoji || emoji === '👤' || emoji === '👦🏻') {
-            return `<img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-        }
-        return `<span>${emoji}</span>`;
-    }
-    
-    if (avatarUrl.startsWith('data:image') || avatarUrl.startsWith('http')) {
-        return `<img src="${avatarUrl}" alt="آواتار" onerror="this.src='https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png'">`;
-    }
-    
-    return `<img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
 }
 
 // ============================================================
@@ -1701,7 +1685,6 @@ function clearCache() {
 // ============================================================
 // شروع
 // ============================================================
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۳.۰.۰');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۴.۰.۰');
 console.log('✅ Supabase + Realtime');
-console.log('✅ بدون polling');
-console.log('✅ پیام‌ها فوری میان');
+console.log('✅ آواتار قطعی');

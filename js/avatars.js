@@ -1,10 +1,10 @@
 // ============================================================
 // avatars.js — مجموعه ایموجی‌ها و منطق آواتار
-// نسخه: ۷.۰.۰ — با رفع مشکل نمایش در رتبه‌بندی
+// نسخه: ۸.۰.۰ — نسخه نهایی قطعی
 // ============================================================
 
 // ============================================================
-// آواتار پیش‌فرض — 🆕 استفاده از تصویر داخل پروژه به‌جای CDN
+// آواتار پیش‌فرض (عکس پسر با پس‌زمینه آبی)
 // ============================================================
 const DEFAULT_AVATAR = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
 
@@ -30,7 +30,7 @@ function getAvatarForRanking() {
     const avatarEmoji = localStorage.getItem('userAvatarEmoji');
     if (avatarEmoji) return `emoji:${avatarEmoji}`;
     
-    return 'default';
+    return DEFAULT_AVATAR;
 }
 
 // ============================================================
@@ -137,10 +137,7 @@ function removeEmojiAvatar() {
 // ============================================================
 function renderEmojiPicker() {
     const container = document.getElementById('emoji-picker-container');
-    if (!container) {
-        console.error('❌ #emoji-picker-container پیدا نشد');
-        return;
-    }
+    if (!container) return;
 
     const currentEmoji = localStorage.getItem('userAvatarEmoji') || '';
     let html = '';
@@ -165,9 +162,7 @@ function openEmojiPicker() {
     renderEmojiPicker();
     
     const emojiModal = document.getElementById('emoji-picker-modal');
-    if (emojiModal) {
-        emojiModal.classList.add('active');
-    }
+    if (emojiModal) emojiModal.classList.add('active');
 }
 
 function closeEmojiPicker() {
@@ -190,9 +185,7 @@ function closeAvatarOptionsModal() {
 
 function chooseEmojiOption() {
     closeAvatarOptionsModal();
-    setTimeout(() => {
-        openEmojiPicker();
-    }, 200);
+    setTimeout(() => openEmojiPicker(), 200);
 }
 
 function chooseGalleryOption() {
@@ -207,18 +200,18 @@ function chooseGalleryOption() {
 // 🆕 رندر آواتار در رتبه‌بندی (نسخه نهایی قطعی)
 // ============================================================
 function renderAvatarInRanking(ranking) {
-    const avatarUrl = ranking.avatar_url || '';
+    const avatarUrl = (ranking && ranking.avatar_url) ? String(ranking.avatar_url).trim() : '';
     
-    // حالت ۱: خالی، null، default
-    if (!avatarUrl || avatarUrl === 'default' || avatarUrl === 'null' || avatarUrl === '') {
-        return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img" loading="lazy" crossorigin="anonymous" onerror="this.style.display='none'">`;
+    // حالت ۱: خالی، null، default → عکس پسر پیش‌فرض
+    if (!avatarUrl || avatarUrl === '' || avatarUrl === 'null' || avatarUrl === 'undefined' || avatarUrl === 'default') {
+        return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img">`;
     }
     
     // حالت ۲: ایموجی
     if (avatarUrl.startsWith('emoji:')) {
-        const emoji = avatarUrl.replace('emoji:', '');
-        if (!emoji || emoji === '👤' || emoji === '👦🏻') {
-            return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img" loading="lazy" crossorigin="anonymous" onerror="this.style.display='none'">`;
+        const emoji = avatarUrl.replace('emoji:', '').trim();
+        if (!emoji || emoji === '👤' || emoji === '👦🏻' || emoji === '👦') {
+            return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img">`;
         }
         return `<span class="lb-avatar-emoji">${emoji}</span>`;
     }
@@ -230,14 +223,14 @@ function renderAvatarInRanking(ranking) {
     
     // حالت ۴: URL عکس خارجی
     if (avatarUrl.startsWith('http')) {
-        return `<img src="${avatarUrl}" alt="" class="lb-avatar-img" loading="lazy" crossorigin="anonymous" onerror="this.src='${DEFAULT_AVATAR}'">`;
+        return `<img src="${avatarUrl}" alt="" class="lb-avatar-img" onerror="this.src='${DEFAULT_AVATAR}'">`;
     }
     
-    // پیش‌فرض
-    return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img" loading="lazy" crossorigin="anonymous" onerror="this.style.display='none'">`;
+    // پیش‌فرض: عکس پسر با پس‌زمینه آبی
+    return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img">`;
 }
 
-// برای سازگاری
+// برای سازگاری با کد قدیمی
 function renderAvatarHTML(ranking) {
     return renderAvatarInRanking(ranking);
 }
@@ -246,16 +239,16 @@ function renderAvatarHTML(ranking) {
 // 🆕 رندر آواتار در مکالمات (چت)
 // ============================================================
 function renderAvatarForChat(conv) {
-    const avatarUrl = conv.avatar_url || '';
+    const avatarUrl = (conv && conv.avatar_url) ? String(conv.avatar_url).trim() : '';
     
-    if (!avatarUrl || avatarUrl === 'default' || avatarUrl === 'null') {
-        return `<img src="${DEFAULT_AVATAR}" alt="" onerror="this.style.display='none'">`;
+    if (!avatarUrl || avatarUrl === '' || avatarUrl === 'null' || avatarUrl === 'default') {
+        return `<img src="${DEFAULT_AVATAR}" alt="">`;
     }
     
     if (avatarUrl.startsWith('emoji:')) {
-        const emoji = avatarUrl.replace('emoji:', '');
-        if (!emoji || emoji === '👤' || emoji === '👦🏻') {
-            return `<img src="${DEFAULT_AVATAR}" alt="" onerror="this.style.display='none'">`;
+        const emoji = avatarUrl.replace('emoji:', '').trim();
+        if (!emoji || emoji === '👤' || emoji === '👦🏻' || emoji === '👦') {
+            return `<img src="${DEFAULT_AVATAR}" alt="">`;
         }
         return emoji;
     }
@@ -268,5 +261,5 @@ function renderAvatarForChat(conv) {
         return `<img src="${avatarUrl}" alt="" onerror="this.src='${DEFAULT_AVATAR}'">`;
     }
     
-    return `<img src="${DEFAULT_AVATAR}" alt="" onerror="this.style.display='none'">`;
+    return `<img src="${DEFAULT_AVATAR}" alt="">`;
 }
