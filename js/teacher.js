@@ -804,6 +804,9 @@ function closeMessengerChat() {
 // ============================================================
 // 🆕 بارگذاری پیام‌های چت (با کش و تیک)
 // ============================================================
+// ============================================================
+// 🆕 بارگذاری پیام‌های چت (پنل معلم)
+// ============================================================
 async function loadChatMessages(studentId) {
     const container = document.getElementById('messenger-chat-messages');
     if (!container) return;
@@ -834,8 +837,23 @@ async function loadChatMessages(studentId) {
         setCachedData(cacheKey, messages);
         renderChatMessages(messages);
         
-        // 🆕 علامت‌گذاری تمام پیام‌های دانش‌آموز به عنوان خوانده‌شده
-        await markAllMessagesAsRead(studentId);
+        // 🆕 علامت‌گذاری پیام‌های دانش‌آموز به عنوان دیده‌شده
+        try {
+            await fetch(TEACHER_API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'markAllMessagesAsSeen',
+                    student_id: studentId,
+                    reader: 'teacher',
+                    timestamp: new Date().toISOString()
+                })
+            });
+            console.log('✅ پیام‌های دانش‌آموز به عنوان دیده‌شده علامت‌گذاری شدند');
+        } catch (e) {
+            console.warn('خطا در علامت‌گذاری:', e);
+        }
         
     } catch (error) {
         if (!cached) {
@@ -844,6 +862,99 @@ async function loadChatMessages(studentId) {
     }
 }
 
+// ============================================================
+// 🆕 رندر پیام با تیک (پنل معلم)
+// ============================================================
+function renderChatMessages(messages) {
+    const container = document.getElementById('messenger-chat-messages');
+    if (!container) return;
+    
+    let html = '';
+    messages.forEach(msg => {
+        const senderClass = msg.sender === 'teacher' ? 'teacher' : 'student';
+        const time = msg.date_persian || '';
+        
+        // 🆕 تیک برای پیام‌های معلم
+        let tickHtml = '';
+        if (senderClass === 'teacher') {
+            const isSeen = msg.is_seen === true || msg.is_seen === 'true';
+            tickHtml = isSeen 
+                ? `<span class="chat-tick chat-tick-seen">✓✓</span>`
+                : `<span class="chat-tick">✓</span>`;
+        }
+        
+        html += `
+            <div class="messenger-chat-message ${senderClass}">
+                <div>${msg.text}</div>
+                <div class="messenger-chat-message-time">
+                    ${time}
+                    ${tickHtml}
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
+}
+
+// ============================================================
+// 🆕 Polling چت (۱ ثانیه) با تشخیص تیک و پیام جدید
+// ============================================================
+function startChatPolling(studentId) {
+    stopChatPolling();
+    
+    chatPollingInterval = setInterval(async () => {
+        if (!currentChatStudent || currentChatStudent.student_id !== studentId) return;
+        
+        try {
+            const response = await apiGet({ 
+                action: 'getPersonalMessages',
+                student_id: studentId
+            });
+            const messages = response.data || [];
+            
+            if (messages.length === 0) return;
+            
+            messages.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            const container = document.getElementById('messenger-chat-messages');
+            const currentCount = container.querySelectorAll('.messenger-chat-message').length;
+            
+            // 🆕 چک تعداد تیک‌های دیده‌شده
+            const currentTicks = container.querySelectorAll('.chat-tick-seen').length;
+            const newTicks = messages.filter(m => m.sender === 'teacher' && (m.is_seen === true || m.is_seen === 'true')).length;
+            
+            if (messages.length !== currentCount || currentTicks !== newTicks) {
+                renderChatMessages(messages);
+                setCachedData('teacherMessagesCache_' + studentId, messages);
+                
+                const lastMsg = messages[messages.length - 1];
+                if (lastMsg.sender === 'student' && messages.length !== currentCount) {
+                    playDingSound();
+                    setReadTime(studentId);
+                    await updateHomeMessagesBadge();
+                    updateHomeBadgesImmediately();
+                    
+                    // 🆕 علامت‌گذاری سمت سرور
+                    try {
+                        await fetch(TEACHER_API_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({
+                                action: 'markAllMessagesAsSeen',
+                                student_id: studentId,
+                                reader: 'teacher',
+                                timestamp: new Date().toISOString()
+                            })
+                        });
+                    } catch (e) {}
+                }
+            }
+        } catch (error) {}
+    }, 1000);
+}
 // ============================================================
 // 🆕 علامت‌گذاری تمام پیام‌ها به عنوان خوانده‌شده
 // ============================================================
