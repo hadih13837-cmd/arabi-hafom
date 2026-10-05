@@ -1,16 +1,16 @@
 // ============================================================
 // teacher.js — منطق پنل معلم
-// نسخه: ۱۱.۰.۰ — با درخواست جامع و نوتیفیکیشن درون‌برنامه‌ای
+// نسخه: ۱۲.۰.۰ — سرعت ۱ ثانیه + Badge فوری
 // ============================================================
 
 // ============================================================
-// تنظیمات
+// تنظیمات — سرعت ۱ ثانیه
 // ============================================================
 const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbzwzU7HKqlWOSyG2gN750kFSi-qQLoqzwDRYMnEKqpmTgCMPlRyQZcQrcoZlI4MIR3o/exec';
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
 const DEFAULT_PASSWORD = 'hadi1383';
 const READ_TIMES_KEY = 'teacherReadTimes';
-const MESSAGES_CACHE_DURATION = 1800000;  // 🆕 ۳۰ دقیقه
+const MESSAGES_CACHE_DURATION = 1800000;
 const CONVERSATIONS_CACHE_KEY = 'teacherConversationsCache';
 const CLASS_MESSAGES_CACHE_KEY = 'teacherClassMessagesCache';
 const STUDENTS_CACHE_KEY = 'teacherStudentsCache';
@@ -18,9 +18,9 @@ const LESSONS_CACHE_KEY = 'teacherLessonsCache';
 const EVENTS_CACHE_KEY = 'teacherEventsCache';
 const CONTESTS_CACHE_KEY = 'teacherContestsCache';
 const LIBRARY_CACHE_KEY = 'teacherLibraryCache';
-const CHAT_POLLING_INTERVAL = 5000;         // 🆕 ۵ ثانیه
-const CONVERSATION_POLLING_INTERVAL = 5000; // 🆕 ۵ ثانیه
-const HOME_POLLING_INTERVAL = 15000;        // 🆕 ۱۵ ثانیه
+const CHAT_POLLING_INTERVAL = 1000;         // 🆕 ۱ ثانیه
+const CONVERSATION_POLLING_INTERVAL = 1000; // 🆕 ۱ ثانیه
+const HOME_POLLING_INTERVAL = 5000;         // 🆕 ۵ ثانیه
 
 let allStudents = [];
 let currentConversations = [];
@@ -257,7 +257,7 @@ function navigateToPage(pageId, addToHistory = true) {
     if (titleEl) titleEl.textContent = titles[pageId] || 'خانه';
     if (iconEl) iconEl.textContent = icons[pageId] || '🎓';
     
-    // 🆕 مدیریت polling بر اساس صفحه
+    // مدیریت polling
     if (pageId !== 'messages') {
         stopChatPolling();
         stopConversationPolling();
@@ -308,7 +308,7 @@ async function apiGet(params = {}) {
     
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
         
         const response = await fetch(url + '&t=' + Date.now(), { 
             cache: 'no-store',
@@ -341,17 +341,14 @@ async function apiPost(data) {
 }
 
 // ============================================================
-// 🆕 درخواست جامع
+// 🆕 درخواست سریع (getQuickUpdates)
 // ============================================================
-async function fetchAllTeacherData() {
-    if (isFetchingHome) return;
-    isFetchingHome = true;
-    
+async function fetchQuickUpdates() {
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
         
-        const url = `${TEACHER_API_URL}?action=getAllData&t=${Date.now()}`;
+        const url = `${TEACHER_API_URL}?action=getQuickUpdates&t=${Date.now()}`;
         
         const response = await fetch(url, {
             cache: 'no-store',
@@ -362,58 +359,13 @@ async function fetchAllTeacherData() {
         
         const result = await response.json();
         
-        if (!result.success || !result.data) {
-            isFetchingHome = false;
-            return;
-        }
+        if (!result.success || !result.data) return null;
         
-        // ذخیره دانش‌آموزان
-        if (result.data.students) {
-            allStudents = result.data.students;
-            setCachedData(STUDENTS_CACHE_KEY, allStudents);
-            
-            const totalStudents = allStudents.length;
-            const totalLessons = allStudents.reduce((sum, s) => sum + (parseInt(s.completed_lessons) || 0), 0);
-            
-            const statStudents = document.getElementById('home-stat-students');
-            const statLessons = document.getElementById('home-stat-lessons');
-            if (statStudents) statStudents.textContent = toPersianNum(totalStudents);
-            if (statLessons) statLessons.textContent = toPersianNum(totalLessons);
-            
-            renderHomeTopStudents(allStudents);
-        }
-        
-        // ذخیره مکالمات
-        if (result.data.conversations) {
-            const oldTotalUnread = currentConversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
-            
-            currentConversations = result.data.conversations;
-            currentConversations.forEach(conv => {
-                conv.unread_count = computeUnreadForConversation(conv);
-            });
-            
-            setCachedData(CONVERSATIONS_CACHE_KEY, currentConversations);
-            
-            const newTotalUnread = currentConversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
-            
-            // 🆕 اگه پیام جدید اومده، نوتیف بده
-            if (newTotalUnread > oldTotalUnread && oldTotalUnread >= 0) {
-                const newConv = currentConversations.find(c => c.unread_count > 0);
-                if (newConv) {
-                    playDingSound();
-                    vibrate([30, 50, 30]);
-                    showTeacherInAppNotification(newConv.student_name, newConv.last_message, newConv.student_id);
-                }
-            }
-            
-            updateHomeBadgesImmediately();
-        }
+        return result.data;
         
     } catch (error) {
-        console.warn('fetchAllTeacherData error:', error.message);
+        return null;
     }
-    
-    isFetchingHome = false;
 }
 
 // ============================================================
@@ -466,7 +418,6 @@ function updateHomeBadgesImmediately() {
 // ============================================================
 async function loadHomeData() {
     try {
-        // ⚡ اول از کش (فوری)
         const cachedStudents = getCachedData(STUDENTS_CACHE_KEY);
         const cachedConvs = getCachedData(CONVERSATIONS_CACHE_KEY);
         
@@ -486,28 +437,83 @@ async function loadHomeData() {
         }
         
         // 🔄 آپدیت در پس‌زمینه
-        fetchAllTeacherData();
+        await loadHomeDataFromServer();
         
     } catch (error) {
         console.error('Error loading home:', error);
     }
 }
 
+async function loadHomeDataFromServer() {
+    if (isFetchingHome) return;
+    isFetchingHome = true;
+    
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        
+        const url = `${TEACHER_API_URL}?action=getAllData&t=${Date.now()}`;
+        
+        const response = await fetch(url, {
+            cache: 'no-store',
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        const result = await response.json();
+        
+        if (!result.success || !result.data) {
+            isFetchingHome = false;
+            return;
+        }
+        
+        if (result.data.students) {
+            allStudents = result.data.students;
+            setCachedData(STUDENTS_CACHE_KEY, allStudents);
+            
+            const totalStudents = allStudents.length;
+            const totalLessons = allStudents.reduce((sum, s) => sum + (parseInt(s.completed_lessons) || 0), 0);
+            
+            const statStudents = document.getElementById('home-stat-students');
+            const statLessons = document.getElementById('home-stat-lessons');
+            if (statStudents) statStudents.textContent = toPersianNum(totalStudents);
+            if (statLessons) statLessons.textContent = toPersianNum(totalLessons);
+            
+            renderHomeTopStudents(allStudents);
+        }
+        
+        if (result.data.conversations) {
+            currentConversations = result.data.conversations;
+            currentConversations.forEach(conv => {
+                conv.unread_count = computeUnreadForConversation(conv);
+            });
+            setCachedData(CONVERSATIONS_CACHE_KEY, currentConversations);
+            updateHomeBadgesImmediately();
+        }
+        
+    } catch (error) {
+        console.warn('loadHomeDataFromServer error:', error.message);
+    }
+    
+    isFetchingHome = false;
+}
+
 // ============================================================
-// 🆕 Polling خانه
+// 🆕 Polling خانه (۵ ثانیه)
 // ============================================================
 function startHomePolling() {
     stopHomePolling();
     
-    // آپدیت اولیه
-    setTimeout(() => fetchAllTeacherData(), 500);
+    setTimeout(() => loadHomeDataFromServer(), 500);
     
     homePollingInterval = setInterval(async () => {
         const activeScreen = document.querySelector('.page.active');
         if (!activeScreen || activeScreen.id !== 'page-home') return;
         if (document.hidden) return;
+        if (isFetchingHome) return;
         
-        await fetchAllTeacherData();
+        await loadHomeDataFromServer();
     }, HOME_POLLING_INTERVAL);
 }
 
@@ -575,7 +581,7 @@ function switchMessagesTab(tab) {
 }
 
 // ============================================================
-// Polling مکالمات (۵ ثانیه)
+// 🆕 Polling مکالمات (۱ ثانیه)
 // ============================================================
 function startConversationPolling() {
     stopConversationPolling();
@@ -596,7 +602,7 @@ function startConversationPolling() {
         
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
             
             const response = await fetch(
                 TEACHER_API_URL + '?action=getStudentConversations&t=' + Date.now(),
@@ -625,7 +631,6 @@ function startConversationPolling() {
             ));
             
             if (oldHash !== newHash) {
-                // 🆕 چک پیام جدید
                 const oldTotalUnread = currentConversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
                 const newTotalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
                 
@@ -919,7 +924,7 @@ function filterMessengerList(query) {
 }
 
 // ============================================================
-// باز کردن چت
+// باز کردن چت — 🆕 با پاک کردن فوری Badge
 // ============================================================
 async function openChatWith(studentId, studentName, className) {
     currentChatStudent = {
@@ -952,8 +957,10 @@ async function openChatWith(studentId, studentName, className) {
         avatarEl.innerHTML = `<img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" alt="آواتار">`;
     }
     
+    // 🆕 ذخیره زمان خواندن
     setReadTime(studentId);
     
+    // 🆕 صفر کردن فوری unread در کش
     const convIndex = currentConversations.findIndex(c => c.student_id === studentId);
     if (convIndex >= 0) {
         currentConversations[convIndex].unread_count = 0;
@@ -961,11 +968,10 @@ async function openChatWith(studentId, studentName, className) {
         renderMessengerList(currentConversations);
     }
     
+    // 🆕 آپدیت Badge فوری (بدون انتظار)
     updateHomeBadgesImmediately();
     
-    await loadChatMessages(studentId);
-    
-    // 🆕 علامت‌گذاری سمت سرور
+    // 🆕 علامت‌گذاری سمت سرور (بدون انتظار)
     fetch(TEACHER_API_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -977,6 +983,8 @@ async function openChatWith(studentId, studentName, className) {
             timestamp: new Date().toISOString()
         })
     }).catch(() => {});
+    
+    await loadChatMessages(studentId);
     
     startChatPolling(studentId);
 }
@@ -1048,8 +1056,7 @@ function renderChatMessages(messages) {
                 msg.is_seen === true || 
                 msg.is_seen === 'true' || 
                 msg.is_seen === 1 ||
-                msg.is_seen === 'TRUE' ||
-                msg.is_seen === 'True';
+                msg.is_seen === 'TRUE';
             
             tickHtml = isSeen 
                 ? `<span class="chat-tick chat-tick-seen">✓✓</span>`
@@ -1131,7 +1138,7 @@ async function sendChatMessage() {
 }
 
 // ============================================================
-// Polling چت (۵ ثانیه)
+// 🆕 Polling چت (۱ ثانیه)
 // ============================================================
 function startChatPolling(studentId) {
     stopChatPolling();
@@ -1145,7 +1152,7 @@ function startChatPolling(studentId) {
         
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
             
             const response = await fetch(
                 TEACHER_API_URL + '?action=getPersonalMessages&student_id=' + studentId + '&t=' + Date.now(),
@@ -1959,9 +1966,8 @@ function clearCache() {
 // ============================================================
 // شروع
 // ============================================================
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۱.۰.۰');
-console.log('✅ درخواست جامع (getAllData)');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۲.۰.۰');
+console.log('✅ سرعت ۱ ثانیه');
+console.log('✅ Badge فوری');
+console.log('✅ تیک دوگانه');
 console.log('✅ نوتیفیکیشن درون‌برنامه‌ای');
-console.log('✅ Polling هر ۵ ثانیه');
-console.log('✅ تیک دوگانه دقیق');
-console.log('✅ Home polling هر ۱۵ ثانیه');
