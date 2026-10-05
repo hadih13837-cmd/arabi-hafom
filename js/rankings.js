@@ -1,6 +1,6 @@
 // ============================================================
 // rankings.js — سیستم رتبه‌بندی
-// نسخه: ۱۷.۰.۰ — با آواتار پیش‌فرض و auto-refresh
+// نسخه: ۱۸.۰.۰ — لود سریع از کش + auto-refresh بهینه
 // ============================================================
 
 let currentRankings = [];
@@ -8,11 +8,12 @@ let currentRankingsClass = '';
 let autoRefreshInterval = null;
 let lastRankingsHash = '';
 
-// ============================================================
-// بارگذاری صفحه رتبه‌بندی (با کش + auto-refresh)
-// ============================================================
-// در rankings.js، تابع loadRankingsPage رو اصلاح کنید
+// 🆕 محافظ برای جلوگیری از درخواست همزمان
+let isLoadingRankings = false;
 
+// ============================================================
+// بارگذاری صفحه رتبه‌بندی (سریع از کش)
+// ============================================================
 async function loadRankingsPage() {
     const container = document.getElementById('rankings-content');
     if (!container) return;
@@ -21,9 +22,9 @@ async function loadRankingsPage() {
     const studentId = localStorage.getItem('studentUUID');
     const cacheKey = 'rankings_cache_' + userClass;
     
-    // ⚡ اول از کش نشون بده
-    const cachedData = localStorage.getItem(cacheKey);
+    // ⚡ مرحله ۱: اول از کش نشون بده (فوری)
     let hasCachedData = false;
+    const cachedData = localStorage.getItem(cacheKey);
     
     if (cachedData) {
         try {
@@ -34,10 +35,14 @@ async function loadRankingsPage() {
                 lastRankingsHash = getRankingsHash(currentRankings);
                 container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
                 hasCachedData = true;
+                console.log('⚡ از کش نشون داده شد:', currentRankings.length, 'نفر');
             }
-        } catch (e) {}
+        } catch (e) {
+            console.warn('خطا در خواندن کش:', e);
+        }
     }
     
+    // اگه کش نبود، لودینگ نشون بده
     if (!hasCachedData) {
         container.innerHTML = `
             <div class="rankings-loading">
@@ -47,118 +52,84 @@ async function loadRankingsPage() {
         `;
     }
     
-    try {
-        currentRankingsClass = userClass;
-        
-        // sync در پس‌زمینه
-        if (studentId && typeof saveRankingToSupabase === 'function') {
-            saveRankingToSupabase().catch(e => console.warn('sync در پس‌زمینه:', e));
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        const rankings = await getRankingsByClass(userClass);
-        
-        if (rankings && rankings.length > 0) {
-            currentRankings = rankings;
-            lastRankingsHash = getRankingsHash(currentRankings);
+    // ⚡ مرحله ۲: بعد از ۲ ثانیه، از سرور آپدیت کن
+    setTimeout(async () => {
+        try {
+            currentRankingsClass = userClass;
             
-            try {
-                localStorage.setItem(cacheKey, JSON.stringify({
-                    data: currentRankings,
-                    timestamp: Date.now()
-                }));
-            } catch (e) {}
+            // sync در پس‌زمینه (بدون انتظار)
+            if (studentId && typeof saveRankingToSupabase === 'function') {
+                saveRankingToSupabase().catch(e => console.warn('sync:', e));
+            }
             
-            container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
-        } else if (!hasCachedData) {
-            // 🆕 اگه داده‌ای نبود، یک بار دیگه با تأخیر امتحان کن
-            console.log('⚠️ رتبه‌بندی خالی - تلاش دوباره...');
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // درخواست به سرور
+            const rankings = await getRankingsByClass(userClass);
             
-            const retryRankings = await getRankingsByClass(userClass);
-            
-            if (retryRankings && retryRankings.length > 0) {
-                currentRankings = retryRankings;
-                lastRankingsHash = getRankingsHash(currentRankings);
+            if (rankings && rankings.length > 0) {
+                const newHash = getRankingsHash(rankings);
                 
-                try {
-                    localStorage.setItem(cacheKey, JSON.stringify({
-                        data: currentRankings,
-                        timestamp: Date.now()
-                    }));
-                } catch (e) {}
-                
-                container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
-                console.log('✅ بازیابی موفق در تلاش دوم');
-            } else {
-                // 🆕 اگه بازم خالی بود، پیام بازیابی نشون بده
+                // اگه تغییری هست، رندر کن
+                if (newHash !== lastRankingsHash) {
+                    currentRankings = rankings;
+                    lastRankingsHash = newHash;
+                    
+                    // ذخیره در کش
+                    try {
+                        localStorage.setItem(cacheKey, JSON.stringify({
+                            data: currentRankings,
+                            timestamp: Date.now()
+                        }));
+                    } catch (e) {}
+                    
+                    container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
+                    console.log('🔄 رتبه‌بندی بروزرسانی شد');
+                }
+            } else if (!hasCachedData) {
+                // اگه کش نبود و داده‌ای هم نیومد، پیام خالی
+                container.innerHTML = renderEmptyRankings();
+            }
+            
+            // شروع auto-refresh
+            startAutoRefresh();
+            
+        } catch (error) {
+            console.error('❌ خطا:', error);
+            if (!hasCachedData) {
                 container.innerHTML = `
-                    <div class="rankings-empty">
-                        <div class="rankings-empty-icon">🔄</div>
-                        <div class="rankings-empty-title">داده‌ای پیدا نشد</div>
-                        <div class="rankings-empty-text">
-                            اتصال اینترنت خود را چک کنید.
+                    <div class="report-empty">
+                        <div class="report-empty-icon">⚠️</div>
+                        <div class="report-empty-text">
+                            خطا در بارگذاری رتبه‌بندی<br>
+                            <span style="font-size: 13px; color: #90a4ae;">لطفاً اینترنت خود را چک کنید</span>
                         </div>
-                        <button onclick="recoverRankings()" 
-                                style="margin-top: 20px; padding: 14px 30px; 
-                                       background: linear-gradient(135deg, #1976d2, #1565c0); 
-                                       color: #fff; border: none; border-radius: 50px; 
-                                       font-family: 'Vazirmatn', sans-serif; 
-                                       font-size: 15px; font-weight: 900; cursor: pointer;
-                                       box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);">
-                            🔄 تلاش دوباره
-                        </button>
                     </div>
                 `;
             }
         }
-        
-        startAutoRefresh();
-        
-    } catch (error) {
-        console.error('❌ خطا:', error);
-        if (!hasCachedData) {
-            container.innerHTML = `
-                <div class="report-empty">
-                    <div class="report-empty-icon">⚠️</div>
-                    <div class="report-empty-text">
-                        خطا در بارگذاری رتبه‌بندی<br>
-                        <span style="font-size: 13px; color: #90a4ae;">لطفاً اینترنت خود را چک کنید</span>
-                    </div>
-                    <button onclick="recoverRankings()" 
-                            style="margin-top: 20px; padding: 14px 30px; 
-                                   background: linear-gradient(135deg, #1976d2, #1565c0); 
-                                   color: #fff; border: none; border-radius: 50px; 
-                                   font-family: 'Vazirmatn', sans-serif; 
-                                   font-size: 15px; font-weight: 900; cursor: pointer;">
-                        🔄 تلاش دوباره
-                    </button>
-                </div>
-            `;
-        }
-    }
+    }, 2000);
 }
 
 // ============================================================
-// ساخت hash از رتبه‌بندی
+// ساخت hash از رتبه‌بندی (برای تشخیص تغییر)
 // ============================================================
 function getRankingsHash(rankings) {
     if (!rankings || rankings.length === 0) return '';
     return rankings.map(r => 
-        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.avg_percent}_${r.avatar_url || ''}`
+        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.avg_percent}`
     ).join('|');
 }
 
 // ============================================================
-// شروع auto-refresh (هر ۳ ثانیه)
+// Auto-refresh (هر ۱۵ ثانیه به‌جای ۳ ثانیه)
 // ============================================================
 function startAutoRefresh() {
     stopAutoRefresh();
     
-    console.log('🔄 Auto-refresh شروع شد (هر ۳ ثانیه)');
+    console.log('🔄 Auto-refresh شروع شد (هر ۱۵ ثانیه)');
     
     autoRefreshInterval = setInterval(async () => {
+        if (isLoadingRankings) return;
+        
         const activeScreen = document.querySelector('.screen.active');
         if (!activeScreen || activeScreen.id !== 'screen-rankings') {
             return;
@@ -167,18 +138,23 @@ function startAutoRefresh() {
         const anyModalOpen = document.querySelector('.profile-card-overlay.active, .user-medals-overlay.active, .exit-modal-overlay.active, .modal-overlay.active');
         if (anyModalOpen) return;
         
+        isLoadingRankings = true;
+        
         try {
             const userClass = localStorage.getItem('userClass') || 'هفتم یک';
             const studentId = localStorage.getItem('studentUUID');
             
             const rankings = await getRankingsByClass(userClass);
             
-            if (!rankings || rankings.length === 0) return;
+            if (!rankings || rankings.length === 0) {
+                isLoadingRankings = false;
+                return;
+            }
             
             const newHash = getRankingsHash(rankings);
             
             if (newHash !== lastRankingsHash) {
-                console.log('🆕 تغییر در رتبه‌بندی تشخیص داده شد!');
+                console.log('🆕 تغییر در رتبه‌بندی');
                 
                 currentRankings = rankings;
                 lastRankingsHash = newHash;
@@ -194,13 +170,13 @@ function startAutoRefresh() {
                 if (container) {
                     container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
                 }
-                
-                vibrate(10);
             }
         } catch (error) {
             console.warn('auto-refresh error:', error.message);
         }
-    }, 3000);
+        
+        isLoadingRankings = false;
+    }, 15000);
 }
 
 // ============================================================
@@ -238,10 +214,10 @@ function renderRankingsList(rankings, userClass, studentId) {
             <div class="lb-podium-vector-wrapper">
                 <img src="https://cdn.imgurl.ir/uploads/w806666_ChatGPT_Image_Oct_4_2026_02_49_35_PM.png" 
                      alt="سکوی قهرمانی" 
-                     class="lb-podium-vector-bg">
+                     class="lb-podium-vector-bg" 
+                     loading="lazy">
                 
                 <div class="lb-podium-people">
-                    <!-- نفر دوم - سمت چپ -->
                     <div class="lb-podium-person lb-person-2 ${isSecondMe ? 'lb-is-me' : ''}" 
                          onclick="openProfileCard('${second.student_id}')">
                         <div class="lb-person-avatar ${getAvatarClass(second)}">
@@ -256,7 +232,6 @@ function renderRankingsList(rankings, userClass, studentId) {
                         </div>
                     </div>
                     
-                    <!-- نفر اول - وسط -->
                     <div class="lb-podium-person lb-person-1 ${isFirstMe ? 'lb-is-me' : ''}" 
                          onclick="openProfileCard('${first.student_id}')">
                         <div class="lb-person-crown">👑</div>
@@ -272,7 +247,6 @@ function renderRankingsList(rankings, userClass, studentId) {
                         </div>
                     </div>
                     
-                    <!-- نفر سوم - سمت راست -->
                     <div class="lb-podium-person lb-person-3 ${isThirdMe ? 'lb-is-me' : ''}" 
                          onclick="openProfileCard('${third.student_id}')">
                         <div class="lb-person-avatar ${getAvatarClass(third)}">
@@ -379,36 +353,20 @@ function getAvatarClass(ranking) {
 }
 
 // ============================================================
-// گرفتن شماره کلاس از slug
-// ============================================================
-function getClassNumberFromSlug(slug) {
-    const map = {
-        'hafom-1': '۱',
-        'hafom-2': '۲',
-        'hafom-3': '۳',
-        'hafom-4': '۴',
-        'hafom-5': '۵'
-    };
-    return map[slug] || '؟';
-}
-
-// ============================================================
-// 🆕 رندر آواتار (استفاده از تابع avatars.js)
+// رندر آواتار
 // ============================================================
 function renderAvatar(ranking) {
-    // اگه تابع renderAvatarInRanking توی avatars.js موجوده، ازش استفاده کن
     if (typeof renderAvatarInRanking === 'function') {
         return renderAvatarInRanking(ranking);
     }
     
-    // احتیاط: اگه نبود، مستقیم عکس پیش‌فرض رو نشون بده
     const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
     const avatarUrl = ranking.avatar_url || '';
     
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '');
         if (!emoji || emoji === '👤' || emoji === '👦🏻') {
-            return `<img src="${DEFAULT_AVATAR_URL}" alt="آواتار" class="lb-avatar-img">`;
+            return `<img src="${DEFAULT_AVATAR_URL}" alt="آواتار" class="lb-avatar-img" loading="lazy">`;
         }
         return `<span class="lb-avatar-emoji">${emoji}</span>`;
     }
@@ -418,10 +376,10 @@ function renderAvatar(ranking) {
     }
     
     if (avatarUrl.startsWith('http')) {
-        return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img" crossorigin="anonymous">`;
+        return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img" crossorigin="anonymous" loading="lazy">`;
     }
     
-    return `<img src="${DEFAULT_AVATAR_URL}" alt="آواتار" class="lb-avatar-img">`;
+    return `<img src="${DEFAULT_AVATAR_URL}" alt="آواتار" class="lb-avatar-img" loading="lazy">`;
 }
 
 // ============================================================
@@ -464,11 +422,12 @@ async function refreshRankings() {
     }
     
     try {
+        // sync خودم
         if (typeof saveRankingToSupabase === 'function') {
             saveRankingToSupabase().catch(e => console.warn('sync:', e));
         }
         
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         const userClass = localStorage.getItem('userClass') || 'هفتم یک';
         const studentId = localStorage.getItem('studentUUID');
@@ -492,7 +451,7 @@ async function refreshRankings() {
                 container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
             }
             
-            console.log('✅ رفرش دستی شد:', currentRankings.length, 'نفر');
+            console.log('✅ رفرش شد:', currentRankings.length, 'نفر');
         }
     } catch (error) {
         console.error('❌ خطا در رفرش:', error);
@@ -633,7 +592,7 @@ function openProfileCard(studentId) {
 }
 
 // ============================================================
-// باز کردن صفحه‌ی مدال‌ها
+// باز کردن صفحه مدال‌ها
 // ============================================================
 function openMedalsPage(studentId) {
     const ranking = currentRankings.find(r => r.student_id === studentId);
@@ -724,16 +683,13 @@ function getUserEarnedMedals(ranking) {
 }
 
 // ============================================================
-// بستن صفحه‌ی مدال‌ها
+// بستن مودال‌ها
 // ============================================================
 function closeUserMedals() {
     const modal = document.getElementById('user-medals-modal');
     if (modal) modal.classList.remove('active');
 }
 
-// ============================================================
-// بستن کارت پروفایل
-// ============================================================
 function closeProfileCard() {
     const modal = document.getElementById('profile-card-modal');
     if (modal) modal.classList.remove('active');

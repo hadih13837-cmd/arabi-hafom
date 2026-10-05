@@ -1,16 +1,16 @@
 // ============================================================
 // teacher.js — منطق پنل معلم
-// نسخه: ۹.۰.۰ — با URL جدید
+// نسخه: ۱۰.۰.۰ — با تیک دوگانه و Badge درست
 // ============================================================
 
 // ============================================================
-// تنظیمات — 🆕 URL جدید
+// تنظیمات
 // ============================================================
 const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbzwzU7HKqlWOSyG2gN750kFSi-qQLoqzwDRYMnEKqpmTgCMPlRyQZcQrcoZlI4MIR3o/exec';
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
 const DEFAULT_PASSWORD = 'hadi1383';
 const READ_TIMES_KEY = 'teacherReadTimes';
-const MESSAGES_CACHE_DURATION = 300000; // ۵ دقیقه
+const MESSAGES_CACHE_DURATION = 300000;
 const CONVERSATIONS_CACHE_KEY = 'teacherConversationsCache';
 const CLASS_MESSAGES_CACHE_KEY = 'teacherClassMessagesCache';
 const STUDENTS_CACHE_KEY = 'teacherStudentsCache';
@@ -18,8 +18,8 @@ const LESSONS_CACHE_KEY = 'teacherLessonsCache';
 const EVENTS_CACHE_KEY = 'teacherEventsCache';
 const CONTESTS_CACHE_KEY = 'teacherContestsCache';
 const LIBRARY_CACHE_KEY = 'teacherLibraryCache';
-const CHAT_POLLING_INTERVAL = 1000; // ۱ ثانیه
-const CONVERSATION_POLLING_INTERVAL = 1500; // ۱.۵ ثانیه
+const CHAT_POLLING_INTERVAL = 3000;      // 🆕 از ۱ به ۳ ثانیه (کاهش بار سرور)
+const CONVERSATION_POLLING_INTERVAL = 3000; // 🆕 از ۱.۵ به ۳ ثانیه
 
 let allStudents = [];
 let currentConversations = [];
@@ -28,6 +28,10 @@ let chatPollingInterval = null;
 let conversationPollingInterval = null;
 let currentRankingClass = 'hafom-1';
 let pageHistory = ['home'];
+
+// 🆕 محافظ برای جلوگیری از درخواست همزمان
+let isFetchingConversations = false;
+let isFetchingChat = false;
 
 // ============================================================
 // توابع کمکی
@@ -72,7 +76,7 @@ function showToast(message, type = 'success') {
 }
 
 // ============================================================
-// مدیریت زمان خواندن (Read Times)
+// مدیریت زمان خواندن
 // ============================================================
 function getReadTimes() {
     try {
@@ -95,7 +99,7 @@ function setReadTime(studentId) {
 }
 
 // ============================================================
-// محاسبه unread برای هر مکالمه (بر اساس readTime)
+// محاسبه unread برای هر مکالمه
 // ============================================================
 function computeUnreadForConversation(conv) {
     // اگه آخرین پیام از طرف معلمه، unread = 0
@@ -103,10 +107,8 @@ function computeUnreadForConversation(conv) {
         return 0;
     }
     
-    // زمان خواندن رو بگیر
     const readTime = getReadTime(conv.student_id);
     
-    // اگه قبلاً خونده شده، چک کن آیا پیام جدید بعدش اومده
     if (readTime > 0 && conv.last_message_time) {
         const lastMsgTime = new Date(conv.last_message_time).getTime();
         if (lastMsgTime <= readTime) {
@@ -114,12 +116,11 @@ function computeUnreadForConversation(conv) {
         }
     }
     
-    // در غیر این صورت، از مقدار سرور استفاده کن
     return parseInt(conv.unread_count) || 0;
 }
 
 // ============================================================
-// کش هوشمند
+// کش
 // ============================================================
 function getCachedData(key, duration = MESSAGES_CACHE_DURATION) {
     try {
@@ -145,7 +146,7 @@ function setCachedData(key, data) {
 }
 
 // ============================================================
-// ورود (Login)
+// ورود
 // ============================================================
 function checkPassword() {
     const input = document.getElementById('login-password').value.trim();
@@ -208,7 +209,7 @@ window.addEventListener('load', () => {
 });
 
 // ============================================================
-// ناوبری بین صفحات
+// ناوبری
 // ============================================================
 function navigateToPage(pageId, addToHistory = true) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -325,7 +326,7 @@ async function apiPost(data) {
 }
 
 // ============================================================
-// محاسبه کل unread (با اعمال readTime)
+// محاسبه کل unread
 // ============================================================
 function computeTotalUnread() {
     if (!currentConversations || currentConversations.length === 0) return 0;
@@ -338,7 +339,7 @@ function computeTotalUnread() {
 }
 
 // ============================================================
-// آپدیت فوری Badge ها (از LocalStorage)
+// آپدیت فوری Badge ها
 // ============================================================
 function updateHomeBadgesImmediately() {
     const cached = getCachedData(CONVERSATIONS_CACHE_KEY);
@@ -500,17 +501,24 @@ function switchMessagesTab(tab) {
 }
 
 // ============================================================
-// Polling لیست مکالمات
+// Polling مکالمات (۳ ثانیه)
 // ============================================================
 function startConversationPolling() {
     stopConversationPolling();
     
     conversationPollingInterval = setInterval(async () => {
+        if (isFetchingConversations) return;
+        
         const activeScreen = document.querySelector('.page.active');
         if (!activeScreen || activeScreen.id !== 'page-messages') return;
         
         const activeTab = document.querySelector('.messages-tab-btn.active');
         if (!activeTab || activeTab.dataset.tab !== 'personal') return;
+        
+        // اگه چت بازه، polling مکالمات رو متوقف کن
+        if (currentChatStudent) return;
+        
+        isFetchingConversations = true;
         
         try {
             const response = await apiGet({ action: 'getStudentConversations' });
@@ -520,8 +528,12 @@ function startConversationPolling() {
                 conv.unread_count = computeUnreadForConversation(conv);
             });
             
-            const oldHash = JSON.stringify(currentConversations.map(c => c.student_id + '_' + c.unread_count + '_' + c.last_message));
-            const newHash = JSON.stringify(conversations.map(c => c.student_id + '_' + c.unread_count + '_' + c.last_message));
+            const oldHash = JSON.stringify(currentConversations.map(c => 
+                c.student_id + '_' + c.unread_count + '_' + c.last_message
+            ));
+            const newHash = JSON.stringify(conversations.map(c => 
+                c.student_id + '_' + c.unread_count + '_' + c.last_message
+            ));
             
             if (oldHash !== newHash) {
                 currentConversations = conversations;
@@ -531,6 +543,8 @@ function startConversationPolling() {
                 updateHomeBadgesImmediately();
             }
         } catch (error) {}
+        
+        isFetchingConversations = false;
     }, CONVERSATION_POLLING_INTERVAL);
 }
 
@@ -746,9 +760,6 @@ function renderMessengerList(conversations) {
     container.innerHTML = html;
 }
 
-// ============================================================
-// جستجو در پیام‌رسان
-// ============================================================
 function filterMessengerList(query) {
     query = query.toLowerCase().trim();
     
@@ -797,8 +808,10 @@ async function openChatWith(studentId, studentName, className) {
         avatarEl.innerHTML = `<img src="https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png" alt="آواتار">`;
     }
     
+    // 🆕 ذخیره زمان خواندن
     setReadTime(studentId);
     
+    // 🆕 صفر کردن unread در کش
     const convIndex = currentConversations.findIndex(c => c.student_id === studentId);
     if (convIndex >= 0) {
         currentConversations[convIndex].unread_count = 0;
@@ -806,10 +819,26 @@ async function openChatWith(studentId, studentName, className) {
         renderMessengerList(currentConversations);
     }
     
+    // 🆕 آپدیت Badge فوری
     updateHomeBadgesImmediately();
     
+    // بارگذاری پیام‌ها
     await loadChatMessages(studentId);
     
+    // 🆕 علامت‌گذاری همه پیام‌ها به عنوان دیده‌شده در سرور
+    try {
+        await apiPost({
+            action: 'markAllMessagesAsSeen',
+            student_id: studentId,
+            reader: 'teacher',
+            timestamp: new Date().toISOString()
+        });
+        console.log('✅ پیام‌ها به عنوان دیده‌شده علامت‌گذاری شدند (سرور)');
+    } catch (e) {
+        console.warn('خطا در علامت‌گذاری سرور:', e);
+    }
+    
+    // شروع polling
     startChatPolling(studentId);
 }
 
@@ -855,23 +884,6 @@ async function loadChatMessages(studentId) {
         setCachedData(cacheKey, messages);
         renderChatMessages(messages);
         
-        try {
-            await fetch(TEACHER_API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({
-                    action: 'markAllMessagesAsSeen',
-                    student_id: studentId,
-                    reader: 'teacher',
-                    timestamp: new Date().toISOString()
-                })
-            });
-            console.log('✅ پیام‌های دانش‌آموز به عنوان دیده‌شده علامت‌گذاری شدند');
-        } catch (e) {
-            console.warn('خطا در علامت‌گذاری:', e);
-        }
-        
     } catch (error) {
         if (!cached) {
             container.innerHTML = '<div class="messenger-chat-messages-empty">خطا در بارگذاری</div>';
@@ -880,7 +892,7 @@ async function loadChatMessages(studentId) {
 }
 
 // ============================================================
-// رندر پیام با تیک
+// 🆕 رندر پیام با تیک دوگانه (تصحیح قطعی)
 // ============================================================
 function renderChatMessages(messages) {
     const container = document.getElementById('messenger-chat-messages');
@@ -891,9 +903,17 @@ function renderChatMessages(messages) {
         const senderClass = msg.sender === 'teacher' ? 'teacher' : 'student';
         const time = msg.date_persian || '';
         
+        // 🆕 تیک برای پیام‌های معلم (خودم)
         let tickHtml = '';
         if (senderClass === 'teacher') {
-            const isSeen = msg.is_seen === true || msg.is_seen === 'true';
+            // چک کردن دقیق مقادیر مختلف is_seen
+            const isSeen = 
+                msg.is_seen === true || 
+                msg.is_seen === 'true' || 
+                msg.is_seen === 1 || 
+                msg.is_seen === 'TRUE' || 
+                msg.is_seen === 'True';
+            
             tickHtml = isSeen 
                 ? `<span class="chat-tick chat-tick-seen">✓✓</span>`
                 : `<span class="chat-tick">✓</span>`;
@@ -927,7 +947,7 @@ async function sendChatMessage() {
     
     const messageData = {
         action: 'sendPersonalMessage',
-        message_id: 'pm_' + Date.now(),
+        message_id: 'pm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
         student_id: currentChatStudent.student_id,
         student_name: currentChatStudent.student_name,
         class_name: currentChatStudent.class_name,
@@ -959,9 +979,14 @@ async function sendChatMessage() {
         container.appendChild(msgEl);
         container.scrollTop = container.scrollHeight;
         
+        // 🆕 آپدیت کش
+        const cacheKey = 'teacherMessagesCache_' + currentChatStudent.student_id;
+        const cached = getCachedData(cacheKey) || [];
+        cached.push(messageData);
+        setCachedData(cacheKey, cached);
+        
         await apiPost(messageData);
         
-        localStorage.removeItem('teacherMessagesCache_' + currentChatStudent.student_id);
         setReadTime(currentChatStudent.student_id);
         
     } catch (error) {
@@ -970,13 +995,16 @@ async function sendChatMessage() {
 }
 
 // ============================================================
-// Polling سریع چت
+// 🆕 Polling چت (۳ ثانیه) — با محافظ
 // ============================================================
 function startChatPolling(studentId) {
     stopChatPolling();
     
     chatPollingInterval = setInterval(async () => {
+        if (isFetchingChat) return;
         if (!currentChatStudent || currentChatStudent.student_id !== studentId) return;
+        
+        isFetchingChat = true;
         
         try {
             const response = await apiGet({ 
@@ -985,17 +1013,26 @@ function startChatPolling(studentId) {
             });
             const messages = response.data || [];
             
-            if (messages.length === 0) return;
+            if (messages.length === 0) {
+                isFetchingChat = false;
+                return;
+            }
             
             messages.sort((a, b) => new Date(a.date) - new Date(b.date));
             
             const container = document.getElementById('messenger-chat-messages');
             const currentCount = container.querySelectorAll('.messenger-chat-message').length;
             
-            const currentTicks = container.querySelectorAll('.chat-tick-seen').length;
-            const newTicks = messages.filter(m => m.sender === 'teacher' && (m.is_seen === true || m.is_seen === 'true')).length;
+            // 🆕 چک تیک‌ها
+            const cached = getCachedData('teacherMessagesCache_' + studentId) || [];
+            const cachedTicks = cached.filter(m => 
+                m.sender === 'teacher' && (m.is_seen === true || m.is_seen === 'true')
+            ).length;
+            const newTicks = messages.filter(m => 
+                m.sender === 'teacher' && (m.is_seen === true || m.is_seen === 'true')
+            ).length;
             
-            if (messages.length !== currentCount || currentTicks !== newTicks) {
+            if (messages.length !== currentCount || cachedTicks !== newTicks) {
                 renderChatMessages(messages);
                 setCachedData('teacherMessagesCache_' + studentId, messages);
                 
@@ -1006,6 +1043,7 @@ function startChatPolling(studentId) {
                     await updateHomeMessagesBadge();
                     updateHomeBadgesImmediately();
                     
+                    // علامت‌گذاری سمت سرور
                     try {
                         await fetch(TEACHER_API_URL, {
                             method: 'POST',
@@ -1022,6 +1060,8 @@ function startChatPolling(studentId) {
                 }
             }
         } catch (error) {}
+        
+        isFetchingChat = false;
     }, CHAT_POLLING_INTERVAL);
 }
 
@@ -1781,7 +1821,9 @@ function clearCache() {
 // ============================================================
 // شروع
 // ============================================================
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۹.۰.۰');
-console.log('✅ URL جدید اعمال شد');
-console.log('✅ Badge دقیق بر اساس readTime');
-console.log('✅ صفر شدن unread بعد از خواندن');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۰.۰.۰');
+console.log('✅ URL جدید');
+console.log('✅ تیک دوگانه دقیق');
+console.log('✅ Badge صفر بعد از خواندن');
+console.log('✅ Polling هر ۳ ثانیه');
+console.log('✅ محافظ درخواست همزمان');
