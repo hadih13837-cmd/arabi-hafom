@@ -1,10 +1,10 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۶.۱.۰ — با رفع باگ Realtime
+// نسخه: ۷.۰.۰ — رفع قطعی باگ Realtime
 // ============================================================
 
 // ============================================================
-// 🔄 سازگاری با کد قدیمی
+// سازگاری با کد قدیمی
 // ============================================================
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
 const API_URL = TEACHER_API_URL;
@@ -50,9 +50,21 @@ async function saveRankingToSupabase() {
             : 0;
         const streakDays = streakData.count || 0;
         
+        // 🆕 گرفتن آواتار با تشخیص نوع
         let avatarUrl = 'default';
-        if (typeof getAvatarForRanking === 'function') {
-            avatarUrl = getAvatarForRanking();
+        const avatarImg = localStorage.getItem('userAvatar');
+        const avatarEmoji = localStorage.getItem('userAvatarEmoji');
+        
+        if (avatarImg) {
+            // اگه عکس هست، کوتاهش کن (اگه خیلی طولانی باشه)
+            if (avatarImg.length > 100000) {
+                console.warn('⚠️ عکس خیلی طولانیه، به emoji تبدیل میشه');
+                avatarUrl = 'emoji:👤';
+            } else {
+                avatarUrl = avatarImg;
+            }
+        } else if (avatarEmoji) {
+            avatarUrl = 'emoji:' + avatarEmoji;
         }
         
         const payload = {
@@ -66,6 +78,12 @@ async function saveRankingToSupabase() {
             avatar_url: String(avatarUrl),
             last_update: new Date().toISOString()
         };
+        
+        console.log('📤 ذخیره در Supabase:', {
+            name: payload.name,
+            avatar_type: avatarUrl.substring(0, 30) + '...',
+            avatar_length: avatarUrl.length
+        });
         
         const { data, error } = await client
             .from('rankings')
@@ -388,7 +406,7 @@ async function getStudentConversationsFromSupabase() {
 }
 
 // ============================================================
-// علامت‌گذاری پیام‌ها به عنوان دیده‌شده
+// علامت‌گذاری پیام‌ها
 // ============================================================
 
 async function markAllMessagesAsSeenSupabase(studentId, reader) {
@@ -406,7 +424,7 @@ async function markAllMessagesAsSeenSupabase(studentId, reader) {
             .eq('is_seen', false);
         
         if (error) {
-            console.error('❌ خطا در علامت‌گذاری:', error.message);
+            console.error('❌ خطا:', error.message);
             return { success: false, error: error.message };
         }
         
@@ -440,15 +458,10 @@ async function addEventToSupabase(data) {
             .from('events')
             .insert(payload);
         
-        if (error) {
-            console.error('❌ خطا:', error.message);
-            return { success: false, error: error.message };
-        }
-        
+        if (error) return { success: false, error: error.message };
         return { success: true };
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return { success: false };
     }
 }
@@ -493,15 +506,10 @@ async function addContestToSupabase(data) {
             .from('contests')
             .insert(payload);
         
-        if (error) {
-            console.error('❌ خطا:', error.message);
-            return { success: false, error: error.message };
-        }
-        
+        if (error) return { success: false, error: error.message };
         return { success: true };
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return { success: false };
     }
 }
@@ -545,15 +553,10 @@ async function addLibraryToSupabase(data) {
             .from('library')
             .insert(payload);
         
-        if (error) {
-            console.error('❌ خطا:', error.message);
-            return { success: false, error: error.message };
-        }
-        
+        if (error) return { success: false, error: error.message };
         return { success: true };
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return { success: false };
     }
 }
@@ -577,7 +580,7 @@ async function getLibraryFromSupabase() {
 }
 
 // ============================================================
-// 🆕 Realtime — با رفع باگ
+// Realtime — نسخه نهایی با رفع قطعی باگ
 // ============================================================
 
 let personalRealtimeChannel = null;
@@ -590,11 +593,13 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
         const client = getSupabase();
         if (!client) return null;
         
-        // اگه کانال قبلی وجود داره، پاکش کن
+        // 🆕 پاک کردن کانال قبلی
         if (personalRealtimeChannel) {
             try {
                 client.removeChannel(personalRealtimeChannel);
-            } catch(e) {}
+            } catch(e) {
+                console.warn('خطا در حذف کانال قبلی:', e);
+            }
             personalRealtimeChannel = null;
         }
         
@@ -629,17 +634,19 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
     }
 }
 
-// 🆕 گوش دادن به پیام‌های کلاسی
+// 🆕 گوش دادن به پیام‌های کلاسی — با رفع قطعی باگ
 function subscribeToClassMessages(className, onNewMessage) {
     try {
         const client = getSupabase();
         if (!client) return null;
         
-        // اگه کانال قبلی وجود داره، پاکش کن
+        // 🆕 پاک کردن کانال قبلی (این خط خیلی مهمه)
         if (classRealtimeChannel) {
             try {
                 client.removeChannel(classRealtimeChannel);
-            } catch(e) {}
+            } catch(e) {
+                console.warn('خطا در حذف کانال قبلی:', e);
+            }
             classRealtimeChannel = null;
         }
         
@@ -680,11 +687,13 @@ function subscribeToConversations(onChange) {
         const client = getSupabase();
         if (!client) return null;
         
-        // اگه کانال قبلی وجود داره، پاکش کن
+        // 🆕 پاک کردن کانال قبلی
         if (conversationsRealtimeChannel) {
             try {
                 client.removeChannel(conversationsRealtimeChannel);
-            } catch(e) {}
+            } catch(e) {
+                console.warn('خطا در حذف کانال قبلی:', e);
+            }
             conversationsRealtimeChannel = null;
         }
         
@@ -718,7 +727,6 @@ function subscribeToConversations(onChange) {
     }
 }
 
-// قطع اتصال
 function unsubscribeAll() {
     try {
         const client = getSupabase();

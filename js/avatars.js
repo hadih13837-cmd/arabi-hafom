@@ -1,10 +1,10 @@
 // ============================================================
 // avatars.js — مجموعه ایموجی‌ها و منطق آواتار
-// نسخه: ۵.۰.۰ — نسخه نهایی قطعی
+// نسخه: ۶.۰.۰ — با رفع مشکل نمایش در رتبه‌بندی
 // ============================================================
 
 // ============================================================
-// آواتار پیش‌فرض (عکس پسر با پس‌زمینه آبی)
+// آواتار پیش‌فرض
 // ============================================================
 const DEFAULT_AVATAR = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
 
@@ -21,7 +21,7 @@ const AVATAR_EMOJIS = {
 };
 
 // ============================================================
-// گرفتن آواتار برای نمایش در رتبه‌بندی
+// 🆕 گرفتن آواتار برای ذخیره در رتبه‌بندی
 // ============================================================
 function getAvatarForRanking() {
     const avatarImg = localStorage.getItem('userAvatar');
@@ -64,7 +64,6 @@ function applyAvatarToElements() {
         const parent = el.parentElement;
         if (!parent) return;
 
-        // پاک کردن کامل همه‌چیز از parent
         parent.classList.remove('emoji-mode');
         
         const oldEmoji = parent.querySelector('.emoji-avatar');
@@ -80,7 +79,6 @@ function applyAvatarToElements() {
             el.style.height = '100%';
             el.style.objectFit = 'cover';
             el.style.borderRadius = '50%';
-            console.log(`✅ عکس اعمال شد برای ${id}`);
         } else if (avatar.type === 'emoji') {
             el.style.display = 'none';
             parent.classList.add('emoji-mode');
@@ -89,13 +87,12 @@ function applyAvatarToElements() {
             emojiSpan.className = 'emoji-avatar';
             emojiSpan.textContent = avatar.value;
             parent.appendChild(emojiSpan);
-            console.log(`✅ ایموجی اعمال شد برای ${id}: ${avatar.value}`);
         }
     });
 }
 
 // ============================================================
-// انتخاب ایموجی به عنوان آواتار
+// انتخاب ایموجی
 // ============================================================
 function selectEmojiAvatar(emoji, element) {
     console.log('🎨 انتخاب ایموجی:', emoji);
@@ -112,20 +109,22 @@ function selectEmojiAvatar(emoji, element) {
 
     vibrate(15);
     
-    setTimeout(() => {
+    setTimeout(async () => {
         closeEmojiPicker();
         showModal('موفق', 'ایموجی پروفایل با موفقیت تغییر کرد.', '✅');
         
-        if (typeof autoSyncRanking === 'function') {
-            autoSyncRanking('تغییر ایموجی آواتار');
-        } else if (typeof saveRankingToSupabase === 'function') {
-            saveRankingToSupabase();
+        // 🆕 ذخیره در Supabase
+        if (typeof saveRankingToSupabase === 'function') {
+            const success = await saveRankingToSupabase();
+            if (success) {
+                console.log('✅ آواتار در Supabase ذخیره شد');
+            }
         }
     }, 300);
 }
 
 // ============================================================
-// حذف آواتار و برگشت به پیش‌فرض
+// حذف آواتار
 // ============================================================
 function removeEmojiAvatar() {
     localStorage.removeItem('userAvatarEmoji');
@@ -135,7 +134,7 @@ function removeEmojiAvatar() {
 }
 
 // ============================================================
-// ساخت پنل انتخاب ایموجی (HTML)
+// ساخت پنل انتخاب ایموجی
 // ============================================================
 function renderEmojiPicker() {
     const container = document.getElementById('emoji-picker-container');
@@ -158,12 +157,8 @@ function renderEmojiPicker() {
     });
 
     container.innerHTML = html;
-    console.log('✅ ایموجی‌ها رندر شدند:', Object.keys(AVATAR_EMOJIS).length, 'دسته');
 }
 
-// ============================================================
-// باز کردن مودال انتخاب ایموجی
-// ============================================================
 function openEmojiPicker() {
     console.log('🎨 باز کردن انتخاب ایموجی...');
     
@@ -175,9 +170,6 @@ function openEmojiPicker() {
     const emojiModal = document.getElementById('emoji-picker-modal');
     if (emojiModal) {
         emojiModal.classList.add('active');
-        console.log('✅ مودال ایموجی باز شد');
-    } else {
-        console.error('❌ #emoji-picker-modal پیدا نشد');
     }
 }
 
@@ -200,7 +192,6 @@ function closeAvatarOptionsModal() {
 }
 
 function chooseEmojiOption() {
-    console.log('🎨 انتخاب گزینه ایموجی');
     closeAvatarOptionsModal();
     setTimeout(() => {
         openEmojiPicker();
@@ -208,7 +199,6 @@ function chooseEmojiOption() {
 }
 
 function chooseGalleryOption() {
-    console.log('🖼️ انتخاب گزینه گالری');
     closeAvatarOptionsModal();
     setTimeout(() => {
         const fileInput = document.getElementById('avatar-input');
@@ -217,32 +207,38 @@ function chooseGalleryOption() {
 }
 
 // ============================================================
-// رندر آواتار در رتبه‌بندی (HTML)
+// 🆕 رندر آواتار در رتبه‌بندی (نسخه نهایی)
 // ============================================================
 function renderAvatarInRanking(ranking) {
-    const avatarUrl = ranking.avatar_url || DEFAULT_AVATAR;
+    // بررسی avatar_url
+    const avatarUrl = ranking.avatar_url || '';
     
-    // حالت ایموجی
+    // حالت ۱: خالی یا null
+    if (!avatarUrl || avatarUrl === 'default' || avatarUrl === 'null') {
+        return `<img src="${DEFAULT_AVATAR}" alt="آواتار" class="lb-avatar-img" loading="lazy">`;
+    }
+    
+    // حالت ۲: ایموجی (شروع با emoji:)
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '');
         if (!emoji || emoji === '👤' || emoji === '👦🏻') {
-            return `<img src="${DEFAULT_AVATAR}" alt="آواتار" class="lb-avatar-img">`;
+            return `<img src="${DEFAULT_AVATAR}" alt="آواتار" class="lb-avatar-img" loading="lazy">`;
         }
         return `<span class="lb-avatar-emoji">${emoji}</span>`;
     }
     
-    // حالت عکس base64
+    // حالت ۳: عکس base64
     if (avatarUrl.startsWith('data:image')) {
         return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img">`;
     }
     
-    // حالت URL عکس
+    // حالت ۴: URL عکس
     if (avatarUrl.startsWith('http')) {
-        return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img" crossorigin="anonymous">`;
+        return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img" crossorigin="anonymous" loading="lazy" onerror="this.src='${DEFAULT_AVATAR}'">`;
     }
     
-    // پیش‌فرض: عکس پسر آبی
-    return `<img src="${DEFAULT_AVATAR}" alt="آواتار" class="lb-avatar-img">`;
+    // حالت پیش‌فرض: عکس پسر آبی
+    return `<img src="${DEFAULT_AVATAR}" alt="آواتار" class="lb-avatar-img" loading="lazy">`;
 }
 
 // برای سازگاری با کد قدیمی
