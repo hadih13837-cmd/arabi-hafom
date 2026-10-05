@@ -422,6 +422,9 @@ async function refreshRankings() {
 // ============================================================
 // 🆕 باز کردن کارت پروفایل — نسخه جدید (کاور بالا)
 // ============================================================
+// ============================================================
+// 🆕 باز کردن کارت پروفایل — مدال کنار اسم
+// ============================================================
 function openProfileCard(studentId) {
     const ranking = currentRankings.find(r => r.student_id === studentId);
     if (!ranking) return;
@@ -469,20 +472,24 @@ function openProfileCard(studentId) {
     // 🆕 ساخت کاور (بالای کارت)
     let coverHTML = '';
     if (isEmoji) {
-        // حالت ایموجی: هیچ کادری نیست، فقط ایموجی بزرگ
         coverHTML = `
             <div class="pc-cover-wrapper emoji-cover">
                 <span class="pc-emoji-big">${emojiValue}</span>
             </div>
         `;
     } else {
-        // حالت عکس: مستطیلی بالای کارت
         coverHTML = `
             <div class="pc-cover-wrapper">
                 <img src="${imageUrl}" alt="" class="pc-cover-image" onerror="this.src='${DEFAULT_AVATAR_URL}'">
             </div>
         `;
     }
+    
+    // 🆕 مدال کنار اسم
+    let medalHTML = '';
+    if (rank === 1) medalHTML = '🥇';
+    else if (rank === 2) medalHTML = '🥈';
+    else if (rank === 3) medalHTML = '🥉';
     
     content.innerHTML = `
         <div class="pc-modal-card">
@@ -494,15 +501,10 @@ function openProfileCard(studentId) {
             
             ${coverHTML}
             
-            ${rank <= 3 ? `
-                <div class="pc-rank-badge">
-                    ${rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}
-                </div>
-            ` : ''}
-            
             <div class="pc-modal-inner">
                 <div class="pc-main-info">
                     <div class="pc-modal-name">
+                        ${medalHTML ? `<span class="pc-rank-inline">${medalHTML}</span>` : ''}
                         ${ranking.name}
                         ${isMe ? '<span class="pc-modal-you-badge">شما</span>' : ''}
                     </div>
