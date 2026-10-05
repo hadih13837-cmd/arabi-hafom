@@ -464,6 +464,84 @@
     <div class="user-medals-container" id="user-medals-content"></div>
 </div>
 
+<!-- 🆕 مودال بروزرسانی -->
+<div class="update-modal-overlay" id="update-modal">
+    <div class="update-modal-card">
+        <div class="update-header">
+            <div class="update-header-icon">🎉</div>
+            <div class="update-title">بروزرسانی جدید!</div>
+            <div class="update-subtitle">قابلیت‌های جذابی به برنامه اضافه شده</div>
+        </div>
+        
+        <div class="update-features-title">✨ چیزهای جدید</div>
+        
+        <div class="update-feature-item">
+            <div class="update-feature-icon purple">💬</div>
+            <div class="update-feature-info">
+                <div class="update-feature-title">پیام‌های معلم</div>
+                <div class="update-feature-desc">حالا می‌تونی با معلمت چت کنی و پیام‌های کلاسی رو ببینی</div>
+            </div>
+            <span class="update-feature-badge">جدید</span>
+        </div>
+        
+        <div class="update-feature-item">
+            <div class="update-feature-icon orange">🏆</div>
+            <div class="update-feature-info">
+                <div class="update-feature-title">رتبه‌بندی زنده</div>
+                <div class="update-feature-desc">رتبه‌ت رو در کلاس ببین و با دوستات رقابت کن</div>
+            </div>
+            <span class="update-feature-badge">جدید</span>
+        </div>
+        
+        <div class="update-feature-item">
+            <div class="update-feature-icon blue">⚡</div>
+            <div class="update-feature-info">
+                <div class="update-feature-title">سرعت فوق‌العاده</div>
+                <div class="update-feature-desc">پیام‌ها بلافاصله می‌رسن، بدون تأخیر</div>
+            </div>
+            <span class="update-feature-badge">ارتقا</span>
+        </div>
+        
+        <div class="update-feature-item">
+            <div class="update-feature-icon green">✓✓</div>
+            <div class="update-feature-info">
+                <div class="update-feature-title">تیک دوگانه</div>
+                <div class="update-feature-desc">می‌بینی کی پیامت رو خونده</div>
+            </div>
+            <span class="update-feature-badge">جدید</span>
+        </div>
+        
+        <button class="update-modal-btn" onclick="closeUpdateModal()">
+            عالیه! بزن بریم 🚀
+        </button>
+    </div>
+</div>
+
+<!-- 🆕 راهنمای رتبه‌بندی -->
+<div class="rankings-guide-overlay" id="rankings-guide">
+    <div class="rankings-guide-card">
+        <div class="rankings-guide-header">
+            <div class="rankings-guide-step" id="rankings-guide-step">گام ۱ از ۴</div>
+            <span class="rankings-guide-icon" id="rankings-guide-icon">🏆</span>
+            <div class="rankings-guide-title" id="rankings-guide-title">رتبه‌بندی کلاس</div>
+            <div class="rankings-guide-subtitle" id="rankings-guide-subtitle">با دوستات رقابت کن!</div>
+        </div>
+        <div class="rankings-guide-body">
+            <div class="rankings-guide-text" id="rankings-guide-text">
+                اینجا می‌تونی رتبه‌ت رو در کلاس ببینی.
+            </div>
+            <div class="rankings-guide-buttons">
+                <button class="rankings-guide-btn-skip" onclick="skipRankingsGuide()">
+                    رد کن
+                </button>
+                <button class="rankings-guide-btn-next" id="rankings-guide-next" onclick="nextRankingsGuide()">
+                    فهمیدم
+                </button>
+            </div>
+            <div class="rankings-guide-dots" id="rankings-guide-dots"></div>
+        </div>
+    </div>
+</div>
 <div id="app-container">
     
     <audio id="bg-music" src="https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3" loop preload="none"></audio>
