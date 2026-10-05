@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — منطق پنل معلم
-// نسخه: ۲.۰.۰ — با پیام‌رسانی چت‌مانند
+// نسخه: ۲.۱.۰ — با علامت‌گذاری خوانده‌شده پیام‌ها
 // ============================================================
 
 // ============================================================
@@ -206,6 +206,30 @@ async function apiPost(data) {
 }
 
 // ============================================================
+// 🆕 علامت‌گذاری پیام‌های یک دانش‌آموز به عنوان خوانده‌شده
+// ============================================================
+async function markMessagesAsRead(studentId) {
+    try {
+        console.log('📖 علامت‌گذاری پیام‌های دانش‌آموز به عنوان خوانده‌شده:', studentId);
+        
+        await apiPost({
+            action: 'markMessagesAsRead',
+            student_id: studentId,
+            reader: 'teacher',
+            timestamp: new Date().toISOString()
+        });
+        
+        console.log('✅ پیام‌ها خوانده‌شده شدند');
+        
+        // آپدیت badge
+        await updatePersonalUnreadBadge();
+        
+    } catch (error) {
+        console.error('❌ خطا در علامت‌گذاری پیام‌ها:', error);
+    }
+}
+
+// ============================================================
 // تب‌های پیام‌رسانی
 // ============================================================
 function switchMessagesTab(tab) {
@@ -224,7 +248,7 @@ function switchMessagesTab(tab) {
 }
 
 // ============================================================
-// 🆕 ارسال پیام کلاسی (کارتی)
+// ارسال پیام کلاسی (کارتی)
 // ============================================================
 async function sendClassMessage() {
     const className = document.getElementById('class-message-target').value;
@@ -270,7 +294,7 @@ async function sendClassMessage() {
 }
 
 // ============================================================
-// 🆕 بارگذاری پیام‌های کلاسی
+// بارگذاری پیام‌های کلاسی
 // ============================================================
 async function loadClassMessages() {
     const container = document.getElementById('class-messages-list');
@@ -322,7 +346,7 @@ async function loadClassMessages() {
 }
 
 // ============================================================
-// 🆕 بارگذاری مکالمات (لیست دانش‌آموزان)
+// بارگذاری مکالمات (لیست دانش‌آموزان)
 // ============================================================
 async function loadStudentConversations() {
     const container = document.getElementById('conversations-list');
@@ -381,7 +405,7 @@ function renderConversations(conversations) {
 }
 
 // ============================================================
-// 🆕 فیلتر مکالمات (جستجو)
+// فیلتر مکالمات (جستجو)
 // ============================================================
 function filterConversations(query) {
     query = query.toLowerCase().trim();
@@ -398,7 +422,7 @@ function filterConversations(query) {
 }
 
 // ============================================================
-// 🆕 باز کردن چت با دانش‌آموز
+// 🆕 باز کردن چت با دانش‌آموز (با علامت‌گذاری خوانده‌شده)
 // ============================================================
 async function openChatWith(studentId, studentName, className) {
     currentChatStudent = {
@@ -422,6 +446,9 @@ async function openChatWith(studentId, studentName, className) {
     // بارگذاری پیام‌ها
     await loadChatMessages(studentId);
     
+    // 🆕 علامت‌گذاری پیام‌ها به عنوان خوانده‌شده
+    await markMessagesAsRead(studentId);
+    
     // شروع polling (هر ۳ ثانیه)
     startChatPolling(studentId);
     
@@ -438,7 +465,7 @@ function closeChatWindow() {
 }
 
 // ============================================================
-// 🆕 بارگذاری پیام‌های چت
+// بارگذاری پیام‌های چت
 // ============================================================
 async function loadChatMessages(studentId) {
     const container = document.getElementById('chat-messages');
@@ -482,7 +509,7 @@ async function loadChatMessages(studentId) {
 }
 
 // ============================================================
-// 🆕 ارسال پیام چت
+// ارسال پیام چت
 // ============================================================
 async function sendChatMessage() {
     if (!currentChatStudent) return;
@@ -535,7 +562,7 @@ async function sendChatMessage() {
 }
 
 // ============================================================
-// 🆕 Polling برای چت (هر ۳ ثانیه)
+// Polling برای چت (هر ۳ ثانیه)
 // ============================================================
 function startChatPolling(studentId) {
     stopChatPolling();
@@ -578,6 +605,9 @@ function startChatPolling(studentId) {
                 const lastMsg = messages[messages.length - 1];
                 if (lastMsg.sender === 'student') {
                     playDingSound();
+                    
+                    // 🆕 علامت‌گذاری پیام‌های جدید به عنوان خوانده‌شده
+                    await markMessagesAsRead(studentId);
                 }
             }
             
@@ -595,7 +625,7 @@ function stopChatPolling() {
 }
 
 // ============================================================
-// 🆕 صدای دینگ
+// صدای دینگ
 // ============================================================
 function playDingSound() {
     try {
@@ -626,7 +656,7 @@ function playDingSound() {
 }
 
 // ============================================================
-// 🆕 آپدیت Badge پیام‌های نخوانده
+// آپدیت Badge پیام‌های نخوانده
 // ============================================================
 async function updatePersonalUnreadBadge() {
     try {
@@ -1430,4 +1460,4 @@ function clearCache() {
 // ============================================================
 // شروع
 // ============================================================
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۲.۰.۰ با پیام‌رسان');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۲.۱.۰ با علامت‌گذاری خوانده‌شده');

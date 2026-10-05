@@ -1,6 +1,6 @@
 // ============================================================
-// notifications.js — سیستم اعلان‌ها، پیام‌های معلم و swipe
-// نسخه: ۴.۰.۰ — با پیام‌رسان دوطرفه
+// notifications.js — سیستم اعلان‌ها، پیام‌رسان و swipe
+// نسخه: ۵.۰.۰ — نسخه نهایی قطعی
 // ============================================================
 
 // ============================================================
@@ -142,6 +142,9 @@ function markNotifRead(id) {
         }
         loadNotifications();
         updateNotificationBadge();
+        if (typeof updateTeacherMessagesBadge === 'function') {
+            updateTeacherMessagesBadge();
+        }
         return;
     }
     
@@ -528,7 +531,7 @@ function handleNotifMouseDown(e, id) {
 }
 
 // ============================================================
-// 🆕 پیام‌رسان دانش‌آموز
+// پیام‌رسان دانش‌آموز
 // ============================================================
 
 let studentChatPollingInterval = null;
@@ -536,7 +539,7 @@ let currentStudentTab = 'class';
 let lastChatMessageCount = 0;
 
 // ============================================================
-// 🆕 رفتن به صفحه پیام‌های معلم
+// رفتن به صفحه پیام‌های معلم
 // ============================================================
 function goToTeacherMessages() {
     vibrate(15);
@@ -545,7 +548,7 @@ function goToTeacherMessages() {
 }
 
 // ============================================================
-// 🆕 بارگذاری پیام‌های دانش‌آموز
+// بارگذاری پیام‌های دانش‌آموز
 // ============================================================
 async function loadStudentMessages() {
     const activeTab = document.querySelector('.student-messages-tab.active');
@@ -560,7 +563,7 @@ async function loadStudentMessages() {
 }
 
 // ============================================================
-// 🆕 تغییر تب
+// تغییر تب
 // ============================================================
 function switchStudentMessagesTab(tab) {
     currentStudentTab = tab;
@@ -581,7 +584,7 @@ function switchStudentMessagesTab(tab) {
 }
 
 // ============================================================
-// 🆕 بارگذاری پیام‌های کلاسی
+// بارگذاری پیام‌های کلاسی
 // ============================================================
 async function loadStudentClassMessages() {
     const container = document.getElementById('student-class-messages-content');
@@ -610,14 +613,19 @@ async function loadStudentClassMessages() {
         
         if (!result.success || !result.data || result.data.length === 0) {
             container.innerHTML = renderStudentEmpty('📢', 'هنوز پیام کلاسی نیست', 'وقتی معلم پیامی برای کلاس بفرسته، اینجا نمایش داده میشه');
+            updateClassBadge(0);
+            updateChatBadge();
+            updateMessagesFab(0);
             return;
         }
         
         const messages = result.data.sort((a, b) => new Date(b.date) - new Date(a.date));
         
-        // ذخیره به عنوان خوانده‌شده
+        // 🆕 ذخیره به عنوان خوانده‌شده
         const seenIds = JSON.parse(localStorage.getItem('seenClassMessages') || '[]');
-        const unreadMessages = messages.filter(m => !seenIds.includes(m.message_id));
+        const allMessageIds = messages.map(m => m.message_id);
+        const mergedSeen = [...new Set([...seenIds, ...allMessageIds])];
+        localStorage.setItem('seenClassMessages', JSON.stringify(mergedSeen));
         
         const typeIcons = {
             info: 'ℹ️',
@@ -635,9 +643,8 @@ async function loadStudentClassMessages() {
         
         let html = '';
         messages.forEach(msg => {
-            const isUnread = !seenIds.includes(msg.message_id);
             html += `
-                <div class="student-class-message-card type-${msg.type || 'info'}" style="${isUnread ? 'border-color: #ffc107;' : ''}">
+                <div class="student-class-message-card type-${msg.type || 'info'}">
                     <div class="student-class-message-header">
                         <div class="student-class-message-icon">${typeIcons[msg.type] || '📩'}</div>
                         <div class="student-class-message-info">
@@ -657,12 +664,10 @@ async function loadStudentClassMessages() {
         
         container.innerHTML = html;
         
-        // آپدیت seen
-        const allIds = messages.map(m => m.message_id);
-        localStorage.setItem('seenClassMessages', JSON.stringify(allIds));
-        
-        // آپدیت badge
-        updateStudentClassBadge();
+        // 🆕 آپدیت badge و FAB بعد از خواندن
+        updateClassBadge(0);
+        updateChatBadge();
+        updateMessagesFab(0);
         
     } catch (error) {
         console.error('خطا در بارگذاری پیام‌های کلاسی:', error);
@@ -671,7 +676,7 @@ async function loadStudentClassMessages() {
 }
 
 // ============================================================
-// 🆕 بارگذاری چت با معلم
+// بارگذاری چت با معلم
 // ============================================================
 async function loadStudentChat() {
     const container = document.getElementById('student-chat-messages');
@@ -703,6 +708,12 @@ async function loadStudentChat() {
         
         const messages = (result.data || []).sort((a, b) => new Date(a.date) - new Date(b.date));
         
+        // 🆕 ذخیره به عنوان خوانده‌شده — همه پیام‌های معلم
+        const seenIds = JSON.parse(localStorage.getItem('seenChatMessages') || '[]');
+        const teacherMessageIds = messages.filter(m => m.sender === 'teacher').map(m => m.message_id);
+        const mergedSeen = [...new Set([...seenIds, ...teacherMessageIds])];
+        localStorage.setItem('seenChatMessages', JSON.stringify(mergedSeen));
+        
         if (messages.length === 0) {
             container.innerHTML = `
                 <div class="student-chat-empty">
@@ -712,6 +723,9 @@ async function loadStudentChat() {
                 </div>
             `;
             lastChatMessageCount = 0;
+            updateChatBadge();
+            updateClassBadge();
+            updateMessagesFab();
             return;
         }
         
@@ -732,6 +746,11 @@ async function loadStudentChat() {
         container.scrollTop = container.scrollHeight;
         lastChatMessageCount = messages.length;
         
+        // 🆕 آپدیت badge و FAB بعد از خواندن
+        updateChatBadge();
+        updateClassBadge();
+        updateMessagesFab();
+        
     } catch (error) {
         console.error('خطا در بارگذاری چت:', error);
         container.innerHTML = renderStudentEmpty('⚠️', 'خطا در بارگذاری', 'لطفاً اینترنت خود را چک کنید');
@@ -739,7 +758,7 @@ async function loadStudentChat() {
 }
 
 // ============================================================
-// 🆕 ارسال پیام به معلم
+// ارسال پیام به معلم
 // ============================================================
 async function sendStudentMessage() {
     const input = document.getElementById('student-chat-input');
@@ -807,7 +826,7 @@ async function sendStudentMessage() {
 }
 
 // ============================================================
-// 🆕 Polling برای چت دانش‌آموز
+// Polling برای چت دانش‌آموز
 // ============================================================
 function startStudentChatPolling() {
     stopStudentChatPolling();
@@ -832,17 +851,14 @@ function startStudentChatPolling() {
             
             const messages = result.data.sort((a, b) => new Date(a.date) - new Date(b.date));
             
-            // اگه پیام جدید اومده بود
             if (messages.length > lastChatMessageCount) {
                 const lastMsg = messages[messages.length - 1];
                 
-                // اگه پیام از معلم بود، صدای دینگ بزن
                 if (lastMsg.sender === 'teacher') {
                     playStudentDingSound();
                     vibrate([30, 50, 30]);
                 }
                 
-                // دوباره رندر کن
                 const container = document.getElementById('student-chat-messages');
                 if (container) {
                     let html = '';
@@ -862,6 +878,12 @@ function startStudentChatPolling() {
                 }
                 
                 lastChatMessageCount = messages.length;
+                
+                // 🆕 mark as read
+                const seenIds = JSON.parse(localStorage.getItem('seenChatMessages') || '[]');
+                const teacherMessageIds = messages.filter(m => m.sender === 'teacher').map(m => m.message_id);
+                const mergedSeen = [...new Set([...seenIds, ...teacherMessageIds])];
+                localStorage.setItem('seenChatMessages', JSON.stringify(mergedSeen));
             }
         } catch (error) {
             console.warn('Polling error:', error);
@@ -877,7 +899,7 @@ function stopStudentChatPolling() {
 }
 
 // ============================================================
-// 🆕 صدای دینگ برای دانش‌آموز
+// صدای دینگ برای دانش‌آموز
 // ============================================================
 function playStudentDingSound() {
     if (localStorage.getItem('soundsEnabled') === 'false') return;
@@ -886,7 +908,6 @@ function playStudentDingSound() {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const now = audioCtx.currentTime;
         
-        // دینگ دو نتی
         [880, 1108.73].forEach((freq, i) => {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -910,7 +931,7 @@ function playStudentDingSound() {
 }
 
 // ============================================================
-// 🆕 رفرش صفحه پیام‌ها
+// رفرش صفحه پیام‌ها
 // ============================================================
 async function refreshTeacherMessages() {
     vibrate(15);
@@ -928,40 +949,29 @@ async function refreshTeacherMessages() {
 }
 
 // ============================================================
-// 🆕 آپدیت Badge تب‌ها
+// 🆕 آپدیت Badge تب کلاس
 // ============================================================
-async function updateStudentClassBadge() {
-    try {
-        const userClass = localStorage.getItem('userClass') || 'هفتم یک';
-        const classSlug = typeof classNameToSlug === 'function' ? classNameToSlug(userClass) : userClass;
-        
-        if (typeof TEACHER_API_URL === 'undefined') return;
-        
-        const response = await fetch(TEACHER_API_URL + '?action=getClassMessages&class_name=' + classSlug + '&t=' + Date.now(), {
-            cache: 'no-store'
-        });
-        const result = await response.json();
-        
-        if (!result.success || !result.data) return;
-        
-        const seenIds = JSON.parse(localStorage.getItem('seenClassMessages') || '[]');
-        const unreadCount = result.data.filter(m => !seenIds.includes(m.message_id)).length;
-        
-        const badge = document.getElementById('class-unread-badge');
-        if (badge) {
-            if (unreadCount > 0) {
-                badge.textContent = toPersianNum(unreadCount);
-                badge.style.display = 'block';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-    } catch (error) {
-        console.warn('Error:', error);
+function updateClassBadge(count) {
+    const badge = document.getElementById('class-unread-badge');
+    if (!badge) return;
+    
+    if (count === undefined) {
+        // خودش محاسبه کن
+        count = 0;
+    }
+    
+    if (count > 0) {
+        badge.textContent = toPersianNum(count);
+        badge.style.display = 'block';
+    } else {
+        badge.style.display = 'none';
     }
 }
 
-async function updateStudentChatBadge() {
+// ============================================================
+// 🆕 آپدیت Badge تب چت
+// ============================================================
+async function updateChatBadge() {
     try {
         const studentId = localStorage.getItem('studentUUID');
         if (!studentId) return;
@@ -993,84 +1003,84 @@ async function updateStudentChatBadge() {
 }
 
 // ============================================================
-// 🆕 چک کردن پیام‌های جدید (برای badge FAB)
+// 🆕 آپدیت FAB صفحه خانه
+// ============================================================
+async function updateMessagesFab(forcedCount) {
+    const fab = document.getElementById('home-messages-fab');
+    const badge = document.getElementById('home-messages-fab-badge');
+    
+    if (!fab || !badge) return;
+    
+    // 🆕 اگه توی صفحه پیام‌ها هستیم، FAB مخفی
+    const activeScreen = document.querySelector('.screen.active');
+    if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
+        fab.style.display = 'none';
+        return;
+    }
+    
+    let totalUnread = forcedCount;
+    
+    // اگه عدد صریح داده نشده، خودش حساب کن
+    if (totalUnread === undefined) {
+        totalUnread = 0;
+        
+        try {
+            const studentId = localStorage.getItem('studentUUID');
+            const userClass = localStorage.getItem('userClass') || 'هفتم یک';
+            const classSlug = typeof classNameToSlug === 'function' ? classNameToSlug(userClass) : userClass;
+            
+            if (typeof TEACHER_API_URL === 'undefined' || !studentId) {
+                fab.style.display = 'none';
+                return;
+            }
+            
+            // پیام‌های کلاسی
+            try {
+                const classResponse = await fetch(TEACHER_API_URL + '?action=getClassMessages&class_name=' + classSlug + '&t=' + Date.now(), {
+                    cache: 'no-store'
+                });
+                const classResult = await classResponse.json();
+                if (classResult.success && classResult.data) {
+                    const seenClassIds = JSON.parse(localStorage.getItem('seenClassMessages') || '[]');
+                    totalUnread += classResult.data.filter(m => !seenClassIds.includes(m.message_id)).length;
+                }
+            } catch (e) {}
+            
+            // چت شخصی
+            try {
+                const chatResponse = await fetch(TEACHER_API_URL + '?action=getPersonalMessages&student_id=' + studentId + '&t=' + Date.now(), {
+                    cache: 'no-store'
+                });
+                const chatResult = await chatResponse.json();
+                if (chatResult.success && chatResult.data) {
+                    const seenChatIds = JSON.parse(localStorage.getItem('seenChatMessages') || '[]');
+                    totalUnread += chatResult.data.filter(m => m.sender === 'teacher' && !seenChatIds.includes(m.message_id)).length;
+                }
+            } catch (e) {}
+        } catch (e) {
+            console.warn('Error:', e);
+        }
+    }
+    
+    if (totalUnread > 0) {
+        fab.style.display = 'flex';
+        badge.textContent = totalUnread > 9 ? '۹+' : toPersianNum(totalUnread);
+        badge.style.display = 'flex';
+    } else {
+        fab.style.display = 'none';
+    }
+}
+
+// ============================================================
+// 🆕 چک کردن پیام‌های جدید (برای FAB)
 // ============================================================
 async function checkTeacherMessagesBadge() {
-    try {
-        const studentId = localStorage.getItem('studentUUID');
-        const userClass = localStorage.getItem('userClass') || 'هفتم یک';
-        const classSlug = typeof classNameToSlug === 'function' ? classNameToSlug(userClass) : userClass;
-        
-        if (typeof TEACHER_API_URL === 'undefined' || !studentId) return;
-        
-        // چک پیام‌های کلاسی
-        let classUnreadCount = 0;
-        try {
-            const classResponse = await fetch(TEACHER_API_URL + '?action=getClassMessages&class_name=' + classSlug + '&t=' + Date.now(), {
-                cache: 'no-store'
-            });
-            const classResult = await classResponse.json();
-            if (classResult.success && classResult.data) {
-                const seenClassIds = JSON.parse(localStorage.getItem('seenClassMessages') || '[]');
-                classUnreadCount = classResult.data.filter(m => !seenClassIds.includes(m.message_id)).length;
-            }
-        } catch (e) {}
-        
-        // چک چت شخصی
-        let chatUnreadCount = 0;
-        try {
-            const chatResponse = await fetch(TEACHER_API_URL + '?action=getPersonalMessages&student_id=' + studentId + '&t=' + Date.now(), {
-                cache: 'no-store'
-            });
-            const chatResult = await chatResponse.json();
-            if (chatResult.success && chatResult.data) {
-                const seenChatIds = JSON.parse(localStorage.getItem('seenChatMessages') || '[]');
-                chatUnreadCount = chatResult.data.filter(m => m.sender === 'teacher' && !seenChatIds.includes(m.message_id)).length;
-            }
-        } catch (e) {}
-        
-        const totalUnread = classUnreadCount + chatUnreadCount;
-        
-        // آپدیت FAB
-        const fab = document.getElementById('home-messages-fab');
-        const badge = document.getElementById('home-messages-fab-badge');
-        
-        if (fab && badge) {
-            if (totalUnread > 0) {
-                fab.style.display = 'flex';
-                badge.textContent = totalUnread > 9 ? '۹+' : toPersianNum(totalUnread);
-                badge.style.display = 'flex';
-            } else {
-                // اگه پیام خونده شده هست، FAB بمونه ولی badge نده
-                fab.style.display = 'none';
-            }
-        }
-        
-        // آپدیت badge تب‌ها
-        const classBadge = document.getElementById('class-unread-badge');
-        if (classBadge) {
-            if (classUnreadCount > 0) {
-                classBadge.textContent = toPersianNum(classUnreadCount);
-                classBadge.style.display = 'block';
-            } else {
-                classBadge.style.display = 'none';
-            }
-        }
-        
-        const chatBadge = document.getElementById('chat-unread-badge');
-        if (chatBadge) {
-            if (chatUnreadCount > 0) {
-                chatBadge.textContent = toPersianNum(chatUnreadCount);
-                chatBadge.style.display = 'block';
-            } else {
-                chatBadge.style.display = 'none';
-            }
-        }
-        
-        console.log('📬 پیام‌های نخوانده:', totalUnread, '(کلاس:', classUnreadCount, 'چت:', chatUnreadCount, ')');
-        
-    } catch (error) {
-        console.warn('خطا در چک پیام‌های معلم:', error);
+    await updateMessagesFab();
+    
+    // آپدیت badge تب‌ها اگه توی صفحه پیام‌ها هستیم
+    const activeScreen = document.querySelector('.screen.active');
+    if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
+        await updateChatBadge();
     }
 }
 
