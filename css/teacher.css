@@ -2150,3 +2150,33 @@ body {
         font-size: 22px;
     }
 }
+/* ============================================================
+   🆕 تیک پیام‌ها (یک تیک / دو تیک)
+   ============================================================ */
+.chat-tick {
+    display: inline-block;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-right: 5px;
+    font-weight: bold;
+    letter-spacing: -1px;
+    transition: color 0.2s ease;
+}
+
+.messenger-chat-message.teacher .chat-tick {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.messenger-chat-message.teacher .chat-tick-seen {
+    color: #4fc3f7 !important;
+    font-weight: 900;
+}
+
+.messenger-chat-message.student .chat-tick {
+    color: #90a4ae;
+}
+
+.messenger-chat-message.student .chat-tick-seen {
+    color: #0288d1 !important;
+    font-weight: 900;
+}
