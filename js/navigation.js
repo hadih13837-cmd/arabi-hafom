@@ -99,7 +99,14 @@ function goToScreen(screenId, addToHistory = true) {
     if (screenId === 'screen-profile') loadProfileData();
     if (screenId === 'screen-medals') loadMedals();
     if (screenId === 'screen-notifications') loadNotifications();
-    if (screenId === 'screen-rankings') loadRankingsPage();
+    if (screenId === 'screen-rankings') {
+    loadRankingsPage();
+    
+    // 🆕 نمایش راهنمای رتبه‌بندی (فقط بار اول)
+    if (typeof checkAndShowRankingsGuide === 'function') {
+        setTimeout(() => checkAndShowRankingsGuide(), 1500);
+    }
+}
     if (screenId === 'screen-teacher-messages') {
         loadStudentMessages();
         // مخفی کردن FAB

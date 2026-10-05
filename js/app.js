@@ -1,12 +1,150 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۵.۱.۰ — با محافظ Realtime
+// نسخه: ۶.۰.۰ — با مودال بروزرسانی و راهنمای رتبه‌بندی
 // ============================================================
 
 // ============================================================
-// متغیر سراسری برای حالت انتشار
+// متغیر سراسری
 // ============================================================
 let isPublished = true;
+const UPDATE_VERSION = 'v2.0.0'; // 🆕 نسخه فعلی
+
+// ============================================================
+// 🆕 مودال بروزرسانی
+// ============================================================
+function checkAndShowUpdateModal() {
+    const seenVersion = localStorage.getItem('seenUpdateVersion');
+    
+    if (seenVersion === UPDATE_VERSION) return;
+    if (localStorage.getItem('userRegistered') !== 'true') return;
+    
+    setTimeout(() => showUpdateModal(), 2500);
+}
+
+function showUpdateModal() {
+    const modal = document.getElementById('update-modal');
+    if (modal) {
+        modal.classList.add('active');
+        console.log('🎉 مودال بروزرسانی نشون داده شد');
+    }
+}
+
+function closeUpdateModal() {
+    const modal = document.getElementById('update-modal');
+    if (modal) modal.classList.remove('active');
+    
+    localStorage.setItem('seenUpdateVersion', UPDATE_VERSION);
+    localStorage.setItem('seenUpdateDate', new Date().toISOString());
+    
+    vibrate(20);
+    console.log('✅ بروزرسانی دیده شد');
+}
+
+// ============================================================
+// 🆕 راهنمای رتبه‌بندی
+// ============================================================
+let rankingsGuideStep = 0;
+
+const RANKINGS_GUIDE_STEPS = [
+    {
+        icon: '🏆',
+        title: 'رتبه‌بندی کلاس',
+        subtitle: 'با دوستات رقابت کن!',
+        text: 'اینجا می‌تونی <strong>رتبه‌ت رو در کلاس</strong> ببینی. هر کسی که امتیاز بیشتری داشته باشه، بالاتر قرار می‌گیره.'
+    },
+    {
+        icon: '🥇',
+        title: 'سکوی قهرمانی',
+        subtitle: 'سه نفر اول',
+        text: 'سه نفر اول کلاس با <strong>مدال طلا، نقره و برنز</strong> نشون داده میشن. سعی کن به این سه نفر برسی!'
+    },
+    {
+        icon: '👆',
+        title: 'کارت پروفایل',
+        subtitle: 'اطلاعات کامل',
+        text: 'با کلیک روی هر دانش‌آموز، <strong>کارت پروفایلش</strong> باز میشه و می‌تونی اطلاعات کامل و مدال‌هاش رو ببینی.'
+    },
+    {
+        icon: '⭐',
+        title: 'امتیاز بگیر',
+        subtitle: 'تکالیف رو انجام بده',
+        text: 'برای بالا رفتن در رتبه‌بندی، <strong>تکالیفت رو انجام بده</strong> و امتیاز جمع کن. هر چه امتیاز بیشتر، رتبه بالاتر!'
+    }
+];
+
+function checkAndShowRankingsGuide() {
+    const hasSeen = localStorage.getItem('hasSeenRankingsGuide') === 'true';
+    if (hasSeen) return false;
+    
+    setTimeout(() => showRankingsGuide(), 800);
+    return true;
+}
+
+function showRankingsGuide() {
+    rankingsGuideStep = 0;
+    updateRankingsGuideStep();
+    
+    const overlay = document.getElementById('rankings-guide');
+    if (overlay) overlay.classList.add('active');
+}
+
+function updateRankingsGuideStep() {
+    const step = RANKINGS_GUIDE_STEPS[rankingsGuideStep];
+    if (!step) return;
+    
+    const stepEl = document.getElementById('rankings-guide-step');
+    const iconEl = document.getElementById('rankings-guide-icon');
+    const titleEl = document.getElementById('rankings-guide-title');
+    const subtitleEl = document.getElementById('rankings-guide-subtitle');
+    const textEl = document.getElementById('rankings-guide-text');
+    const nextBtn = document.getElementById('rankings-guide-next');
+    const dotsEl = document.getElementById('rankings-guide-dots');
+    
+    if (stepEl) stepEl.textContent = `گام ${toPersianNum(rankingsGuideStep + 1)} از ${toPersianNum(RANKINGS_GUIDE_STEPS.length)}`;
+    if (iconEl) iconEl.textContent = step.icon;
+    if (titleEl) titleEl.textContent = step.title;
+    if (subtitleEl) subtitleEl.textContent = step.subtitle;
+    if (textEl) textEl.innerHTML = step.text;
+    
+    if (nextBtn) {
+        nextBtn.textContent = (rankingsGuideStep === RANKINGS_GUIDE_STEPS.length - 1) 
+            ? 'شروع! 🎯' 
+            : 'فهمیدم';
+    }
+    
+    if (dotsEl) {
+        let dotsHTML = '';
+        for (let i = 0; i < RANKINGS_GUIDE_STEPS.length; i++) {
+            dotsHTML += `<div class="rankings-guide-dot ${i === rankingsGuideStep ? 'active' : ''}"></div>`;
+        }
+        dotsEl.innerHTML = dotsHTML;
+    }
+}
+
+function nextRankingsGuide() {
+    vibrate(15);
+    rankingsGuideStep++;
+    
+    if (rankingsGuideStep >= RANKINGS_GUIDE_STEPS.length) {
+        closeRankingsGuide();
+    } else {
+        updateRankingsGuideStep();
+    }
+}
+
+function skipRankingsGuide() {
+    vibrate(15);
+    closeRankingsGuide();
+}
+
+function closeRankingsGuide() {
+    const overlay = document.getElementById('rankings-guide');
+    if (overlay) overlay.classList.remove('active');
+    
+    localStorage.setItem('hasSeenRankingsGuide', 'true');
+    localStorage.setItem('rankingsGuideSeenDate', new Date().toISOString());
+    console.log('✅ راهنمای رتبه‌بندی دیده شد');
+}
 
 // ============================================================
 // همگام‌سازی خودکار
@@ -15,15 +153,10 @@ function autoSyncRanking(reason = 'unknown') {
     if (localStorage.getItem('userRegistered') !== 'true') return;
     if (typeof saveRankingToSupabase !== 'function') return;
     
-    console.log(`🔄 همگام‌سازی (${reason})`);
-    
     setTimeout(async () => {
         try {
-            const success = await saveRankingToSupabase();
-            if (success) console.log(`✅ همگام‌سازی موفق (${reason})`);
-        } catch (e) {
-            console.error(`❌ خطا در همگام‌سازی (${reason}):`, e);
-        }
+            await saveRankingToSupabase();
+        } catch (e) {}
     }, 500);
 }
 
@@ -34,20 +167,15 @@ async function checkMaintenanceMode() {
     const urlParams = new URLSearchParams(window.location.search);
     const isAdmin = urlParams.get('admin') === ADMIN_CODE;
     
-    if (isAdmin) console.log('👑 حالت ادمین فعال');
-    
     try {
         const response = await fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' });
         if (!response.ok) return false;
         const data = await response.json();
         
         isPublished = (data.published !== false);
-        console.log('📢 وضعیت انتشار:', isPublished ? 'منتشر شده ✅' : 'منتشر نشده 🔒');
-        
         if (isAdmin) return false;
         return data.maintenance === true;
     } catch(e) {
-        console.error('خطا در خواندن maintenance.json:', e);
         return false;
     }
 }
@@ -71,7 +199,6 @@ async function startApp() {
                 checkTeacherMessagesBadge();
             }
             
-            // 🆕 شروع Realtime (اگه هنوز شروع نشده)
             if (typeof startRealtimeSubscriptions === 'function' && 
                 typeof isRealtimeStarted !== 'undefined' && 
                 !isRealtimeStarted) {
@@ -91,7 +218,7 @@ async function startApp() {
 }
 
 // ============================================================
-// ساخت UUID
+// UUID
 // ============================================================
 function generateUUID() {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -105,7 +232,7 @@ function generateUUID() {
 }
 
 // ============================================================
-// PWA — Service Worker + آپدیت
+// PWA — Service Worker
 // ============================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -113,17 +240,12 @@ if ('serviceWorker' in navigator) {
             const registration = await navigator.serviceWorker.register('./service-worker.js');
             console.log('✅ Service Worker ثبت شد');
 
-            setInterval(() => {
-                registration.update();
-            }, 60000);
+            setInterval(() => registration.update(), 60000);
 
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
-                console.log('🔄 نسخه‌ی جدید پیدا شد');
-
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        console.log('✅ نسخه‌ی جدید آماده');
                         newWorker.postMessage({ type: 'SKIP_WAITING' });
                         showUpdateNotification();
                     }
@@ -134,11 +256,9 @@ if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
                     refreshing = true;
-                    console.log('🔄 بارگذاری مجدد...');
                     window.location.reload();
                 }
             });
-
         } catch (e) {
             console.log('⚠️ خطا در Service Worker:', e);
         }
@@ -148,22 +268,12 @@ if ('serviceWorker' in navigator) {
 function showUpdateNotification() {
     const notif = document.createElement('div');
     notif.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
         background: linear-gradient(135deg, #4caf50, #2e7d32);
-        color: #fff;
-        padding: 12px 20px;
-        border-radius: 50px;
-        font-family: 'Vazirmatn', sans-serif;
-        font-size: 13px;
-        font-weight: 900;
-        z-index: 999999;
-        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        color: #fff; padding: 12px 20px; border-radius: 50px;
+        font-family: 'Vazirmatn', sans-serif; font-size: 13px; font-weight: 900;
+        z-index: 999999; box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+        display: flex; align-items: center; gap: 8px;
     `;
     notif.innerHTML = '🎉 نسخه‌ی جدید در حال بارگذاری...';
     document.body.appendChild(notif);
@@ -176,7 +286,7 @@ function showUpdateNotification() {
 }
 
 // ============================================================
-// PWA — نصب بنر
+// PWA — نصب
 // ============================================================
 let deferredPrompt = null;
 const installBanner = document.getElementById('install-banner');
@@ -231,17 +341,15 @@ window.addEventListener('appinstalled', () => {
 });
 
 // ============================================================
-// بارگذاری مسابقات در صفحه خانه
+// بارگذاری مسابقات و کتابخانه
 // ============================================================
 async function loadHomeContests() {
     const section = document.getElementById('home-contests-section');
     const list = document.getElementById('home-contests-list');
-    
     if (!section || !list) return;
     
     try {
         if (typeof getContestsFromSupabase !== 'function') return;
-        
         const contests = await getContestsFromSupabase();
         
         if (!contests || contests.length === 0) {
@@ -272,25 +380,18 @@ async function loadHomeContests() {
         `).join('');
         
         section.style.display = 'block';
-        
     } catch (error) {
-        console.warn('خطا در مسابقات:', error);
         section.style.display = 'none';
     }
 }
 
-// ============================================================
-// بارگذاری کتابخانه در صفحه خانه
-// ============================================================
 async function loadHomeLibrary() {
     const section = document.getElementById('home-library-section');
     const list = document.getElementById('home-library-list');
-    
     if (!section || !list) return;
     
     try {
         if (typeof getLibraryFromSupabase !== 'function') return;
-        
         const items = await getLibraryFromSupabase();
         
         if (!items || items.length === 0) {
@@ -310,9 +411,7 @@ async function loadHomeLibrary() {
         `).join('');
         
         section.style.display = 'block';
-        
     } catch (error) {
-        console.warn('خطا در کتابخانه:', error);
         section.style.display = 'none';
     }
 }
@@ -322,39 +421,25 @@ async function loadHomeLibrary() {
 // ============================================================
 async function checkTeacherMessages() {
     try {
-        const userClass = localStorage.getItem('userClass') || 'هفتم یک';
         const studentId = localStorage.getItem('studentUUID');
-        const classSlug = typeof classNameToSlug === 'function' ? classNameToSlug(userClass) : userClass;
-        
         if (typeof getPersonalMessages !== 'function') return;
         
         const messages = await getPersonalMessages(studentId);
-        
         if (!messages || messages.length === 0) return;
         
         const seenMessages = JSON.parse(localStorage.getItem('seenTeacherMessages') || '[]');
         const newMessages = messages.filter(m => m.sender === 'teacher' && !seenMessages.includes(m.message_id));
         
         if (newMessages.length > 0) {
-            console.log('📬 پیام جدید از معلم:', newMessages.length);
-            
             const badge = document.getElementById('notif-badge-dot');
             if (badge) badge.classList.add('show');
-            
             showTeacherMessageNotification(newMessages[0]);
         }
         
-        const allIds = messages.map(m => m.message_id);
-        localStorage.setItem('seenTeacherMessages', JSON.stringify(allIds));
-        
-    } catch (error) {
-        console.warn('خطا در چک پیام‌های معلم:', error);
-    }
+        localStorage.setItem('seenTeacherMessages', JSON.stringify(messages.map(m => m.message_id)));
+    } catch (error) {}
 }
 
-// ============================================================
-// نمایش اعلان پیام معلم
-// ============================================================
 function showTeacherMessageNotification(message) {
     const dismissed = JSON.parse(localStorage.getItem('dismissedTeacherMessages') || '[]');
     if (dismissed.includes(message.message_id)) return;
@@ -400,26 +485,20 @@ function goToTeacherMessage() {
 // بارگذاری اولیه
 // ============================================================
 window.addEventListener('load', async () => {
-    // ۱. بررسی حالت بروزرسانی
     const isMaintenance = await checkMaintenanceMode();
     if (isMaintenance) {
         window.location.replace('./maintenance.html');
         return;
     }
 
-    // ۲. بارگذاری اطلاعات و تنظیمات
     loadUserInfo();
     loadTheme();
 
-    // ۳. اگه کاربر ثبت‌نام کرده ولی UUID نداره، بسازش
     if (localStorage.getItem('userRegistered') === 'true' && !localStorage.getItem('studentUUID')) {
-        console.log('🆕 کاربر قدیمی - ساخت UUID...');
         const newUUID = generateUUID();
         localStorage.setItem('studentUUID', newUUID);
-        console.log('✅ UUID ساخته شد:', newUUID);
     }
 
-    // ۴. تنظیمات ظاهری
     if (localStorage.getItem('soundsEnabled') === 'false') {
         const el = document.getElementById('setting-sounds');
         if (el) el.checked = false;
@@ -434,10 +513,8 @@ window.addEventListener('load', async () => {
         document.body.classList.add('dark-mode');
     }
 
-    // ۵. فعال‌سازی swipe
     initNotificationSwipe();
 
-    // ۶. تصمیم‌گیری درباره صفحه اولیه
     const cameFromClips = sessionStorage.getItem('cameFromClips') === 'true';
     const isRegistered = localStorage.getItem('userRegistered') === 'true';
 
@@ -465,12 +542,14 @@ window.addEventListener('load', async () => {
                     checkTeacherMessagesBadge();
                 }
                 
-                // 🆕 شروع Realtime (فقط اگه هنوز شروع نشده)
                 if (typeof startRealtimeSubscriptions === 'function' && 
                     typeof isRealtimeStarted !== 'undefined' && 
                     !isRealtimeStarted) {
                     setTimeout(() => startRealtimeSubscriptions(), 1000);
                 }
+                
+                // 🆕 چک کردن مودال بروزرسانی
+                checkAndShowUpdateModal();
                 
                 setTimeout(() => showStreakMessage(), 800);
             }, 300);
@@ -482,12 +561,10 @@ window.addEventListener('load', async () => {
         setTimeout(typeMotivation, 500);
     }
 
-    // ۷. همگام‌سازی خودکار
     if (isRegistered) {
         setTimeout(() => autoSyncRanking('ورود به برنامه'), 1500);
     }
 
-    // ۸. بارگذاری مسابقات و کتابخانه
     setTimeout(() => {
         if (isRegistered) {
             loadHomeContests();
@@ -497,14 +574,13 @@ window.addEventListener('load', async () => {
 });
 
 // ============================================================
-// همگام‌سازی خودکار وقتی کاربر برگشت به برنامه
+// همگام‌سازی خودکار
 // ============================================================
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         if (localStorage.getItem('userRegistered') === 'true') {
             autoSyncRanking('بازگشت به برنامه');
             
-            // 🆕 اگه Realtime قطع شده بود، دوباره وصل کن
             if (typeof startRealtimeSubscriptions === 'function' && 
                 typeof isRealtimeStarted !== 'undefined' && 
                 !isRealtimeStarted) {
