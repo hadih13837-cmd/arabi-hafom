@@ -1,6 +1,6 @@
 // ============================================================
 // navigation.js — ناوبری، منو، مودال‌ها، راهنما، تم
-// نسخه: ۴.۰.۰ — با پشتیبانی از صفحه پیام‌های معلم و auto-refresh رتبه‌بندی
+// نسخه: ۵.۰.۰ — با پیام‌رسان دانش‌آموز
 // ============================================================
 
 // ============================================================
@@ -53,12 +53,12 @@ function goToScreen(screenId, addToHistory = true) {
     if (targetScreen) targetScreen.classList.add('active');
     document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
     
-    // 🆕 اگه از صفحه رتبه‌بندی خارج شدیم، auto-refresh رو متوقف کن
+    // توقف auto-refresh رتبه‌بندی
     if (screenId !== 'screen-rankings' && typeof stopAutoRefresh === 'function') {
         stopAutoRefresh();
     }
     
-    // 🆕 اگه کاربر برگشت به صفحه رتبه‌بندی، auto-refresh رو دوباره شروع کن
+    // شروع auto-refresh رتبه‌بندی
     if (screenId === 'screen-rankings' && typeof startAutoRefresh === 'function') {
         setTimeout(() => {
             const activeScreen = document.querySelector('.screen.active');
@@ -68,7 +68,12 @@ function goToScreen(screenId, addToHistory = true) {
         }, 500);
     }
     
-    // ترتیب نوار پایین: مدال‌ها → رتبه‌بندی → خانه (وسط) → تنظیمات → پروفایل
+    // توقف polling چت
+    if (screenId !== 'screen-teacher-messages' && typeof stopStudentChatPolling === 'function') {
+        stopStudentChatPolling();
+    }
+    
+    // ترتیب نوار پایین
     document.querySelectorAll('.bottom-nav').forEach(nav => {
         const items = nav.querySelectorAll('.bottom-nav-item');
         if (screenId === 'screen-medals' && items[0]) items[0].classList.add('active');
@@ -96,8 +101,8 @@ function goToScreen(screenId, addToHistory = true) {
     if (screenId === 'screen-notifications') loadNotifications();
     if (screenId === 'screen-rankings') loadRankingsPage();
     if (screenId === 'screen-teacher-messages') {
-        loadTeacherMessagesPage();
-        // 🆕 مخفی کردن FAB وقتی کاربر توی صفحه پیام‌هاست
+        loadStudentMessages();
+        // مخفی کردن FAB
         const fab = document.getElementById('home-messages-fab');
         if (fab) fab.style.display = 'none';
     }
@@ -121,7 +126,7 @@ function goToScreen(screenId, addToHistory = true) {
         checkVideoNotification();
         displayStreak();
         
-        // 🆕 چک کردن پیام‌های معلم
+        // چک کردن پیام‌های معلم
         setTimeout(() => {
             if (typeof checkTeacherMessagesBadge === 'function') {
                 checkTeacherMessagesBadge();
