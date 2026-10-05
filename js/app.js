@@ -1,6 +1,6 @@
 // ============================================================
-// app.js — نقطه شروع برنامه (باید آخرین فایل لود بشه)
-// نسخه: ۴.۰.۰ — با Badge polling و auto-sync
+// app.js — نقطه شروع برنامه
+// نسخه: ۵.۰.۰ — با Supabase
 // ============================================================
 
 // ============================================================
@@ -9,13 +9,13 @@
 let isPublished = true;
 
 // ============================================================
-// 🆕 تابع مرکزی برای همگام‌سازی خودکار
+// همگام‌سازی خودکار
 // ============================================================
 function autoSyncRanking(reason = 'unknown') {
     if (localStorage.getItem('userRegistered') !== 'true') return;
     if (typeof saveRankingToSupabase !== 'function') return;
     
-    console.log(`🔄 همگام‌سازی خودکار (دلیل: ${reason})`);
+    console.log(`🔄 همگام‌سازی (${reason})`);
     
     setTimeout(async () => {
         try {
@@ -28,13 +28,13 @@ function autoSyncRanking(reason = 'unknown') {
 }
 
 // ============================================================
-// بررسی حالت بروزرسانی و وضعیت انتشار
+// بررسی حالت بروزرسانی
 // ============================================================
 async function checkMaintenanceMode() {
     const urlParams = new URLSearchParams(window.location.search);
     const isAdmin = urlParams.get('admin') === ADMIN_CODE;
     
-    if (isAdmin) console.log('👑 حالت ادمین فعال - ورود به برنامه');
+    if (isAdmin) console.log('👑 حالت ادمین فعال');
     
     try {
         const response = await fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' });
@@ -53,7 +53,7 @@ async function checkMaintenanceMode() {
 }
 
 // ============================================================
-// شروع برنامه (StartApp)
+// شروع برنامه
 // ============================================================
 async function startApp() {
     const isRegistered = localStorage.getItem('userRegistered') === 'true';
@@ -71,9 +71,9 @@ async function startApp() {
                 checkTeacherMessagesBadge();
             }
             
-            // 🆕 شروع Badge polling
-            if (typeof startBadgePolling === 'function') {
-                startBadgePolling();
+            // 🆕 شروع Realtime (اگه هنوز شروع نشده)
+            if (typeof startRealtimeSubscriptions === 'function') {
+                startRealtimeSubscriptions();
             }
             
             if (localStorage.getItem('guideCompleted') !== 'true') {
@@ -89,7 +89,7 @@ async function startApp() {
 }
 
 // ============================================================
-// 🆕 ساخت UUID برای کاربر
+// ساخت UUID
 // ============================================================
 function generateUUID() {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -103,7 +103,7 @@ function generateUUID() {
 }
 
 // ============================================================
-// PWA — نصب اپلیکیشن + آپدیت خودکار
+// PWA — Service Worker + آپدیت
 // ============================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -113,7 +113,7 @@ if ('serviceWorker' in navigator) {
 
             setInterval(() => {
                 registration.update();
-            }, 30000);
+            }, 60000);
 
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
@@ -121,7 +121,7 @@ if ('serviceWorker' in navigator) {
 
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        console.log('✅ نسخه‌ی جدید آماده - در حال بارگذاری...');
+                        console.log('✅ نسخه‌ی جدید آماده');
                         newWorker.postMessage({ type: 'SKIP_WAITING' });
                         showUpdateNotification();
                     }
@@ -132,18 +132,17 @@ if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
                     refreshing = true;
-                    console.log('🔄 بارگذاری مجدد برای اعمال تغییرات...');
+                    console.log('🔄 بارگذاری مجدد...');
                     window.location.reload();
                 }
             });
 
         } catch (e) {
-            console.log('⚠️ خطا در ثبت Service Worker:', e);
+            console.log('⚠️ خطا در Service Worker:', e);
         }
     });
 }
 
-// 🆕 نمایش پیام «نسخه‌ی جدید در حال بارگذاری»
 function showUpdateNotification() {
     const notif = document.createElement('div');
     notif.style.cssText = `
@@ -160,7 +159,6 @@ function showUpdateNotification() {
         font-weight: 900;
         z-index: 999999;
         box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
-        animation: slideDownUpdate 0.5s ease;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -231,7 +229,7 @@ window.addEventListener('appinstalled', () => {
 });
 
 // ============================================================
-// 🆕 بارگذاری مسابقات فعال در صفحه خانه
+// بارگذاری مسابقات در صفحه خانه
 // ============================================================
 async function loadHomeContests() {
     const section = document.getElementById('home-contests-section');
@@ -240,20 +238,17 @@ async function loadHomeContests() {
     if (!section || !list) return;
     
     try {
-        if (typeof TEACHER_API_URL === 'undefined') return;
+        if (typeof getContestsFromSupabase !== 'function') return;
         
-        const response = await fetch(TEACHER_API_URL + '?action=getContests&t=' + Date.now(), {
-            cache: 'no-store'
-        });
-        const result = await response.json();
+        const contests = await getContestsFromSupabase();
         
-        if (!result.success || !result.data || result.data.length === 0) {
+        if (!contests || contests.length === 0) {
             section.style.display = 'none';
             return;
         }
         
         const today = getPersianDate();
-        const activeContests = result.data.filter(c => {
+        const activeContests = contests.filter(c => {
             const endNum = persianDateToNumber(c.end_date);
             const todayNum = persianDateToNumber(today);
             return endNum >= todayNum;
@@ -283,7 +278,7 @@ async function loadHomeContests() {
 }
 
 // ============================================================
-// 🆕 بارگذاری کتابخانه در صفحه خانه
+// بارگذاری کتابخانه در صفحه خانه
 // ============================================================
 async function loadHomeLibrary() {
     const section = document.getElementById('home-library-section');
@@ -292,21 +287,18 @@ async function loadHomeLibrary() {
     if (!section || !list) return;
     
     try {
-        if (typeof TEACHER_API_URL === 'undefined') return;
+        if (typeof getLibraryFromSupabase !== 'function') return;
         
-        const response = await fetch(TEACHER_API_URL + '?action=getLibrary&t=' + Date.now(), {
-            cache: 'no-store'
-        });
-        const result = await response.json();
+        const items = await getLibraryFromSupabase();
         
-        if (!result.success || !result.data || result.data.length === 0) {
+        if (!items || items.length === 0) {
             section.style.display = 'none';
             return;
         }
         
         const typeIcons = { video: '🎬', pdf: '📄', audio: '🎵', site: '🌐', book: '📚' };
         
-        list.innerHTML = result.data.slice(0, 4).map(item => `
+        list.innerHTML = items.slice(0, 4).map(item => `
             <a href="${item.url}" target="_blank" class="home-library-item">
                 <div class="home-library-icon">${typeIcons[item.type] || '📄'}</div>
                 <div class="home-library-info">
@@ -324,7 +316,7 @@ async function loadHomeLibrary() {
 }
 
 // ============================================================
-// 🆕 چک کردن پیام جدید از معلم
+// چک پیام جدید از معلم
 // ============================================================
 async function checkTeacherMessages() {
     try {
@@ -332,24 +324,14 @@ async function checkTeacherMessages() {
         const studentId = localStorage.getItem('studentUUID');
         const classSlug = typeof classNameToSlug === 'function' ? classNameToSlug(userClass) : userClass;
         
-        if (typeof TEACHER_API_URL === 'undefined') return;
+        if (typeof getPersonalMessages !== 'function') return;
         
-        const response = await fetch(TEACHER_API_URL + '?action=getMessages&t=' + Date.now(), {
-            cache: 'no-store'
-        });
-        const result = await response.json();
+        const messages = await getPersonalMessages(studentId);
         
-        if (!result.success || !result.data) return;
-        
-        const myMessages = result.data.filter(msg => {
-            if (msg.target_type === 'all') return true;
-            if (msg.target_type === 'class' && msg.target_value === classSlug) return true;
-            if (msg.target_type === 'student' && msg.target_value === studentId) return true;
-            return false;
-        });
+        if (!messages || messages.length === 0) return;
         
         const seenMessages = JSON.parse(localStorage.getItem('seenTeacherMessages') || '[]');
-        const newMessages = myMessages.filter(m => !seenMessages.includes(m.message_id));
+        const newMessages = messages.filter(m => m.sender === 'teacher' && !seenMessages.includes(m.message_id));
         
         if (newMessages.length > 0) {
             console.log('📬 پیام جدید از معلم:', newMessages.length);
@@ -360,7 +342,7 @@ async function checkTeacherMessages() {
             showTeacherMessageNotification(newMessages[0]);
         }
         
-        const allIds = myMessages.map(m => m.message_id);
+        const allIds = messages.map(m => m.message_id);
         localStorage.setItem('seenTeacherMessages', JSON.stringify(allIds));
         
     } catch (error) {
@@ -369,7 +351,7 @@ async function checkTeacherMessages() {
 }
 
 // ============================================================
-// 🆕 نمایش اعلان پیام معلم
+// نمایش اعلان پیام معلم
 // ============================================================
 function showTeacherMessageNotification(message) {
     const dismissed = JSON.parse(localStorage.getItem('dismissedTeacherMessages') || '[]');
@@ -382,7 +364,7 @@ function showTeacherMessageNotification(message) {
         <div class="notification-icon">👨‍🏫</div>
         <div class="notification-text">
             <div class="notification-title">پیام از معلم</div>
-            <div class="notification-sub">${message.title}</div>
+            <div class="notification-sub">${message.text ? message.text.substring(0, 40) : 'پیام جدید'}</div>
         </div>
         <button class="notification-btn" onclick="goToTeacherMessage()">مشاهده</button>
     `;
@@ -413,7 +395,7 @@ function goToTeacherMessage() {
 }
 
 // ============================================================
-// بارگذاری اولیه (Window Load)
+// بارگذاری اولیه
 // ============================================================
 window.addEventListener('load', async () => {
     // ۱. بررسی حالت بروزرسانی
@@ -435,16 +417,14 @@ window.addEventListener('load', async () => {
         console.log('✅ UUID ساخته شد:', newUUID);
     }
 
-    // ۴. همگام‌سازی خودکار بعد از ورود به برنامه
-    if (localStorage.getItem('userRegistered') === 'true') {
-        autoSyncRanking('ورود به برنامه');
-    }
-
+    // ۴. تنظیمات ظاهری
     if (localStorage.getItem('soundsEnabled') === 'false') {
-        document.getElementById('setting-sounds').checked = false;
+        const el = document.getElementById('setting-sounds');
+        if (el) el.checked = false;
     }
     if (localStorage.getItem('musicEnabled') === 'false') {
-        document.getElementById('setting-music').checked = false;
+        const el = document.getElementById('setting-music');
+        if (el) el.checked = false;
     }
     if (localStorage.getItem('darkMode') === 'true') {
         const settingEl = document.getElementById('setting-dark-mode');
@@ -452,7 +432,7 @@ window.addEventListener('load', async () => {
         document.body.classList.add('dark-mode');
     }
 
-    // ۵. فعال‌سازی swipe روی اعلان‌ها
+    // ۵. فعال‌سازی swipe
     initNotificationSwipe();
 
     // ۶. تصمیم‌گیری درباره صفحه اولیه
@@ -483,9 +463,9 @@ window.addEventListener('load', async () => {
                     checkTeacherMessagesBadge();
                 }
                 
-                // 🆕 شروع Badge polling
-                if (typeof startBadgePolling === 'function') {
-                    startBadgePolling();
+                // 🆕 شروع Realtime
+                if (typeof startRealtimeSubscriptions === 'function') {
+                    startRealtimeSubscriptions();
                 }
                 
                 setTimeout(() => showStreakMessage(), 800);
@@ -498,19 +478,14 @@ window.addEventListener('load', async () => {
         setTimeout(typeMotivation, 500);
     }
 
-    // ۷. 🆕 شروع Badge polling (برای کاربران ثبت‌نام‌شده)
+    // ۷. همگام‌سازی خودکار
     if (isRegistered) {
-        setTimeout(() => {
-            if (typeof startBadgePolling === 'function') {
-                startBadgePolling();
-                console.log('✅ Badge polling شروع شد');
-            }
-        }, 2000);
+        setTimeout(() => autoSyncRanking('ورود به برنامه'), 1500);
     }
 
     // ۸. بارگذاری مسابقات و کتابخانه
     setTimeout(() => {
-        if (localStorage.getItem('userRegistered') === 'true') {
+        if (isRegistered) {
             loadHomeContests();
             loadHomeLibrary();
         }
@@ -518,16 +493,16 @@ window.addEventListener('load', async () => {
 });
 
 // ============================================================
-// 🆕 همگام‌سازی خودکار وقتی کاربر برگشت به برنامه
+// همگام‌سازی خودکار وقتی کاربر برگشت به برنامه
 // ============================================================
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         if (localStorage.getItem('userRegistered') === 'true') {
             autoSyncRanking('بازگشت به برنامه');
             
-            // 🆕 یک بار Badge رو آپدیت کن
-            if (typeof fetchAndUpdateBadge === 'function') {
-                fetchAndUpdateBadge();
+            // 🆕 اگه Realtime قطع شده بود، دوباره وصل کن
+            if (typeof startRealtimeSubscriptions === 'function') {
+                startRealtimeSubscriptions();
             }
         }
     }

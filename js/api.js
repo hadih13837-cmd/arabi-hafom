@@ -1,105 +1,28 @@
 // ============================================================
-// api.js — اتصال به Google Sheets API
-// نسخه: ۵.۰.۰ — URL جدید
+// api.js — API با Supabase
+// نسخه: ۶.۰.۰ — Real-time + سرعت بالا
 // ============================================================
 
 // ============================================================
-// آدرس API — 🆕 آپدیت شده
+// 🔄 سازگاری با کد قدیمی (که TEACHER_API_URL رو صدا می‌زنه)
 // ============================================================
-const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbzwzU7HKqlWOSyG2gN750kFSi-qQLoqzwDRYMnEKqpmTgCMPlRyQZcQrcoZlI4MIR3o/exec';
-
-// برای سازگاری با کد قدیمی
-const API_URL = TEACHER_API_URL;
-
-// ============================================================
-// تبدیل نام کلاس فارسی به slug انگلیسی
-// ============================================================
-function classNameToSlug(className) {
-    const map = {
-        'هفتم یک': 'hafom-1',
-        'هفتم دو': 'hafom-2',
-        'هفتم سه': 'hafom-3',
-        'هفتم چهار': 'hafom-4',
-        'هفتم پنج': 'hafom-5'
-    };
-    return map[className] || 'unknown';
-}
-
-// ============================================================
-// تبدیل slug انگلیسی به نام کلاس فارسی
-// ============================================================
-function slugToClassName(slug) {
-    const map = {
-        'hafom-1': 'هفتم یک',
-        'hafom-2': 'هفتم دو',
-        'hafom-3': 'هفتم سه',
-        'hafom-4': 'هفتم چهار',
-        'hafom-5': 'هفتم پنج'
-    };
-    return map[slug] || slug;
-}
-
-// ============================================================
-// درخواست POST به API
-// ============================================================
-async function apiPost(data) {
-    try {
-        console.log('📤 POST:', data.action || 'saveRanking');
-        
-        const response = await fetch(TEACHER_API_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8'
-            },
-            body: JSON.stringify(data)
-        });
-        
-        console.log('✅ POST ارسال شد');
-        return { success: true };
-    } catch (error) {
-        console.error('❌ خطا در POST:', error);
-        throw error;
-    }
-}
-
-// ============================================================
-// درخواست GET از API
-// ============================================================
-async function apiGet(params = {}) {
-    try {
-        const queryString = new URLSearchParams(params).toString();
-        const url = queryString ? `${TEACHER_API_URL}?${queryString}` : TEACHER_API_URL;
-        
-        console.log('📥 GET:', params.action || 'default');
-        
-        const response = await fetch(url + '&t=' + Date.now(), {
-            method: 'GET',
-            mode: 'cors',
-            cache: 'no-store'
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('❌ خطا در GET:', error);
-        throw error;
-    }
-}
+const TEACHER_API_URL = SUPABASE_URL;
+const API_URL = SUPABASE_URL;
 
 // ============================================================
 // ذخیره/آپدیت امتیاز کاربر
 // ============================================================
 async function saveRankingToSupabase() {
     try {
-        // اگه studentUUID نداره، خودش بساز
+        const client = getSupabase();
+        if (!client) {
+            console.warn('⚠️ Supabase Client موجود نیست');
+            return false;
+        }
+        
+        // اگه studentUUID نداره، بساز
         let studentId = localStorage.getItem('studentUUID');
         if (!studentId) {
-            console.log('🆕 studentUUID نداشت - در حال ساخت...');
             studentId = (typeof crypto !== 'undefined' && crypto.randomUUID) 
                 ? crypto.randomUUID() 
                 : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -108,7 +31,6 @@ async function saveRankingToSupabase() {
                     return v.toString(16);
                 });
             localStorage.setItem('studentUUID', studentId);
-            console.log('✅ UUID ساخته شد:', studentId);
         }
         
         const userName = localStorage.getItem('userName');
@@ -129,14 +51,12 @@ async function saveRankingToSupabase() {
             : 0;
         const streakDays = streakData.count || 0;
         
-        // گرفتن آواتار
         let avatarUrl = 'default';
         if (typeof getAvatarForRanking === 'function') {
             avatarUrl = getAvatarForRanking();
         }
         
         const payload = {
-            action: 'saveRanking',
             student_id: studentId,
             name: userName,
             class_name: classNameToSlug(userClass),
@@ -148,61 +68,84 @@ async function saveRankingToSupabase() {
             last_update: new Date().toISOString()
         };
         
-        console.log('📤 ارسال به Google Sheets:', payload);
+        // 🆕 UPSERT: اگه رکورد هست، آپدیت کن؛ اگه نه، درج کن
+        const { data, error } = await client
+            .from('rankings')
+            .upsert(payload, { 
+                onConflict: 'student_id',
+                ignoreDuplicates: false 
+            })
+            .select();
         
-        await apiPost(payload);
+        if (error) {
+            console.error('❌ خطا در ذخیره امتیاز:', error.message);
+            return false;
+        }
         
-        console.log('✅ اطلاعات ارسال شد');
+        console.log('✅ امتیاز ذخیره شد:', totalPoints);
         return true;
+        
     } catch (error) {
-        console.error('❌ خطا در ثبت امتیاز:', error);
+        console.error('❌ خطا:', error);
         return false;
     }
 }
 
 // ============================================================
-// گرفتن رتبه‌بندی یه کلاس خاص
+// گرفتن رتبه‌بندی یک کلاس
 // ============================================================
 async function getRankingsByClass(className) {
     try {
+        const client = getSupabase();
+        if (!client) return [];
+        
         const classSlug = classNameToSlug(className);
-        console.log('🔍 گرفتن رتبه‌بندی برای کلاس:', className, '→', classSlug);
+        console.log('🔍 گرفتن رتبه‌بندی کلاس:', classSlug);
         
-        const result = await apiGet({ 
-            action: 'getRankings',
-            class_name: classSlug,
-            t: Date.now()
-        });
+        const { data, error } = await client
+            .from('rankings')
+            .select('*')
+            .eq('class_name', classSlug)
+            .order('total_points', { ascending: false })
+            .order('avg_percent', { ascending: false })
+            .order('completed_lessons', { ascending: false });
         
-        if (result && result.success && result.data) {
-            console.log('✅ دریافت شد:', result.data.length, 'نفر');
-            return result.data;
+        if (error) {
+            console.error('❌ خطا در گرفتن رتبه‌بندی:', error.message);
+            return [];
         }
         
-        return [];
+        console.log('✅ دریافت شد:', data.length, 'نفر');
+        return data || [];
+        
     } catch (error) {
-        console.error('❌ خطا در گرفتن رتبه‌بندی:', error);
+        console.error('❌ خطا:', error);
         return [];
     }
 }
 
 // ============================================================
-// گرفتن همه دانش‌آموزان (برای پنل معلم)
+// گرفتن همه دانش‌آموزان (پنل معلم)
 // ============================================================
 async function getAllStudents() {
     try {
-        const result = await apiGet({ 
-            action: 'getAllStudents',
-            t: Date.now()
-        });
+        const client = getSupabase();
+        if (!client) return [];
         
-        if (result && result.success && result.data) {
-            return result.data;
+        const { data, error } = await client
+            .from('rankings')
+            .select('*')
+            .order('total_points', { ascending: false });
+        
+        if (error) {
+            console.error('❌ خطا در گرفتن دانش‌آموزان:', error.message);
+            return [];
         }
         
-        return [];
+        return data || [];
+        
     } catch (error) {
-        console.error('❌ خطا در گرفتن دانش‌آموزان:', error);
+        console.error('❌ خطا:', error);
         return [];
     }
 }
@@ -232,103 +175,574 @@ async function getMyRank() {
 }
 
 // ============================================================
-// گرفتن پیام‌های معلم
+// پیام‌های کلاسی
 // ============================================================
-async function getTeacherMessages() {
+
+// ارسال پیام کلاسی (معلم)
+async function sendClassMessageToSupabase(data) {
     try {
-        const result = await apiGet({ 
-            action: 'getMessages',
-            t: Date.now()
-        });
+        const client = getSupabase();
+        if (!client) return { success: false };
         
-        if (result && result.success && result.data) {
-            return result.data;
+        const payload = {
+            message_id: data.message_id || 'cls_' + Date.now(),
+            class_name: data.class_name || 'all',
+            title: data.title || '',
+            text: data.text || '',
+            type: data.type || 'info',
+            date: data.date || new Date().toISOString(),
+            date_persian: data.date_persian || ''
+        };
+        
+        const { data: result, error } = await client
+            .from('class_messages')
+            .insert(payload)
+            .select();
+        
+        if (error) {
+            console.error('❌ خطا در ارسال پیام کلاسی:', error.message);
+            return { success: false, error: error.message };
         }
         
-        return [];
+        console.log('✅ پیام کلاسی ارسال شد');
+        return { success: true, data: result };
+        
     } catch (error) {
-        console.error('❌ خطا در گرفتن پیام‌ها:', error);
+        console.error('❌ خطا:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// گرفتن پیام‌های کلاسی
+async function getClassMessagesFromSupabase(className) {
+    try {
+        const client = getSupabase();
+        if (!client) return [];
+        
+        const classSlug = classNameToSlug(className);
+        
+        let query = client
+            .from('class_messages')
+            .select('*')
+            .order('date', { ascending: false });
+        
+        if (classSlug && classSlug !== 'all' && classSlug !== 'unknown') {
+            query = query.or(`class_name.eq.${classSlug},class_name.eq.all`);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+            console.error('❌ خطا:', error.message);
+            return [];
+        }
+        
+        return data || [];
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
         return [];
     }
 }
 
 // ============================================================
-// گرفتن رویدادها
+// پیام‌های شخصی (چت)
 // ============================================================
-async function getEvents() {
+
+// ارسال پیام شخصی
+async function sendPersonalMessageToSupabase(data) {
     try {
-        const result = await apiGet({ 
-            action: 'getEvents',
-            t: Date.now()
-        });
+        const client = getSupabase();
+        if (!client) return { success: false };
         
-        if (result && result.success && result.data) {
-            return result.data;
+        const payload = {
+            message_id: data.message_id || 'pm_' + Date.now(),
+            student_id: data.student_id,
+            student_name: data.student_name || '',
+            class_name: data.class_name || '',
+            sender: data.sender || 'student',
+            text: data.text || '',
+            date: data.date || new Date().toISOString(),
+            date_persian: data.date_persian || '',
+            is_seen: data.is_seen === true || data.is_seen === 'true'
+        };
+        
+        const { data: result, error } = await client
+            .from('personal_messages')
+            .insert(payload)
+            .select();
+        
+        if (error) {
+            console.error('❌ خطا در ارسال پیام:', error.message);
+            return { success: false, error: error.message };
         }
         
-        return [];
+        console.log('✅ پیام ارسال شد');
+        return { success: true, data: result };
+        
     } catch (error) {
-        console.error('❌ خطا در گرفتن رویدادها:', error);
+        console.error('❌ خطا:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// گرفتن پیام‌های شخصی یک دانش‌آموز
+async function getPersonalMessages(studentId) {
+    try {
+        const client = getSupabase();
+        if (!client) return [];
+        
+        const { data, error } = await client
+            .from('personal_messages')
+            .select('*')
+            .eq('student_id', studentId)
+            .order('date', { ascending: true });
+        
+        if (error) {
+            console.error('❌ خطا:', error.message);
+            return [];
+        }
+        
+        return data || [];
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return [];
+    }
+}
+
+// گرفتن لیست مکالمات (برای معلم)
+async function getStudentConversationsFromSupabase() {
+    try {
+        const client = getSupabase();
+        if (!client) return [];
+        
+        const { data, error } = await client
+            .from('personal_messages')
+            .select('*')
+            .order('date', { ascending: true });
+        
+        if (error) {
+            console.error('❌ خطا:', error.message);
+            return [];
+        }
+        
+        // گروه‌بندی بر اساس student_id
+        const conversationsMap = {};
+        
+        (data || []).forEach(msg => {
+            const studentId = msg.student_id;
+            if (!studentId) return;
+            
+            if (!conversationsMap[studentId]) {
+                conversationsMap[studentId] = {
+                    student_id: studentId,
+                    student_name: msg.student_name || '',
+                    class_name: msg.class_name || '',
+                    last_message: msg.text || '',
+                    last_sender: msg.sender || '',
+                    last_date: msg.date || '',
+                    last_date_persian: msg.date_persian || '',
+                    last_message_time: msg.date,
+                    unread_count: 0,
+                    avatar_url: '',
+                    messages: []
+                };
+            }
+            
+            conversationsMap[studentId].messages.push(msg);
+            
+            // آپدیت آخرین پیام
+            if (new Date(msg.date) > new Date(conversationsMap[studentId].last_date || 0)) {
+                conversationsMap[studentId].last_message = msg.text || '';
+                conversationsMap[studentId].last_sender = msg.sender || '';
+                conversationsMap[studentId].last_date = msg.date || '';
+                conversationsMap[studentId].last_date_persian = msg.date_persian || '';
+                conversationsMap[studentId].last_message_time = msg.date;
+            }
+            
+            // محاسبه unread
+            if (msg.sender === 'student' && !msg.is_seen) {
+                conversationsMap[studentId].unread_count++;
+            }
+        });
+        
+        // اضافه کردن آواتار از rankings
+        try {
+            const studentIds = Object.keys(conversationsMap);
+            if (studentIds.length > 0) {
+                const { data: rankings } = await client
+                    .from('rankings')
+                    .select('student_id, avatar_url')
+                    .in('student_id', studentIds);
+                
+                (rankings || []).forEach(r => {
+                    if (conversationsMap[r.student_id]) {
+                        conversationsMap[r.student_id].avatar_url = r.avatar_url || '';
+                    }
+                });
+            }
+        } catch (e) {}
+        
+        const conversations = Object.values(conversationsMap);
+        conversations.sort((a, b) => 
+            new Date(b.last_message_time || 0) - new Date(a.last_message_time || 0)
+        );
+        
+        return conversations;
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
         return [];
     }
 }
 
 // ============================================================
-// گرفتن مسابقات
+// علامت‌گذاری پیام‌ها به عنوان دیده‌شده
 // ============================================================
-async function getContests() {
+
+// علامت‌گذاری همه پیام‌های یک مکالمه
+async function markAllMessagesAsSeenSupabase(studentId, reader) {
     try {
-        const result = await apiGet({ 
-            action: 'getContests',
-            t: Date.now()
-        });
+        const client = getSupabase();
+        if (!client) return { success: false };
         
-        if (result && result.success && result.data) {
-            return result.data;
+        // reader = 'teacher' → پیام‌های student رو دیده‌شده کن
+        // reader = 'student' → پیام‌های teacher رو دیده‌شده کن
+        const senderToMark = reader === 'teacher' ? 'student' : 'teacher';
+        
+        const { error } = await client
+            .from('personal_messages')
+            .update({ is_seen: true })
+            .eq('student_id', studentId)
+            .eq('sender', senderToMark)
+            .eq('is_seen', false);
+        
+        if (error) {
+            console.error('❌ خطا در علامت‌گذاری:', error.message);
+            return { success: false, error: error.message };
         }
         
-        return [];
+        console.log('✅ پیام‌ها به عنوان دیده‌شده علامت‌گذاری شدند');
+        return { success: true };
+        
     } catch (error) {
-        console.error('❌ خطا در گرفتن مسابقات:', error);
+        console.error('❌ خطا:', error);
+        return { success: false };
+    }
+}
+
+// ============================================================
+// رویدادها
+// ============================================================
+
+async function addEventToSupabase(data) {
+    try {
+        const client = getSupabase();
+        if (!client) return { success: false };
+        
+        const payload = {
+            event_id: data.event_id || 'evt_' + Date.now(),
+            title: data.title || '',
+            date: data.date || '',
+            class_name: data.class_name || 'all',
+            type: data.type || 'event',
+            description: data.description || ''
+        };
+        
+        const { error } = await client
+            .from('events')
+            .insert(payload);
+        
+        if (error) {
+            console.error('❌ خطا:', error.message);
+            return { success: false, error: error.message };
+        }
+        
+        return { success: true };
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return { success: false };
+    }
+}
+
+async function getEventsFromSupabase() {
+    try {
+        const client = getSupabase();
+        if (!client) return [];
+        
+        const { data, error } = await client
+            .from('events')
+            .select('*')
+            .order('date', { ascending: false });
+        
+        if (error) return [];
+        return data || [];
+        
+    } catch (error) {
         return [];
     }
 }
 
 // ============================================================
-// گرفتن کتابخانه
+// مسابقات
 // ============================================================
-async function getLibrary() {
+
+async function addContestToSupabase(data) {
     try {
-        const result = await apiGet({ 
-            action: 'getLibrary',
-            t: Date.now()
-        });
+        const client = getSupabase();
+        if (!client) return { success: false };
         
-        if (result && result.success && result.data) {
-            return result.data;
+        const payload = {
+            contest_id: data.contest_id || 'cnt_' + Date.now(),
+            title: data.title || '',
+            prize: data.prize || '',
+            start_date: data.start_date || '',
+            end_date: data.end_date || '',
+            description: data.description || ''
+        };
+        
+        const { error } = await client
+            .from('contests')
+            .insert(payload);
+        
+        if (error) {
+            console.error('❌ خطا:', error.message);
+            return { success: false, error: error.message };
         }
         
-        return [];
+        return { success: true };
+        
     } catch (error) {
-        console.error('❌ خطا در گرفتن کتابخانه:', error);
+        console.error('❌ خطا:', error);
+        return { success: false };
+    }
+}
+
+async function getContestsFromSupabase() {
+    try {
+        const client = getSupabase();
+        if (!client) return [];
+        
+        const { data, error } = await client
+            .from('contests')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) return [];
+        return data || [];
+        
+    } catch (error) {
         return [];
     }
 }
 
 // ============================================================
-// تست اتصال به API
+// کتابخانه
 // ============================================================
-async function testSupabaseConnection() {
+
+async function addLibraryToSupabase(data) {
     try {
-        const result = await apiGet({ action: 'test', t: Date.now() });
-        if (result && result.success) {
-            console.log('✅ اتصال به Google Sheets موفق');
-            console.log('📊 شیت‌ها:', result.sheets);
-            return true;
+        const client = getSupabase();
+        if (!client) return { success: false };
+        
+        const payload = {
+            item_id: data.item_id || 'lib_' + Date.now(),
+            title: data.title || '',
+            type: data.type || 'video',
+            url: data.url || '',
+            description: data.description || ''
+        };
+        
+        const { error } = await client
+            .from('library')
+            .insert(payload);
+        
+        if (error) {
+            console.error('❌ خطا:', error.message);
+            return { success: false, error: error.message };
         }
-        return false;
+        
+        return { success: true };
+        
     } catch (error) {
-        console.error('❌ اتصال ناموفق:', error);
-        return false;
+        console.error('❌ خطا:', error);
+        return { success: false };
+    }
+}
+
+async function getLibraryFromSupabase() {
+    try {
+        const client = getSupabase();
+        if (!client) return [];
+        
+        const { data, error } = await client
+            .from('library')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) return [];
+        return data || [];
+        
+    } catch (error) {
+        return [];
+    }
+}
+
+// ============================================================
+// 🆕 Realtime — گوش دادن به تغییرات
+// ============================================================
+
+let realtimeChannel = null;
+
+// شروع گوش دادن به پیام‌های شخصی
+function subscribeToPersonalMessages(studentId, onNewMessage) {
+    try {
+        const client = getSupabase();
+        if (!client) return null;
+        
+        // اگه قبلاً subscribe شده، پاک کن
+        if (realtimeChannel) {
+            client.removeChannel(realtimeChannel);
+        }
+        
+        realtimeChannel = client
+            .channel('personal_messages_realtime_' + studentId)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'personal_messages',
+                    filter: `student_id=eq.${studentId}`
+                },
+                (payload) => {
+                    console.log('📨 تغییر در پیام‌های شخصی:', payload);
+                    if (typeof onNewMessage === 'function') {
+                        onNewMessage(payload);
+                    }
+                }
+            )
+            .subscribe((status) => {
+                console.log('📡 وضعیت Realtime:', status);
+            });
+        
+        return realtimeChannel;
+        
+    } catch (error) {
+        console.error('❌ خطا در Realtime:', error);
+        return null;
+    }
+}
+
+// شروع گوش دادن به پیام‌های کلاسی
+function subscribeToClassMessages(className, onNewMessage) {
+    try {
+        const client = getSupabase();
+        if (!client) return null;
+        
+        const classSlug = classNameToSlug(className);
+        
+        const channel = client
+            .channel('class_messages_realtime_' + classSlug)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'class_messages'
+                },
+                (payload) => {
+                    console.log('📢 پیام کلاسی جدید:', payload);
+                    if (typeof onNewMessage === 'function') {
+                        onNewMessage(payload);
+                    }
+                }
+            )
+            .subscribe();
+        
+        return channel;
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return null;
+    }
+}
+
+// شروع گوش دادن به لیست مکالمات (پنل معلم)
+function subscribeToConversations(onChange) {
+    try {
+        const client = getSupabase();
+        if (!client) return null;
+        
+        const channel = client
+            .channel('conversations_realtime')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'personal_messages'
+                },
+                (payload) => {
+                    console.log('💬 تغییر در مکالمات:', payload);
+                    if (typeof onChange === 'function') {
+                        onChange(payload);
+                    }
+                }
+            )
+            .subscribe();
+        
+        return channel;
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return null;
+    }
+}
+
+// قطع اتصال Realtime
+function unsubscribeAll() {
+    try {
+        const client = getSupabase();
+        if (!client) return;
+        
+        client.removeAllChannels();
+        realtimeChannel = null;
+        console.log('📴 همه اتصال‌های Realtime قطع شد');
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
+    }
+}
+
+// ============================================================
+// تست اتصال
+// ============================================================
+async function testConnection() {
+    try {
+        const client = getSupabase();
+        if (!client) {
+            return { success: false, error: 'Client not initialized' };
+        }
+        
+        const { data, error } = await client
+            .from('rankings')
+            .select('count')
+            .limit(1);
+        
+        if (error) {
+            return { success: false, error: error.message };
+        }
+        
+        return { 
+            success: true, 
+            message: 'Supabase connection working',
+            timestamp: new Date().toISOString()
+        };
+        
+    } catch (error) {
+        return { success: false, error: error.message };
     }
 }
