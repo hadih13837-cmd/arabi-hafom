@@ -5167,3 +5167,517 @@ body.dark-mode .teacher-message-notification {
     object-fit: cover;
     border-radius: 50%;
 }
+/* ============================================================
+   🆕 اصلاح نمایش آواتار (نسخه نهایی)
+   ============================================================ */
+
+/* عکس آواتار در خانه */
+#home-avatar-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+    display: block !important;
+}
+
+/* عکس آواتار در پروفایل */
+#profile-avatar-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+    display: block !important;
+}
+
+/* عکس آواتار در رتبه‌بندی (لیست ردیفی) */
+.lb-row-avatar img.lb-avatar-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+    display: block !important;
+}
+
+/* عکس آواتار در سکوی قهرمانی */
+.lb-person-avatar img.lb-avatar-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+    display: block !important;
+}
+
+/* عکس آواتار در مودال پروفایل */
+.pc-modal-avatar-wrapper img.lb-avatar-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+    display: block !important;
+}
+
+/* ایموجی در خانه */
+.home-welcome-avatar.emoji-mode {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.home-welcome-avatar.emoji-mode img {
+    display: none !important;
+}
+.home-welcome-avatar.emoji-mode .emoji-avatar {
+    font-size: 62px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+/* ایموجی در پروفایل */
+.profile-avatar.emoji-mode {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.profile-avatar.emoji-mode img {
+    display: none !important;
+}
+.profile-avatar.emoji-mode .emoji-avatar {
+    font-size: 110px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.2));
+}
+
+/* ایموجی در رتبه‌بندی (لیست ردیفی) */
+.lb-row-avatar.lb-avatar-emoji-mode {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.lb-row-avatar.lb-avatar-emoji-mode .lb-avatar-emoji {
+    font-size: 32px;
+    line-height: 1;
+}
+
+/* ایموجی در سکوی قهرمانی */
+.lb-person-avatar.lb-avatar-emoji-mode {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.lb-person-avatar.lb-avatar-emoji-mode .lb-avatar-emoji {
+    font-size: 34px;
+    line-height: 1;
+}
+.lb-person-1 .lb-person-avatar.lb-avatar-emoji-mode .lb-avatar-emoji {
+    font-size: 46px;
+}
+
+/* ایموجی در مودال پروفایل */
+.pc-modal-avatar-wrapper.lb-avatar-emoji-mode {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.pc-modal-avatar-wrapper.lb-avatar-emoji-mode .lb-avatar-emoji {
+    font-size: 100px;
+    line-height: 1;
+    filter: drop-shadow(0 6px 15px rgba(0,0,0,0.2));
+}
+
+/* ============================================================
+   🆕 اصلاح لیست رتبه‌بندی (ترتیب: رتبه | اطلاعات | امتیاز | آواتار)
+   ============================================================ */
+
+.lb-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1.5px solid #e3f2fd;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.05);
+    cursor: pointer;
+    direction: rtl;
+}
+
+.lb-row-rank { order: 1; flex-shrink: 0; }
+.lb-row-info {
+    order: 2;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: right;
+}
+.lb-row-points { order: 3; flex-shrink: 0; }
+.lb-row-avatar { order: 4; flex-shrink: 0; }
+
+.lb-row-name {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    width: 100%;
+    text-align: right;
+}
+
+.lb-row-class {
+    font-size: 11px;
+    font-weight: bold;
+    color: #90a4ae;
+    text-align: right;
+    width: 100%;
+}
+
+/* ============================================================
+   🆕 استایل آیکون شناور پیام‌های معلم
+   ============================================================ */
+
+.home-messages-fab {
+    position: absolute;
+    bottom: 100px;
+    left: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(245, 124, 0, 0.5);
+    z-index: 500;
+    animation: fabPulse 2s ease-in-out infinite;
+    transition: transform 0.2s ease;
+}
+
+.home-messages-fab:active { transform: scale(0.9); }
+
+.home-messages-fab svg {
+    width: 28px;
+    height: 28px;
+    stroke: #fff;
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.home-messages-fab-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f44336, #c62828);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    border: 2px solid #fff;
+    box-shadow: 0 3px 8px rgba(244, 67, 54, 0.5);
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+@keyframes fabPulse {
+    0%, 100% { box-shadow: 0 8px 25px rgba(245, 124, 0, 0.5); }
+    50% { box-shadow: 0 8px 35px rgba(245, 124, 0, 0.8); }
+}
+
+/* ============================================================
+   🆕 استایل صفحه پیام‌های معلم
+   ============================================================ */
+
+#screen-teacher-messages {
+    background: #f0f7ff;
+    display: none;
+    flex-direction: column;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+#screen-teacher-messages.active { display: flex !important; }
+
+.teacher-messages-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 15px;
+    box-sizing: border-box;
+    min-height: 0;
+}
+
+.teacher-message-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 2px solid #e3f2fd;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.teacher-message-card.unread {
+    border-color: #ffc107;
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.3);
+}
+
+.teacher-message-card.unread::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #f44336;
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+.teacher-message-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(180deg, #ff9800, #f57c00);
+}
+
+.teacher-message-card.unread::after {
+    background: linear-gradient(180deg, #f44336, #c62828);
+}
+
+.teacher-message-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed #e3f2fd;
+}
+
+.teacher-message-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(255, 193, 7, 0.3);
+}
+
+.teacher-message-info { flex: 1; min-width: 0; text-align: right; }
+
+.teacher-message-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: #e65100;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.teacher-message-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #90a4ae;
+    flex-wrap: wrap;
+}
+
+.teacher-message-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.teacher-message-badge.info { background: #e3f2fd; color: #0d47a1; }
+.teacher-message-badge.warning { background: #fff3e0; color: #e65100; }
+.teacher-message-badge.success { background: #e8f5e9; color: #1b5e20; }
+.teacher-message-badge.reminder { background: #f3e5f5; color: #6a1b9a; }
+
+.teacher-message-text {
+    font-size: 14px;
+    color: #455a64;
+    font-weight: bold;
+    line-height: 1.9;
+    text-align: right;
+    white-space: pre-wrap;
+}
+
+.teacher-message-target {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 12px;
+    padding: 6px 12px;
+    background: #f0f7ff;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #1976d2;
+}
+
+.teacher-messages-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.teacher-messages-empty-icon {
+    font-size: 90px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.teacher-messages-empty-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #78909c;
+    margin-bottom: 10px;
+}
+
+.teacher-messages-empty-text {
+    font-size: 14px;
+    color: #90a4ae;
+    font-weight: bold;
+    line-height: 1.7;
+    max-width: 280px;
+}
+
+/* ============================================================
+   🆕 اصلاح کلی همه صفحات
+   ============================================================ */
+.screen {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.screen.active {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.page-scroll-content,
+.lessons-scroll-content,
+.rankings-scroll-content,
+.calendar-scroll-content,
+.about-content,
+.profile-scroll-content,
+.report-view-content,
+.lesson-detail-content,
+.home-scroll-area,
+.teacher-messages-content,
+.notifications-list {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    min-height: 0 !important;
+}
+
+.bottom-nav {
+    flex-shrink: 0 !important;
+    position: relative !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* ============================================================
+   حالت شب
+   ============================================================ */
+body.dark-mode #screen-teacher-messages { background: #0f1419; }
+
+body.dark-mode .teacher-message-card {
+    background: #1a2332;
+    border-color: #2a3444;
+}
+body.dark-mode .teacher-message-card.unread { border-color: #ffc107; }
+body.dark-mode .teacher-message-header { border-color: #2a3444; }
+body.dark-mode .teacher-message-title { color: #ffcc80; }
+body.dark-mode .teacher-message-text { color: #e0e0e0; }
+body.dark-mode .teacher-message-target { background: #0f1419; color: #90caf9; }
+body.dark-mode .teacher-messages-empty-title { color: #90a4ae; }
+body.dark-mode .teacher-messages-empty-text { color: #607d8b; }
+
+/* ============================================================
+   ریسپانسیو
+   ============================================================ */
+@media (max-width: 500px) {
+    .home-messages-fab {
+        width: 54px;
+        height: 54px;
+        bottom: 90px;
+        left: 15px;
+    }
+    .home-messages-fab svg { width: 24px; height: 24px; }
+    .teacher-message-card { padding: 15px; }
+    .teacher-message-icon { width: 44px; height: 44px; font-size: 22px; }
+    .teacher-message-title { font-size: 14px; }
+    .teacher-message-text { font-size: 13px; }
+}
+
+@media (max-width: 400px) {
+    .lb-row { padding: 10px 12px; gap: 8px; }
+    .lb-row-avatar { width: 38px; height: 38px; }
+    .lb-row-avatar .lb-avatar-emoji { font-size: 26px; }
+    .lb-row-name { font-size: 12px; }
+    .lb-row-class { font-size: 10px; }
+    .lb-row-points { padding: 6px 10px; min-width: 62px; }
+    .lb-row-points-value { font-size: 13px; }
+    .lb-row-rank { width: 32px; height: 32px; font-size: 13px; }
+    .lb-row-medal { font-size: 18px; }
+
+    .home-welcome-avatar.emoji-mode .emoji-avatar { font-size: 48px; }
+    .profile-avatar.emoji-mode .emoji-avatar { font-size: 80px; }
+}
