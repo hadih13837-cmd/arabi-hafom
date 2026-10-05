@@ -1,12 +1,12 @@
 // ============================================================
 // api.js — اتصال به Google Sheets API
-// نسخه: ۳.۰.۰ — با پشتیبانی از همه درخواست‌ها
+// نسخه: ۴.۰.۰ — با URL جدید
 // ============================================================
 
 // ============================================================
-// آدرس‌های API
+// آدرس API — 🆕 آپدیت شده
 // ============================================================
-const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbwH6zsAVO-tzATU3_J8SvHkOpM1GJXQRxmqWDHxcXKxDKKJZImQf_58ekigtppjj-HWgw/exec';
+const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbwPGbB6DGpWYQGbvTdTKnegMiHHCiueBBPqgZ5Eqam0MYimQMeQLv6eaDY1fFqV3JVq2g/exec';
 
 // برای سازگاری با کد قدیمی
 const API_URL = TEACHER_API_URL;
