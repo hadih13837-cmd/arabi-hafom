@@ -1,10 +1,10 @@
 // ============================================================
 // avatars.js — مجموعه ایموجی‌ها و منطق آواتار
-// نسخه: ۶.۰.۰ — با رفع مشکل نمایش در رتبه‌بندی
+// نسخه: ۷.۰.۰ — با رفع مشکل نمایش در رتبه‌بندی
 // ============================================================
 
 // ============================================================
-// آواتار پیش‌فرض
+// آواتار پیش‌فرض — 🆕 استفاده از تصویر داخل پروژه به‌جای CDN
 // ============================================================
 const DEFAULT_AVATAR = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
 
@@ -21,7 +21,7 @@ const AVATAR_EMOJIS = {
 };
 
 // ============================================================
-// 🆕 گرفتن آواتار برای ذخیره در رتبه‌بندی
+// گرفتن آواتار برای ذخیره در رتبه‌بندی
 // ============================================================
 function getAvatarForRanking() {
     const avatarImg = localStorage.getItem('userAvatar');
@@ -30,7 +30,7 @@ function getAvatarForRanking() {
     const avatarEmoji = localStorage.getItem('userAvatarEmoji');
     if (avatarEmoji) return `emoji:${avatarEmoji}`;
     
-    return DEFAULT_AVATAR;
+    return 'default';
 }
 
 // ============================================================
@@ -113,7 +113,6 @@ function selectEmojiAvatar(emoji, element) {
         closeEmojiPicker();
         showModal('موفق', 'ایموجی پروفایل با موفقیت تغییر کرد.', '✅');
         
-        // 🆕 ذخیره در Supabase
         if (typeof saveRankingToSupabase === 'function') {
             const success = await saveRankingToSupabase();
             if (success) {
@@ -160,8 +159,6 @@ function renderEmojiPicker() {
 }
 
 function openEmojiPicker() {
-    console.log('🎨 باز کردن انتخاب ایموجی...');
-    
     const optionsModal = document.getElementById('avatar-options-modal');
     if (optionsModal) optionsModal.classList.remove('active');
     
@@ -207,41 +204,69 @@ function chooseGalleryOption() {
 }
 
 // ============================================================
-// 🆕 رندر آواتار در رتبه‌بندی (نسخه نهایی)
+// 🆕 رندر آواتار در رتبه‌بندی (نسخه نهایی قطعی)
 // ============================================================
 function renderAvatarInRanking(ranking) {
-    // بررسی avatar_url
     const avatarUrl = ranking.avatar_url || '';
     
-    // حالت ۱: خالی یا null
-    if (!avatarUrl || avatarUrl === 'default' || avatarUrl === 'null') {
-        return `<img src="${DEFAULT_AVATAR}" alt="آواتار" class="lb-avatar-img" loading="lazy">`;
+    // حالت ۱: خالی، null، default
+    if (!avatarUrl || avatarUrl === 'default' || avatarUrl === 'null' || avatarUrl === '') {
+        return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img" loading="lazy" crossorigin="anonymous" onerror="this.style.display='none'">`;
     }
     
-    // حالت ۲: ایموجی (شروع با emoji:)
+    // حالت ۲: ایموجی
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '');
         if (!emoji || emoji === '👤' || emoji === '👦🏻') {
-            return `<img src="${DEFAULT_AVATAR}" alt="آواتار" class="lb-avatar-img" loading="lazy">`;
+            return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img" loading="lazy" crossorigin="anonymous" onerror="this.style.display='none'">`;
         }
         return `<span class="lb-avatar-emoji">${emoji}</span>`;
     }
     
     // حالت ۳: عکس base64
     if (avatarUrl.startsWith('data:image')) {
-        return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img">`;
+        return `<img src="${avatarUrl}" alt="" class="lb-avatar-img">`;
     }
     
-    // حالت ۴: URL عکس
+    // حالت ۴: URL عکس خارجی
     if (avatarUrl.startsWith('http')) {
-        return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img" crossorigin="anonymous" loading="lazy" onerror="this.src='${DEFAULT_AVATAR}'">`;
+        return `<img src="${avatarUrl}" alt="" class="lb-avatar-img" loading="lazy" crossorigin="anonymous" onerror="this.src='${DEFAULT_AVATAR}'">`;
     }
     
-    // حالت پیش‌فرض: عکس پسر آبی
-    return `<img src="${DEFAULT_AVATAR}" alt="آواتار" class="lb-avatar-img" loading="lazy">`;
+    // پیش‌فرض
+    return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img" loading="lazy" crossorigin="anonymous" onerror="this.style.display='none'">`;
 }
 
-// برای سازگاری با کد قدیمی
+// برای سازگاری
 function renderAvatarHTML(ranking) {
     return renderAvatarInRanking(ranking);
+}
+
+// ============================================================
+// 🆕 رندر آواتار در مکالمات (چت)
+// ============================================================
+function renderAvatarForChat(conv) {
+    const avatarUrl = conv.avatar_url || '';
+    
+    if (!avatarUrl || avatarUrl === 'default' || avatarUrl === 'null') {
+        return `<img src="${DEFAULT_AVATAR}" alt="" onerror="this.style.display='none'">`;
+    }
+    
+    if (avatarUrl.startsWith('emoji:')) {
+        const emoji = avatarUrl.replace('emoji:', '');
+        if (!emoji || emoji === '👤' || emoji === '👦🏻') {
+            return `<img src="${DEFAULT_AVATAR}" alt="" onerror="this.style.display='none'">`;
+        }
+        return emoji;
+    }
+    
+    if (avatarUrl.startsWith('data:image')) {
+        return `<img src="${avatarUrl}" alt="">`;
+    }
+    
+    if (avatarUrl.startsWith('http')) {
+        return `<img src="${avatarUrl}" alt="" onerror="this.src='${DEFAULT_AVATAR}'">`;
+    }
+    
+    return `<img src="${DEFAULT_AVATAR}" alt="" onerror="this.style.display='none'">`;
 }

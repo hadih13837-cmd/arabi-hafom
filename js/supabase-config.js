@@ -1,16 +1,13 @@
 // ============================================================
-// supabase-config.js — تنظیمات و توابع کمکی Supabase
-// نسخه: ۱.۰.۰
+// supabase-config.js — تنظیمات Supabase
+// نسخه: ۲.۰.۰
 // ============================================================
 
-// ============================================================
-// اطلاعات پروژه Supabase
-// ============================================================
 const SUPABASE_URL = 'https://wwmpjipvptwvfaqgvsob.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3bXBqaXB2cHR3dmZhcWd2c29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDU3NzYsImV4cCI6MjEwNjc4MTc3Nn0.RKwxaQ6rL13p4To0A0mo5il_HuqryG8aGGRWOz6DA7Y';
 
 // ============================================================
-// ساختن Client سراسری
+// ساخت Client سراسری
 // ============================================================
 let supabaseClient = null;
 
@@ -32,6 +29,9 @@ function initSupabase() {
                 params: {
                     eventsPerSecond: 10
                 }
+            },
+            global: {
+                fetch: fetch.bind(window) // 🆕 با fetch استاندارد
             }
         });
         
@@ -44,9 +44,6 @@ function initSupabase() {
     }
 }
 
-// ============================================================
-// گرفتن Client (اگه ساخته نشده، بساز)
-// ============================================================
 function getSupabase() {
     if (!supabaseClient) {
         return initSupabase();
@@ -55,7 +52,7 @@ function getSupabase() {
 }
 
 // ============================================================
-// تبدیل نام کلاس فارسی به slug انگلیسی
+// تبدیل نام کلاس
 // ============================================================
 function classNameToSlug(className) {
     const map = {
@@ -68,9 +65,6 @@ function classNameToSlug(className) {
     return map[className] || 'unknown';
 }
 
-// ============================================================
-// تبدیل slug انگلیسی به نام کلاس فارسی
-// ============================================================
 function slugToClassName(slug) {
     const map = {
         'hafom-1': 'هفتم یک',
@@ -83,30 +77,12 @@ function slugToClassName(slug) {
 }
 
 // ============================================================
-// تبدیل snake_case به camelCase
-// ============================================================
-function toCamelCase(obj) {
-    if (!obj || typeof obj !== 'object') return obj;
-    if (Array.isArray(obj)) return obj.map(toCamelCase);
-    
-    const result = {};
-    for (const key in obj) {
-        const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-        result[camelKey] = obj[key];
-    }
-    return result;
-}
-
-// ============================================================
-// تست اتصال به Supabase
+// تست اتصال
 // ============================================================
 async function testSupabaseConnection() {
     try {
         const client = getSupabase();
-        if (!client) {
-            console.error('❌ Supabase Client ساخته نشد');
-            return false;
-        }
+        if (!client) return false;
         
         const { data, error } = await client
             .from('rankings')
@@ -114,7 +90,7 @@ async function testSupabaseConnection() {
             .limit(1);
         
         if (error) {
-            console.error('❌ خطا در اتصال به Supabase:', error.message);
+            console.error('❌ خطا در اتصال:', error.message);
             return false;
         }
         
@@ -127,9 +103,6 @@ async function testSupabaseConnection() {
     }
 }
 
-// ============================================================
-// شروع خودکار هنگام لود
-// ============================================================
 window.addEventListener('DOMContentLoaded', () => {
     initSupabase();
 });
