@@ -1,17 +1,12 @@
 // ============================================================
 // rankings.js — سیستم رتبه‌بندی
-// نسخه: ۱۷.۰.۰ — با عکس وکتور پسر پیش‌فرض
+// نسخه: ۱۷.۰.۰ — با آواتار پیش‌فرض و auto-refresh
 // ============================================================
 
 let currentRankings = [];
 let currentRankingsClass = '';
 let autoRefreshInterval = null;
 let lastRankingsHash = '';
-
-// ============================================================
-// آواتار پیش‌فرض (عکس وکتور پسر)
-// ============================================================
-const DEFAULT_AVATAR_IMG = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
 
 // ============================================================
 // بارگذاری صفحه رتبه‌بندی (با کش + auto-refresh)
@@ -24,7 +19,7 @@ async function loadRankingsPage() {
     const studentId = localStorage.getItem('studentUUID');
     const cacheKey = 'rankings_cache_' + userClass;
     
-    // اول از کش نشون بده
+    // ⚡ اول از کش نشون بده
     const cachedData = localStorage.getItem(cacheKey);
     let hasCachedData = false;
     
@@ -56,12 +51,11 @@ async function loadRankingsPage() {
     try {
         currentRankingsClass = userClass;
         
-        // sync توی پس‌زمینه
+        // sync در پس‌زمینه
         if (studentId && typeof saveRankingToSupabase === 'function') {
             saveRankingToSupabase().catch(e => console.warn('sync در پس‌زمینه:', e));
         }
         
-        // صبر کوتاه
         await new Promise(resolve => setTimeout(resolve, 200));
         
         const rankings = await getRankingsByClass(userClass);
@@ -83,7 +77,7 @@ async function loadRankingsPage() {
             container.innerHTML = renderEmptyRankings();
         }
         
-        // شروع auto-refresh
+        // 🆕 شروع auto-refresh
         startAutoRefresh();
         
     } catch (error) {
@@ -108,7 +102,7 @@ async function loadRankingsPage() {
 function getRankingsHash(rankings) {
     if (!rankings || rankings.length === 0) return '';
     return rankings.map(r => 
-        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.avg_percent}`
+        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.avg_percent}_${r.avatar_url || ''}`
     ).join('|');
 }
 
@@ -117,11 +111,14 @@ function getRankingsHash(rankings) {
 // ============================================================
 function startAutoRefresh() {
     stopAutoRefresh();
+    
     console.log('🔄 Auto-refresh شروع شد (هر ۳ ثانیه)');
     
     autoRefreshInterval = setInterval(async () => {
         const activeScreen = document.querySelector('.screen.active');
-        if (!activeScreen || activeScreen.id !== 'screen-rankings') return;
+        if (!activeScreen || activeScreen.id !== 'screen-rankings') {
+            return;
+        }
         
         const anyModalOpen = document.querySelector('.profile-card-overlay.active, .user-medals-overlay.active, .exit-modal-overlay.active, .modal-overlay.active');
         if (anyModalOpen) return;
@@ -131,12 +128,14 @@ function startAutoRefresh() {
             const studentId = localStorage.getItem('studentUUID');
             
             const rankings = await getRankingsByClass(userClass);
+            
             if (!rankings || rankings.length === 0) return;
             
             const newHash = getRankingsHash(rankings);
             
             if (newHash !== lastRankingsHash) {
                 console.log('🆕 تغییر در رتبه‌بندی تشخیص داده شد!');
+                
                 currentRankings = rankings;
                 lastRankingsHash = newHash;
                 
@@ -151,6 +150,7 @@ function startAutoRefresh() {
                 if (container) {
                     container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
                 }
+                
                 vibrate(10);
             }
         } catch (error) {
@@ -328,16 +328,9 @@ function getClassPersianName(slug) {
 // ============================================================
 function getAvatarClass(ranking) {
     const avatarUrl = ranking.avatar_url || '';
-    
-    // اگه ایموجی بود
-    if (avatarUrl.startsWith('emoji:')) {
-        const emoji = avatarUrl.replace('emoji:', '');
-        if (emoji && emoji !== '👤' && emoji !== '👦🏻') {
-            return 'lb-avatar-emoji-mode';
-        }
+    if (avatarUrl.startsWith('emoji:') && avatarUrl !== 'emoji:👤' && avatarUrl !== 'emoji:👦🏻') {
+        return 'lb-avatar-emoji-mode';
     }
-    
-    // در غیر این صورت → عکس
     return 'lb-avatar-image-mode';
 }
 
@@ -356,38 +349,34 @@ function getClassNumberFromSlug(slug) {
 }
 
 // ============================================================
-// 🆕 رندر آواتار (نسخه نهایی)
-// ============================================================
-// ============================================================
-// 🆕 رندر آواتار در رتبه‌بندی (با عکس پیش‌فرض از حساب کاربری)
+// 🆕 رندر آواتار (استفاده از تابع avatars.js)
 // ============================================================
 function renderAvatar(ranking) {
-    // 🆕 این همون عکسیه که توی حساب کاربری استفاده میشه
-    const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
+    // اگه تابع renderAvatarInRanking توی avatars.js موجوده، ازش استفاده کن
+    if (typeof renderAvatarInRanking === 'function') {
+        return renderAvatarInRanking(ranking);
+    }
     
+    // احتیاط: اگه نبود، مستقیم عکس پیش‌فرض رو نشون بده
+    const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
     const avatarUrl = ranking.avatar_url || '';
     
-    // حالت ایموجی
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '');
-        // اگه ایموجی خالی یا پیش‌فرض قدیمی بود، عکس پیش‌فرض نشون بده
         if (!emoji || emoji === '👤' || emoji === '👦🏻') {
             return `<img src="${DEFAULT_AVATAR_URL}" alt="آواتار" class="lb-avatar-img">`;
         }
         return `<span class="lb-avatar-emoji">${emoji}</span>`;
     }
     
-    // حالت عکس base64
     if (avatarUrl.startsWith('data:image')) {
         return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img">`;
     }
     
-    // حالت URL عکس
     if (avatarUrl.startsWith('http')) {
         return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img" crossorigin="anonymous">`;
     }
     
-    // 🆕 حالت پیش‌فرض: همون عکس حساب کاربری
     return `<img src="${DEFAULT_AVATAR_URL}" alt="آواتار" class="lb-avatar-img">`;
 }
 
@@ -600,7 +589,7 @@ function openProfileCard(studentId) {
 }
 
 // ============================================================
-// باز کردن صفحه مدال‌های کاربر
+// باز کردن صفحه‌ی مدال‌ها
 // ============================================================
 function openMedalsPage(studentId) {
     const ranking = currentRankings.find(r => r.student_id === studentId);
@@ -691,13 +680,16 @@ function getUserEarnedMedals(ranking) {
 }
 
 // ============================================================
-// بستن مدال‌ها و پروفایل
+// بستن صفحه‌ی مدال‌ها
 // ============================================================
 function closeUserMedals() {
     const modal = document.getElementById('user-medals-modal');
     if (modal) modal.classList.remove('active');
 }
 
+// ============================================================
+// بستن کارت پروفایل
+// ============================================================
 function closeProfileCard() {
     const modal = document.getElementById('profile-card-modal');
     if (modal) modal.classList.remove('active');

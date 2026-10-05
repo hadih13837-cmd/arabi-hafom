@@ -1,6 +1,6 @@
 // ============================================================
 // api.js — اتصال به Google Sheets API
-// نسخه: ۲.۰.۰ — با پشتیبانی از پنل معلم
+// نسخه: ۳.۰.۰ — با پشتیبانی از همه درخواست‌ها
 // ============================================================
 
 // ============================================================
@@ -44,6 +44,8 @@ function slugToClassName(slug) {
 // ============================================================
 async function apiPost(data) {
     try {
+        console.log('📤 POST:', data.action || 'saveRanking');
+        
         const response = await fetch(TEACHER_API_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -53,7 +55,7 @@ async function apiPost(data) {
             body: JSON.stringify(data)
         });
         
-        console.log('📤 POST ارسال شد');
+        console.log('✅ POST ارسال شد');
         return { success: true };
     } catch (error) {
         console.error('❌ خطا در POST:', error);
@@ -68,6 +70,8 @@ async function apiGet(params = {}) {
     try {
         const queryString = new URLSearchParams(params).toString();
         const url = queryString ? `${TEACHER_API_URL}?${queryString}` : TEACHER_API_URL;
+        
+        console.log('📥 GET:', params.action || 'default');
         
         const response = await fetch(url + '&t=' + Date.now(), {
             method: 'GET',
@@ -124,9 +128,12 @@ async function saveRankingToSupabase() {
             ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length)
             : 0;
         const streakDays = streakData.count || 0;
-        const avatarUrl = typeof getAvatarForRanking === 'function' 
-            ? getAvatarForRanking() 
-            : 'emoji:👦🏻';
+        
+        // 🆕 گرفتن آواتار (با پیش‌فرض عکس پسر)
+        let avatarUrl = 'default';
+        if (typeof getAvatarForRanking === 'function') {
+            avatarUrl = getAvatarForRanking();
+        }
         
         const payload = {
             action: 'saveRanking',

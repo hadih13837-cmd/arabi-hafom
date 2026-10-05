@@ -1,6 +1,6 @@
 // ============================================================
 // settings.js — تنظیمات، پروفایل، موسیقی، صداها، UUID، بروزرسانی
-// نسخه: ۴.۰.۰ — با آواتار باکیفیت‌تر
+// نسخه: ۶.۰.۰ — نسخه نهایی قطعی
 // ============================================================
 
 // ============================================================
@@ -19,7 +19,6 @@ function saveUserInfo() {
     localStorage.setItem('userYear', '۱۴۰۵-۱۴۰۶');
     localStorage.setItem('userRegistered', 'true');
     
-    // ساخت UUID یکتا برای این کاربر
     getOrCreateStudentUUID();
     
     updateStreak();
@@ -29,7 +28,6 @@ function saveUserInfo() {
         document.getElementById('welcome-graphic-modal').classList.add('active');
     }, 400);
     
-    // 🆕 همگام‌سازی خودکار بعد از ثبت‌نام
     if (typeof autoSyncRanking === 'function') {
         autoSyncRanking('ثبت‌نام جدید');
     } else if (typeof saveRankingToSupabase === 'function') {
@@ -234,7 +232,6 @@ function closeUpdateDataModal() {
 
 async function confirmUpdateData() {
     closeUpdateDataModal();
-
     showModal('⏳ در حال بروزرسانی...', 'لطفاً چند لحظه صبر کنید.\nاطلاعات شما حفظ می‌شود.', '🔄');
 
     try {
@@ -262,7 +259,9 @@ async function confirmUpdateData() {
             seenVideos: localStorage.getItem('seenVideos'),
             seenLessons: localStorage.getItem('seenLessons'),
             seenLessonsForNotif: localStorage.getItem('seenLessonsForNotif'),
-            lastDeadlineNotifDate: localStorage.getItem('lastDeadlineNotifDate')
+            lastDeadlineNotifDate: localStorage.getItem('lastDeadlineNotifDate'),
+            seenTeacherMessages: localStorage.getItem('seenTeacherMessages'),
+            dismissedTeacherMessages: localStorage.getItem('dismissedTeacherMessages')
         };
 
         localStorage.clear();
@@ -312,13 +311,14 @@ async function confirmUpdateData() {
 }
 
 // ============================================================
-// 🆕 تغییر آواتار (عکس از گالری) — با فشرده‌سازی بهینه
+// 🆕 تغییر آواتار (عکس از گالری) — نسخه نهایی
 // ============================================================
 function changeAvatar(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // 🆕 محدودیت حجم اولیه: ۵ مگابایت
+    console.log('📸 فایل انتخاب شد:', file.name, Math.round(file.size / 1024), 'KB');
+
     if (file.size > 5 * 1024 * 1024) {
         showModal('خطا', 'حجم عکس باید کمتر از ۵ مگابایت باشد.', '⚠️');
         return;
@@ -328,53 +328,42 @@ function changeAvatar(event) {
     reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-            // 🆕 فشرده‌سازی عکس (کیفیت بالاتر)
-            const canvas = document.createElement('canvas');
-            const MAX_SIZE = 300;  // حداکثر ۳۰۰x۳۰۰ پیکسل
-            
-            let width = img.width;
-            let height = img.height;
-            
-            // محاسبه ابعاد جدید با حفظ نسبت
-            if (width > height) {
-                if (width > MAX_SIZE) {
-                    height = Math.round((height * MAX_SIZE) / width);
-                    width = MAX_SIZE;
-                }
-            } else {
-                if (height > MAX_SIZE) {
-                    width = Math.round((width * MAX_SIZE) / height);
-                    height = MAX_SIZE;
-                }
-            }
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            const ctx = canvas.getContext('2d');
-            
-            // 🆕 بهبود کیفیت رندر
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            // 🆕 فشرده‌سازی با کیفیت ۸۵٪
-            let compressedData = canvas.toDataURL('image/jpeg', 0.85);
-            
-            console.log('📸 حجم عکس اصلی:', Math.round(file.size / 1024), 'KB');
-            console.log('📸 حجم عکس فشرده:', Math.round(compressedData.length / 1024), 'KB');
-            console.log('📸 طول متن base64:', compressedData.length, 'کاراکتر');
-            
-            // 🆕 چک کن از ۴۵,۰۰۰ کاراکتر کمتر باشه
-            if (compressedData.length > 45000) {
-                console.log('⚠️ عکس بزرگ‌تر از حد مجازه - فشرده‌سازی بیشتر...');
+            try {
+                const canvas = document.createElement('canvas');
+                const MAX_SIZE = 300;
                 
-                // مرحله ۲: کیفیت پایین‌تر
-                compressedData = canvas.toDataURL('image/jpeg', 0.6);
-                console.log('📸 فشرده‌سازی دوم:', Math.round(compressedData.length / 1024), 'KB');
+                let width = img.width;
+                let height = img.height;
                 
-                // مرحله ۳: اگه بازم بزرگ بود، ابعاد رو کم کن
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height = Math.round((height * MAX_SIZE) / width);
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width = Math.round((width * MAX_SIZE) / height);
+                        height = MAX_SIZE;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                let compressedData = canvas.toDataURL('image/jpeg', 0.85);
+                
+                console.log('📸 حجم عکس فشرده:', Math.round(compressedData.length / 1024), 'KB');
+                
+                if (compressedData.length > 45000) {
+                    compressedData = canvas.toDataURL('image/jpeg', 0.6);
+                    console.log('📸 فشرده‌سازی دوم:', Math.round(compressedData.length / 1024), 'KB');
+                }
+                
                 if (compressedData.length > 45000) {
                     const MAX_SIZE_2 = 200;
                     if (width > height) {
@@ -388,42 +377,43 @@ function changeAvatar(event) {
                             height = MAX_SIZE_2;
                         }
                     }
-                    
                     canvas.width = width;
                     canvas.height = height;
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
                     ctx.drawImage(img, 0, 0, width, height);
-                    
                     compressedData = canvas.toDataURL('image/jpeg', 0.5);
                     console.log('📸 فشرده‌سازی سوم:', Math.round(compressedData.length / 1024), 'KB');
                 }
                 
-                // اگه هنوز بزرگ بود، خطا بده
-                if (compressedData.length > 45000) {
-                    showModal('خطا', 'عکس خیلی بزرگه. لطفاً عکس کوچیک‌تری انتخاب کن.', '⚠️');
-                    return;
+                // ذخیره عکس
+                localStorage.setItem('userAvatar', compressedData);
+                localStorage.removeItem('userAvatarEmoji');
+                
+                console.log('✅ عکس در localStorage ذخیره شد');
+                
+                // اعمال آواتار جدید
+                if (typeof applyAvatarToElements === 'function') {
+                    applyAvatarToElements();
                 }
-            }
-            
-            // ذخیره
-            localStorage.setItem('userAvatar', compressedData);
-            localStorage.removeItem('userAvatarEmoji');
-            
-            if (typeof applyAvatarToElements === 'function') {
-                applyAvatarToElements();
-            }
-            
-            showModal('موفق', 'عکس پروفایل با موفقیت تغییر کرد.', '✅');
-            
-            // همگام‌سازی خودکار
-            if (typeof autoSyncRanking === 'function') {
-                autoSyncRanking('تغییر آواتار');
-            } else if (typeof saveRankingToSupabase === 'function') {
-                setTimeout(() => saveRankingToSupabase(), 800);
+                
+                showModal('موفق', 'عکس پروفایل با موفقیت تغییر کرد.', '✅');
+                
+                if (typeof autoSyncRanking === 'function') {
+                    autoSyncRanking('تغییر آواتار');
+                } else if (typeof saveRankingToSupabase === 'function') {
+                    setTimeout(() => saveRankingToSupabase(), 800);
+                }
+            } catch (err) {
+                console.error('❌ خطا در پردازش عکس:', err);
+                showModal('خطا', 'مشکلی در پردازش عکس پیش آمد.', '❌');
             }
         };
+        img.onerror = function() {
+            showModal('خطا', 'عکس انتخاب‌شده معتبر نیست.', '❌');
+        };
         img.src = e.target.result;
+    };
+    reader.onerror = function() {
+        showModal('خطا', 'خطا در خواندن فایل.', '❌');
     };
     reader.readAsDataURL(file);
 
@@ -448,6 +438,7 @@ function closeAvatarOptionsModal() {
 }
 
 function chooseEmojiOption() {
+    console.log('🎨 انتخاب گزینه ایموجی');
     closeAvatarOptionsModal();
     setTimeout(() => {
         if (typeof openEmojiPicker === 'function') {
@@ -457,6 +448,7 @@ function chooseEmojiOption() {
 }
 
 function chooseGalleryOption() {
+    console.log('🖼️ انتخاب گزینه گالری');
     closeAvatarOptionsModal();
     setTimeout(() => {
         const fileInput = document.getElementById('avatar-input');
@@ -495,7 +487,6 @@ function saveProfileChanges() {
     closeEditProfile();
     showModal('موفق', 'اطلاعات شما با موفقیت ذخیره شد.', '✅');
 
-    // همگام‌سازی خودکار
     if (typeof autoSyncRanking === 'function') {
         autoSyncRanking('ویرایش پروفایل');
     } else if (typeof saveRankingToSupabase === 'function') {
