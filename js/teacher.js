@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — منطق پنل معلم
-// نسخه: ۳.۰.۰ — با صفحه خانه، پیام‌رسان واقعی و برگشت خودکار
+// نسخه: ۴.۰.۰ — حل قطعی مشکل Badge پیام‌ها
 // ============================================================
 
 // ============================================================
@@ -9,10 +9,9 @@
 const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbwH6zsAVO-tzATU3_J8SvHkOpM1GJXQRxmqWDHxcXKxDKKJZImQf_58ekigtppjj-HWgw/exec';
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
 const DEFAULT_PASSWORD = 'hadi1383';
+const READ_TIMES_KEY = 'teacherReadTimes'; // ذخیره زمان‌های خواندن
 
 let allStudents = [];
-let allMessages = [];
-let currentMessageTarget = 'all';
 let currentConversations = [];
 let currentChatStudent = null;
 let chatPollingInterval = null;
@@ -62,6 +61,45 @@ function showToast(message, type = 'success') {
 }
 
 // ============================================================
+// 🆕 مدیریت زمان خواندن پیام‌ها (LocalStorage)
+// ============================================================
+function getReadTimes() {
+    try {
+        return JSON.parse(localStorage.getItem(READ_TIMES_KEY) || '{}');
+    } catch (e) {
+        return {};
+    }
+}
+
+function getReadTime(studentId) {
+    const times = getReadTimes();
+    return times[studentId] || 0;
+}
+
+function setReadTime(studentId) {
+    const times = getReadTimes();
+    times[studentId] = Date.now();
+    localStorage.setItem(READ_TIMES_KEY, JSON.stringify(times));
+    console.log('📖 زمان خواندن ذخیره شد برای:', studentId);
+}
+
+// 🆕 محاسبه پیام‌های نخوانده بر اساس LocalStorage
+function getUnreadCountFromLocal(studentId, messages) {
+    const readTime = getReadTime(studentId);
+    if (!readTime) {
+        // اگه هیچ‌وقت نخونده، همه پیام‌های دانش‌آموز نخوانده‌ست
+        return messages.filter(m => m.sender === 'student').length;
+    }
+    
+    // فقط پیام‌هایی که بعد از زمان خواندن اومدن
+    return messages.filter(m => {
+        if (m.sender !== 'student') return false;
+        const msgTime = new Date(m.date).getTime();
+        return msgTime > readTime;
+    }).length;
+}
+
+// ============================================================
 // ورود (Login)
 // ============================================================
 function checkPassword() {
@@ -73,7 +111,6 @@ function checkPassword() {
         document.getElementById('main-panel').classList.add('active');
         localStorage.setItem('teacherLoggedIn', 'true');
         
-        // شروع از صفحه خانه
         pageHistory = ['home'];
         navigateToPage('home', false);
         
@@ -121,7 +158,7 @@ window.addEventListener('load', () => {
 });
 
 // ============================================================
-// ناوبری بین صفحات (با دکمه برگشت خودکار)
+// ناوبری بین صفحات
 // ============================================================
 function navigateToPage(pageId, addToHistory = true) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -130,13 +167,11 @@ function navigateToPage(pageId, addToHistory = true) {
     if (page) page.classList.add('active');
     
     if (addToHistory) {
-        // اگه همون صفحه تکراری نباشه
         if (pageHistory[pageHistory.length - 1] !== pageId) {
             pageHistory.push(pageId);
         }
     }
     
-    // نمایش/مخفی کردن دکمه برگشت
     const backBtn = document.getElementById('header-back-btn');
     if (backBtn) {
         backBtn.style.display = pageId === 'home' ? 'none' : 'flex';
@@ -172,12 +207,10 @@ function navigateToPage(pageId, addToHistory = true) {
     if (titleEl) titleEl.textContent = titles[pageId] || 'خانه';
     if (iconEl) iconEl.textContent = icons[pageId] || '🎓';
     
-    // توقف polling چت
     if (pageId !== 'messages') {
         stopChatPolling();
     }
     
-    // بارگذاری محتوای صفحه
     switch (pageId) {
         case 'home': loadHomeData(); break;
         case 'students': loadStudents(); break;
@@ -185,7 +218,6 @@ function navigateToPage(pageId, addToHistory = true) {
         case 'messages': 
             loadClassMessages();
             loadStudentConversations();
-            updatePersonalUnreadBadge();
             break;
         case 'lessons': loadLessonsPage(); break;
         case 'calendar': loadEvents(); break;
@@ -194,19 +226,16 @@ function navigateToPage(pageId, addToHistory = true) {
     }
 }
 
-// تابع showPage که از onclick استفاده میشه
 function showPage(pageId) {
     navigateToPage(pageId, true);
 }
 
-// دکمه برگشت
 function goBack() {
     if (pageHistory.length > 1) {
         pageHistory.pop();
         const prevPage = pageHistory[pageHistory.length - 1];
         navigateToPage(prevPage, false);
     } else {
-        // اگه توی صفحه خانه هستیم، از پنل خارج شو
         logout();
     }
 }
@@ -248,22 +277,17 @@ async function apiPost(data) {
 // ============================================================
 async function loadHomeData() {
     try {
-        // بارگذاری دانش‌آموزان
         const response = await apiGet({ action: 'getAllStudents' });
         const students = response.data || [];
         allStudents = students;
         
-        // آمار
         const totalStudents = students.length;
         const totalLessons = students.reduce((sum, s) => sum + (parseInt(s.completed_lessons) || 0), 0);
         
         document.getElementById('home-stat-students').textContent = toPersianNum(totalStudents);
         document.getElementById('home-stat-lessons').textContent = toPersianNum(totalLessons);
         
-        // پیام‌های نخوانده
         await updateHomeMessagesBadge();
-        
-        // بهترین دانش‌آموزان
         renderHomeTopStudents(students);
         
     } catch (error) {
@@ -272,17 +296,32 @@ async function loadHomeData() {
     }
 }
 
+// 🆕 محاسبه کل پیام‌های نخوانده از LocalStorage
 async function updateHomeMessagesBadge() {
     try {
         const response = await apiGet({ action: 'getStudentConversations' });
         const conversations = response.data || [];
-        const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
         
-        // آمار خانه
+        let totalUnread = 0;
+        
+        // برای هر مکالمه، پیام‌هاش رو می‌گیریم و از LocalStorage حساب می‌کنیم
+        for (const conv of conversations) {
+            try {
+                const msgResponse = await apiGet({ 
+                    action: 'getPersonalMessages',
+                    student_id: conv.student_id
+                });
+                const messages = msgResponse.data || [];
+                totalUnread += getUnreadCountFromLocal(conv.student_id, messages);
+            } catch (e) {
+                // اگه خطا داد، از unread_count سرور استفاده کن (به عنوان fallback)
+                totalUnread += conv.unread_count || 0;
+            }
+        }
+        
         const msgStat = document.getElementById('home-stat-messages');
         if (msgStat) msgStat.textContent = toPersianNum(totalUnread);
         
-        // Badge روی کارت پیام‌رسانی
         const badge = document.getElementById('home-badge-messages');
         if (badge) {
             if (totalUnread > 0) {
@@ -293,7 +332,6 @@ async function updateHomeMessagesBadge() {
             }
         }
         
-        // Badge تب شخصی
         const tabBadge = document.getElementById('personal-unread-badge');
         if (tabBadge) {
             if (totalUnread > 0) {
@@ -346,30 +384,6 @@ function renderHomeTopStudents(students) {
 }
 
 // ============================================================
-// علامت‌گذاری پیام‌ها به عنوان خوانده‌شده
-// ============================================================
-async function markMessagesAsRead(studentId) {
-    try {
-        console.log('📖 علامت‌گذاری پیام‌های دانش‌آموز:', studentId);
-        
-        await apiPost({
-            action: 'markMessagesAsRead',
-            student_id: studentId,
-            reader: 'teacher',
-            timestamp: new Date().toISOString()
-        });
-        
-        console.log('✅ پیام‌ها خوانده‌شده شدند');
-        
-        await updatePersonalUnreadBadge();
-        await updateHomeMessagesBadge();
-        
-    } catch (error) {
-        console.error('❌ خطا در علامت‌گذاری پیام‌ها:', error);
-    }
-}
-
-// ============================================================
 // تب‌های پیام‌رسانی
 // ============================================================
 function switchMessagesTab(tab) {
@@ -381,7 +395,6 @@ function switchMessagesTab(tab) {
     
     if (tab === 'personal') {
         loadStudentConversations();
-        updatePersonalUnreadBadge();
     } else if (tab === 'class') {
         loadClassMessages();
     }
@@ -486,7 +499,7 @@ async function loadClassMessages() {
 }
 
 // ============================================================
-// بارگذاری مکالمات (لیست پیام‌رسان)
+// بارگذاری مکالمات (با محاسبه LocalStorage)
 // ============================================================
 async function loadStudentConversations() {
     const container = document.getElementById('messenger-list-items');
@@ -496,7 +509,23 @@ async function loadStudentConversations() {
     
     try {
         const response = await apiGet({ action: 'getStudentConversations' });
-        currentConversations = response.data || [];
+        let conversations = response.data || [];
+        
+        // 🆕 برای هر مکالمه، unread_count رو از LocalStorage حساب کن
+        for (let conv of conversations) {
+            try {
+                const msgResponse = await apiGet({ 
+                    action: 'getPersonalMessages',
+                    student_id: conv.student_id
+                });
+                const messages = msgResponse.data || [];
+                conv.unread_count = getUnreadCountFromLocal(conv.student_id, messages);
+            } catch (e) {
+                // اگه خطا داد، از مقدار سرور استفاده کن
+            }
+        }
+        
+        currentConversations = conversations;
         
         if (currentConversations.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز مکالمه‌ای وجود نداره</div>';
@@ -525,7 +554,6 @@ function renderMessengerList(conversations) {
     conversations.forEach(conv => {
         const isActive = currentChatStudent && currentChatStudent.student_id === conv.student_id;
         
-        // آواتار
         let avatarHtml = '👤';
         if (conv.avatar_url) {
             if (conv.avatar_url.startsWith('emoji:')) {
@@ -579,7 +607,7 @@ function filterMessengerList(query) {
 }
 
 // ============================================================
-// باز کردن چت با دانش‌آموز
+// 🆕 باز کردن چت (با ذخیره زمان خواندن)
 // ============================================================
 async function openChatWith(studentId, studentName, className) {
     currentChatStudent = {
@@ -588,12 +616,10 @@ async function openChatWith(studentId, studentName, className) {
         class_name: className
     };
     
-    // مخفی کردن حالت خالی و لیست
     document.getElementById('messenger-empty').style.display = 'none';
     document.getElementById('messenger-list').style.display = 'none';
     document.getElementById('messenger-chat').style.display = 'flex';
     
-    // اطلاعات دانش‌آموز
     document.getElementById('messenger-chat-name').textContent = studentName;
     document.getElementById('messenger-chat-status').textContent = getClassPersianName(className);
     
@@ -620,14 +646,15 @@ async function openChatWith(studentId, studentName, className) {
     // بارگذاری پیام‌ها
     await loadChatMessages(studentId);
     
-    // علامت‌گذاری به عنوان خوانده‌شده
-    await markMessagesAsRead(studentId);
+    // 🆕 ذخیره زمان خواندن در LocalStorage
+    setReadTime(studentId);
+    
+    // 🆕 آپدیت Badge ها
+    await updateHomeMessagesBadge();
+    await loadStudentConversations();
     
     // شروع polling
     startChatPolling(studentId);
-    
-    // آپدیت لیست
-    loadStudentConversations();
 }
 
 function closeMessengerChat() {
@@ -707,7 +734,6 @@ async function sendChatMessage() {
     try {
         input.value = '';
         
-        // نمایش فوری پیام
         const container = document.getElementById('messenger-chat-messages');
         const time = messageData.date_persian;
         
@@ -723,8 +749,10 @@ async function sendChatMessage() {
         container.appendChild(msgEl);
         container.scrollTop = container.scrollHeight;
         
-        // ارسال به سرور
         await apiPost(messageData);
+        
+        // 🆕 آپدیت زمان خواندن بعد از ارسال
+        setReadTime(currentChatStudent.student_id);
         
         console.log('✅ پیام ارسال شد');
         
@@ -776,7 +804,12 @@ function startChatPolling(studentId) {
                 const lastMsg = messages[messages.length - 1];
                 if (lastMsg.sender === 'student') {
                     playDingSound();
-                    await markMessagesAsRead(studentId);
+                    
+                    // 🆕 ذخیره زمان خواندن برای پیام‌های جدید
+                    setReadTime(studentId);
+                    
+                    // آپدیت Badge ها
+                    await updateHomeMessagesBadge();
                 }
             }
             
@@ -820,30 +853,6 @@ function playDingSound() {
         });
     } catch (e) {
         console.warn('خطا در پخش صدا:', e);
-    }
-}
-
-// ============================================================
-// آپدیت Badge پیام‌های نخوانده
-// ============================================================
-async function updatePersonalUnreadBadge() {
-    try {
-        const response = await apiGet({ action: 'getStudentConversations' });
-        const conversations = response.data || [];
-        
-        const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
-        const badge = document.getElementById('personal-unread-badge');
-        
-        if (badge) {
-            if (totalUnread > 0) {
-                badge.textContent = toPersianNum(totalUnread);
-                badge.style.display = 'block';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-    } catch (error) {
-        console.warn('Error:', error);
     }
 }
 
@@ -1011,7 +1020,6 @@ function switchRankingClass(className, btn) {
     document.querySelectorAll('.rankings-class-tab').forEach(t => t.classList.remove('active'));
     if (btn) btn.classList.add('active');
     
-    // آپدیت هدر
     const titleEl = document.getElementById('rankings-current-class');
     if (titleEl) titleEl.textContent = getClassPersianName(className);
     
@@ -1028,12 +1036,10 @@ async function loadRankings() {
         const response = await apiGet({ action: 'getAllStudents' });
         const allData = response.data || [];
         
-        // فیلتر بر اساس کلاس انتخاب‌شده
         const rankings = allData
             .filter(s => s.class_name === currentRankingClass)
             .sort((a, b) => (parseInt(b.total_points) || 0) - (parseInt(a.total_points) || 0));
         
-        // آپدیت تعداد
         const countEl = document.getElementById('rankings-current-count');
         if (countEl) countEl.textContent = `${toPersianNum(rankings.length)} دانش‌آموز`;
         
@@ -1093,9 +1099,6 @@ async function loadLessonsPage() {
         
         let html = '';
         lessons.forEach(lesson => {
-            const statusClass = 'active';
-            const statusText = 'فعال';
-            
             html += `
                 <div class="lesson-item">
                     <div class="lesson-item-icon">📚</div>
@@ -1106,7 +1109,7 @@ async function loadLessonsPage() {
                             <span>📝 ${toPersianNum(lesson.activityCount || 0)} سوال</span>
                         </div>
                     </div>
-                    <div class="lesson-item-status ${statusClass}">${statusText}</div>
+                    <div class="lesson-item-status active">فعال</div>
                 </div>
             `;
         });
@@ -1169,10 +1172,7 @@ async function loadEvents() {
         }
         
         const typeIcons = {
-            exam: '📝',
-            homework: '📚',
-            holiday: '🎉',
-            event: '📌'
+            exam: '📝', homework: '📚', holiday: '🎉', event: '📌'
         };
         
         let html = '';
@@ -1502,5 +1502,5 @@ function clearCache() {
 // ============================================================
 // شروع
 // ============================================================
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۳.۰.۰');
-console.log('✅ با صفحه خانه، پیام‌رسان واقعی و دکمه برگشت خودکار');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۴.۰.۰');
+console.log('✅ حل قطعی مشکل Badge با LocalStorage');
