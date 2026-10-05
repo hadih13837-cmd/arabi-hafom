@@ -7,6 +7,7 @@
     
     <meta name="theme-color" content="#1976d2">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="پنل معلم">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
@@ -596,8 +597,14 @@
     <div class="toast-text" id="toast-text">پیام</div>
 </div>
 
-<!-- 🆕 لود Supabase Config قبل از teacher.js -->
+<!-- ============================================================
+     🆕 ترتیب مهم است:
+     1. supabase-config.js — تنظیمات Supabase
+     2. api.js — توابع Supabase (getAllStudents, ...)
+     3. teacher.js — منطق پنل معلم
+     ============================================================ -->
 <script src="./js/supabase-config.js"></script>
+<script src="./js/api.js"></script>
 <script src="./js/teacher.js"></script>
 
 </body>
