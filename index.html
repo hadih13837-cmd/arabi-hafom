@@ -704,25 +704,68 @@
     </div>
 
     <!-- ============ صفحه پیام‌های معلم ============ -->
-    <div id="screen-teacher-messages" class="screen">
-        <div class="page-header">
-            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
-            <div class="page-title">📬 پیام‌های معلم</div>
-            <button class="rankings-refresh-btn" onclick="loadTeacherMessagesPage()" title="رفرش">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polyline points="23 4 23 10 17 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <polyline points="1 20 1 14 7 14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="teacher-messages-content" id="teacher-messages-content"></div>
+    <!-- ============ صفحه پیام‌های معلم ============ -->
+<div id="screen-teacher-messages" class="screen">
+    <div class="page-header">
+        <button class="page-back" onclick="goBackToHome()" title="بازگشت">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <div class="page-title">📬 پیام‌های معلم</div>
+        <button class="rankings-refresh-btn" onclick="refreshTeacherMessages()" title="رفرش">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polyline points="23 4 23 10 17 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="1 20 1 14 7 14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
     </div>
+    
+    <!-- 🆕 تب‌های پیام‌رسان -->
+    <div class="student-messages-tabs">
+        <button class="student-messages-tab active" data-tab="class" onclick="switchStudentMessagesTab('class')">
+            <span class="tab-icon">📢</span>
+            <span>پیام‌های کلاس</span>
+            <span class="tab-badge" id="class-unread-badge" style="display: none;">0</span>
+        </button>
+        <button class="student-messages-tab" data-tab="chat" onclick="switchStudentMessagesTab('chat')">
+            <span class="tab-icon">💬</span>
+            <span>چت با معلم</span>
+            <span class="tab-badge" id="chat-unread-badge" style="display: none;">0</span>
+        </button>
+    </div>
+    
+    <!-- تب ۱: پیام‌های کلاس -->
+    <div class="student-messages-tab-content active" id="student-tab-class">
+        <div class="student-class-messages-content" id="student-class-messages-content">
+            <!-- توسط JS پر میشه -->
+        </div>
+    </div>
+    
+    <!-- تب ۲: چت با معلم -->
+    <div class="student-messages-tab-content" id="student-tab-chat">
+        <div class="student-chat-wrapper">
+            <div class="student-chat-messages" id="student-chat-messages">
+                <!-- پیام‌های چت -->
+            </div>
+            <div class="student-chat-input-wrapper">
+                <input 
+                    type="text" 
+                    class="student-chat-input" 
+                    id="student-chat-input" 
+                    placeholder="پیام خود را بنویسید..." 
+                    onkeypress="if(event.key==='Enter') sendStudentMessage()">
+                <button class="student-chat-send-btn" onclick="sendStudentMessage()">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- ============ صفحه جزئیات تکلیف ============ -->
     <div id="screen-lesson-detail" class="screen">
