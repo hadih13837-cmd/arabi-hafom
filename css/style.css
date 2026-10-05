@@ -6994,3 +6994,342 @@ body.dark-mode .inapp-notification {
         0 10px 40px rgba(13, 71, 161, 0.5),
         0 0 0 3px rgba(255, 255, 255, 0.1);
 }
+/* ============================================================
+   🆕 مودال پروفایل — حالت جدید (بالای کارت)
+   ============================================================ */
+
+/* مودال اصلی */
+.pc-modal-card {
+    background: #fff;
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    padding: 0;
+}
+
+/* 🆕 کاور بالای کارت (عکس) */
+.pc-cover-wrapper {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(135deg, #1976d2, #6a1b9a);
+}
+
+.pc-cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+/* 🆕 حالت ایموجی — کاور بدون عکس */
+.pc-cover-wrapper.emoji-cover {
+    background: transparent;
+    height: auto;
+    padding: 30px 20px 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pc-emoji-big {
+    font-size: 140px;
+    line-height: 1;
+    filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.15));
+    animation: emojiBouncePc 3s ease-in-out infinite;
+}
+
+@keyframes emojiBouncePc {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-10px) rotate(3deg); }
+}
+
+/* 🆕 دکمه بستن */
+.pc-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+
+.pc-close-btn:active {
+    transform: scale(0.9);
+}
+
+.pc-close-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #333;
+    stroke-width: 2.5;
+    fill: none;
+}
+
+/* 🆕 مدال داخلی */
+.pc-modal-inner {
+    padding: 20px;
+}
+
+/* 🆕 مدال رتبه (بالای کاور) */
+.pc-rank-badge {
+    position: absolute;
+    bottom: -20px;
+    right: 20px;
+    font-size: 45px;
+    z-index: 5;
+    filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.3));
+    animation: pcMedalFloat 2s ease-in-out infinite;
+}
+
+@keyframes pcMedalFloat {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-6px) rotate(5deg); }
+}
+
+/* 🆕 اطلاعات اصلی */
+.pc-main-info {
+    text-align: center;
+    margin-bottom: 18px;
+    padding-top: 8px;
+}
+
+.pc-modal-name {
+    font-size: 20px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pc-modal-you-badge {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-weight: 900;
+}
+
+.pc-modal-class {
+    font-size: 13px;
+    color: #78909c;
+    font-weight: bold;
+    background: #f0f7ff;
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 20px;
+}
+
+/* 🆕 جدول اطلاعات */
+.pc-modal-info-table {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 4px 16px;
+    margin-bottom: 18px;
+    border: 1.5px solid #e3f2fd;
+}
+
+.pc-modal-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed #e3f2fd;
+    font-size: 14px;
+}
+
+.pc-modal-info-row:last-child {
+    border-bottom: none;
+}
+
+.pc-modal-info-label {
+    color: #78909c;
+    font-weight: bold;
+}
+
+.pc-modal-info-value {
+    color: #1976d2;
+    font-weight: 900;
+}
+
+/* 🆕 آمار کلی */
+.pc-modal-stats-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 10px;
+    padding-right: 5px;
+}
+
+.pc-modal-stats-grid-v2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.pc-modal-stat-card-v2 {
+    background: #fff;
+    border-radius: 16px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid #e3f2fd;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.pc-modal-stat-card-v2[onclick] {
+    cursor: pointer;
+}
+
+.pc-modal-stat-card-v2[onclick]:active {
+    transform: scale(0.96);
+}
+
+.pc-modal-stat-icon-v2 {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pc-modal-stat-icon-v2 svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.pc-modal-stat-yellow .pc-modal-stat-icon-v2 {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+}
+.pc-modal-stat-yellow .pc-modal-stat-icon-v2 svg {
+    stroke: #f57c00;
+    fill: #f57c00;
+}
+
+.pc-modal-stat-orange .pc-modal-stat-icon-v2 {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+}
+.pc-modal-stat-orange .pc-modal-stat-icon-v2 svg {
+    stroke: #ef6c00;
+    fill: none;
+}
+
+.pc-modal-stat-teal .pc-modal-stat-icon-v2 {
+    background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+}
+.pc-modal-stat-teal .pc-modal-stat-icon-v2 svg {
+    stroke: #00897b;
+    fill: none;
+}
+
+.pc-modal-stat-purple .pc-modal-stat-icon-v2 {
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+}
+.pc-modal-stat-purple .pc-modal-stat-icon-v2 svg {
+    stroke: #8e24aa;
+    fill: none;
+}
+
+.pc-modal-stat-content-v2 {
+    flex: 1;
+    min-width: 0;
+}
+
+.pc-modal-stat-label-v2 {
+    font-size: 10px;
+    color: #78909c;
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.pc-modal-stat-value-v2 {
+    font-size: 16px;
+    font-weight: 900;
+    color: #1976d2;
+}
+
+.pc-modal-stat-arrow {
+    color: #90a4ae;
+    font-size: 20px;
+    font-weight: bold;
+    margin-left: auto;
+}
+
+/* 🆕 حالت شب */
+body.dark-mode .pc-modal-card {
+    background: #1a2332;
+}
+
+body.dark-mode .pc-cover-wrapper {
+    background: linear-gradient(135deg, #0d47a1, #4a148c);
+}
+
+body.dark-mode .pc-close-btn {
+    background: rgba(42, 52, 68, 0.9);
+}
+body.dark-mode .pc-close-btn svg {
+    stroke: #90caf9;
+}
+
+body.dark-mode .pc-modal-name {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-class {
+    background: #0f1419;
+    color: #90a4ae;
+}
+
+body.dark-mode .pc-modal-info-table {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-info-row {
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-info-value {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-stat-card-v2 {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .pc-modal-stat-value-v2 {
+    color: #90caf9;
+}
+
+body.dark-mode .pc-modal-stats-title {
+    color: #90caf9;
+}
