@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — منطق پنل معلم
-// نسخه: ۱۱.۰.۰ — Cache-First + Pre-Fetch + Background Sync
+// نسخه: ۱۱.۰.۰ — با درخواست جامع و نوتیفیکیشن درون‌برنامه‌ای
 // ============================================================
 
 // ============================================================
@@ -10,7 +10,7 @@ const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbzwzU7HKqlWOSyG
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
 const DEFAULT_PASSWORD = 'hadi1383';
 const READ_TIMES_KEY = 'teacherReadTimes';
-const MESSAGES_CACHE_DURATION = 3600000;  // 🆕 ۱ ساعت (به‌جای ۵ دقیقه)
+const MESSAGES_CACHE_DURATION = 1800000;  // 🆕 ۳۰ دقیقه
 const CONVERSATIONS_CACHE_KEY = 'teacherConversationsCache';
 const CLASS_MESSAGES_CACHE_KEY = 'teacherClassMessagesCache';
 const STUDENTS_CACHE_KEY = 'teacherStudentsCache';
@@ -18,26 +18,23 @@ const LESSONS_CACHE_KEY = 'teacherLessonsCache';
 const EVENTS_CACHE_KEY = 'teacherEventsCache';
 const CONTESTS_CACHE_KEY = 'teacherContestsCache';
 const LIBRARY_CACHE_KEY = 'teacherLibraryCache';
-const CHAT_POLLING_INTERVAL = 3000;
-const CONVERSATION_POLLING_INTERVAL = 3000;
+const CHAT_POLLING_INTERVAL = 5000;         // 🆕 ۵ ثانیه
+const CONVERSATION_POLLING_INTERVAL = 5000; // 🆕 ۵ ثانیه
+const HOME_POLLING_INTERVAL = 15000;        // 🆕 ۱۵ ثانیه
 
 let allStudents = [];
 let currentConversations = [];
 let currentChatStudent = null;
 let chatPollingInterval = null;
 let conversationPollingInterval = null;
+let homePollingInterval = null;
 let currentRankingClass = 'hafom-1';
 let pageHistory = ['home'];
 
-let isFetchingConversations = false;
+// 🆕 محافظ‌ها
 let isFetchingChat = false;
-
-// 🆕 Pre-Fetch Status
-let prefetchDone = {
-    students: false,
-    conversations: false,
-    classMessages: false
-};
+let isFetchingConversations = false;
+let isFetchingHome = false;
 
 // ============================================================
 // توابع کمکی
@@ -101,6 +98,7 @@ function setReadTime(studentId) {
     const times = getReadTimes();
     times[studentId] = Date.now();
     localStorage.setItem(READ_TIMES_KEY, JSON.stringify(times));
+    console.log('📖 زمان خواندن ذخیره شد:', studentId);
 }
 
 // ============================================================
@@ -158,12 +156,7 @@ function checkPassword() {
         localStorage.setItem('teacherLoggedIn', 'true');
         
         pageHistory = ['home'];
-        
-        // 🆕 اول صفحه خانه رو از کش نشون بده (فوری)
         navigateToPage('home', false);
-        
-        // 🆕 بعد Pre-Fetch همه‌ی داده‌ها رو در پس‌زمینه شروع کن
-        setTimeout(() => prefetchAllData(), 100);
         
         setTimeout(() => {
             const apiInput = document.getElementById('setting-api-url');
@@ -183,133 +176,24 @@ function logout() {
         document.getElementById('main-panel').classList.remove('active');
         stopChatPolling();
         stopConversationPolling();
+        stopHomePolling();
         pageHistory = ['home'];
-        
-        // 🆕 ریست Pre-Fetch Status
-        prefetchDone = { students: false, conversations: false, classMessages: false };
     }
 }
 
-// ============================================================
-// 🆕 Pre-Fetch همه‌ی داده‌ها در پس‌زمینه
-// ============================================================
-async function prefetchAllData() {
-    console.log('🚀 شروع Pre-Fetch داده‌ها...');
-    const startTime = performance.now();
-    
-    // این‌ها رو موازی اجرا کن
-    const tasks = [
-        prefetchStudents(),
-        prefetchConversations(),
-        prefetchClassMessages(),
-        prefetchEvents(),
-        prefetchContests(),
-        prefetchLibrary()
-    ];
-    
-    try {
-        await Promise.allSettled(tasks);
-        const elapsed = Math.round(performance.now() - startTime);
-        console.log(`✅ Pre-Fetch کامل شد در ${elapsed} میلی‌ثانیه`);
-        
-        // 🆕 بعد از Pre-Fetch، صفحه فعلی رو دوباره رندر کن
-        const activePage = document.querySelector('.page.active');
-        if (activePage) {
-            const pageId = activePage.id.replace('page-', '');
-            console.log('🔄 رندر مجدد صفحه:', pageId);
-        }
-    } catch (e) {
-        console.warn('خطا در Pre-Fetch:', e);
-    }
-}
-
-async function prefetchStudents() {
-    try {
-        const response = await apiGet({ action: 'getAllStudents' });
-        if (response.data) {
-            setCachedData(STUDENTS_CACHE_KEY, response.data);
-            allStudents = response.data;
-            prefetchDone.students = true;
-        }
-    } catch (e) {}
-}
-
-async function prefetchConversations() {
-    try {
-        const response = await apiGet({ action: 'getStudentConversations' });
-        if (response.data) {
-            response.data.forEach(conv => {
-                conv.unread_count = computeUnreadForConversation(conv);
-            });
-            setCachedData(CONVERSATIONS_CACHE_KEY, response.data);
-            currentConversations = response.data;
-            prefetchDone.conversations = true;
-            
-            // Badge رو آپدیت کن
-            updateHomeBadgesImmediately();
-        }
-    } catch (e) {}
-}
-
-async function prefetchClassMessages() {
-    try {
-        const response = await apiGet({ action: 'getClassMessages' });
-        if (response.data) {
-            setCachedData(CLASS_MESSAGES_CACHE_KEY, response.data);
-            prefetchDone.classMessages = true;
-        }
-    } catch (e) {}
-}
-
-async function prefetchEvents() {
-    try {
-        const response = await apiGet({ action: 'getEvents' });
-        if (response.data) {
-            setCachedData(EVENTS_CACHE_KEY, response.data);
-        }
-    } catch (e) {}
-}
-
-async function prefetchContests() {
-    try {
-        const response = await apiGet({ action: 'getContests' });
-        if (response.data) {
-            setCachedData(CONTESTS_CACHE_KEY, response.data);
-        }
-    } catch (e) {}
-}
-
-async function prefetchLibrary() {
-    try {
-        const response = await apiGet({ action: 'getLibrary' });
-        if (response.data) {
-            setCachedData(LIBRARY_CACHE_KEY, response.data);
-        }
-    } catch (e) {}
-}
-
-// ============================================================
-// Window Load — شروع سریع
-// ============================================================
 window.addEventListener('load', () => {
     if (localStorage.getItem('teacherLoggedIn') === 'true') {
         document.getElementById('login-screen').classList.remove('active');
         document.getElementById('main-panel').classList.add('active');
         
         pageHistory = ['home'];
-        
-        // 🆕 اول از کش (فوری)
         navigateToPage('home', false);
-        
-        // 🆕 بعد Pre-Fetch در پس‌زمینه
-        setTimeout(() => prefetchAllData(), 100);
         
         setTimeout(() => {
             const apiInput = document.getElementById('setting-api-url');
             if (apiInput) apiInput.value = TEACHER_API_URL;
         }, 500);
         
-        // Badge فوری از کش
         setTimeout(() => {
             updateHomeBadgesImmediately();
         }, 50);
@@ -344,14 +228,28 @@ function navigateToPage(pageId, addToHistory = true) {
     }
     
     const titles = {
-        home: 'خانه', students: 'دانش‌آموزان', rankings: 'رتبه‌بندی',
-        messages: 'پیام‌رسانی', lessons: 'مدیریت تکالیف', calendar: 'تقویم',
-        contests: 'مسابقات', library: 'کتابخانه', reports: 'گزارش‌ها', settings: 'تنظیمات'
+        home: 'خانه',
+        students: 'دانش‌آموزان',
+        rankings: 'رتبه‌بندی',
+        messages: 'پیام‌رسانی',
+        lessons: 'مدیریت تکالیف',
+        calendar: 'تقویم',
+        contests: 'مسابقات',
+        library: 'کتابخانه',
+        reports: 'گزارش‌ها',
+        settings: 'تنظیمات'
     };
     const icons = {
-        home: '🏠', students: '👥', rankings: '🏆', messages: '💬',
-        lessons: '📚', calendar: '📅', contests: '🎯', library: '📖',
-        reports: '📄', settings: '⚙️'
+        home: '🏠',
+        students: '👥',
+        rankings: '🏆',
+        messages: '💬',
+        lessons: '📚',
+        calendar: '📅',
+        contests: '🎯',
+        library: '📖',
+        reports: '📄',
+        settings: '⚙️'
     };
     
     const titleEl = document.getElementById('panel-page-title');
@@ -359,47 +257,31 @@ function navigateToPage(pageId, addToHistory = true) {
     if (titleEl) titleEl.textContent = titles[pageId] || 'خانه';
     if (iconEl) iconEl.textContent = icons[pageId] || '🎓';
     
+    // 🆕 مدیریت polling بر اساس صفحه
     if (pageId !== 'messages') {
         stopChatPolling();
         stopConversationPolling();
     }
     
-    // 🆕 همیشه اول از کش نشون بده
+    if (pageId === 'home') {
+        startHomePolling();
+    } else {
+        stopHomePolling();
+    }
+    
     switch (pageId) {
-        case 'home': 
-            loadHomeData(); // این خودش cache-first هست
-            break;
-        case 'students': 
-            renderStudentsFromCache().then(() => {
-                if (!prefetchDone.students) loadStudents();
-            });
-            break;
-        case 'rankings': 
-            loadRankings(); // cache-first
-            break;
+        case 'home': loadHomeData(); break;
+        case 'students': loadStudents(); break;
+        case 'rankings': loadRankings(); break;
         case 'messages': 
-            loadClassMessagesFromCache();
-            loadConversationsFromCache();
+            loadClassMessages();
+            loadStudentConversations();
             startConversationPolling();
             break;
-        case 'lessons': 
-            loadLessonsPage(); // cache-first
-            break;
-        case 'calendar': 
-            loadEventsFromCache().then(() => {
-                if (!getCachedData(EVENTS_CACHE_KEY)) loadEvents();
-            });
-            break;
-        case 'contests': 
-            loadContestsFromCache().then(() => {
-                if (!getCachedData(CONTESTS_CACHE_KEY)) loadContests();
-            });
-            break;
-        case 'library': 
-            loadLibraryFromCache().then(() => {
-                if (!getCachedData(LIBRARY_CACHE_KEY)) loadLibrary();
-            });
-            break;
+        case 'lessons': loadLessonsPage(); break;
+        case 'calendar': loadEvents(); break;
+        case 'contests': loadContests(); break;
+        case 'library': loadLibrary(); break;
     }
 }
 
@@ -425,7 +307,16 @@ async function apiGet(params = {}) {
     const url = queryString ? `${TEACHER_API_URL}?${queryString}` : TEACHER_API_URL;
     
     try {
-        const response = await fetch(url + '&t=' + Date.now(), { cache: 'no-store' });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        const response = await fetch(url + '&t=' + Date.now(), { 
+            cache: 'no-store',
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (!response.ok) throw new Error('HTTP error');
         return await response.json();
     } catch (error) {
@@ -450,10 +341,87 @@ async function apiPost(data) {
 }
 
 // ============================================================
+// 🆕 درخواست جامع
+// ============================================================
+async function fetchAllTeacherData() {
+    if (isFetchingHome) return;
+    isFetchingHome = true;
+    
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        const url = `${TEACHER_API_URL}?action=getAllData&t=${Date.now()}`;
+        
+        const response = await fetch(url, {
+            cache: 'no-store',
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        const result = await response.json();
+        
+        if (!result.success || !result.data) {
+            isFetchingHome = false;
+            return;
+        }
+        
+        // ذخیره دانش‌آموزان
+        if (result.data.students) {
+            allStudents = result.data.students;
+            setCachedData(STUDENTS_CACHE_KEY, allStudents);
+            
+            const totalStudents = allStudents.length;
+            const totalLessons = allStudents.reduce((sum, s) => sum + (parseInt(s.completed_lessons) || 0), 0);
+            
+            const statStudents = document.getElementById('home-stat-students');
+            const statLessons = document.getElementById('home-stat-lessons');
+            if (statStudents) statStudents.textContent = toPersianNum(totalStudents);
+            if (statLessons) statLessons.textContent = toPersianNum(totalLessons);
+            
+            renderHomeTopStudents(allStudents);
+        }
+        
+        // ذخیره مکالمات
+        if (result.data.conversations) {
+            const oldTotalUnread = currentConversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+            
+            currentConversations = result.data.conversations;
+            currentConversations.forEach(conv => {
+                conv.unread_count = computeUnreadForConversation(conv);
+            });
+            
+            setCachedData(CONVERSATIONS_CACHE_KEY, currentConversations);
+            
+            const newTotalUnread = currentConversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+            
+            // 🆕 اگه پیام جدید اومده، نوتیف بده
+            if (newTotalUnread > oldTotalUnread && oldTotalUnread >= 0) {
+                const newConv = currentConversations.find(c => c.unread_count > 0);
+                if (newConv) {
+                    playDingSound();
+                    vibrate([30, 50, 30]);
+                    showTeacherInAppNotification(newConv.student_name, newConv.last_message, newConv.student_id);
+                }
+            }
+            
+            updateHomeBadgesImmediately();
+        }
+        
+    } catch (error) {
+        console.warn('fetchAllTeacherData error:', error.message);
+    }
+    
+    isFetchingHome = false;
+}
+
+// ============================================================
 // محاسبه کل unread
 // ============================================================
 function computeTotalUnread() {
     if (!currentConversations || currentConversations.length === 0) return 0;
+    
     let total = 0;
     currentConversations.forEach(conv => {
         total += computeUnreadForConversation(conv);
@@ -461,14 +429,12 @@ function computeTotalUnread() {
     return total;
 }
 
-// ============================================================
-// آپدیت فوری Badge
-// ============================================================
 function updateHomeBadgesImmediately() {
     const cached = getCachedData(CONVERSATIONS_CACHE_KEY);
-    if (!cached) return;
+    if (cached) {
+        currentConversations = cached;
+    }
     
-    currentConversations = cached;
     const totalUnread = computeTotalUnread();
     
     const msgStat = document.getElementById('home-stat-messages');
@@ -496,74 +462,60 @@ function updateHomeBadgesImmediately() {
 }
 
 // ============================================================
-// 🆕 صفحه خانه — Cache-First
+// صفحه خانه
 // ============================================================
 async function loadHomeData() {
-    // ⚡ مرحله ۱: از کش (فوری)
-    const cachedStudents = getCachedData(STUDENTS_CACHE_KEY);
-    if (cachedStudents && cachedStudents.length > 0) {
-        allStudents = cachedStudents;
-        renderHomeStats(cachedStudents);
-        renderHomeTopStudents(cachedStudents);
-        updateHomeBadgesImmediately();
-    }
-    
-    // ⚡ مرحله ۲: از سرور (پس‌زمینه) — فقط اگه Pre-Fetch انجام نشده
-    if (!prefetchDone.students) {
-        try {
-            const response = await apiGet({ action: 'getAllStudents' });
-            const students = response.data || [];
-            allStudents = students;
-            setCachedData(STUDENTS_CACHE_KEY, students);
-            
-            renderHomeStats(students);
-            renderHomeTopStudents(students);
-            
-            if (!prefetchDone.conversations) {
-                await updateHomeMessagesBadge();
-            }
-            
-            prefetchDone.students = true;
-        } catch (error) {
-            console.error('Error loading home:', error);
-        }
-    }
-}
-
-function renderHomeStats(students) {
-    const totalStudents = students.length;
-    const totalLessons = students.reduce((sum, s) => sum + (parseInt(s.completed_lessons) || 0), 0);
-    
-    const studentsEl = document.getElementById('home-stat-students');
-    const lessonsEl = document.getElementById('home-stat-lessons');
-    if (studentsEl) studentsEl.textContent = toPersianNum(totalStudents);
-    if (lessonsEl) lessonsEl.textContent = toPersianNum(totalLessons);
-}
-
-async function updateHomeMessagesBadge() {
     try {
-        const response = await apiGet({ action: 'getStudentConversations' });
-        const conversations = response.data || [];
-        setCachedData(CONVERSATIONS_CACHE_KEY, conversations);
-        currentConversations = conversations;
+        // ⚡ اول از کش (فوری)
+        const cachedStudents = getCachedData(STUDENTS_CACHE_KEY);
+        const cachedConvs = getCachedData(CONVERSATIONS_CACHE_KEY);
         
-        const totalUnread = computeTotalUnread();
-        
-        const msgStat = document.getElementById('home-stat-messages');
-        if (msgStat) msgStat.textContent = toPersianNum(totalUnread);
-        
-        const badge = document.getElementById('home-badge-messages');
-        if (badge) {
-            badge.textContent = toPersianNum(totalUnread);
-            badge.style.display = totalUnread > 0 ? 'block' : 'none';
+        if (cachedStudents && cachedStudents.length > 0) {
+            allStudents = cachedStudents;
+            const totalStudents = cachedStudents.length;
+            const totalLessons = cachedStudents.reduce((sum, s) => sum + (parseInt(s.completed_lessons) || 0), 0);
+            
+            document.getElementById('home-stat-students').textContent = toPersianNum(totalStudents);
+            document.getElementById('home-stat-lessons').textContent = toPersianNum(totalLessons);
+            renderHomeTopStudents(cachedStudents);
         }
         
-        const tabBadge = document.getElementById('personal-unread-badge');
-        if (tabBadge) {
-            tabBadge.textContent = toPersianNum(totalUnread);
-            tabBadge.style.display = totalUnread > 0 ? 'block' : 'none';
+        if (cachedConvs && cachedConvs.length > 0) {
+            currentConversations = cachedConvs;
+            updateHomeBadgesImmediately();
         }
-    } catch (error) {}
+        
+        // 🔄 آپدیت در پس‌زمینه
+        fetchAllTeacherData();
+        
+    } catch (error) {
+        console.error('Error loading home:', error);
+    }
+}
+
+// ============================================================
+// 🆕 Polling خانه
+// ============================================================
+function startHomePolling() {
+    stopHomePolling();
+    
+    // آپدیت اولیه
+    setTimeout(() => fetchAllTeacherData(), 500);
+    
+    homePollingInterval = setInterval(async () => {
+        const activeScreen = document.querySelector('.page.active');
+        if (!activeScreen || activeScreen.id !== 'page-home') return;
+        if (document.hidden) return;
+        
+        await fetchAllTeacherData();
+    }, HOME_POLLING_INTERVAL);
+}
+
+function stopHomePolling() {
+    if (homePollingInterval) {
+        clearInterval(homePollingInterval);
+        homePollingInterval = null;
+    }
 }
 
 function renderHomeTopStudents(students) {
@@ -614,42 +566,210 @@ function switchMessagesTab(tab) {
     document.getElementById('tab-' + tab)?.classList.add('active');
     
     if (tab === 'personal') {
-        loadConversationsFromCache();
+        loadStudentConversations();
         startConversationPolling();
     } else if (tab === 'class') {
-        loadClassMessagesFromCache();
+        loadClassMessages();
         stopConversationPolling();
     }
 }
 
 // ============================================================
-// 🆕 نمایش پیام‌های کلاسی از کش (فوری)
+// Polling مکالمات (۵ ثانیه)
 // ============================================================
-function loadClassMessagesFromCache() {
+function startConversationPolling() {
+    stopConversationPolling();
+    
+    conversationPollingInterval = setInterval(async () => {
+        if (isFetchingConversations) return;
+        if (currentChatStudent) return;
+        
+        const activeScreen = document.querySelector('.page.active');
+        if (!activeScreen || activeScreen.id !== 'page-messages') return;
+        
+        const activeTab = document.querySelector('.messages-tab-btn.active');
+        if (!activeTab || activeTab.dataset.tab !== 'personal') return;
+        
+        if (document.hidden) return;
+        
+        isFetchingConversations = true;
+        
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            const response = await fetch(
+                TEACHER_API_URL + '?action=getStudentConversations&t=' + Date.now(),
+                { cache: 'no-store', signal: controller.signal }
+            );
+            
+            clearTimeout(timeoutId);
+            
+            const result = await response.json();
+            
+            if (!result.success || !result.data) {
+                isFetchingConversations = false;
+                return;
+            }
+            
+            const conversations = result.data;
+            conversations.forEach(conv => {
+                conv.unread_count = computeUnreadForConversation(conv);
+            });
+            
+            const oldHash = JSON.stringify(currentConversations.map(c => 
+                c.student_id + '_' + c.unread_count + '_' + c.last_message
+            ));
+            const newHash = JSON.stringify(conversations.map(c => 
+                c.student_id + '_' + c.unread_count + '_' + c.last_message
+            ));
+            
+            if (oldHash !== newHash) {
+                // 🆕 چک پیام جدید
+                const oldTotalUnread = currentConversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+                const newTotalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+                
+                if (newTotalUnread > oldTotalUnread) {
+                    const newConv = conversations.find(c => {
+                        const old = currentConversations.find(oc => oc.student_id === c.student_id);
+                        return !old || c.unread_count > (old.unread_count || 0);
+                    });
+                    
+                    if (newConv) {
+                        playDingSound();
+                        vibrate([30, 50, 30]);
+                        showTeacherInAppNotification(newConv.student_name, newConv.last_message, newConv.student_id);
+                    }
+                }
+                
+                currentConversations = conversations;
+                setCachedData(CONVERSATIONS_CACHE_KEY, conversations);
+                renderMessengerList(currentConversations);
+                updateHomeBadgesImmediately();
+            }
+        } catch (error) {}
+        
+        isFetchingConversations = false;
+    }, CONVERSATION_POLLING_INTERVAL);
+}
+
+function stopConversationPolling() {
+    if (conversationPollingInterval) {
+        clearInterval(conversationPollingInterval);
+        conversationPollingInterval = null;
+    }
+}
+
+// ============================================================
+// 🆕 نوتیفیکیشن درون‌برنامه‌ای
+// ============================================================
+function showTeacherInAppNotification(studentName, message, studentId) {
+    document.querySelectorAll('.inapp-notification').forEach(n => n.remove());
+    
+    const notif = document.createElement('div');
+    notif.className = 'inapp-notification';
+    notif.innerHTML = `
+        <div class="inapp-icon">💬</div>
+        <div class="inapp-content">
+            <div class="inapp-title">پیام از ${studentName}</div>
+            <div class="inapp-text">${message.substring(0, 60)}${message.length > 60 ? '...' : ''}</div>
+        </div>
+    `;
+    notif.onclick = () => {
+        notif.remove();
+        navigateToPage('messages', true);
+        setTimeout(() => {
+            switchMessagesTab('personal');
+            setTimeout(() => {
+                const conv = currentConversations.find(c => c.student_id === studentId);
+                if (conv) {
+                    openChatWith(studentId, conv.student_name, conv.class_name);
+                }
+            }, 400);
+        }, 300);
+    };
+    
+    document.body.appendChild(notif);
+    
+    setTimeout(() => notif.classList.add('show'), 50);
+    
+    setTimeout(() => {
+        notif.classList.remove('show');
+        setTimeout(() => notif.remove(), 400);
+    }, 6000);
+}
+
+// ============================================================
+// ارسال پیام کلاسی
+// ============================================================
+async function sendClassMessage() {
+    const className = document.getElementById('class-message-target').value;
+    const title = document.getElementById('class-message-title').value.trim();
+    const text = document.getElementById('class-message-text').value.trim();
+    const type = document.getElementById('class-message-type').value;
+    
+    if (!title) {
+        showToast('لطفاً عنوان پیام را وارد کنید', 'warning');
+        return;
+    }
+    if (!text) {
+        showToast('لطفاً متن پیام را وارد کنید', 'warning');
+        return;
+    }
+    
+    const messageData = {
+        action: 'sendClassMessage',
+        message_id: 'cls_' + Date.now(),
+        class_name: className,
+        title: title,
+        text: text,
+        type: type,
+        date: new Date().toISOString(),
+        date_persian: new Date().toLocaleDateString('fa-IR')
+    };
+    
+    try {
+        showToast('در حال ارسال...', 'info');
+        await apiPost(messageData);
+        
+        showToast('پیام کلاسی ارسال شد! ✅', 'success');
+        
+        document.getElementById('class-message-title').value = '';
+        document.getElementById('class-message-text').value = '';
+        
+        localStorage.removeItem(CLASS_MESSAGES_CACHE_KEY);
+        
+        setTimeout(loadClassMessages, 1000);
+        
+    } catch (error) {
+        showToast('خطا در ارسال پیام', 'error');
+    }
+}
+
+// ============================================================
+// بارگذاری پیام‌های کلاسی
+// ============================================================
+async function loadClassMessages() {
+    const container = document.getElementById('class-messages-list');
+    if (!container) return;
+    
     const cached = getCachedData(CLASS_MESSAGES_CACHE_KEY);
     if (cached && cached.length > 0) {
         renderClassMessages(cached);
     } else {
-        const container = document.getElementById('class-messages-list');
-        if (container) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
-        }
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
     }
     
-    // اگه Pre-Fetch انجام نشده، از سرور بگیر
-    if (!prefetchDone.classMessages) {
-        loadClassMessages();
-    }
-}
-
-async function loadClassMessages() {
     try {
         const response = await apiGet({ action: 'getClassMessages' });
         const messages = response.data || [];
         setCachedData(CLASS_MESSAGES_CACHE_KEY, messages);
         renderClassMessages(messages);
-        prefetchDone.classMessages = true;
-    } catch (error) {}
+    } catch (error) {
+        if (!cached) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا در بارگذاری</div>';
+        }
+    }
 }
 
 function renderClassMessages(messages) {
@@ -664,8 +784,10 @@ function renderClassMessages(messages) {
     messages.sort((a, b) => new Date(b.date) - new Date(a.date));
     
     const typeTexts = {
-        info: 'ℹ️ اطلاعیه', warning: '⚠️ هشدار',
-        success: '✅ تبریک', reminder: '🔔 یادآوری'
+        info: 'ℹ️ اطلاعیه',
+        warning: '⚠️ هشدار',
+        success: '✅ تبریک',
+        reminder: '🔔 یادآوری'
     };
     
     let html = '';
@@ -689,9 +811,12 @@ function renderClassMessages(messages) {
 }
 
 // ============================================================
-// 🆕 نمایش مکالمات از کش (فوری)
+// بارگذاری مکالمات
 // ============================================================
-function loadConversationsFromCache() {
+async function loadStudentConversations() {
+    const container = document.getElementById('messenger-list-items');
+    if (!container) return;
+    
     const cached = getCachedData(CONVERSATIONS_CACHE_KEY);
     if (cached && cached.length > 0) {
         currentConversations = cached;
@@ -700,14 +825,9 @@ function loadConversationsFromCache() {
         });
         renderMessengerList(currentConversations);
     } else {
-        const container = document.getElementById('messenger-list-items');
-        if (container) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
-        }
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
     }
-}
-
-async function loadStudentConversations() {
+    
     try {
         const response = await apiGet({ action: 'getStudentConversations' });
         let conversations = response.data || [];
@@ -718,20 +838,20 @@ async function loadStudentConversations() {
         
         currentConversations = conversations;
         setCachedData(CONVERSATIONS_CACHE_KEY, conversations);
-        prefetchDone.conversations = true;
         
         if (currentConversations.length === 0) {
-            const container = document.getElementById('messenger-list-items');
-            if (container) {
-                container.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز مکالمه‌ای وجود نداره</div>';
-            }
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز مکالمه‌ای وجود نداره</div>';
             return;
         }
         
         renderMessengerList(currentConversations);
-        await updateHomeMessagesBadge();
+        updateHomeBadgesImmediately();
         
-    } catch (error) {}
+    } catch (error) {
+        if (!cached) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا در بارگذاری</div>';
+        }
+    }
 }
 
 function renderMessengerList(conversations) {
@@ -784,100 +904,18 @@ function renderMessengerList(conversations) {
     container.innerHTML = html;
 }
 
-// ============================================================
-// Polling مکالمات
-// ============================================================
-function startConversationPolling() {
-    stopConversationPolling();
+function filterMessengerList(query) {
+    query = query.toLowerCase().trim();
     
-    conversationPollingInterval = setInterval(async () => {
-        if (isFetchingConversations) return;
-        
-        const activeScreen = document.querySelector('.page.active');
-        if (!activeScreen || activeScreen.id !== 'page-messages') return;
-        
-        const activeTab = document.querySelector('.messages-tab-btn.active');
-        if (!activeTab || activeTab.dataset.tab !== 'personal') return;
-        
-        if (currentChatStudent) return;
-        
-        isFetchingConversations = true;
-        
-        try {
-            const response = await apiGet({ action: 'getStudentConversations' });
-            const conversations = response.data || [];
-            
-            conversations.forEach(conv => {
-                conv.unread_count = computeUnreadForConversation(conv);
-            });
-            
-            const oldHash = JSON.stringify(currentConversations.map(c => 
-                c.student_id + '_' + c.unread_count + '_' + c.last_message
-            ));
-            const newHash = JSON.stringify(conversations.map(c => 
-                c.student_id + '_' + c.unread_count + '_' + c.last_message
-            ));
-            
-            if (oldHash !== newHash) {
-                currentConversations = conversations;
-                setCachedData(CONVERSATIONS_CACHE_KEY, conversations);
-                renderMessengerList(currentConversations);
-                await updateHomeMessagesBadge();
-                updateHomeBadgesImmediately();
-            }
-        } catch (error) {}
-        
-        isFetchingConversations = false;
-    }, CONVERSATION_POLLING_INTERVAL);
-}
-
-function stopConversationPolling() {
-    if (conversationPollingInterval) {
-        clearInterval(conversationPollingInterval);
-        conversationPollingInterval = null;
-    }
-}
-
-// ============================================================
-// ارسال پیام کلاسی
-// ============================================================
-async function sendClassMessage() {
-    const className = document.getElementById('class-message-target').value;
-    const title = document.getElementById('class-message-title').value.trim();
-    const text = document.getElementById('class-message-text').value.trim();
-    const type = document.getElementById('class-message-type').value;
-    
-    if (!title || !text) {
-        showToast('لطفاً عنوان و متن پیام را وارد کنید', 'warning');
+    if (!query) {
+        renderMessengerList(currentConversations);
         return;
     }
     
-    const messageData = {
-        action: 'sendClassMessage',
-        message_id: 'cls_' + Date.now(),
-        class_name: className,
-        title, text, type,
-        date: new Date().toISOString(),
-        date_persian: new Date().toLocaleDateString('fa-IR')
-    };
-    
-    try {
-        showToast('در حال ارسال...', 'info');
-        await apiPost(messageData);
-        showToast('پیام کلاسی ارسال شد! ✅', 'success');
-        
-        document.getElementById('class-message-title').value = '';
-        document.getElementById('class-message-text').value = '';
-        
-        // 🆕 آپدیت کش (به‌جای پاک کردن)
-        const cached = getCachedData(CLASS_MESSAGES_CACHE_KEY) || [];
-        cached.unshift(messageData);
-        setCachedData(CLASS_MESSAGES_CACHE_KEY, cached);
-        renderClassMessages(cached);
-        
-    } catch (error) {
-        showToast('خطا در ارسال پیام', 'error');
-    }
+    const filtered = currentConversations.filter(c => 
+        (c.student_name || '').toLowerCase().includes(query)
+    );
+    renderMessengerList(filtered);
 }
 
 // ============================================================
@@ -897,7 +935,6 @@ async function openChatWith(studentId, studentName, className) {
     document.getElementById('messenger-chat-name').textContent = studentName;
     document.getElementById('messenger-chat-status').textContent = getClassPersianName(className);
     
-    // آواتار
     const avatarEl = document.getElementById('messenger-chat-avatar');
     const conv = currentConversations.find(c => c.student_id === studentId);
     if (conv && conv.avatar_url) {
@@ -926,37 +963,22 @@ async function openChatWith(studentId, studentName, className) {
     
     updateHomeBadgesImmediately();
     
-    // 🆕 اول از کش نشون بده
-    loadChatMessagesFromCache(studentId);
-    
-    // 🆕 بعد از سرور (پس‌زمینه)
-    loadChatMessages(studentId);
+    await loadChatMessages(studentId);
     
     // 🆕 علامت‌گذاری سمت سرور
-    try {
-        await apiPost({
+    fetch(TEACHER_API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
             action: 'markAllMessagesAsSeen',
             student_id: studentId,
             reader: 'teacher',
             timestamp: new Date().toISOString()
-        });
-    } catch (e) {}
+        })
+    }).catch(() => {});
     
     startChatPolling(studentId);
-}
-
-function loadChatMessagesFromCache(studentId) {
-    const cacheKey = 'teacherMessagesCache_' + studentId;
-    const cached = getCachedData(cacheKey);
-    
-    if (cached && cached.length > 0) {
-        renderChatMessages(cached);
-    } else {
-        const container = document.getElementById('messenger-chat-messages');
-        if (container) {
-            container.innerHTML = '<div class="messenger-chat-messages-empty">در حال بارگذاری...</div>';
-        }
-    }
 }
 
 function closeMessengerChat() {
@@ -965,10 +987,25 @@ function closeMessengerChat() {
     document.getElementById('messenger-chat').style.display = 'none';
     currentChatStudent = null;
     stopChatPolling();
-    loadConversationsFromCache();
+    loadStudentConversations();
 }
 
+// ============================================================
+// بارگذاری پیام‌های چت
+// ============================================================
 async function loadChatMessages(studentId) {
+    const container = document.getElementById('messenger-chat-messages');
+    if (!container) return;
+    
+    const cacheKey = 'teacherMessagesCache_' + studentId;
+    const cached = getCachedData(cacheKey);
+    
+    if (cached && cached.length > 0) {
+        renderChatMessages(cached);
+    } else {
+        container.innerHTML = '<div class="messenger-chat-messages-empty">در حال بارگذاری...</div>';
+    }
+    
     try {
         const response = await apiGet({ 
             action: 'getPersonalMessages',
@@ -976,21 +1013,21 @@ async function loadChatMessages(studentId) {
         });
         const messages = response.data || [];
         
-        const container = document.getElementById('messenger-chat-messages');
-        
         if (messages.length === 0) {
-            if (container) {
-                container.innerHTML = '<div class="messenger-chat-messages-empty">هنوز پیامی رد و بدل نشده<br>اولین پیام رو بفرست!</div>';
-            }
+            container.innerHTML = '<div class="messenger-chat-messages-empty">هنوز پیامی رد و بدل نشده<br>اولین پیام رو بفرست!</div>';
             return;
         }
         
         messages.sort((a, b) => new Date(a.date) - new Date(b.date));
         
-        setCachedData('teacherMessagesCache_' + studentId, messages);
+        setCachedData(cacheKey, messages);
         renderChatMessages(messages);
         
-    } catch (error) {}
+    } catch (error) {
+        if (!cached) {
+            container.innerHTML = '<div class="messenger-chat-messages-empty">خطا در بارگذاری</div>';
+        }
+    }
 }
 
 // ============================================================
@@ -1010,7 +1047,9 @@ function renderChatMessages(messages) {
             const isSeen = 
                 msg.is_seen === true || 
                 msg.is_seen === 'true' || 
-                msg.is_seen === 1;
+                msg.is_seen === 1 ||
+                msg.is_seen === 'TRUE' ||
+                msg.is_seen === 'True';
             
             tickHtml = isSeen 
                 ? `<span class="chat-tick chat-tick-seen">✓✓</span>`
@@ -1040,6 +1079,7 @@ async function sendChatMessage() {
     
     const input = document.getElementById('messenger-chat-input');
     const text = input.value.trim();
+    
     if (!text) return;
     
     const messageData = {
@@ -1082,6 +1122,7 @@ async function sendChatMessage() {
         setCachedData(cacheKey, cached);
         
         await apiPost(messageData);
+        
         setReadTime(currentChatStudent.student_id);
         
     } catch (error) {
@@ -1090,7 +1131,7 @@ async function sendChatMessage() {
 }
 
 // ============================================================
-// Polling چت
+// Polling چت (۵ ثانیه)
 // ============================================================
 function startChatPolling(studentId) {
     stopChatPolling();
@@ -1098,22 +1139,29 @@ function startChatPolling(studentId) {
     chatPollingInterval = setInterval(async () => {
         if (isFetchingChat) return;
         if (!currentChatStudent || currentChatStudent.student_id !== studentId) return;
+        if (document.hidden) return;
         
         isFetchingChat = true;
         
         try {
-            const response = await apiGet({ 
-                action: 'getPersonalMessages',
-                student_id: studentId
-            });
-            const messages = response.data || [];
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
             
-            if (messages.length === 0) {
+            const response = await fetch(
+                TEACHER_API_URL + '?action=getPersonalMessages&student_id=' + studentId + '&t=' + Date.now(),
+                { cache: 'no-store', signal: controller.signal }
+            );
+            
+            clearTimeout(timeoutId);
+            
+            const result = await response.json();
+            
+            if (!result.success || !result.data) {
                 isFetchingChat = false;
                 return;
             }
             
-            messages.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const messages = result.data.sort((a, b) => new Date(a.date) - new Date(b.date));
             
             const container = document.getElementById('messenger-chat-messages');
             const currentCount = container.querySelectorAll('.messenger-chat-message').length;
@@ -1134,22 +1182,19 @@ function startChatPolling(studentId) {
                 if (lastMsg.sender === 'student' && messages.length !== currentCount) {
                     playDingSound();
                     setReadTime(studentId);
-                    await updateHomeMessagesBadge();
                     updateHomeBadgesImmediately();
                     
-                    try {
-                        await fetch(TEACHER_API_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                            body: JSON.stringify({
-                                action: 'markAllMessagesAsSeen',
-                                student_id: studentId,
-                                reader: 'teacher',
-                                timestamp: new Date().toISOString()
-                            })
-                        });
-                    } catch (e) {}
+                    fetch(TEACHER_API_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'markAllMessagesAsSeen',
+                            student_id: studentId,
+                            reader: 'teacher',
+                            timestamp: new Date().toISOString()
+                        })
+                    }).catch(() => {});
                 }
             }
         } catch (error) {}
@@ -1194,24 +1239,30 @@ function playDingSound() {
 }
 
 // ============================================================
-// 🆕 دانش‌آموزان — از کش (فوری)
+// دانش‌آموزان
 // ============================================================
-async function renderStudentsFromCache() {
+async function loadStudents() {
+    const container = document.getElementById('students-grid');
+    if (!container) return;
+    
     const cached = getCachedData(STUDENTS_CACHE_KEY);
     if (cached && cached.length > 0) {
         allStudents = cached;
-        renderStudents(cached);
+        renderStudents(allStudents);
+    } else {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
     }
-}
-
-async function loadStudents() {
+    
     try {
         const response = await apiGet({ action: 'getAllStudents' });
         allStudents = response.data || [];
         setCachedData(STUDENTS_CACHE_KEY, allStudents);
         renderStudents(allStudents);
-        prefetchDone.students = true;
-    } catch (error) {}
+    } catch (error) {
+        if (!cached) {
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:#c62828; font-weight:bold;">خطا در بارگذاری</div>';
+        }
+    }
 }
 
 function renderStudents(students) {
@@ -1346,12 +1397,12 @@ function goToChatWith(studentId, studentName, className) {
         switchMessagesTab('personal');
         setTimeout(() => {
             openChatWith(studentId, studentName, className);
-        }, 300);
-    }, 200);
+        }, 400);
+    }, 300);
 }
 
 // ============================================================
-// 🆕 رتبه‌بندی — از کش (فوری)
+// رتبه‌بندی
 // ============================================================
 function switchRankingClass(className, btn) {
     currentRankingClass = className;
@@ -1369,74 +1420,56 @@ async function loadRankings() {
     const container = document.getElementById('rankings-list');
     if (!container) return;
     
-    // ⚡ از کش (فوری)
-    const cachedStudents = getCachedData(STUDENTS_CACHE_KEY);
-    if (cachedStudents && cachedStudents.length > 0) {
-        const rankings = cachedStudents
+    container.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
+    
+    try {
+        let allData = getCachedData(STUDENTS_CACHE_KEY);
+        
+        if (!allData) {
+            const response = await apiGet({ action: 'getAllStudents' });
+            allData = response.data || [];
+            setCachedData(STUDENTS_CACHE_KEY, allData);
+        }
+        
+        const rankings = allData
             .filter(s => s.class_name === currentRankingClass)
             .sort((a, b) => (parseInt(b.total_points) || 0) - (parseInt(a.total_points) || 0));
         
         const countEl = document.getElementById('rankings-current-count');
         if (countEl) countEl.textContent = `${toPersianNum(rankings.length)} دانش‌آموز`;
         
-        if (rankings.length > 0) {
-            renderRankingsList(rankings);
+        if (rankings.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">دانش‌آموزی در این کلاس نیست</div>';
+            return;
         }
-    }
-    
-    // ⚡ از سرور (اگه Pre-Fetch انجام نشده)
-    if (!prefetchDone.students) {
-        try {
-            const response = await apiGet({ action: 'getAllStudents' });
-            const students = response.data || [];
-            setCachedData(STUDENTS_CACHE_KEY, students);
-            allStudents = students;
-            prefetchDone.students = true;
-            
-            const rankings = students
-                .filter(s => s.class_name === currentRankingClass)
-                .sort((a, b) => (parseInt(b.total_points) || 0) - (parseInt(a.total_points) || 0));
-            
-            const countEl = document.getElementById('rankings-current-count');
-            if (countEl) countEl.textContent = `${toPersianNum(rankings.length)} دانش‌آموز`;
-            
-            renderRankingsList(rankings);
-        } catch (error) {}
-    }
-}
-
-function renderRankingsList(rankings) {
-    const container = document.getElementById('rankings-list');
-    if (!container) return;
-    
-    if (rankings.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">دانش‌آموزی در این کلاس نیست</div>';
-        return;
-    }
-    
-    let html = '';
-    rankings.forEach((student, index) => {
-        const rank = index + 1;
-        const rankClass = rank <= 3 ? `rank-${rank}` : '';
-        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : toPersianNum(rank);
         
-        html += `
-            <div class="ranking-item ${rankClass}" onclick="showStudentDetails('${student.student_id}')">
-                <div class="ranking-rank">${medal}</div>
-                <div class="student-avatar" style="width:46px;height:46px;">${renderAvatarHTML(student)}</div>
-                <div class="student-info">
-                    <div class="student-name">${student.name || 'بدون نام'}</div>
-                    <span class="student-class">${toPersianNum(student.completed_lessons || 0)} تکلیف • ${toPersianNum(student.avg_percent || 0)}%</span>
+        let html = '';
+        rankings.forEach((student, index) => {
+            const rank = index + 1;
+            const rankClass = rank <= 3 ? `rank-${rank}` : '';
+            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : toPersianNum(rank);
+            
+            html += `
+                <div class="ranking-item ${rankClass}" onclick="showStudentDetails('${student.student_id}')">
+                    <div class="ranking-rank">${medal}</div>
+                    <div class="student-avatar" style="width:46px;height:46px;">${renderAvatarHTML(student)}</div>
+                    <div class="student-info">
+                        <div class="student-name">${student.name || 'بدون نام'}</div>
+                        <span class="student-class">${toPersianNum(student.completed_lessons || 0)} تکلیف • ${toPersianNum(student.avg_percent || 0)}%</span>
+                    </div>
+                    <div class="student-points">
+                        <span>⭐</span>
+                        <span>${toPersianNum(student.total_points || 0)}</span>
+                    </div>
                 </div>
-                <div class="student-points">
-                    <span>⭐</span>
-                    <span>${toPersianNum(student.total_points || 0)}</span>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
+            `;
+        });
+        
+        container.innerHTML = html;
+        
+    } catch (error) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#c62828; font-weight:bold;">خطا در بارگذاری</div>';
+    }
 }
 
 // ============================================================
@@ -1446,7 +1479,7 @@ async function loadLessonsPage() {
     const container = document.getElementById('lessons-list');
     if (!container) return;
     
-    const cached = getCachedData(LESSONS_CACHE_KEY, 3600000);
+    const cached = getCachedData(LESSONS_CACHE_KEY, 600000);
     if (cached && cached.length > 0) {
         renderLessonsList(cached);
     } else {
@@ -1457,9 +1490,15 @@ async function loadLessonsPage() {
         const response = await fetch('./lessons/index.json');
         const data = await response.json();
         const lessons = data.lessons || [];
+        
         setCachedData(LESSONS_CACHE_KEY, lessons);
         renderLessonsList(lessons);
-    } catch (error) {}
+        
+    } catch (error) {
+        if (!cached) {
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:#c62828; font-weight:bold;">خطا در بارگذاری</div>';
+        }
+    }
 }
 
 function renderLessonsList(lessons) {
@@ -1492,15 +1531,8 @@ function renderLessonsList(lessons) {
 }
 
 // ============================================================
-// 🆕 تقویم — Cache-First
+// تقویم
 // ============================================================
-async function loadEventsFromCache() {
-    const cached = getCachedData(EVENTS_CACHE_KEY);
-    if (cached && cached.length > 0) {
-        renderEvents(cached);
-    }
-}
-
 async function addEvent() {
     const title = document.getElementById('event-title').value.trim();
     const date = document.getElementById('event-date').value.trim();
@@ -1527,24 +1559,36 @@ async function addEvent() {
         document.getElementById('event-date').value = '';
         document.getElementById('event-desc').value = '';
         
-        // 🆕 آپدیت کش
-        const cached = getCachedData(EVENTS_CACHE_KEY) || [];
-        cached.unshift({ event_id: 'evt_' + Date.now(), title, date, class_name: cls, type, description: desc });
-        setCachedData(EVENTS_CACHE_KEY, cached);
-        renderEvents(cached);
-        
+        localStorage.removeItem(EVENTS_CACHE_KEY);
+        loadEvents();
     } catch (error) {
         showToast('خطا در ثبت رویداد', 'error');
     }
 }
 
 async function loadEvents() {
+    const container = document.getElementById('events-list');
+    if (!container) return;
+    
+    const cached = getCachedData(EVENTS_CACHE_KEY);
+    if (cached && cached.length > 0) {
+        renderEvents(cached);
+    } else {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
+    }
+    
     try {
         const response = await apiGet({ action: 'getEvents' });
         const events = response.data || [];
+        
         setCachedData(EVENTS_CACHE_KEY, events);
         renderEvents(events);
-    } catch (error) {}
+        
+    } catch (error) {
+        if (!cached) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا در بارگذاری</div>';
+        }
+    }
 }
 
 function renderEvents(events) {
@@ -1556,7 +1600,9 @@ function renderEvents(events) {
         return;
     }
     
-    const typeIcons = { exam: '📝', homework: '📚', holiday: '🎉', event: '📌' };
+    const typeIcons = {
+        exam: '📝', homework: '📚', holiday: '🎉', event: '📌'
+    };
     
     let html = '';
     events.forEach(evt => {
@@ -1578,15 +1624,8 @@ function renderEvents(events) {
 }
 
 // ============================================================
-// 🆕 مسابقات — Cache-First
+// مسابقات
 // ============================================================
-async function loadContestsFromCache() {
-    const cached = getCachedData(CONTESTS_CACHE_KEY);
-    if (cached && cached.length > 0) {
-        renderContests(cached);
-    }
-}
-
 async function addContest() {
     const title = document.getElementById('contest-title').value.trim();
     const prize = document.getElementById('contest-prize').value.trim();
@@ -1604,7 +1643,8 @@ async function addContest() {
             action: 'addContest',
             contest_id: 'cnt_' + Date.now(),
             title, prize, start_date: start, end_date: end,
-            description: desc, created_at: new Date().toISOString()
+            description: desc,
+            created_at: new Date().toISOString()
         });
         
         showToast('مسابقه با موفقیت ایجاد شد', 'success');
@@ -1615,23 +1655,36 @@ async function addContest() {
         document.getElementById('contest-end').value = '';
         document.getElementById('contest-desc').value = '';
         
-        const cached = getCachedData(CONTESTS_CACHE_KEY) || [];
-        cached.unshift({ contest_id: 'cnt_' + Date.now(), title, prize, start_date: start, end_date: end, description: desc });
-        setCachedData(CONTESTS_CACHE_KEY, cached);
-        renderContests(cached);
-        
+        localStorage.removeItem(CONTESTS_CACHE_KEY);
+        loadContests();
     } catch (error) {
         showToast('خطا در ایجاد مسابقه', 'error');
     }
 }
 
 async function loadContests() {
+    const container = document.getElementById('contests-list');
+    if (!container) return;
+    
+    const cached = getCachedData(CONTESTS_CACHE_KEY);
+    if (cached && cached.length > 0) {
+        renderContests(cached);
+    } else {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
+    }
+    
     try {
         const response = await apiGet({ action: 'getContests' });
         const contests = response.data || [];
+        
         setCachedData(CONTESTS_CACHE_KEY, contests);
         renderContests(contests);
-    } catch (error) {}
+        
+    } catch (error) {
+        if (!cached) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا در بارگذاری</div>';
+        }
+    }
 }
 
 function renderContests(contests) {
@@ -1663,15 +1716,8 @@ function renderContests(contests) {
 }
 
 // ============================================================
-// 🆕 کتابخانه — Cache-First
+// کتابخانه
 // ============================================================
-async function loadLibraryFromCache() {
-    const cached = getCachedData(LIBRARY_CACHE_KEY);
-    if (cached && cached.length > 0) {
-        renderLibrary(cached);
-    }
-}
-
 async function addLibraryItem() {
     const title = document.getElementById('lib-title').value.trim();
     const type = document.getElementById('lib-type').value;
@@ -1697,23 +1743,36 @@ async function addLibraryItem() {
         document.getElementById('lib-url').value = '';
         document.getElementById('lib-desc').value = '';
         
-        const cached = getCachedData(LIBRARY_CACHE_KEY) || [];
-        cached.unshift({ item_id: 'lib_' + Date.now(), title, type, url, description: desc });
-        setCachedData(LIBRARY_CACHE_KEY, cached);
-        renderLibrary(cached);
-        
+        localStorage.removeItem(LIBRARY_CACHE_KEY);
+        loadLibrary();
     } catch (error) {
         showToast('خطا در افزودن منبع', 'error');
     }
 }
 
 async function loadLibrary() {
+    const container = document.getElementById('library-list');
+    if (!container) return;
+    
+    const cached = getCachedData(LIBRARY_CACHE_KEY);
+    if (cached && cached.length > 0) {
+        renderLibrary(cached);
+    } else {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
+    }
+    
     try {
         const response = await apiGet({ action: 'getLibrary' });
         const items = response.data || [];
+        
         setCachedData(LIBRARY_CACHE_KEY, items);
         renderLibrary(items);
-    } catch (error) {}
+        
+    } catch (error) {
+        if (!cached) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا در بارگذاری</div>';
+        }
+    }
 }
 
 function renderLibrary(items) {
@@ -1725,7 +1784,9 @@ function renderLibrary(items) {
         return;
     }
     
-    const typeIcons = { video: '🎬', pdf: '📄', audio: '🎵', site: '🌐', book: '📚' };
+    const typeIcons = {
+        video: '🎬', pdf: '📄', audio: '🎵', site: '🌐', book: '📚'
+    };
     
     let html = '';
     items.forEach(item => {
@@ -1899,6 +1960,8 @@ function clearCache() {
 // شروع
 // ============================================================
 console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۱.۰.۰');
-console.log('⚡ Cache-First: نمایش فوری از کش');
-console.log('🚀 Pre-Fetch: دریافت موازی همه داده‌ها');
-console.log('🔄 Background Sync: آپدیت در پس‌زمینه');
+console.log('✅ درخواست جامع (getAllData)');
+console.log('✅ نوتیفیکیشن درون‌برنامه‌ای');
+console.log('✅ Polling هر ۵ ثانیه');
+console.log('✅ تیک دوگانه دقیق');
+console.log('✅ Home polling هر ۱۵ ثانیه');
