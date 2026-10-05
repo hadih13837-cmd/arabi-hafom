@@ -1,6 +1,6 @@
 // ============================================================
 // settings.js — تنظیمات، پروفایل، موسیقی، صداها، UUID، بروزرسانی
-// نسخه: ۶.۰.۰ — نسخه نهایی قطعی
+// نسخه: ۸.۰.۰ — حفظ کامل داده‌ها در بروزرسانی
 // ============================================================
 
 // ============================================================
@@ -220,7 +220,7 @@ function typeMotivation() {
 }
 
 // ============================================================
-// بروزرسانی اطلاعات
+// 🆕 بروزرسانی اطلاعات — نسخه نهایی (حفظ کامل داده‌ها)
 // ============================================================
 function openUpdateDataModal() {
     document.getElementById('update-data-modal').classList.add('active');
@@ -235,65 +235,83 @@ async function confirmUpdateData() {
     showModal('⏳ در حال بروزرسانی...', 'لطفاً چند لحظه صبر کنید.\nاطلاعات شما حفظ می‌شود.', '🔄');
 
     try {
-        const userData = {
-            userName: localStorage.getItem('userName'),
-            userClass: localStorage.getItem('userClass'),
-            userSchool: localStorage.getItem('userSchool'),
-            userYear: localStorage.getItem('userYear'),
-            userRegistered: localStorage.getItem('userRegistered'),
-            userAvatar: localStorage.getItem('userAvatar'),
-            userAvatarEmoji: localStorage.getItem('userAvatarEmoji'),
-            studentUUID: localStorage.getItem('studentUUID'),
-            reports: localStorage.getItem('reports'),
-            streakData: localStorage.getItem('streakData'),
-            unlockedMedals: localStorage.getItem('unlockedMedals'),
-            theme: localStorage.getItem('theme'),
-            darkMode: localStorage.getItem('darkMode'),
-            soundsEnabled: localStorage.getItem('soundsEnabled'),
-            musicEnabled: localStorage.getItem('musicEnabled'),
-            welcomeShown: localStorage.getItem('welcomeShown'),
-            guideCompleted: localStorage.getItem('guideCompleted'),
-            lessonsGuideShown: localStorage.getItem('lessonsGuideShown'),
-            installBannerDismissed: localStorage.getItem('installBannerDismissed'),
-            lastStreakMessageShown: localStorage.getItem('lastStreakMessageShown'),
-            seenVideos: localStorage.getItem('seenVideos'),
-            seenLessons: localStorage.getItem('seenLessons'),
-            seenLessonsForNotif: localStorage.getItem('seenLessonsForNotif'),
-            lastDeadlineNotifDate: localStorage.getItem('lastDeadlineNotifDate'),
-            seenTeacherMessages: localStorage.getItem('seenTeacherMessages'),
-            dismissedTeacherMessages: localStorage.getItem('dismissedTeacherMessages')
-        };
+        // ═══════════════════════════════════════════════════════════
+        // ۱. ذخیره‌ی همه‌ی داده‌های مهم در یک آبجکت
+        // ═══════════════════════════════════════════════════════════
+        const savedData = {};
+        const savedKeys = [];
+        
+        // ذخیره‌ی همه‌ی کلیدهای موجود (به‌جز کلیدهای موقت)
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+            
+            // کلیدهای موقت که نیازی به حفظ ندارن
+            const tempKeys = [
+                'temp_data',
+                'cache_temp',
+                'lastUpdateCheck'
+            ];
+            
+            if (tempKeys.includes(key)) continue;
+            
+            savedData[key] = localStorage.getItem(key);
+            savedKeys.push(key);
+        }
+        
+        console.log('💾 ذخیره‌شده:', savedKeys.length, 'کلید');
+        console.log('📋 کلیدها:', savedKeys);
 
-        localStorage.clear();
-
-        Object.keys(userData).forEach(key => {
-            if (userData[key] !== null && userData[key] !== undefined) {
-                localStorage.setItem(key, userData[key]);
-            }
-        });
-
+        // ═══════════════════════════════════════════════════════════
+        // ۲. پاک کردن Cache Storage (فقط فایل‌های PWA)
+        // ═══════════════════════════════════════════════════════════
         if ('caches' in window) {
             try {
                 const cacheNames = await caches.keys();
                 await Promise.all(cacheNames.map(name => caches.delete(name)));
+                console.log('🗑️ Cache Storage پاک شد');
             } catch (cacheError) {
-                console.warn('⚠️ خطا در پاک کردن کش:', cacheError);
+                console.warn('⚠️ خطا در پاک کردن Cache Storage:', cacheError);
             }
         }
 
+        // ═══════════════════════════════════════════════════════════
+        // ۳. Unregister کردن Service Worker (برای دریافت نسخه جدید)
+        // ═══════════════════════════════════════════════════════════
         if ('serviceWorker' in navigator) {
             try {
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 for (let registration of registrations) {
                     await registration.unregister();
                 }
+                console.log('🗑️ Service Worker حذف شد');
             } catch (swError) {
                 console.warn('⚠️ خطا در حذف Service Worker:', swError);
             }
         }
 
+        // ═══════════════════════════════════════════════════════════
+        // ۴. اطمینان از حفظ داده‌ها (بازنویسی)
+        // ═══════════════════════════════════════════════════════════
+        // چون فقط Cache Storage و Service Worker رو پاک کردیم،
+        // localStorage دست نخورده باقی مونده. ولی برای اطمینان:
+        Object.keys(savedData).forEach(key => {
+            if (savedData[key] !== null && savedData[key] !== undefined) {
+                try {
+                    localStorage.setItem(key, savedData[key]);
+                } catch (e) {
+                    console.warn('⚠️ خطا در بازنویسی:', key);
+                }
+            }
+        });
+        
+        console.log('✅ همه‌ی داده‌ها حفظ شدند');
+
         showModal('✅ بروزرسانی موفق', 'اطلاعات شما با موفقیت حفظ شد.\nبرنامه در حال بارگذاری مجدد...', '✅');
 
+        // ═══════════════════════════════════════════════════════════
+        // ۵. رفرش کامل صفحه
+        // ═══════════════════════════════════════════════════════════
         setTimeout(() => {
             const url = new URL(window.location.href);
             url.searchParams.set('updated', Date.now());
@@ -302,12 +320,182 @@ async function confirmUpdateData() {
 
     } catch (error) {
         console.error('❌ خطا در بروزرسانی:', error);
+        showModal('⚠️ خطا', 'مشکلی در بروزرسانی پیش آمد.\nصفحه دوباره بارگذاری می‌شود.', '⚠️');
         setTimeout(() => {
             const url = new URL(window.location.href);
             url.searchParams.set('updated', Date.now());
             window.location.href = url.toString();
-        }, 1000);
+        }, 1500);
     }
+}
+
+// ============================================================
+// 🆕 بازیابی رتبه‌بندی (راه‌حل جایگزین)
+// ============================================================
+async function recoverRankings() {
+    showModal('⏳ در حال بازیابی...', 'لطفاً چند لحظه صبر کنید.', '🔄');
+    
+    try {
+        const classes = ['هفتم یک', 'هفتم دو', 'هفتم سه', 'هفتم چهار', 'هفتم پنج'];
+        let totalRecovered = 0;
+        
+        for (const cls of classes) {
+            const classSlug = classNameToSlug(cls);
+            
+            try {
+                const response = await fetch(
+                    TEACHER_API_URL + '?action=getRankings&class_name=' + classSlug + '&t=' + Date.now(),
+                    { cache: 'no-store' }
+                );
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.length > 0) {
+                    localStorage.setItem('rankings_cache_' + cls, JSON.stringify({
+                        data: result.data,
+                        timestamp: Date.now()
+                    }));
+                    totalRecovered += result.data.length;
+                    console.log('✅ کش پر شد:', cls, '-', result.data.length, 'نفر');
+                }
+            } catch (e) {
+                console.warn('❌ خطا در', cls, ':', e.message);
+            }
+        }
+        
+        if (totalRecovered > 0) {
+            showModal('✅ بازیابی موفق', `${toPersianNum(totalRecovered)} رتبه بازیابی شد.\nصفحه دوباره بارگذاری می‌شود.`, '✅');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showModal('⚠️ توجه', 'داده‌ای برای بازیابی پیدا نشد.\nلطفاً اتصال اینترنت خود را چک کنید.', '⚠️');
+        }
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        showModal('❌ خطا', 'مشکلی در بازیابی پیش آمد.', '❌');
+    }
+}
+
+// ============================================================
+// 🆕 بازیابی کامل داده‌ها از سرور (روش نهایی)
+// ============================================================
+async function fullDataRecovery() {
+    showModal('⏳ در حال بازیابی کامل...', 'این ممکن است چند ثانیه طول بکشد.', '🔄');
+    
+    try {
+        let recovered = 0;
+        
+        // ۱. بازیابی رتبه‌بندی
+        const classes = ['هفتم یک', 'هفتم دو', 'هفتم سه', 'هفتم چهار', 'هفتم پنج'];
+        for (const cls of classes) {
+            const classSlug = classNameToSlug(cls);
+            try {
+                const response = await fetch(
+                    TEACHER_API_URL + '?action=getRankings&class_name=' + classSlug + '&t=' + Date.now(),
+                    { cache: 'no-store' }
+                );
+                const result = await response.json();
+                if (result.success && result.data && result.data.length > 0) {
+                    localStorage.setItem('rankings_cache_' + cls, JSON.stringify({
+                        data: result.data,
+                        timestamp: Date.now()
+                    }));
+                    recovered++;
+                }
+            } catch (e) {}
+        }
+        
+        // ۲. بازیابی دانش‌آموزان (برای پنل معلم)
+        try {
+            const response = await fetch(
+                TEACHER_API_URL + '?action=getAllStudents&t=' + Date.now(),
+                { cache: 'no-store' }
+            );
+            const result = await response.json();
+            if (result.success && result.data) {
+                localStorage.setItem('teacherStudentsCache', JSON.stringify({
+                    data: result.data,
+                    timestamp: Date.now()
+                }));
+                recovered++;
+            }
+        } catch (e) {}
+        
+        // ۳. بازیابی پیام‌های کلاسی
+        try {
+            const response = await fetch(
+                TEACHER_API_URL + '?action=getClassMessages&t=' + Date.now(),
+                { cache: 'no-store' }
+            );
+            const result = await response.json();
+            if (result.success && result.data) {
+                localStorage.setItem('teacherClassMessagesCache', JSON.stringify({
+                    data: result.data,
+                    timestamp: Date.now()
+                }));
+                recovered++;
+            }
+        } catch (e) {}
+        
+        // ۴. بازیابی مسابقات
+        try {
+            const response = await fetch(
+                TEACHER_API_URL + '?action=getContests&t=' + Date.now(),
+                { cache: 'no-store' }
+            );
+            const result = await response.json();
+            if (result.success && result.data) {
+                localStorage.setItem('teacherContestsCache', JSON.stringify({
+                    data: result.data,
+                    timestamp: Date.now()
+                }));
+                recovered++;
+            }
+        } catch (e) {}
+        
+        // ۵. بازیابی کتابخانه
+        try {
+            const response = await fetch(
+                TEACHER_API_URL + '?action=getLibrary&t=' + Date.now(),
+                { cache: 'no-store' }
+            );
+            const result = await response.json();
+            if (result.success && result.data) {
+                localStorage.setItem('teacherLibraryCache', JSON.stringify({
+                    data: result.data,
+                    timestamp: Date.now()
+                }));
+                recovered++;
+            }
+        } catch (e) {}
+        
+        if (recovered > 0) {
+            showModal('✅ بازیابی موفق', `${toPersianNum(recovered)} بخش بازیابی شد.\nصفحه دوباره بارگذاری می‌شود.`, '✅');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showModal('⚠️ توجه', 'داده‌ای پیدا نشد.\nاتصال اینترنت را چک کنید.', '⚠️');
+        }
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        showModal('❌ خطا', 'مشکلی در بازیابی پیش آمد.', '❌');
+    }
+}
+
+// ============================================================
+// 🆕 رفرش امن (فقط کش‌های موقت)
+// ============================================================
+function safeRefresh() {
+    // فقط کش‌های موقت رو پاک کن، نه داده‌های کاربر
+    const tempKeys = [
+        'notifications',
+        'temp_data',
+        'cache_temp'
+    ];
+    
+    tempKeys.forEach(key => {
+        localStorage.removeItem(key);
+    });
+    
+    console.log('✅ کش‌های موقت پاک شدند');
+    location.reload();
 }
 
 // ============================================================
@@ -361,7 +549,6 @@ function changeAvatar(event) {
                 
                 if (compressedData.length > 45000) {
                     compressedData = canvas.toDataURL('image/jpeg', 0.6);
-                    console.log('📸 فشرده‌سازی دوم:', Math.round(compressedData.length / 1024), 'KB');
                 }
                 
                 if (compressedData.length > 45000) {
@@ -381,16 +568,11 @@ function changeAvatar(event) {
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
                     compressedData = canvas.toDataURL('image/jpeg', 0.5);
-                    console.log('📸 فشرده‌سازی سوم:', Math.round(compressedData.length / 1024), 'KB');
                 }
                 
-                // ذخیره عکس
                 localStorage.setItem('userAvatar', compressedData);
                 localStorage.removeItem('userAvatarEmoji');
                 
-                console.log('✅ عکس در localStorage ذخیره شد');
-                
-                // اعمال آواتار جدید
                 if (typeof applyAvatarToElements === 'function') {
                     applyAvatarToElements();
                 }

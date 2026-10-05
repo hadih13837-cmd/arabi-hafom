@@ -11,6 +11,8 @@ let lastRankingsHash = '';
 // ============================================================
 // بارگذاری صفحه رتبه‌بندی (با کش + auto-refresh)
 // ============================================================
+// در rankings.js، تابع loadRankingsPage رو اصلاح کنید
+
 async function loadRankingsPage() {
     const container = document.getElementById('rankings-content');
     if (!container) return;
@@ -32,11 +34,8 @@ async function loadRankingsPage() {
                 lastRankingsHash = getRankingsHash(currentRankings);
                 container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
                 hasCachedData = true;
-                console.log('⚡ از کش نشون داده شد:', currentRankings.length, 'نفر');
             }
-        } catch (e) {
-            console.warn('خطا در خواندن کش:', e);
-        }
+        } catch (e) {}
     }
     
     if (!hasCachedData) {
@@ -72,12 +71,49 @@ async function loadRankingsPage() {
             } catch (e) {}
             
             container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
-            console.log('🔄 رتبه‌بندی از شبکه بروزرسانی شد');
         } else if (!hasCachedData) {
-            container.innerHTML = renderEmptyRankings();
+            // 🆕 اگه داده‌ای نبود، یک بار دیگه با تأخیر امتحان کن
+            console.log('⚠️ رتبه‌بندی خالی - تلاش دوباره...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const retryRankings = await getRankingsByClass(userClass);
+            
+            if (retryRankings && retryRankings.length > 0) {
+                currentRankings = retryRankings;
+                lastRankingsHash = getRankingsHash(currentRankings);
+                
+                try {
+                    localStorage.setItem(cacheKey, JSON.stringify({
+                        data: currentRankings,
+                        timestamp: Date.now()
+                    }));
+                } catch (e) {}
+                
+                container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
+                console.log('✅ بازیابی موفق در تلاش دوم');
+            } else {
+                // 🆕 اگه بازم خالی بود، پیام بازیابی نشون بده
+                container.innerHTML = `
+                    <div class="rankings-empty">
+                        <div class="rankings-empty-icon">🔄</div>
+                        <div class="rankings-empty-title">داده‌ای پیدا نشد</div>
+                        <div class="rankings-empty-text">
+                            اتصال اینترنت خود را چک کنید.
+                        </div>
+                        <button onclick="recoverRankings()" 
+                                style="margin-top: 20px; padding: 14px 30px; 
+                                       background: linear-gradient(135deg, #1976d2, #1565c0); 
+                                       color: #fff; border: none; border-radius: 50px; 
+                                       font-family: 'Vazirmatn', sans-serif; 
+                                       font-size: 15px; font-weight: 900; cursor: pointer;
+                                       box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);">
+                            🔄 تلاش دوباره
+                        </button>
+                    </div>
+                `;
+            }
         }
         
-        // 🆕 شروع auto-refresh
         startAutoRefresh();
         
     } catch (error) {
@@ -90,6 +126,14 @@ async function loadRankingsPage() {
                         خطا در بارگذاری رتبه‌بندی<br>
                         <span style="font-size: 13px; color: #90a4ae;">لطفاً اینترنت خود را چک کنید</span>
                     </div>
+                    <button onclick="recoverRankings()" 
+                            style="margin-top: 20px; padding: 14px 30px; 
+                                   background: linear-gradient(135deg, #1976d2, #1565c0); 
+                                   color: #fff; border: none; border-radius: 50px; 
+                                   font-family: 'Vazirmatn', sans-serif; 
+                                   font-size: 15px; font-weight: 900; cursor: pointer;">
+                        🔄 تلاش دوباره
+                    </button>
                 </div>
             `;
         }
