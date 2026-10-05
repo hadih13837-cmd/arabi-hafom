@@ -1,16 +1,10 @@
 // ============================================================
 // avatars.js — مجموعه ایموجی‌ها و منطق آواتار
-// نسخه: ۸.۰.۰ — نسخه نهایی قطعی
+// نسخه: ۹.۰.۰ — نهایی
 // ============================================================
 
-// ============================================================
-// آواتار پیش‌فرض (عکس پسر با پس‌زمینه آبی)
-// ============================================================
 const DEFAULT_AVATAR = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
 
-// ============================================================
-// مجموعه ایموجی‌ها
-// ============================================================
 const AVATAR_EMOJIS = {
     'حیوانات': ['🐱', '🐶', '🦊', '🐰', '🐼', '🐨', '🦁', '🐯', '🐮', '🐷', '🐸', '🐵', '🐔', '🦉', '🦄', '🐲'],
     'طبیعت': ['🌸', '🌺', '🌻', '🌼', '🌷', '🌹', '🍀', '🌿', '🌱', '🌳', '🌴', '🍁', '🍂', '🌾', '🌵', '🌲'],
@@ -20,9 +14,6 @@ const AVATAR_EMOJIS = {
     'آموزشی': ['📚', '📖', '📝', '✏️', '🖊️', '📐', '📏', '🎓', '🏫', '🔬', '🔭', '💡', '🧠', '💻', '🖥️', '📊']
 };
 
-// ============================================================
-// گرفتن آواتار برای ذخیره در رتبه‌بندی
-// ============================================================
 function getAvatarForRanking() {
     const avatarImg = localStorage.getItem('userAvatar');
     if (avatarImg) return avatarImg;
@@ -33,9 +24,6 @@ function getAvatarForRanking() {
     return DEFAULT_AVATAR;
 }
 
-// ============================================================
-// گرفتن آواتار برای نمایش در برنامه
-// ============================================================
 function getAvatarDisplay() {
     const avatarImg = localStorage.getItem('userAvatar');
     if (avatarImg) {
@@ -48,13 +36,9 @@ function getAvatarDisplay() {
     return { type: 'image', value: DEFAULT_AVATAR };
 }
 
-// ============================================================
-// اعمال آواتار روی عناصر صفحه
-// ============================================================
 function applyAvatarToElements() {
     const avatar = getAvatarDisplay();
-    console.log('🎨 اعمال آواتار:', avatar.type);
-
+    
     const imgElements = ['home-avatar-img', 'profile-avatar-img'];
     
     imgElements.forEach(id => {
@@ -68,9 +52,6 @@ function applyAvatarToElements() {
         
         const oldEmoji = parent.querySelector('.emoji-avatar');
         if (oldEmoji) oldEmoji.remove();
-        
-        const oldSvg = parent.querySelector('.default-avatar-svg');
-        if (oldSvg) oldSvg.remove();
 
         if (avatar.type === 'image') {
             el.src = avatar.value;
@@ -91,12 +72,7 @@ function applyAvatarToElements() {
     });
 }
 
-// ============================================================
-// انتخاب ایموجی
-// ============================================================
 function selectEmojiAvatar(emoji, element) {
-    console.log('🎨 انتخاب ایموجی:', emoji);
-    
     localStorage.setItem('userAvatarEmoji', emoji);
     localStorage.removeItem('userAvatar');
 
@@ -114,17 +90,11 @@ function selectEmojiAvatar(emoji, element) {
         showModal('موفق', 'ایموجی پروفایل با موفقیت تغییر کرد.', '✅');
         
         if (typeof saveRankingToSupabase === 'function') {
-            const success = await saveRankingToSupabase();
-            if (success) {
-                console.log('✅ آواتار در Supabase ذخیره شد');
-            }
+            await saveRankingToSupabase();
         }
     }, 300);
 }
 
-// ============================================================
-// حذف آواتار
-// ============================================================
 function removeEmojiAvatar() {
     localStorage.removeItem('userAvatarEmoji');
     localStorage.removeItem('userAvatar');
@@ -132,9 +102,6 @@ function removeEmojiAvatar() {
     vibrate(15);
 }
 
-// ============================================================
-// ساخت پنل انتخاب ایموجی
-// ============================================================
 function renderEmojiPicker() {
     const container = document.getElementById('emoji-picker-container');
     if (!container) return;
@@ -170,9 +137,6 @@ function closeEmojiPicker() {
     if (modal) modal.classList.remove('active');
 }
 
-// ============================================================
-// مودال انتخاب نوع آواتار
-// ============================================================
 function openAvatarOptionsModal() {
     const modal = document.getElementById('avatar-options-modal');
     if (modal) modal.classList.add('active');
@@ -197,17 +161,15 @@ function chooseGalleryOption() {
 }
 
 // ============================================================
-// 🆕 رندر آواتار در رتبه‌بندی (نسخه نهایی قطعی)
+// رندر آواتار در رتبه‌بندی
 // ============================================================
 function renderAvatarInRanking(ranking) {
     const avatarUrl = (ranking && ranking.avatar_url) ? String(ranking.avatar_url).trim() : '';
     
-    // حالت ۱: خالی، null، default → عکس پسر پیش‌فرض
     if (!avatarUrl || avatarUrl === '' || avatarUrl === 'null' || avatarUrl === 'undefined' || avatarUrl === 'default') {
         return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img">`;
     }
     
-    // حالت ۲: ایموجی
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '').trim();
         if (!emoji || emoji === '👤' || emoji === '👦🏻' || emoji === '👦') {
@@ -216,28 +178,21 @@ function renderAvatarInRanking(ranking) {
         return `<span class="lb-avatar-emoji">${emoji}</span>`;
     }
     
-    // حالت ۳: عکس base64
     if (avatarUrl.startsWith('data:image')) {
         return `<img src="${avatarUrl}" alt="" class="lb-avatar-img">`;
     }
     
-    // حالت ۴: URL عکس خارجی
     if (avatarUrl.startsWith('http')) {
         return `<img src="${avatarUrl}" alt="" class="lb-avatar-img" onerror="this.src='${DEFAULT_AVATAR}'">`;
     }
     
-    // پیش‌فرض: عکس پسر با پس‌زمینه آبی
     return `<img src="${DEFAULT_AVATAR}" alt="" class="lb-avatar-img">`;
 }
 
-// برای سازگاری با کد قدیمی
 function renderAvatarHTML(ranking) {
     return renderAvatarInRanking(ranking);
 }
 
-// ============================================================
-// 🆕 رندر آواتار در مکالمات (چت)
-// ============================================================
 function renderAvatarForChat(conv) {
     const avatarUrl = (conv && conv.avatar_url) ? String(conv.avatar_url).trim() : '';
     

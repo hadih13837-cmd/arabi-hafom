@@ -1,6 +1,6 @@
 // ============================================================
 // rankings.js — سیستم رتبه‌بندی
-// نسخه: ۱۹.۰.۰ — با آواتار قطعی
+// نسخه: ۲۰.۰.۰ — با مودال پروفایل جدید
 // ============================================================
 
 let currentRankings = [];
@@ -20,7 +20,6 @@ async function loadRankingsPage() {
     const studentId = localStorage.getItem('studentUUID');
     const cacheKey = 'rankings_cache_' + userClass;
     
-    // ⚡ اول از کش نشون بده
     let hasCachedData = false;
     const cachedData = localStorage.getItem(cacheKey);
     
@@ -33,11 +32,8 @@ async function loadRankingsPage() {
                 lastRankingsHash = getRankingsHash(currentRankings);
                 container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
                 hasCachedData = true;
-                console.log('⚡ از کش نشون داده شد:', currentRankings.length, 'نفر');
             }
-        } catch (e) {
-            console.warn('خطا در خواندن کش:', e);
-        }
+        } catch (e) {}
     }
     
     if (!hasCachedData) {
@@ -49,7 +45,6 @@ async function loadRankingsPage() {
         `;
     }
     
-    // ⚡ بعد از ۲ ثانیه، از سرور آپدیت کن
     setTimeout(async () => {
         try {
             currentRankingsClass = userClass;
@@ -75,7 +70,6 @@ async function loadRankingsPage() {
                     } catch (e) {}
                     
                     container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
-                    console.log('🔄 رتبه‌بندی بروزرسانی شد');
                 }
             } else if (!hasCachedData) {
                 container.innerHTML = renderEmptyRankings();
@@ -111,12 +105,10 @@ function getRankingsHash(rankings) {
 }
 
 // ============================================================
-// Auto-refresh (هر ۱۵ ثانیه)
+// Auto-refresh
 // ============================================================
 function startAutoRefresh() {
     stopAutoRefresh();
-    
-    console.log('🔄 Auto-refresh شروع شد');
     
     autoRefreshInterval = setInterval(async () => {
         if (isLoadingRankings) return;
@@ -143,8 +135,6 @@ function startAutoRefresh() {
             const newHash = getRankingsHash(rankings);
             
             if (newHash !== lastRankingsHash) {
-                console.log('🆕 تغییر در رتبه‌بندی');
-                
                 currentRankings = rankings;
                 lastRankingsHash = newHash;
                 
@@ -160,9 +150,7 @@ function startAutoRefresh() {
                     container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
                 }
             }
-        } catch (error) {
-            console.warn('auto-refresh error:', error.message);
-        }
+        } catch (error) {}
         
         isLoadingRankings = false;
     }, 15000);
@@ -183,9 +171,6 @@ function renderRankingsList(rankings, userClass, studentId) {
     
     const myIndex = studentId ? rankings.findIndex(r => r.student_id === studentId) : -1;
     
-    // ═══════════════════════════════════════════════════
-    // ۱. سکوی قهرمانی
-    // ═══════════════════════════════════════════════════
     if (rankings.length >= 3) {
         const first = rankings[0];
         const second = rankings[1];
@@ -249,9 +234,6 @@ function renderRankingsList(rankings, userClass, studentId) {
         `;
     }
     
-    // ═══════════════════════════════════════════════════
-    // ۲. لیست ردیفی
-    // ═══════════════════════════════════════════════════
     html += `<div class="lb-list">`;
     
     rankings.forEach((ranking, index) => {
@@ -311,9 +293,6 @@ function renderRankingsList(rankings, userClass, studentId) {
     return html;
 }
 
-// ============================================================
-// گرفتن نام کلاس به فارسی
-// ============================================================
 function getClassPersianName(slug) {
     const map = {
         'hafom-1': 'پایه هفتم یک',
@@ -325,13 +304,9 @@ function getClassPersianName(slug) {
     return map[slug] || 'پایه هفتم';
 }
 
-// ============================================================
-// 🆕 گرفتن کلاس آواتار
-// ============================================================
 function getAvatarClass(ranking) {
     const avatarUrl = (ranking && ranking.avatar_url) ? String(ranking.avatar_url).trim() : '';
     
-    // اگه ایموجی واقعی بود (نه آیکون پیش‌فرض)
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '').trim();
         if (emoji && emoji !== '👤' && emoji !== '👦🏻' && emoji !== '👦') {
@@ -339,23 +314,17 @@ function getAvatarClass(ranking) {
         }
     }
     
-    // بقیه حالت‌ها → عکس
     return 'lb-avatar-image-mode';
 }
 
-// ============================================================
-// 🆕 رندر آواتار (نسخه قطعی)
-// ============================================================
 function renderAvatar(ranking) {
     const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
     const avatarUrl = (ranking && ranking.avatar_url) ? String(ranking.avatar_url).trim() : '';
     
-    // حالت ۱: خالی یا default → عکس پسر پیش‌فرض
     if (!avatarUrl || avatarUrl === '' || avatarUrl === 'null' || avatarUrl === 'default' || avatarUrl === 'undefined') {
         return `<img src="${DEFAULT_AVATAR_URL}" alt="" class="lb-avatar-img">`;
     }
     
-    // حالت ۲: ایموجی
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '').trim();
         if (!emoji || emoji === '👤' || emoji === '👦🏻' || emoji === '👦') {
@@ -364,28 +333,21 @@ function renderAvatar(ranking) {
         return `<span class="lb-avatar-emoji">${emoji}</span>`;
     }
     
-    // حالت ۳: عکس base64
     if (avatarUrl.startsWith('data:image')) {
         return `<img src="${avatarUrl}" alt="" class="lb-avatar-img">`;
     }
     
-    // حالت ۴: URL عکس خارجی
     if (avatarUrl.startsWith('http')) {
         return `<img src="${avatarUrl}" alt="" class="lb-avatar-img" onerror="this.src='${DEFAULT_AVATAR_URL}'">`;
     }
     
-    // پیش‌فرض: عکس پسر آبی
     return `<img src="${DEFAULT_AVATAR_URL}" alt="" class="lb-avatar-img">`;
 }
 
-// سازگاری
 function renderAvatarInRanking(ranking) {
     return renderAvatar(ranking);
 }
 
-// ============================================================
-// کوتاه کردن اسم
-// ============================================================
 function truncateName(fullName) {
     if (!fullName) return 'دانش‌آموز';
     const parts = fullName.trim().split(/\s+/);
@@ -393,9 +355,6 @@ function truncateName(fullName) {
     return `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
 }
 
-// ============================================================
-// رندر حالت خالی
-// ============================================================
 function renderEmptyRankings() {
     return `
         <div class="rankings-empty">
@@ -408,9 +367,6 @@ function renderEmptyRankings() {
     `;
 }
 
-// ============================================================
-// رفرش دستی
-// ============================================================
 async function refreshRankings() {
     vibrate(20);
     
@@ -450,11 +406,9 @@ async function refreshRankings() {
             if (container) {
                 container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
             }
-            
-            console.log('✅ رفرش شد:', currentRankings.length, 'نفر');
         }
     } catch (error) {
-        console.error('❌ خطا در رفرش:', error);
+        console.error('❌ خطا:', error);
     } finally {
         if (refreshBtn) {
             refreshBtn.disabled = false;
@@ -466,7 +420,7 @@ async function refreshRankings() {
 }
 
 // ============================================================
-// باز کردن کارت پروفایل
+// 🆕 باز کردن کارت پروفایل — نسخه جدید (کاور بالا)
 // ============================================================
 function openProfileCard(studentId) {
     const ranking = currentRankings.find(r => r.student_id === studentId);
@@ -482,8 +436,53 @@ function openProfileCard(studentId) {
     
     const classPersian = getClassPersianName(ranking.class_name);
     const isMe = studentId === localStorage.getItem('studentUUID');
-    const avatarClass = getAvatarClass(ranking);
     const medalCount = getUserEarnedMedals(ranking).length;
+    
+    // 🆕 تشخیص نوع آواتار
+    const avatarUrl = (ranking && ranking.avatar_url) ? String(ranking.avatar_url).trim() : '';
+    const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
+    
+    let isEmoji = false;
+    let emojiValue = '';
+    let imageUrl = '';
+    
+    // چک ایموجی
+    if (avatarUrl.startsWith('emoji:')) {
+        const emoji = avatarUrl.replace('emoji:', '').trim();
+        if (emoji && emoji !== '👤' && emoji !== '👦🏻' && emoji !== '👦') {
+            isEmoji = true;
+            emojiValue = emoji;
+        }
+    }
+    
+    // چک عکس
+    if (!isEmoji) {
+        if (avatarUrl.startsWith('data:image')) {
+            imageUrl = avatarUrl;
+        } else if (avatarUrl.startsWith('http')) {
+            imageUrl = avatarUrl;
+        } else {
+            imageUrl = DEFAULT_AVATAR_URL;
+        }
+    }
+    
+    // 🆕 ساخت کاور (بالای کارت)
+    let coverHTML = '';
+    if (isEmoji) {
+        // حالت ایموجی: هیچ کادری نیست، فقط ایموجی بزرگ
+        coverHTML = `
+            <div class="pc-cover-wrapper emoji-cover">
+                <span class="pc-emoji-big">${emojiValue}</span>
+            </div>
+        `;
+    } else {
+        // حالت عکس: مستطیلی بالای کارت
+        coverHTML = `
+            <div class="pc-cover-wrapper">
+                <img src="${imageUrl}" alt="" class="pc-cover-image" onerror="this.src='${DEFAULT_AVATAR_URL}'">
+            </div>
+        `;
+    }
     
     content.innerHTML = `
         <div class="pc-modal-card">
@@ -493,95 +492,94 @@ function openProfileCard(studentId) {
                 </svg>
             </button>
             
-            <div class="pc-modal-avatar-section">
-                <div class="pc-modal-avatar-wrapper ${avatarClass}">
-                    ${renderAvatar(ranking)}
+            ${coverHTML}
+            
+            ${rank <= 3 ? `
+                <div class="pc-rank-badge">
+                    ${rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}
                 </div>
-                ${rank <= 3 ? `
-                    <div class="pc-modal-rank-medal">
-                        ${rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}
+            ` : ''}
+            
+            <div class="pc-modal-inner">
+                <div class="pc-main-info">
+                    <div class="pc-modal-name">
+                        ${ranking.name}
+                        ${isMe ? '<span class="pc-modal-you-badge">شما</span>' : ''}
                     </div>
-                ` : ''}
-            </div>
-            
-            <div class="pc-modal-main-info">
-                <div class="pc-modal-name">
-                    ${ranking.name}
-                    ${isMe ? '<span class="pc-modal-you-badge">شما</span>' : ''}
+                    <div class="pc-modal-class">${classPersian}</div>
                 </div>
-                <div class="pc-modal-class">${classPersian}</div>
-            </div>
-            
-            <div class="pc-modal-info-table">
-                <div class="pc-modal-info-row">
-                    <span class="pc-modal-info-label">رتبه</span>
-                    <span class="pc-modal-info-value">${toPersianNum(rank)} از ${toPersianNum(currentRankings.length)}</span>
-                </div>
-                <div class="pc-modal-info-row">
-                    <span class="pc-modal-info-label">امتیاز کل</span>
-                    <span class="pc-modal-info-value">${toPersianNum(ranking.total_points)}</span>
-                </div>
-                <div class="pc-modal-info-row">
-                    <span class="pc-modal-info-label">پایه</span>
-                    <span class="pc-modal-info-value">هفتم</span>
-                </div>
-                <div class="pc-modal-info-row">
-                    <span class="pc-modal-info-label">کلاس</span>
-                    <span class="pc-modal-info-value">${classPersian.replace('پایه هفتم ', '')}</span>
-                </div>
-            </div>
-            
-            <div class="pc-modal-stats-title">آمار کلی</div>
-            
-            <div class="pc-modal-stats-grid-v2">
-                <div class="pc-modal-stat-card-v2 pc-modal-stat-yellow">
-                    <div class="pc-modal-stat-icon-v2">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                        </svg>
+                
+                <div class="pc-modal-info-table">
+                    <div class="pc-modal-info-row">
+                        <span class="pc-modal-info-label">رتبه</span>
+                        <span class="pc-modal-info-value">${toPersianNum(rank)} از ${toPersianNum(currentRankings.length)}</span>
                     </div>
-                    <div class="pc-modal-stat-content-v2">
-                        <div class="pc-modal-stat-label-v2">امتیاز کل</div>
-                        <div class="pc-modal-stat-value-v2">${toPersianNum(ranking.total_points)}</div>
+                    <div class="pc-modal-info-row">
+                        <span class="pc-modal-info-label">امتیاز کل</span>
+                        <span class="pc-modal-info-value">${toPersianNum(ranking.total_points)}</span>
+                    </div>
+                    <div class="pc-modal-info-row">
+                        <span class="pc-modal-info-label">پایه</span>
+                        <span class="pc-modal-info-value">هفتم</span>
+                    </div>
+                    <div class="pc-modal-info-row">
+                        <span class="pc-modal-info-label">کلاس</span>
+                        <span class="pc-modal-info-value">${classPersian.replace('پایه هفتم ', '')}</span>
                     </div>
                 </div>
                 
-                <div class="pc-modal-stat-card-v2 pc-modal-stat-orange" onclick="openMedalsPage('${ranking.student_id}')">
-                    <div class="pc-modal-stat-icon-v2">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="8" r="6"/>
-                            <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
-                        </svg>
-                    </div>
-                    <div class="pc-modal-stat-content-v2">
-                        <div class="pc-modal-stat-label-v2">مدال‌ها</div>
-                        <div class="pc-modal-stat-value-v2">${toPersianNum(medalCount)}</div>
-                    </div>
-                    <div class="pc-modal-stat-arrow">›</div>
-                </div>
+                <div class="pc-modal-stats-title">آمار کلی</div>
                 
-                <div class="pc-modal-stat-card-v2 pc-modal-stat-teal">
-                    <div class="pc-modal-stat-icon-v2">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 11L12 14L22 4"/>
-                            <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16"/>
-                        </svg>
+                <div class="pc-modal-stats-grid-v2">
+                    <div class="pc-modal-stat-card-v2 pc-modal-stat-yellow">
+                        <div class="pc-modal-stat-icon-v2">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                            </svg>
+                        </div>
+                        <div class="pc-modal-stat-content-v2">
+                            <div class="pc-modal-stat-label-v2">امتیاز کل</div>
+                            <div class="pc-modal-stat-value-v2">${toPersianNum(ranking.total_points)}</div>
+                        </div>
                     </div>
-                    <div class="pc-modal-stat-content-v2">
-                        <div class="pc-modal-stat-label-v2">تکالیف انجام شده</div>
-                        <div class="pc-modal-stat-value-v2">${toPersianNum(ranking.completed_lessons)}</div>
+                    
+                    <div class="pc-modal-stat-card-v2 pc-modal-stat-orange" onclick="openMedalsPage('${ranking.student_id}')">
+                        <div class="pc-modal-stat-icon-v2">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="8" r="6"/>
+                                <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                            </svg>
+                        </div>
+                        <div class="pc-modal-stat-content-v2">
+                            <div class="pc-modal-stat-label-v2">مدال‌ها</div>
+                            <div class="pc-modal-stat-value-v2">${toPersianNum(medalCount)}</div>
+                        </div>
+                        <div class="pc-modal-stat-arrow">›</div>
                     </div>
-                </div>
-                
-                <div class="pc-modal-stat-card-v2 pc-modal-stat-purple">
-                    <div class="pc-modal-stat-icon-v2">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                        </svg>
+                    
+                    <div class="pc-modal-stat-card-v2 pc-modal-stat-teal">
+                        <div class="pc-modal-stat-icon-v2">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 11L12 14L22 4"/>
+                                <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16"/>
+                            </svg>
+                        </div>
+                        <div class="pc-modal-stat-content-v2">
+                            <div class="pc-modal-stat-label-v2">تکالیف انجام شده</div>
+                            <div class="pc-modal-stat-value-v2">${toPersianNum(ranking.completed_lessons)}</div>
+                        </div>
                     </div>
-                    <div class="pc-modal-stat-content-v2">
-                        <div class="pc-modal-stat-label-v2">درصد موفقیت</div>
-                        <div class="pc-modal-stat-value-v2">${toPersianNum(ranking.avg_percent)}%</div>
+                    
+                    <div class="pc-modal-stat-card-v2 pc-modal-stat-purple">
+                        <div class="pc-modal-stat-icon-v2">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                            </svg>
+                        </div>
+                        <div class="pc-modal-stat-content-v2">
+                            <div class="pc-modal-stat-label-v2">درصد موفقیت</div>
+                            <div class="pc-modal-stat-value-v2">${toPersianNum(ranking.avg_percent)}%</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -647,9 +645,6 @@ function openMedalsPage(studentId) {
     modal.classList.add('active');
 }
 
-// ============================================================
-// گرفتن مدال‌های گرفته‌شده
-// ============================================================
 function getUserEarnedMedals(ranking) {
     const points = ranking.total_points || 0;
     const lessons = ranking.completed_lessons || 0;
@@ -682,9 +677,6 @@ function getUserEarnedMedals(ranking) {
     return allMedals.filter(m => m.check());
 }
 
-// ============================================================
-// بستن مودال‌ها
-// ============================================================
 function closeUserMedals() {
     const modal = document.getElementById('user-medals-modal');
     if (modal) modal.classList.remove('active');
