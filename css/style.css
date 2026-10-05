@@ -7333,3 +7333,55 @@ body.dark-mode .pc-modal-stat-value-v2 {
 body.dark-mode .pc-modal-stats-title {
     color: #90caf9;
 }
+/* ============================================================
+   🆕 مدال کنار اسم (نه کنار کاور)
+   ============================================================ */
+
+/* مدال در کنار اسم */
+.pc-rank-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    line-height: 1;
+    margin-right: 6px;
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+    animation: pcMedalInline 2.5s ease-in-out infinite;
+    vertical-align: middle;
+}
+
+@keyframes pcMedalInline {
+    0%, 100% { transform: translateY(0) rotate(-8deg); }
+    50% { transform: translateY(-4px) rotate(8deg); }
+}
+
+/* اگه خواستی مدال بزرگ‌تر بشه */
+.pc-rank-inline.large {
+    font-size: 32px;
+}
+/* ============================================================
+   🆕 مدال کنار اسم (نه کنار کاور)
+   ============================================================ */
+
+/* مدال در کنار اسم */
+.pc-rank-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    line-height: 1;
+    margin-right: 6px;
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+    animation: pcMedalInline 2.5s ease-in-out infinite;
+    vertical-align: middle;
+}
+
+@keyframes pcMedalInline {
+    0%, 100% { transform: translateY(0) rotate(-8deg); }
+    50% { transform: translateY(-4px) rotate(8deg); }
+}
+
+/* اگه خواستی مدال بزرگ‌تر بشه */
+.pc-rank-inline.large {
+    font-size: 32px;
+}
