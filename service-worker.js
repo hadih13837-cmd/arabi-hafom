@@ -1,12 +1,12 @@
 // ============================================================
 // service-worker.js — کش کردن فایل‌ها برای کارکرد آفلاین
-// نسخه: v129
+// نسخه: v154 — با رفع CORS و چشمک زدن
 // ============================================================
 
 const CACHE_NAME = 'arabi-hafom-v154';
 
 // ============================================================
-// لیست فایل‌های ضروری برای کش
+// فایل‌های ضروری (فقط فایل‌های خود پروژه)
 // ============================================================
 const urlsToCache = [
     './',
@@ -23,6 +23,7 @@ const urlsToCache = [
 
     './js/config.js',
     './js/utils.js',
+    './js/supabase-config.js',
     './js/api.js',
     './js/avatars.js',
     './js/navigation.js',
@@ -40,55 +41,43 @@ const urlsToCache = [
     './lessons/lesson1.json',
     './lessons/lesson2.json',
 
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
     'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css',
     'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
-
-    'https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png',
-    'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png',
-    'https://cdn.imgurl.ir/uploads/y212653___.png',
-    'https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3',
-    'https://cdn.imgurl.ir/uploads/y058507__.png',
-    'https://cdn.imgurl.ir/uploads/n50857_IMG__.png',
-    'https://cdn.imgurl.ir/uploads/f76502_IMG__.png',
-    'https://cdn.imgurl.ir/uploads/b632041_IMG__.png',
-    'https://cdn.imgurl.ir/uploads/l655746___.png',
-    'https://cdn.imgurl.ir/uploads/c3352_ChatGPT_Image_Sep_21_2026_09_21_08_PM.png',
-    'https://cdn.imgurl.ir/uploads/j02258_InShot_20260921_091848739.mp4',
-    'https://cdn.imgurl.ir/uploads/m31567_IMG__.png',
-    'https://cdn.imgurl.ir/uploads/p313911_IMG__.png',
-    'https://cdn.imgurl.ir/uploads/f058661_IMG__.png',
-    'https://cdn.imgurl.ir/uploads/k1280_IMG__.png',
-    'https://cdn.imgurl.ir/uploads/q178853_IMG__.png',
-    'https://cdn.imgurl.ir/uploads/a3501_IMG__.png',
-    'https://cdn.imgurl.ir/uploads/i392811_file_000000004034822fab3dfb7fe4276696.png',
-    'https://cdn.imgurl.ir/uploads/y68091_ChatGPT_Image_Oct_4_2026_02_36_15_PM.png',
-    'https://cdn.imgurl.ir/uploads/w806666_ChatGPT_Image_Oct_4_2026_02_49_35_PM.png'
+    'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
 ];
 
 // ============================================================
-// نصب Service Worker
+// 🆕 نصب — با try/catch برای هر فایل
 // ============================================================
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('✅ شروع ذخیره فایل‌ها در کش');
-                return cache.addAll(urlsToCache);
+                console.log('✅ شروع ذخیره فایل‌ها');
+                
+                // 🆕 هر فایل رو جداگانه اضافه کن (اگه یکی fail شد، بقیه ادامه بدن)
+                return Promise.all(
+                    urlsToCache.map(url => {
+                        return cache.add(url).catch(err => {
+                            console.warn('⚠️ خطا در کش کردن:', url, err.message);
+                        });
+                    })
+                );
             })
             .then(() => {
-                console.log('✅ همه فایل‌ها با موفقیت در کش ذخیره شدند');
+                console.log('✅ همه فایل‌ها ذخیره شدند');
             })
             .catch(err => {
-                console.log('❌ خطا در ذخیره فایل‌ها:', err);
+                console.log('❌ خطا:', err);
             })
     );
     self.skipWaiting();
 });
 
 // ============================================================
-// فعال‌سازی Service Worker
+// فعال‌سازی
 // ============================================================
 self.addEventListener('activate', event => {
     event.waitUntil(
@@ -111,19 +100,42 @@ self.addEventListener('activate', event => {
 });
 
 // ============================================================
-// مدیریت درخواست‌ها (fetch)
+// 🆕 مدیریت fetch — با رفع قطعی CORS
 // ============================================================
 self.addEventListener('fetch', event => {
+    // فقط GET
     if (event.request.method !== 'GET') return;
 
-    // ۱. درخواست‌های Google Apps Script — همیشه از شبکه
-    if (event.request.url.includes('script.google.com')) {
-        event.respondWith(fetch(event.request));
+    const url = event.request.url;
+
+    // 🆕 ۱. درخواست‌های Supabase — مستقیم از شبکه (نه کش)
+    if (url.includes('supabase.co')) {
+        event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
         return;
     }
 
-    // ۲. فایل maintenance.json — همیشه از شبکه
-    if (event.request.url.includes('maintenance.json')) {
+    // 🆕 ۲. WebSocket / Realtime — مستقیم از شبکه
+    if (url.includes('realtime') || url.includes('ws')) {
+        event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
+        return;
+    }
+
+    // 🆕 ۳. عکس‌های CDN خارجی (imgurl, githubusercontent و...) — کش نکن، مستقیم برو
+    // این خط، مشکل CORS و چشمک زدن رو حل می‌کنه
+    if (url.includes('cdn.imgurl.ir') || 
+        url.includes('imgurl.ir') ||
+        url.includes('githubusercontent.com') ||
+        url.includes('googleusercontent.com')) {
+        // 🆕 از کش نخون، مستقیم از شبکه
+        event.respondWith(
+            fetch(event.request, { mode: 'no-cors' })
+                .catch(() => new Response('', { status: 503 }))
+        );
+        return;
+    }
+
+    // 🆕 ۴. maintenance.json — همیشه از شبکه
+    if (url.includes('maintenance.json')) {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' })
                 .catch(() => caches.match(event.request))
@@ -131,15 +143,15 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // ۳. فایل‌های درس — همیشه از شبکه چک
-    if (event.request.url.includes('/lessons/')) {
+    // 🆕 ۵. فایل‌های درس — همیشه از شبکه چک
+    if (url.includes('/lessons/')) {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' })
                 .then(response => {
                     if (response && response.status === 200) {
                         const responseClone = response.clone();
                         caches.open(CACHE_NAME).then(cache => {
-                            cache.put(event.request, responseClone);
+                            cache.put(event.request, responseClone).catch(() => {});
                         });
                     }
                     return response;
@@ -149,22 +161,21 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // ۴. بقیه درخواست‌ها — اول از کش، بعد از شبکه
+    // 🆕 ۶. بقیه درخواست‌ها — اول از کش
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                if (response) {
-                    return response;
-                }
+                if (response) return response;
                 return fetch(event.request)
                     .then(response => {
+                        // فقط درخواست‌های موفق و same-origin رو کش کن
                         if (!response || response.status !== 200 || response.type !== 'basic') {
                             return response;
                         }
                         const responseToCache = response.clone();
                         caches.open(CACHE_NAME)
                             .then(cache => {
-                                cache.put(event.request, responseToCache);
+                                cache.put(event.request, responseToCache).catch(() => {});
                             });
                         return response;
                     })
@@ -172,14 +183,14 @@ self.addEventListener('fetch', event => {
                         if (event.request.mode === 'navigate') {
                             return caches.match('./index.html');
                         }
-                        return caches.match('./index.html');
+                        return new Response('', { status: 503 });
                     });
             })
     );
 });
 
 // ============================================================
-// پیام‌های دریافتی
+// پیام‌ها
 // ============================================================
 self.addEventListener('message', event => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
