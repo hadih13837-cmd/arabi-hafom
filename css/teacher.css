@@ -1,0 +1,1867 @@
+/* ============================================================
+   teacher.css — پنل معلم عربی هفتم
+   نسخه: ۱.۰.۰
+   ============================================================ */
+
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+
+* {
+    box-sizing: border-box;
+    font-family: 'Vazirmatn', sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --primary: #1976d2;
+    --primary-dark: #1565c0;
+    --primary-light: #e3f2fd;
+    --primary-gradient: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    --success: #4caf50;
+    --warning: #ff9800;
+    --danger: #f44336;
+    --info: #2196f3;
+    --bg: #f0f7ff;
+    --card-bg: #ffffff;
+    --text: #1a237e;
+    --text-light: #78909c;
+    --border: #e3f2fd;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    direction: rtl;
+}
+
+/* ============================================================
+   صفحه ورود (Login)
+   ============================================================ */
+.login-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 50%, #0d47a1 100%);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.login-screen.active {
+    display: flex;
+}
+
+.login-card {
+    background: #fff;
+    border-radius: 28px;
+    padding: 40px 30px 30px 30px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
+    animation: loginPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes loginPop {
+    0% { transform: scale(0.7) translateY(30px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.login-icon {
+    font-size: 70px;
+    margin-bottom: 15px;
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.login-title {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.login-sub {
+    font-size: 14px;
+    color: var(--text-light);
+    font-weight: bold;
+    margin-bottom: 30px;
+    background: var(--primary-light);
+    display: inline-block;
+    padding: 5px 18px;
+    border-radius: 20px;
+}
+
+.login-field {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.login-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.login-input {
+    width: 100%;
+    padding: 15px 18px;
+    border: 2px solid var(--border);
+    border-radius: 15px;
+    font-size: 15px;
+    outline: none;
+    font-family: 'Vazirmatn', sans-serif;
+    text-align: center;
+    background: #f8fbff;
+    transition: all 0.2s ease;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.login-input:focus {
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
+}
+
+.login-btn {
+    width: 100%;
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+    padding: 16px 30px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+    transition: transform 0.15s ease;
+    margin-top: 5px;
+}
+
+.login-btn:active {
+    transform: scale(0.97);
+}
+
+.login-hint {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+.login-hint strong {
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-family: monospace;
+}
+
+/* ============================================================
+   پنل اصلی
+   ============================================================ */
+.main-panel {
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    background: var(--bg);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.main-panel.active {
+    display: flex;
+}
+
+/* ============================================================
+   هدر
+   ============================================================ */
+.panel-header {
+    flex-shrink: 0;
+    height: 65px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0 20px;
+    box-shadow: 0 2px 15px rgba(25, 118, 210, 0.08);
+    z-index: 100;
+    border-bottom: 2px solid var(--border);
+}
+
+.panel-menu-btn,
+.panel-logout-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.panel-menu-btn:active,
+.panel-logout-btn:active {
+    transform: scale(0.92);
+}
+
+.panel-menu-btn svg,
+.panel-logout-btn svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--primary);
+    stroke-width: 2.5;
+    fill: none;
+}
+
+.panel-logout-btn {
+    background: #ffebee;
+}
+
+.panel-logout-btn svg {
+    stroke: #c62828;
+}
+
+.panel-header-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--primary);
+}
+
+.panel-header-icon {
+    font-size: 22px;
+}
+
+/* ============================================================
+   منوی کناری
+   ============================================================ */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 280px;
+    height: 100%;
+    background: #fff;
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar.active {
+    transform: translateX(0);
+}
+
+.sidebar-header {
+    padding: 25px 20px 20px 20px;
+    background: var(--primary-gradient);
+    color: #fff;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-header::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.sidebar-logo {
+    font-size: 44px;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-title {
+    font-size: 20px;
+    font-weight: 900;
+    margin-bottom: 3px;
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-sub {
+    font-size: 12px;
+    opacity: 0.9;
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-menu {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px 12px;
+}
+
+.sidebar-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    color: #546e7a;
+    text-align: right;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.sidebar-item:active {
+    transform: scale(0.98);
+}
+
+.sidebar-item.active {
+    background: var(--primary-gradient);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.sidebar-item.active .sidebar-icon {
+    filter: brightness(2);
+}
+
+.sidebar-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 12px 0;
+}
+
+.sidebar-footer {
+    padding: 15px 20px 25px 20px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: bold;
+    border-top: 1px solid var(--border);
+}
+
+/* ============================================================
+   محتوای اصلی
+   ============================================================ */
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.page {
+    display: none;
+    animation: pageFade 0.3s ease;
+}
+
+.page.active {
+    display: block;
+}
+
+@keyframes pageFade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   کارت‌های آماری داشبورد
+   ============================================================ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+    transition: transform 0.2s ease;
+}
+
+.stat-card:active {
+    transform: scale(0.97);
+}
+
+.stat-card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.stat-card-blue .stat-card-icon {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+}
+
+.stat-card-green .stat-card-icon {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+}
+
+.stat-card-yellow .stat-card-icon {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+}
+
+.stat-card-purple .stat-card-icon {
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+}
+
+.stat-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-card-label {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.stat-card-value {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--primary);
+    line-height: 1;
+}
+
+/* ============================================================
+   نمودار کلاس‌ها
+   ============================================================ */
+.chart-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+}
+
+.chart-card-header {
+    margin-bottom: 18px;
+}
+
+.chart-card-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+}
+
+.class-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.class-bar-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.class-bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: #546e7a;
+}
+
+.class-bar-name {
+    color: var(--primary);
+    font-weight: 900;
+}
+
+.class-bar-count {
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+.class-bar-track {
+    height: 12px;
+    background: var(--primary-light);
+    border-radius: 50px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.class-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50 0%, #8bc34a 50%, #cddc39 100%);
+    border-radius: 50px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.class-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: progressShine 2s linear infinite;
+}
+
+@keyframes progressShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ============================================================
+   بهترین دانش‌آموزان
+   ============================================================ */
+.top-students-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+}
+
+.top-students-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed var(--border);
+}
+
+.top-students-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+}
+
+.top-students-refresh {
+    background: var(--primary-light);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--primary);
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+.top-students-refresh:active {
+    transform: scale(0.95);
+}
+
+.top-students-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.top-student-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: #f8fbff;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    transition: all 0.2s ease;
+}
+
+.top-student-item:active {
+    transform: scale(0.98);
+}
+
+.top-student-rank {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffd54f, #ffb300);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 900;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(255, 193, 7, 0.3);
+}
+
+.top-student-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid var(--border);
+}
+
+.top-student-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.top-student-info {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+}
+
+.top-student-name {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.top-student-class {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: bold;
+}
+
+.top-student-points {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #fff9c4, #fff176);
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 900;
+    color: #f57c00;
+    flex-shrink: 0;
+    border: 1.5px solid #fdd835;
+}
+
+/* ============================================================
+   فعالیت‌های اخیر
+   ============================================================ */
+.recent-activity-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+}
+
+.recent-activity-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed var(--border);
+}
+
+.recent-activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recent-activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: #f8fbff;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.recent-activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.recent-activity-text {
+    flex: 1;
+    font-size: 13px;
+    font-weight: bold;
+    color: #546e7a;
+    line-height: 1.5;
+}
+
+.recent-activity-text strong {
+    color: var(--primary);
+    font-weight: 900;
+}
+
+.recent-activity-time {
+    font-size: 10px;
+    color: var(--text-light);
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   نوار ابزار
+   ============================================================ */
+.page-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.page-toolbar-search {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 50px;
+    padding: 10px 18px;
+    transition: all 0.2s ease;
+}
+
+.page-toolbar-search:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
+}
+
+.page-toolbar-search svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text-light);
+    flex-shrink: 0;
+}
+
+.page-toolbar-search input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text);
+}
+
+.page-toolbar-search input::placeholder {
+    color: var(--text-light);
+    font-weight: normal;
+}
+
+.page-toolbar-select {
+    padding: 10px 16px;
+    border: 2px solid var(--border);
+    border-radius: 50px;
+    background: #fff;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text);
+    cursor: pointer;
+    outline: none;
+    min-width: 140px;
+}
+
+.page-toolbar-select:focus {
+    border-color: var(--primary);
+}
+
+.page-toolbar-btn {
+    padding: 10px 20px;
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.page-toolbar-btn:active {
+    transform: scale(0.96);
+}
+
+/* ============================================================
+   گرید دانش‌آموزان
+   ============================================================ */
+.students-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.student-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.student-card:active {
+    transform: scale(0.98);
+    background: #f8fbff;
+}
+
+.student-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 3px solid var(--primary-light);
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.15);
+}
+
+.student-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.student-info {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+}
+
+.student-name {
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.student-class {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: 2px 10px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+}
+
+.student-stats {
+    display: flex;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: bold;
+    margin-top: 4px;
+}
+
+.student-points {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #fff9c4, #fff176);
+    padding: 8px 14px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 900;
+    color: #f57c00;
+    flex-shrink: 0;
+    border: 1.5px solid #fdd835;
+}
+
+/* ============================================================
+   لیست رتبه‌بندی
+   ============================================================ */
+.rankings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ranking-item {
+    background: #fff;
+    border-radius: 16px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 3px 12px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+}
+
+.ranking-item.rank-1 {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    border-color: #ffc107;
+}
+
+.ranking-item.rank-2 {
+    background: linear-gradient(135deg, #f5f5f5, #eeeeee);
+    border-color: #b0bec5;
+}
+
+.ranking-item.rank-3 {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    border-color: #d7a86e;
+}
+
+.ranking-rank {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.ranking-item.rank-1 .ranking-rank {
+    background: linear-gradient(135deg, #ffd700, #ffb300);
+    color: #fff;
+}
+
+.ranking-item.rank-2 .ranking-rank {
+    background: linear-gradient(135deg, #c0c0c0, #9e9e9e);
+    color: #fff;
+}
+
+.ranking-item.rank-3 .ranking-rank {
+    background: linear-gradient(135deg, #cd7f32, #a0522d);
+    color: #fff;
+}
+
+/* ============================================================
+   پیام‌رسانی
+   ============================================================ */
+.messages-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.message-form-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+}
+
+.message-form-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed var(--border);
+}
+
+.message-form-field {
+    margin-bottom: 16px;
+}
+
+.message-form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.message-form-input,
+.message-form-textarea {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    outline: none;
+    background: #f8fbff;
+    transition: all 0.2s ease;
+    color: var(--text);
+}
+
+.message-form-input:focus,
+.message-form-textarea:focus {
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
+}
+
+.message-form-textarea {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.8;
+}
+
+.message-form-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.message-option-btn {
+    padding: 12px 16px;
+    background: #f8fbff;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    color: #546e7a;
+    cursor: pointer;
+    text-align: right;
+    transition: all 0.2s ease;
+}
+
+.message-option-btn.active {
+    background: var(--primary-gradient);
+    color: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.message-option-btn:active {
+    transform: scale(0.98);
+}
+
+.message-send-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    transition: transform 0.15s ease;
+    margin-top: 10px;
+}
+
+.message-send-btn:active {
+    transform: scale(0.97);
+}
+
+.message-history-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+}
+
+.message-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed var(--border);
+}
+
+.message-history-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+}
+
+.message-history-refresh {
+    background: var(--primary-light);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.message-history-refresh:active {
+    transform: scale(0.95);
+}
+
+.message-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message-item {
+    padding: 14px;
+    background: #f8fbff;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    border-right: 4px solid var(--primary);
+}
+
+.message-item.type-info { border-right-color: #2196f3; }
+.message-item.type-warning { border-right-color: #ff9800; }
+.message-item.type-success { border-right-color: #4caf50; }
+.message-item.type-reminder { border-right-color: #9c27b0; }
+
+.message-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.message-item-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text);
+}
+
+.message-item-time {
+    font-size: 10px;
+    color: var(--text-light);
+    font-weight: bold;
+}
+
+.message-item-text {
+    font-size: 13px;
+    color: #546e7a;
+    font-weight: bold;
+    line-height: 1.7;
+    margin-bottom: 8px;
+}
+
+.message-item-target {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: bold;
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+/* ============================================================
+   مدیریت تکالیف
+   ============================================================ */
+.info-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border-radius: 16px;
+    border: 2px solid #90caf9;
+    margin-bottom: 20px;
+}
+
+.info-banner-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.info-banner-text {
+    font-size: 13px;
+    font-weight: bold;
+    color: #0d47a1;
+    line-height: 1.6;
+}
+
+.lessons-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.lesson-item {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 3px 12px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+}
+
+.lesson-item-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.lesson-item-info {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+}
+
+.lesson-item-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.lesson-item-meta {
+    display: flex;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: bold;
+    flex-wrap: wrap;
+}
+
+.lesson-item-status {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.lesson-item-status.active {
+    background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+    color: #1b5e20;
+}
+
+.lesson-item-status.expired {
+    background: linear-gradient(135deg, #ffcdd2, #ef9a9a);
+    color: #b71c1c;
+}
+
+/* ============================================================
+   تقویم
+   ============================================================ */
+.calendar-form-card,
+.contest-form-card,
+.library-form-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.calendar-form-title,
+.contest-form-title,
+.library-form-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed var(--border);
+}
+
+.calendar-form-field,
+.contest-form-field,
+.library-form-field {
+    margin-bottom: 14px;
+}
+
+.calendar-form-field label,
+.contest-form-field label,
+.library-form-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+.calendar-form-field input,
+.calendar-form-field select,
+.calendar-form-field textarea,
+.contest-form-field input,
+.contest-form-field textarea,
+.library-form-field input,
+.library-form-field select,
+.library-form-field textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    outline: none;
+    background: #f8fbff;
+    transition: all 0.2s ease;
+    color: var(--text);
+}
+
+.calendar-form-field textarea,
+.contest-form-field textarea,
+.library-form-field textarea {
+    min-height: 80px;
+    resize: vertical;
+    line-height: 1.7;
+}
+
+.calendar-form-field input:focus,
+.calendar-form-field select:focus,
+.calendar-form-field textarea:focus,
+.contest-form-field input:focus,
+.contest-form-field textarea:focus,
+.library-form-field input:focus,
+.library-form-field select:focus,
+.library-form-field textarea:focus {
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
+}
+
+.calendar-form-grid,
+.contest-form-grid,
+.library-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.calendar-add-btn,
+.contest-add-btn,
+.library-add-btn {
+    width: 100%;
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+    padding: 14px 25px;
+    border-radius: 50px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.3);
+    margin-top: 10px;
+}
+
+.calendar-add-btn:active,
+.contest-add-btn:active,
+.library-add-btn:active {
+    transform: scale(0.97);
+}
+
+.calendar-events-card,
+.contests-list-card,
+.library-list-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+}
+
+.calendar-events-title,
+.contests-list-title,
+.library-list-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed var(--border);
+}
+
+.calendar-events-list,
+.contests-list,
+.library-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.event-item,
+.contest-item,
+.library-item {
+    padding: 12px 14px;
+    background: #f8fbff;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.event-item-icon,
+.contest-item-icon,
+.library-item-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.event-item-info,
+.contest-item-info,
+.library-item-info {
+    flex: 1;
+    text-align: right;
+    min-width: 0;
+}
+
+.event-item-title,
+.contest-item-title,
+.library-item-title {
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 3px;
+}
+
+.event-item-meta,
+.contest-item-meta,
+.library-item-meta {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: bold;
+}
+
+/* ============================================================
+   گزارش‌ها
+   ============================================================ */
+.reports-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.report-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+    transition: all 0.2s ease;
+}
+
+.report-card:active {
+    transform: scale(0.96);
+    background: #f8fbff;
+}
+
+.report-card-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.report-card-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 5px;
+}
+
+.report-card-desc {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: bold;
+    line-height: 1.5;
+}
+
+.report-full-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+}
+
+.report-full-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed var(--border);
+}
+
+.report-full-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.report-full-filters select {
+    flex: 1;
+    padding: 10px 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    outline: none;
+    background: #f8fbff;
+    cursor: pointer;
+}
+
+.report-full-filters button {
+    padding: 10px 20px;
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.report-full-content {
+    padding: 16px;
+    background: #f8fbff;
+    border-radius: 12px;
+    min-height: 100px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #546e7a;
+    font-weight: bold;
+}
+
+/* ============================================================
+   تنظیمات
+   ============================================================ */
+.settings-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid var(--border);
+}
+
+.settings-card-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed var(--border);
+}
+
+.settings-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--border);
+}
+
+.settings-item:last-child {
+    border-bottom: none;
+}
+
+.settings-item-info {
+    flex: 1;
+    text-align: right;
+}
+
+.settings-item-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.settings-item-desc {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: bold;
+}
+
+.settings-item-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 12px;
+    background: #f8fbff;
+    color: var(--text);
+    outline: none;
+}
+
+.settings-item-btn {
+    padding: 8px 18px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border: none;
+    border-radius: 50px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.settings-item-btn:active {
+    transform: scale(0.95);
+}
+
+.settings-item-btn-danger {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* ============================================================
+   مودال
+   ============================================================ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+    animation: modalFade 0.3s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+@keyframes modalFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 25px 20px;
+    width: 100%;
+    max-width: 450px;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPop {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.modal-close-btn:active {
+    transform: scale(0.9);
+}
+
+/* ============================================================
+   Toast (اعلان)
+   ============================================================ */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #fff;
+    border-radius: 50px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 2px solid var(--border);
+    max-width: 90%;
+    pointer-events: none;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.toast-text {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.toast.success { border-color: #4caf50; }
+.toast.error { border-color: #f44336; }
+.toast.warning { border-color: #ff9800; }
+
+/* ============================================================
+   ریسپانسیو
+   ============================================================ */
+@media (max-width: 500px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .reports-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .calendar-form-grid,
+    .contest-form-grid,
+    .library-form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .panel-content {
+        padding: 15px;
+    }
+    
+    .stat-card-value {
+        font-size: 20px;
+    }
+    
+    .chart-card,
+    .top-students-card,
+    .recent-activity-card,
+    .message-form-card,
+    .message-history-card {
+        padding: 16px;
+    }
+}
