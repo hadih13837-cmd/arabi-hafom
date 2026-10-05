@@ -12,7 +12,6 @@
     <link rel="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="./icon-512.png">
     
-    <!-- 🆕 کتابخانه‌های PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
@@ -363,6 +362,18 @@
             </div>
         </div>
         
+        <div class="side-menu-item" onclick="goToTeacherMessages(); closeSideMenu();">
+            <div class="side-menu-item-icon menu-icon-messages">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+            </div>
+            <div class="side-menu-item-text">
+                <div class="side-menu-item-title">پیام‌های معلم</div>
+                <div class="side-menu-item-desc">پیام‌های دریافتی</div>
+            </div>
+        </div>
+        
         <div class="side-menu-item" onclick="goToScreen('screen-calendar'); closeSideMenu();">
             <div class="side-menu-item-icon menu-icon-calendar">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -440,49 +451,38 @@
     </div>
 </div>
 
-<!-- 🆕 مودال کارت پروفایل (برای رتبه‌بندی) -->
+<!-- مودال کارت پروفایل (رتبه‌بندی) -->
 <div class="profile-card-overlay" id="profile-card-modal" onclick="if(event.target===this) closeProfileCard()">
-    <div class="profile-card-container" id="profile-card-content">
-        <!-- محتوا توسط جاوااسکریپت پر میشه -->
-    </div>
+    <div class="profile-card-container" id="profile-card-content"></div>
 </div>
 
-<!-- ============ 🆕 مودال مدال‌های کاربر ============ -->
+<!-- مودال مدال‌های کاربر -->
 <div class="user-medals-overlay" id="user-medals-modal" onclick="if(event.target===this) closeUserMedals()">
-    <div class="user-medals-container" id="user-medals-content">
-        <!-- محتوا توسط جاوااسکریپت پر میشه -->
-    </div>
+    <div class="user-medals-container" id="user-medals-content"></div>
 </div>
 
 <div id="app-container">
     
     <audio id="bg-music" src="https://cdn.imgurl.ir/uploads/x512773_Instrumental-Music-For-Funny-Video-Clip-8.mp3" loop preload="none"></audio>
     <video id="audio-video-player" style="display:none;" preload="auto"></video>
+
     <!-- ============ صفحه Splash ============ -->
     <div id="screen-splash" class="screen active">
         <img src="https://cdn.imgurl.ir/uploads/p244186_file_00000000d22482109057bd776e2cf122.png" alt="پس زمینه" class="splash-bg-image">
         <div class="splash-light-glow"></div>
         <div class="splash-content-wrapper">
-            <button class="btn-start-splash" onclick="startApp()">
-                ورود به برنامه
-            </button>
+            <button class="btn-start-splash" onclick="startApp()">ورود به برنامه</button>
         </div>
     </div>
 
     <!-- ============ صفحه خوش‌آمد ============ -->
     <div id="screen-welcome" class="screen">
         <div class="welcome-video-wrapper">
-            <video 
-                src="https://cdn.imgurl.ir/uploads/j02258_InShot_20260921_091848739.mp4" 
-                autoplay loop muted playsinline preload="auto">
-            </video>
+            <video src="https://cdn.imgurl.ir/uploads/j02258_InShot_20260921_091848739.mp4" autoplay loop muted playsinline preload="auto"></video>
         </div>
-        
         <h1 class="welcome-title">سلام! خوش آمدی 👋</h1>
         <p class="welcome-sub">برای شروع، لطفاً نام و کلاس خودت را وارد کن:</p>
-        
         <input type="text" class="welcome-input" id="welcome-name" placeholder="نام و نام خانوادگی">
-        
         <select class="welcome-input" id="welcome-class">
             <option value="" disabled selected>انتخاب کلاس</option>
             <option value="هفتم یک">هفتم یک</option>
@@ -491,17 +491,12 @@
             <option value="هفتم چهار">هفتم چهار</option>
             <option value="هفتم پنج">هفتم پنج</option>
         </select>
-        
         <input type="text" class="welcome-input" id="welcome-school" list="schools-list-welcome" placeholder="نام مدرسه">
         <datalist id="schools-list-welcome">
             <option value="دبیرستان دارالقرآن الکریم"></option>
         </datalist>
-        
         <input type="text" class="welcome-input" id="welcome-year" value="۱۴۰۵-۱۴۰۶" readonly style="background:#f0f4f8;cursor:not-allowed;">
-        
-        <button class="welcome-btn" onclick="saveUserInfo()">
-            ورود به برنامه 🚀
-        </button>
+        <button class="welcome-btn" onclick="saveUserInfo()">ورود به برنامه 🚀</button>
     </div>
 
     <!-- ============ صفحه خانه ============ -->
@@ -591,7 +586,15 @@
             </div>
         </div>
         
-        <!-- نوار پایین - صفحه خانه -->
+        <!-- 🆕 آیکون شناور پیام‌های معلم -->
+        <button class="home-messages-fab" id="home-messages-fab" onclick="goToTeacherMessages()" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="home-messages-fab-badge" id="home-messages-fab-badge">0</span>
+        </button>
+        
+        <!-- نوار پایین -->
         <div class="bottom-nav">
             <button class="bottom-nav-item medals-item" id="guide-medals-btn" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -700,6 +703,27 @@
         </div>
     </div>
 
+    <!-- ============ صفحه پیام‌های معلم ============ -->
+    <div id="screen-teacher-messages" class="screen">
+        <div class="page-header">
+            <button class="page-back" onclick="goBackToHome()" title="بازگشت">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="page-title">📬 پیام‌های معلم</div>
+            <button class="rankings-refresh-btn" onclick="loadTeacherMessagesPage()" title="رفرش">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polyline points="23 4 23 10 17 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="1 20 1 14 7 14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="teacher-messages-content" id="teacher-messages-content"></div>
+    </div>
+
     <!-- ============ صفحه جزئیات تکلیف ============ -->
     <div id="screen-lesson-detail" class="screen">
         <div class="page-header">
@@ -710,7 +734,6 @@
             </button>
             <div class="page-title">جزئیات تکلیف</div>
         </div>
-        
         <div class="lesson-detail-content" id="lesson-detail-content"></div>
     </div>
 
@@ -739,6 +762,7 @@
         </div>
         <div class="calendar-scroll-content" id="calendar-content"></div>
     </div>
+
     <!-- ============ صفحه رتبه‌بندی ============ -->
     <div id="screen-rankings" class="screen">
         <div class="page-header">
@@ -852,9 +876,7 @@
                 </div>
             </div>
             
-            <div class="about-version">
-                ساخته شده با ❤️ توسط محمدهادی حججی
-            </div>
+            <div class="about-version">ساخته شده با ❤️ توسط محمدهادی حججی</div>
         </div>
     </div>
 
@@ -868,11 +890,9 @@
             </button>
             <div class="page-title">مدال‌ها</div>
         </div>
-        
         <div class="page-scroll-content">
             <div class="medals-grid" id="medals-grid"></div>
         </div>
-        
         <div class="bottom-nav">
             <button class="bottom-nav-item medals-item active" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1261,11 +1281,7 @@
     <div id="screen-result" class="screen">
         <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
         <h2 style="color: var(--primary); margin-bottom: 20px; font-size: 24px;" id="result-title">تکلیف تمام شد!</h2>
-        
-        <div class="practice-banner" id="practice-banner">
-            ⚠️ این تکلیف رو قبلاً انجام داده بودی، بنابراین نمره و امتیاز بهت تعلق نگرفت.
-        </div>
-        
+        <div class="practice-banner" id="practice-banner">⚠️ این تکلیف رو قبلاً انجام داده بودی، بنابراین نمره و امتیاز بهت تعلق نگرفت.</div>
         <div class="result-circle" id="final-score-circle">۰</div>
         <div class="result-details">
             <div><span>درصد موفقیت:</span> <span id="final-percent">۰%</span></div>
@@ -1302,7 +1318,7 @@
         <div class="page-scroll-content" id="reports-list"></div>
     </div>
 
-    <!-- ============ 🆕 صفحه پیش‌نمایش PDF ============ -->
+    <!-- ============ صفحه پیش‌نمایش PDF ============ -->
     <div id="screen-pdf-preview" class="screen">
         <div class="page-header">
             <button class="page-back" onclick="closePdfPreview()" title="بازگشت">
@@ -1312,11 +1328,7 @@
             </button>
             <div class="page-title">پیش‌نمایش کارنامه</div>
         </div>
-        
-        <div class="pdf-preview-content" id="pdf-preview-content">
-            <!-- محتوای کارنامه اینجا قرار می‌گیره -->
-        </div>
-        
+        <div class="pdf-preview-content" id="pdf-preview-content"></div>
         <div class="pdf-preview-footer">
             <button class="pdf-preview-download-btn" onclick="downloadPdfFromPreview()">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -1332,7 +1344,7 @@
 </div>
 
 <!-- ============================================================
-     لود فایل‌های JavaScript (ترتیب مهمه!)
+     لود فایل‌های JavaScript
      ============================================================ -->
 <script src="./js/config.js"></script>
 <script src="./js/utils.js"></script>

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>پنل معلم - عربی هفتم</title>
+    
+    <meta name="theme-color" content="#1976d2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="پنل معلم">
+    
+    <!-- فونت وزیرمتن -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+    
+    <!-- استایل -->
+    <link rel="stylesheet" href="./css/teacher.css">
+</head>
+<body>
+
+<!-- ============ صفحه ورود (Login) ============ -->
+<div id="login-screen" class="login-screen active">
+    <div class="login-card">
+        <div class="login-icon">🎓</div>
+        <div class="login-title">پنل معلم</div>
+        <div class="login-sub">عربی هفتم</div>
+        
+        <div class="login-field">
+            <label class="login-label">رمز ورود</label>
+            <input type="password" id="login-password" class="login-input" placeholder="رمز را وارد کنید" autocomplete="off">
+        </div>
+        
+        <button class="login-btn" onclick="checkPassword()">ورود به پنل</button>
+        
+        <div class="login-hint">رمز پیش‌فرض: <strong>hadi1383</strong></div>
+    </div>
+</div>
+
+<!-- ============ پنل اصلی ============ -->
+<div id="main-panel" class="main-panel">
+
+    <!-- ============ هدر ============ -->
+    <header class="panel-header">
+        <button class="panel-menu-btn" onclick="toggleSidebar()">
+            <svg viewBox="0 0 24 24" fill="none">
+                <path d="M3 6H21M3 12H21M3 18H21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <div class="panel-header-title">
+            <span class="panel-header-icon">🎓</span>
+            <span id="panel-page-title">داشبورد</span>
+        </div>
+        <button class="panel-logout-btn" onclick="logout()" title="خروج">
+            <svg viewBox="0 0 24 24" fill="none">
+                <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M16 17L21 12L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <!-- ============ منوی کناری ============ -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">🎓</div>
+            <div class="sidebar-title">پنل معلم</div>
+            <div class="sidebar-sub">عربی هفتم</div>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <button class="sidebar-item active" data-page="dashboard" onclick="showPage('dashboard')">
+                <span class="sidebar-icon">📊</span>
+                <span>داشبورد</span>
+            </button>
+            
+            <button class="sidebar-item" data-page="students" onclick="showPage('students')">
+                <span class="sidebar-icon">👥</span>
+                <span>دانش‌آموزان</span>
+            </button>
+            
+            <button class="sidebar-item" data-page="rankings" onclick="showPage('rankings')">
+                <span class="sidebar-icon">🏆</span>
+                <span>رتبه‌بندی</span>
+            </button>
+            
+            <button class="sidebar-item" data-page="messages" onclick="showPage('messages')">
+                <span class="sidebar-icon">💬</span>
+                <span>پیام‌رسانی</span>
+            </button>
+            
+            <button class="sidebar-item" data-page="lessons" onclick="showPage('lessons')">
+                <span class="sidebar-icon">📚</span>
+                <span>مدیریت تکالیف</span>
+            </button>
+            
+            <button class="sidebar-item" data-page="calendar" onclick="showPage('calendar')">
+                <span class="sidebar-icon">📅</span>
+                <span>تقویم</span>
+            </button>
+            
+            <button class="sidebar-item" data-page="contests" onclick="showPage('contests')">
+                <span class="sidebar-icon">🎯</span>
+                <span>مسابقات</span>
+            </button>
+            
+            <button class="sidebar-item" data-page="library" onclick="showPage('library')">
+                <span class="sidebar-icon">📖</span>
+                <span>کتابخانه</span>
+            </button>
+            
+            <button class="sidebar-item" data-page="reports" onclick="showPage('reports')">
+                <span class="sidebar-icon">📄</span>
+                <span>گزارش‌ها</span>
+            </button>
+            
+            <div class="sidebar-divider"></div>
+            
+            <button class="sidebar-item" data-page="settings" onclick="showPage('settings')">
+                <span class="sidebar-icon">⚙️</span>
+                <span>تنظیمات</span>
+            </button>
+        </nav>
+        
+        <div class="sidebar-footer">
+            ساخته شده با ❤️ توسط محمدهادی حججی
+        </div>
+    </aside>
+
+    <!-- ============ محتوای اصلی ============ -->
+    <main class="panel-content" id="panel-content">
+
+        <!-- ═══════════════════════════════════════
+             صفحه ۱: داشبورد
+             ═══════════════════════════════════════ -->
+        <section class="page active" id="page-dashboard">
+            
+            <!-- کارت‌های آماری -->
+            <div class="stats-grid">
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-card-icon">👥</div>
+                    <div class="stat-card-content">
+                        <div class="stat-card-label">کل دانش‌آموزان</div>
+                        <div class="stat-card-value" id="total-students">۰</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card stat-card-green">
+                    <div class="stat-card-icon">✅</div>
+                    <div class="stat-card-content">
+                        <div class="stat-card-label">تکالیف انجام شده</div>
+                        <div class="stat-card-value" id="total-lessons-done">۰</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card stat-card-yellow">
+                    <div class="stat-card-icon">⭐</div>
+                    <div class="stat-card-content">
+                        <div class="stat-card-label">میانگین امتیاز</div>
+                        <div class="stat-card-value" id="avg-points">۰</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card stat-card-purple">
+                    <div class="stat-card-icon">📊</div>
+                    <div class="stat-card-content">
+                        <div class="stat-card-label">میانگین درصد</div>
+                        <div class="stat-card-value" id="avg-percent">۰%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- نمودار کلاس‌ها -->
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">📊 آمار به تفکیک کلاس</div>
+                </div>
+                <div class="chart-card-body">
+                    <div class="class-bars" id="class-bars">
+                        <!-- توسط جاوااسکریپت پر میشه -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- بهترین دانش‌آموزان -->
+            <div class="top-students-card">
+                <div class="top-students-header">
+                    <div class="top-students-title">🏆 بهترین دانش‌آموزان</div>
+                    <button class="top-students-refresh" onclick="loadDashboard()">🔄 رفرش</button>
+                </div>
+                <div class="top-students-list" id="top-students">
+                    <!-- توسط جاوااسکریپت پر میشه -->
+                </div>
+            </div>
+            
+            <!-- فعالیت‌های اخیر -->
+            <div class="recent-activity-card">
+                <div class="recent-activity-title">📅 فعالیت‌های اخیر</div>
+                <div class="recent-activity-list" id="recent-activity">
+                    <!-- توسط جاوااسکریپت پر میشه -->
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- ═══════════════════════════════════════
+             صفحه ۲: دانش‌آموزان
+             ═══════════════════════════════════════ -->
+        <section class="page" id="page-students">
+            
+            <div class="page-toolbar">
+                <div class="page-toolbar-search">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                        <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <input type="text" id="student-search" placeholder="جستجوی دانش‌آموز..." oninput="filterStudents()">
+                </div>
+                
+                <select class="page-toolbar-select" id="student-class-filter" onchange="filterStudents()">
+                    <option value="all">همه‌ی کلاس‌ها</option>
+                    <option value="hafom-1">هفتم یک</option>
+                    <option value="hafom-2">هفتم دو</option>
+                    <option value="hafom-3">هفتم سه</option>
+                    <option value="hafom-4">هفتم چهار</option>
+                    <option value="hafom-5">هفتم پنج</option>
+                </select>
+            </div>
+            
+            <div class="students-grid" id="students-grid">
+                <!-- توسط جاوااسکریپت پر میشه -->
+            </div>
+            
+        </section>
+
+        <!-- ═══════════════════════════════════════
+             صفحه ۳: رتبه‌بندی
+             ═══════════════════════════════════════ -->
+        <section class="page" id="page-rankings">
+            
+            <div class="page-toolbar">
+                <select class="page-toolbar-select" id="ranking-class-filter" onchange="loadRankings()">
+                    <option value="all">همه‌ی کلاس‌ها</option>
+                    <option value="hafom-1">هفتم یک</option>
+                    <option value="hafom-2">هفتم دو</option>
+                    <option value="hafom-3">هفتم سه</option>
+                    <option value="hafom-4">هفتم چهار</option>
+                    <option value="hafom-5">هفتم پنج</option>
+                </select>
+                
+                <button class="page-toolbar-btn" onclick="loadRankings()">
+                    🔄 رفرش
+                </button>
+            </div>
+            
+            <div class="rankings-list" id="rankings-list">
+                <!-- توسط جاوااسکریپت پر میشه -->
+            </div>
+            
+        </section>
+
+        <!-- ═══════════════════════════════════════
+             صفحه ۴: پیام‌رسانی
+             ═══════════════════════════════════════ -->
+        <section class="page" id="page-messages">
+            
+            <div class="messages-layout">
+                
+                <!-- فرم ارسال پیام -->
+                <div class="message-form-card">
+                    <div class="message-form-title">📤 ارسال پیام جدید</div>
+                    
+                    <div class="message-form-field">
+                        <label class="message-form-label">نوع گیرنده</label>
+                        <div class="message-form-options">
+                            <button class="message-option-btn active" data-target="all" onclick="selectMessageTarget('all')">
+                                👥 همه دانش‌آموزان
+                            </button>
+                            <button class="message-option-btn" data-target="class" onclick="selectMessageTarget('class')">
+                                🎓 یک کلاس خاص
+                            </button>
+                            <button class="message-option-btn" data-target="student" onclick="selectMessageTarget('student')">
+                                👤 یک دانش‌آموز خاص
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="message-form-field" id="class-selector" style="display: none;">
+                        <label class="message-form-label">کلاس</label>
+                        <select class="message-form-input" id="message-class">
+                            <option value="hafom-1">هفتم یک</option>
+                            <option value="hafom-2">هفتم دو</option>
+                            <option value="hafom-3">هفتم سه</option>
+                            <option value="hafom-4">هفتم چهار</option>
+                            <option value="hafom-5">هفتم پنج</option>
+                        </select>
+                    </div>
+                    
+                    <div class="message-form-field" id="student-selector" style="display: none;">
+                        <label class="message-form-label">دانش‌آموز</label>
+                        <select class="message-form-input" id="message-student">
+                            <option value="">در حال بارگذاری...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="message-form-field">
+                        <label class="message-form-label">عنوان پیام</label>
+                        <input type="text" class="message-form-input" id="message-title" placeholder="مثال: امتحان فردا">
+                    </div>
+                    
+                    <div class="message-form-field">
+                        <label class="message-form-label">متن پیام</label>
+                        <textarea class="message-form-textarea" id="message-text" placeholder="متن پیام را اینجا بنویسید..."></textarea>
+                    </div>
+                    
+                    <div class="message-form-field">
+                        <label class="message-form-label">نوع پیام</label>
+                        <select class="message-form-input" id="message-type">
+                            <option value="info">ℹ️ اطلاعیه</option>
+                            <option value="warning">⚠️ هشدار</option>
+                            <option value="success">✅ تبریک</option>
+                            <option value="reminder">🔔 یادآوری</option>
+                        </select>
+                    </div>
+                    
+                    <button class="message-send-btn" onclick="sendMessage()">
+                        📤 ارسال پیام
+                    </button>
+                </div>
+                
+                <!-- لیست پیام‌های ارسال شده -->
+                <div class="message-history-card">
+                    <div class="message-history-header">
+                        <div class="message-history-title">📬 پیام‌های ارسال شده</div>
+                        <button class="message-history-refresh" onclick="loadMessages()">🔄</button>
+                    </div>
+                    <div class="message-history-list" id="messages-list">
+                        <!-- توسط جاوااسکریپت پر میشه -->
+                    </div>
+                </div>
+                
+            </div>
+            
+        </section>
+
+        <!-- ═══════════════════════════════════════
+             صفحه ۵: مدیریت تکالیف
+             ═══════════════════════════════════════ -->
+        <section class="page" id="page-lessons">
+            
+            <div class="info-banner">
+                <div class="info-banner-icon">ℹ️</div>
+                <div class="info-banner-text">
+                    تکالیف از فایل <strong>lessons/index.json</strong> خونده می‌شن. برای اضافه کردن تکلیف جدید، فایل JSON رو آپدیت کنید.
+                </div>
+            </div>
+            
+            <div class="lessons-list" id="lessons-list">
+                <!-- توسط جاوااسکریپت پر میشه -->
+            </div>
+            
+        </section>
+
+        <!-- ═══════════════════════════════════════
+             صفحه ۶: تقویم
+             ═══════════════════════════════════════ -->
+        <section class="page" id="page-calendar">
+            
+            <div class="calendar-form-card">
+                <div class="calendar-form-title">📅 افزودن رویداد جدید</div>
+                
+                <div class="calendar-form-grid">
+                    <div class="calendar-form-field">
+                        <label>عنوان رویداد</label>
+                        <input type="text" id="event-title" placeholder="مثال: امتحان درس ۳">
+                    </div>
+                    
+                    <div class="calendar-form-field">
+                        <label>تاریخ (شمسی)</label>
+                        <input type="text" id="event-date" placeholder="۱۴۰۵/۱۰/۲۰">
+                    </div>
+                    
+                    <div class="calendar-form-field">
+                        <label>کلاس</label>
+                        <select id="event-class">
+                            <option value="all">همه کلاس‌ها</option>
+                            <option value="hafom-1">هفتم یک</option>
+                            <option value="hafom-2">هفتم دو</option>
+                            <option value="hafom-3">هفتم سه</option>
+                            <option value="hafom-4">هفتم چهار</option>
+                            <option value="hafom-5">هفتم پنج</option>
+                        </select>
+                    </div>
+                    
+                    <div class="calendar-form-field">
+                        <label>نوع</label>
+                        <select id="event-type">
+                            <option value="exam">📝 امتحان</option>
+                            <option value="homework">📚 تکلیف</option>
+                            <option value="holiday">🎉 تعطیلی</option>
+                            <option value="event">📌 رویداد</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="calendar-form-field">
+                    <label>توضیحات</label>
+                    <textarea id="event-desc" placeholder="توضیحات اضافی..."></textarea>
+                </div>
+                
+                <button class="calendar-add-btn" onclick="addEvent()">
+                    ➕ افزودن رویداد
+                </button>
+            </div>
+            
+            <div class="calendar-events-card">
+                <div class="calendar-events-title">📋 رویدادهای ثبت شده</div>
+                <div class="calendar-events-list" id="events-list">
+                    <!-- توسط جاوااسکریپت پر میشه -->
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- ═══════════════════════════════════════
+             صفحه ۷: مسابقات
+             ═══════════════════════════════════════ -->
+        <section class="page" id="page-contests">
+            
+            <div class="contest-form-card">
+                <div class="contest-form-title">🏆 ایجاد مسابقه جدید</div>
+                
+                <div class="contest-form-field">
+                    <label>عنوان مسابقه</label>
+                    <input type="text" id="contest-title" placeholder="مثال: بهترین ترجمه">
+                </div>
+                
+                <div class="contest-form-field">
+                    <label>جایزه</label>
+                    <input type="text" id="contest-prize" placeholder="مثال: یک کتاب داستان">
+                </div>
+                
+                <div class="contest-form-grid">
+                    <div class="contest-form-field">
+                        <label>تاریخ شروع</label>
+                        <input type="text" id="contest-start" placeholder="۱۴۰۵/۱۰/۱۰">
+                    </div>
+                    
+                    <div class="contest-form-field">
+                        <label>تاریخ پایان</label>
+                        <input type="text" id="contest-end" placeholder="۱۴۰۵/۱۰/۲۰">
+                    </div>
+                </div>
+                
+                <div class="contest-form-field">
+                    <label>توضیحات</label>
+                    <textarea id="contest-desc" placeholder="شرایط مسابقه..."></textarea>
+                </div>
+                
+                <button class="contest-add-btn" onclick="addContest()">
+                    ➕ ایجاد مسابقه
+                </button>
+            </div>
+            
+            <div class="contests-list-card">
+                <div class="contests-list-title">🎯 مسابقات فعال</div>
+                <div class="contests-list" id="contests-list">
+                    <!-- توسط جاوااسکریپت پر میشه -->
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- ═══════════════════════════════════════
+             صفحه ۸: کتابخانه
+             ═══════════════════════════════════════ -->
+        <section class="page" id="page-library">
+            
+            <div class="library-form-card">
+                <div class="library-form-title">📖 افزودن منبع جدید</div>
+                
+                <div class="library-form-grid">
+                    <div class="library-form-field">
+                        <label>عنوان</label>
+                        <input type="text" id="lib-title" placeholder="مثال: آموزش حروف">
+                    </div>
+                    
+                    <div class="library-form-field">
+                        <label>نوع</label>
+                        <select id="lib-type">
+                            <option value="video">🎬 ویدیو</option>
+                            <option value="pdf">📄 PDF</option>
+                            <option value="audio">🎵 صوتی</option>
+                            <option value="site">🌐 سایت</option>
+                            <option value="book">📚 کتاب</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="library-form-field">
+                    <label>لینک</label>
+                    <input type="text" id="lib-url" placeholder="https://...">
+                </div>
+                
+                <div class="library-form-field">
+                    <label>توضیحات</label>
+                    <textarea id="lib-desc" placeholder="توضیحات..."></textarea>
+                </div>
+                
+                <button class="library-add-btn" onclick="addLibraryItem()">
+                    ➕ افزودن منبع
+                </button>
+            </div>
+            
+            <div class="library-list-card">
+                <div class="library-list-title">📚 منابع موجود</div>
+                <div class="library-list" id="library-list">
+                    <!-- توسط جاوااسکریپت پر میشه -->
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- ═══════════════════════════════════════
+             صفحه ۹: گزارش‌ها
+             ═══════════════════════════════════════ -->
+        <section class="page" id="page-reports">
+            
+            <div class="reports-grid">
+                
+                <div class="report-card" onclick="downloadAllStudents()">
+                    <div class="report-card-icon">📊</div>
+                    <div class="report-card-title">همه دانش‌آموزان</div>
+                    <div class="report-card-desc">خروجی Excel از همه دانش‌آموزان</div>
+                </div>
+                
+                <div class="report-card" onclick="downloadClassReport()">
+                    <div class="report-card-icon">📈</div>
+                    <div class="report-card-title">گزارش کلاس</div>
+                    <div class="report-card-desc">گزارش کامل یک کلاس خاص</div>
+                </div>
+                
+                <div class="report-card" onclick="printStudentCertificates()">
+                    <div class="report-card-icon">🎓</div>
+                    <div class="report-card-title">گواهی‌ها</div>
+                    <div class="report-card-desc">چاپ گواهی برای دانش‌آموزان</div>
+                </div>
+                
+                <div class="report-card" onclick="showTopStudentsReport()">
+                    <div class="report-card-icon">🏆</div>
+                    <div class="report-card-title">بهترین‌ها</div>
+                    <div class="report-card-desc">گزارش بهترین دانش‌آموزان</div>
+                </div>
+                
+            </div>
+            
+            <div class="report-full-card">
+                <div class="report-full-title">📋 گزارش کامل کلاس</div>
+                
+                <div class="report-full-filters">
+                    <select id="report-class-filter">
+                        <option value="all">همه کلاس‌ها</option>
+                        <option value="hafom-1">هفتم یک</option>
+                        <option value="hafom-2">هفتم دو</option>
+                        <option value="hafom-3">هفتم سه</option>
+                        <option value="hafom-4">هفتم چهار</option>
+                        <option value="hafom-5">هفتم پنج</option>
+                    </select>
+                    <button onclick="generateFullReport()">تولید گزارش</button>
+                </div>
+                
+                <div class="report-full-content" id="full-report-content">
+                    <!-- توسط جاوااسکریپت پر میشه -->
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- ═══════════════════════════════════════
+             صفحه ۱۰: تنظیمات
+             ═══════════════════════════════════════ -->
+        <section class="page" id="page-settings">
+            
+            <div class="settings-card">
+                <div class="settings-card-title">🔧 تنظیمات پنل</div>
+                
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-title">آدرس API</div>
+                        <div class="settings-item-desc">آدرس Google Apps Script</div>
+                    </div>
+                    <input type="text" class="settings-item-input" id="setting-api-url" readonly>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-title">رمز ورود</div>
+                        <div class="settings-item-desc">تغییر رمز ورود به پنل</div>
+                    </div>
+                    <button class="settings-item-btn" onclick="changePassword()">تغییر</button>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-title">پاک کردن کش</div>
+                        <div class="settings-item-desc">پاک کردن داده‌های ذخیره‌شده</div>
+                    </div>
+                    <button class="settings-item-btn settings-item-btn-danger" onclick="clearCache()">پاک کن</button>
+                </div>
+                
+            </div>
+            
+        </section>
+
+    </main>
+
+</div>
+
+<!-- ============ مودال جزئیات دانش‌آموز ============ -->
+<div class="modal-overlay" id="student-modal">
+    <div class="modal-card">
+        <button class="modal-close-btn" onclick="closeStudentModal()">✕</button>
+        <div id="student-modal-content">
+            <!-- توسط جاوااسکریپت پر میشه -->
+        </div>
+    </div>
+</div>
+
+<!-- ============ مودال اعلان ============ -->
+<div class="toast" id="toast">
+    <div class="toast-icon" id="toast-icon">✅</div>
+    <div class="toast-text" id="toast-text">پیام</div>
+</div>
+
+<!-- ============ اسکریپت ============ -->
+<script src="./js/teacher.js"></script>
+
+</body>
+</html>

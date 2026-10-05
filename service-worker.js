@@ -1,9 +1,9 @@
 // ============================================================
 // service-worker.js — کش کردن فایل‌ها برای کارکرد آفلاین
-// نسخه: v110
+// نسخه: v120
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v114';
+const CACHE_NAME = 'arabi-hafom-v120';
 
 // ============================================================
 // لیست فایل‌های ضروری برای کش
@@ -12,12 +12,14 @@ const urlsToCache = [
     './',
     './index.html',
     './clips.html',
+    './teacher.html',
     './maintenance.html',
     './maintenance.json',
     './manifest.json',
     './icon-512.png',
 
     './css/style.css',
+    './css/teacher.css',
 
     './js/config.js',
     './js/utils.js',
@@ -32,6 +34,7 @@ const urlsToCache = [
     './js/rankings.js',
     './js/settings.js',
     './js/app.js',
+    './js/teacher.js',
 
     './lessons/index.json',
     './lessons/lesson1.json',
