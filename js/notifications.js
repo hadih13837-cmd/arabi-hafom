@@ -1,5 +1,6 @@
 // ============================================================
-// notifications.js — سیستم اعلان‌ها و مدیریت swipe
+// notifications.js — سیستم اعلان‌ها، پیام‌های معلم و swipe
+// نسخه: ۳.۰.۰ — با پیام‌های معلم از Google Sheets
 // ============================================================
 
 // ============================================================
@@ -48,31 +49,113 @@ function getNotifIcon(type) {
         info: '<svg viewBox="0 0 24 24"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',
         success: '<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
         clip: '<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
-        warning: '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+        warning: '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+        teacher: '<svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>'
     };
     return icons[type] || icons.info;
 }
 
-function loadNotifications() {
-    const notifs = getNotifications();
+// ============================================================
+// بارگذاری اعلان‌ها (ترکیب اعلان‌های محلی + پیام‌های معلم)
+// ============================================================
+async function loadNotifications() {
     const container = document.getElementById('notifications-list');
-    if (notifs.length === 0) {
-        container.innerHTML = `<div class="report-empty"><div class="report-empty-icon">🔔</div><div class="report-empty-text">هنوز اعلانی ندارید</div></div>`;
+    if (!container) return;
+    
+    container.innerHTML = '<div class="report-empty"><div class="report-empty-icon">⏳</div><div class="report-empty-text">در حال بارگذاری...</div></div>';
+    
+    // ۱. اعلان‌های محلی (از localStorage)
+    const localNotifs = getNotifications();
+    
+    // ۲. پیام‌های معلم (از Google Sheets)
+    let teacherMessages = [];
+    try {
+        const userClass = localStorage.getItem('userClass') || 'هفتم یک';
+        const studentId = localStorage.getItem('studentUUID');
+        const classSlug = typeof classNameToSlug === 'function' ? classNameToSlug(userClass) : userClass;
+        
+        if (typeof TEACHER_API_URL !== 'undefined') {
+            const response = await fetch(TEACHER_API_URL + '?action=getMessages&t=' + Date.now(), {
+                cache: 'no-store'
+            });
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                // فیلتر پیام‌ها بر اساس کلاس و شناسه کاربر
+                teacherMessages = result.data.filter(msg => {
+                    if (msg.target_type === 'all') return true;
+                    if (msg.target_type === 'class' && msg.target_value === classSlug) return true;
+                    if (msg.target_type === 'student' && msg.target_value === studentId) return true;
+                    return false;
+                });
+                
+                console.log('📬 پیام‌های معلم دریافت شد:', teacherMessages.length);
+            }
+        }
+    } catch (error) {
+        console.warn('خطا در دریافت پیام‌های معلم:', error);
+    }
+    
+    // ۳. ترکیب و مرتب‌سازی
+    const seenTeacherIds = JSON.parse(localStorage.getItem('seenTeacherMessages') || '[]');
+    
+    const allNotifications = [
+        ...teacherMessages.map(m => ({
+            id: m.message_id,
+            type: m.type || 'info',
+            title: m.title,
+            text: m.text,
+            date: m.date_persian || '',
+            time: '',
+            timestamp: new Date(m.date).getTime(),
+            read: seenTeacherIds.includes(m.message_id),
+            isTeacherMessage: true
+        })),
+        ...localNotifs
+    ].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    
+    // ۴. نمایش
+    if (allNotifications.length === 0) {
+        container.innerHTML = `
+            <div class="report-empty">
+                <div class="report-empty-icon">🔔</div>
+                <div class="report-empty-text">هنوز اعلانی ندارید</div>
+            </div>
+        `;
         return;
     }
-    container.innerHTML = notifs.map(n => `
-        <div class="notif-card ${n.read ? '' : 'unread'}" onclick="markNotifRead('${n.id}')">
-            <div class="notif-icon-wrapper notif-icon-${n.type}">${getNotifIcon(n.type)}</div>
+    
+    container.innerHTML = allNotifications.map(n => `
+        <div class="notif-card ${n.read ? '' : 'unread'} ${n.isTeacherMessage ? 'teacher-message' : ''}" 
+             onclick="markNotifRead('${n.id}')">
+            <div class="notif-icon-wrapper notif-icon-${n.isTeacherMessage ? 'teacher' : n.type}">
+                ${getNotifIcon(n.isTeacherMessage ? 'teacher' : n.type)}
+            </div>
             <div class="notif-content">
-                <div class="notif-title">${n.title}</div>
+                <div class="notif-title">
+                    ${n.isTeacherMessage ? '👨‍🏫 ' : ''}${n.title}
+                </div>
                 <div class="notif-text">${n.text}</div>
-                <div class="notif-date">${n.time} - ${n.date}</div>
+                <div class="notif-date">${n.time} ${n.date}</div>
             </div>
         </div>
     `).join('');
 }
 
 function markNotifRead(id) {
+    // اگه پیام معلم بود
+    if (id.startsWith('msg_')) {
+        const seenIds = JSON.parse(localStorage.getItem('seenTeacherMessages') || '[]');
+        if (!seenIds.includes(id)) {
+            seenIds.push(id);
+            localStorage.setItem('seenTeacherMessages', JSON.stringify(seenIds));
+        }
+        loadNotifications();
+        updateTeacherMessagesBadge();
+        return;
+    }
+    
+    // اعلان محلی
     const notifs = getNotifications();
     const notif = notifs.find(n => n.id === id);
     if (notif) {
@@ -100,7 +183,6 @@ async function loadLessonsListForNotification() {
 }
 
 function checkAndAddLessonNotifications() {
-    // 🆕 اگه منتشر نشده، اعلان اضافه نکن
     if (typeof isPublished !== 'undefined' && !isPublished) {
         console.log('🔒 تکالیف هنوز منتشر نشدن - اعلان اضافه نمی‌شه');
         return;
@@ -129,7 +211,6 @@ function checkAndAddLessonNotifications() {
 // اعلان ویدیوی جدید
 // ============================================================
 function checkVideoNotification() {
-    // 🆕 اگه منتشر نشده، اعلان ویدیو نشون نده
     if (typeof isPublished !== 'undefined' && !isPublished) {
         const notification = document.getElementById('video-notification');
         if (notification) notification.classList.remove('show');
@@ -180,7 +261,6 @@ function goToClipsFromNotification() {
 // اعلان تکالیف در انتظار
 // ============================================================
 function checkAndShowNotification() {
-    // 🆕 اگه منتشر نشده، اعلان نشون نده
     if (typeof isPublished !== 'undefined' && !isPublished) {
         const notification = document.getElementById('new-lesson-notification');
         if (notification) notification.classList.remove('show');
@@ -210,7 +290,6 @@ function checkAndShowNotification() {
 // هشدار مهلت
 // ============================================================
 function checkDeadlineWarning() {
-    // 🆕 اگه منتشر نشده، هشدار مهلت نشون نده
     if (typeof isPublished !== 'undefined' && !isPublished) {
         const deadlineNotif = document.getElementById('deadline-notification');
         if (deadlineNotif) deadlineNotif.classList.remove('show');
@@ -292,7 +371,6 @@ function goToNewLesson() {
 function checkNewLessons() {
     if (allLessons.length === 0) return;
     
-    // 🆕 اگه منتشر نشده، بج «جدید» نشون نده
     if (typeof isPublished !== 'undefined' && !isPublished) {
         const badge = document.getElementById('new-lesson-badge');
         if (badge) badge.style.display = 'none';
@@ -461,4 +539,205 @@ function handleNotifMouseDown(e, id) {
     };
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
+}
+
+// ============================================================
+// 🆕 بارگذاری صفحه پیام‌های معلم
+// ============================================================
+async function loadTeacherMessagesPage() {
+    const container = document.getElementById('teacher-messages-content');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="rankings-loading">
+            <div class="rankings-spinner"></div>
+            <div class="rankings-loading-text">در حال بارگذاری پیام‌ها...</div>
+        </div>
+    `;
+    
+    try {
+        const userClass = localStorage.getItem('userClass') || 'هفتم یک';
+        const studentId = localStorage.getItem('studentUUID');
+        const classSlug = typeof classNameToSlug === 'function' ? classNameToSlug(userClass) : userClass;
+        
+        if (typeof TEACHER_API_URL === 'undefined') {
+            container.innerHTML = `
+                <div class="teacher-messages-empty">
+                    <div class="teacher-messages-empty-icon">⚠️</div>
+                    <div class="teacher-messages-empty-title">اتصال برقرار نشد</div>
+                    <div class="teacher-messages-empty-text">لطفاً اینترنت خود را چک کنید</div>
+                </div>
+            `;
+            return;
+        }
+        
+        const response = await fetch(TEACHER_API_URL + '?action=getMessages&t=' + Date.now(), {
+            cache: 'no-store'
+        });
+        const result = await response.json();
+        
+        if (!result.success || !result.data) {
+            container.innerHTML = `
+                <div class="teacher-messages-empty">
+                    <div class="teacher-messages-empty-icon">📭</div>
+                    <div class="teacher-messages-empty-title">هنوز پیامی نیست</div>
+                    <div class="teacher-messages-empty-text">وقتی معلم پیامی بفرسته، اینجا نمایش داده میشه</div>
+                </div>
+            `;
+            return;
+        }
+        
+        const myMessages = result.data.filter(msg => {
+            if (msg.target_type === 'all') return true;
+            if (msg.target_type === 'class' && msg.target_value === classSlug) return true;
+            if (msg.target_type === 'student' && msg.target_value === studentId) return true;
+            return false;
+        });
+        
+        myMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        if (myMessages.length === 0) {
+            container.innerHTML = `
+                <div class="teacher-messages-empty">
+                    <div class="teacher-messages-empty-icon">📭</div>
+                    <div class="teacher-messages-empty-title">هنوز پیامی نیست</div>
+                    <div class="teacher-messages-empty-text">وقتی معلم پیامی بفرسته، اینجا نمایش داده میشه</div>
+                </div>
+            `;
+            return;
+        }
+        
+        const seenIds = JSON.parse(localStorage.getItem('seenTeacherMessages') || '[]');
+        const unreadIds = myMessages
+            .filter(m => !seenIds.includes(m.message_id))
+            .map(m => m.message_id);
+        
+        const allIds = myMessages.map(m => m.message_id);
+        localStorage.setItem('seenTeacherMessages', JSON.stringify(allIds));
+        
+        updateTeacherMessagesBadge();
+        
+        const typeIcons = {
+            info: 'ℹ️',
+            warning: '⚠️',
+            success: '✅',
+            reminder: '🔔'
+        };
+        
+        const typeTexts = {
+            info: 'اطلاعیه',
+            warning: 'هشدار',
+            success: 'تبریک',
+            reminder: 'یادآوری'
+        };
+        
+        const targetTexts = {
+            all: '👥 همه دانش‌آموزان',
+            class: '🎓 کلاس شما',
+            student: '👤 شما'
+        };
+        
+        container.innerHTML = myMessages.map(msg => {
+            const isUnread = unreadIds.includes(msg.message_id);
+            return `
+                <div class="teacher-message-card ${isUnread ? 'unread' : ''}">
+                    <div class="teacher-message-header">
+                        <div class="teacher-message-icon">${typeIcons[msg.type] || '📩'}</div>
+                        <div class="teacher-message-info">
+                            <div class="teacher-message-title">${msg.title}</div>
+                            <div class="teacher-message-meta">
+                                <span>📅 ${msg.date_persian || ''}</span>
+                                <span class="teacher-message-badge ${msg.type || 'info'}">
+                                    ${typeTexts[msg.type] || 'پیام'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teacher-message-text">${msg.text}</div>
+                    <div class="teacher-message-target">
+                        ${targetTexts[msg.target_type] || '👥 همه'}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        console.log('📬 پیام‌های معلم بارگذاری شد:', myMessages.length);
+        
+    } catch (error) {
+        console.error('خطا در بارگذاری پیام‌ها:', error);
+        container.innerHTML = `
+            <div class="teacher-messages-empty">
+                <div class="teacher-messages-empty-icon">⚠️</div>
+                <div class="teacher-messages-empty-title">خطا در بارگذاری</div>
+                <div class="teacher-messages-empty-text">لطفاً اینترنت خود را چک کنید و دوباره تلاش کنید</div>
+            </div>
+        `;
+    }
+}
+
+// ============================================================
+// 🆕 رفتن به صفحه پیام‌های معلم
+// ============================================================
+function goToTeacherMessages() {
+    vibrate(15);
+    goToScreen('screen-teacher-messages');
+    loadTeacherMessagesPage();
+}
+
+// ============================================================
+// 🆕 چک کردن پیام‌های جدید و نمایش FAB
+// ============================================================
+async function checkTeacherMessagesBadge() {
+    try {
+        const userClass = localStorage.getItem('userClass') || 'هفتم یک';
+        const studentId = localStorage.getItem('studentUUID');
+        const classSlug = typeof classNameToSlug === 'function' ? classNameToSlug(userClass) : userClass;
+        
+        if (typeof TEACHER_API_URL === 'undefined') return;
+        
+        const response = await fetch(TEACHER_API_URL + '?action=getMessages&t=' + Date.now(), {
+            cache: 'no-store'
+        });
+        const result = await response.json();
+        
+        if (!result.success || !result.data) return;
+        
+        const myMessages = result.data.filter(msg => {
+            if (msg.target_type === 'all') return true;
+            if (msg.target_type === 'class' && msg.target_value === classSlug) return true;
+            if (msg.target_type === 'student' && msg.target_value === studentId) return true;
+            return false;
+        });
+        
+        const seenIds = JSON.parse(localStorage.getItem('seenTeacherMessages') || '[]');
+        const unreadMessages = myMessages.filter(m => !seenIds.includes(m.message_id));
+        
+        const fab = document.getElementById('home-messages-fab');
+        const badge = document.getElementById('home-messages-fab-badge');
+        
+        if (fab && badge) {
+            if (unreadMessages.length > 0) {
+                fab.style.display = 'flex';
+                badge.textContent = unreadMessages.length > 9 ? '۹+' : toPersianNum(unreadMessages.length);
+                badge.style.display = 'flex';
+            } else if (myMessages.length > 0) {
+                fab.style.display = 'flex';
+                badge.style.display = 'none';
+            } else {
+                fab.style.display = 'none';
+            }
+        }
+        
+        console.log('📬 پیام‌های نخوانده:', unreadMessages.length);
+        
+    } catch (error) {
+        console.warn('خطا در چک پیام‌های معلم:', error);
+    }
+}
+
+// ============================================================
+// 🆕 بروزرسانی Badge FAB
+// ============================================================
+async function updateTeacherMessagesBadge() {
+    await checkTeacherMessagesBadge();
 }

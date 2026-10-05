@@ -1,12 +1,15 @@
 // ============================================================
 // api.js — اتصال به Google Sheets API
-// نسخه: ۱.۱.۰ — با پشتیبانی از آواتار
+// نسخه: ۲.۰.۰ — با پشتیبانی از پنل معلم
 // ============================================================
 
 // ============================================================
-// آدرس Google Apps Script
+// آدرس‌های API
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbwH6zsAVO-tzATU3_J8SvHkOpM1GJXQRxmqWDHxcXKxDKKJZImQf_58ekigtppjj-HWgw/exec';
+const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbwH6zsAVO-tzATU3_J8SvHkOpM1GJXQRxmqWDHxcXKxDKKJZImQf_58ekigtppjj-HWgw/exec';
+
+// برای سازگاری با کد قدیمی
+const API_URL = TEACHER_API_URL;
 
 // ============================================================
 // تبدیل نام کلاس فارسی به slug انگلیسی
@@ -41,7 +44,7 @@ function slugToClassName(slug) {
 // ============================================================
 async function apiPost(data) {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(TEACHER_API_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: {
@@ -64,11 +67,12 @@ async function apiPost(data) {
 async function apiGet(params = {}) {
     try {
         const queryString = new URLSearchParams(params).toString();
-        const url = queryString ? `${API_URL}?${queryString}` : API_URL;
+        const url = queryString ? `${TEACHER_API_URL}?${queryString}` : TEACHER_API_URL;
         
-        const response = await fetch(url, {
+        const response = await fetch(url + '&t=' + Date.now(), {
             method: 'GET',
-            mode: 'cors'
+            mode: 'cors',
+            cache: 'no-store'
         });
         
         if (!response.ok) {
@@ -122,9 +126,10 @@ async function saveRankingToSupabase() {
         const streakDays = streakData.count || 0;
         const avatarUrl = typeof getAvatarForRanking === 'function' 
             ? getAvatarForRanking() 
-            : 'emoji:👤';
+            : 'emoji:👦🏻';
         
         const payload = {
+            action: 'saveRanking',
             student_id: studentId,
             name: userName,
             class_name: classNameToSlug(userClass),
@@ -157,6 +162,7 @@ async function getRankingsByClass(className) {
         console.log('🔍 گرفتن رتبه‌بندی برای کلاس:', className, '→', classSlug);
         
         const result = await apiGet({ 
+            action: 'getRankings',
             class_name: classSlug,
             t: Date.now()
         });
@@ -169,6 +175,27 @@ async function getRankingsByClass(className) {
         return [];
     } catch (error) {
         console.error('❌ خطا در گرفتن رتبه‌بندی:', error);
+        return [];
+    }
+}
+
+// ============================================================
+// گرفتن همه دانش‌آموزان (برای پنل معلم)
+// ============================================================
+async function getAllStudents() {
+    try {
+        const result = await apiGet({ 
+            action: 'getAllStudents',
+            t: Date.now()
+        });
+        
+        if (result && result.success && result.data) {
+            return result.data;
+        }
+        
+        return [];
+    } catch (error) {
+        console.error('❌ خطا در گرفتن دانش‌آموزان:', error);
         return [];
     }
 }
@@ -198,11 +225,95 @@ async function getMyRank() {
 }
 
 // ============================================================
+// گرفتن پیام‌های معلم
+// ============================================================
+async function getTeacherMessages() {
+    try {
+        const result = await apiGet({ 
+            action: 'getMessages',
+            t: Date.now()
+        });
+        
+        if (result && result.success && result.data) {
+            return result.data;
+        }
+        
+        return [];
+    } catch (error) {
+        console.error('❌ خطا در گرفتن پیام‌ها:', error);
+        return [];
+    }
+}
+
+// ============================================================
+// گرفتن رویدادها
+// ============================================================
+async function getEvents() {
+    try {
+        const result = await apiGet({ 
+            action: 'getEvents',
+            t: Date.now()
+        });
+        
+        if (result && result.success && result.data) {
+            return result.data;
+        }
+        
+        return [];
+    } catch (error) {
+        console.error('❌ خطا در گرفتن رویدادها:', error);
+        return [];
+    }
+}
+
+// ============================================================
+// گرفتن مسابقات
+// ============================================================
+async function getContests() {
+    try {
+        const result = await apiGet({ 
+            action: 'getContests',
+            t: Date.now()
+        });
+        
+        if (result && result.success && result.data) {
+            return result.data;
+        }
+        
+        return [];
+    } catch (error) {
+        console.error('❌ خطا در گرفتن مسابقات:', error);
+        return [];
+    }
+}
+
+// ============================================================
+// گرفتن کتابخانه
+// ============================================================
+async function getLibrary() {
+    try {
+        const result = await apiGet({ 
+            action: 'getLibrary',
+            t: Date.now()
+        });
+        
+        if (result && result.success && result.data) {
+            return result.data;
+        }
+        
+        return [];
+    } catch (error) {
+        console.error('❌ خطا در گرفتن کتابخانه:', error);
+        return [];
+    }
+}
+
+// ============================================================
 // تست اتصال به API
 // ============================================================
 async function testSupabaseConnection() {
     try {
-        const result = await apiGet({ t: Date.now() });
+        const result = await apiGet({ action: 'getAllStudents', t: Date.now() });
         if (result && result.success) {
             console.log('✅ اتصال به Google Sheets موفق');
             return true;

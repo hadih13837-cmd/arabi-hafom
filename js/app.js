@@ -1,6 +1,6 @@
 // ============================================================
 // app.js — نقطه شروع برنامه (باید آخرین فایل لود بشه)
-// نسخه: ۲.۲.۰ — همگام‌سازی خودکار کامل
+// نسخه: ۳.۰.۰ — با پیام‌های معلم و auto-sync
 // ============================================================
 
 // ============================================================
@@ -10,30 +10,17 @@ let isPublished = true;
 
 // ============================================================
 // 🆕 تابع مرکزی برای همگام‌سازی خودکار
-// این تابع رو هر جا که نیاز به sync باشه صدا می‌زنیم
 // ============================================================
 function autoSyncRanking(reason = 'unknown') {
-    // چک کن کاربر ثبت‌نام کرده و تابع موجوده
-    if (localStorage.getItem('userRegistered') !== 'true') {
-        return;
-    }
-    
-    if (typeof saveRankingToSupabase !== 'function') {
-        console.warn('⚠️ تابع saveRankingToSupabase موجود نیست');
-        return;
-    }
+    if (localStorage.getItem('userRegistered') !== 'true') return;
+    if (typeof saveRankingToSupabase !== 'function') return;
     
     console.log(`🔄 همگام‌سازی خودکار (دلیل: ${reason})`);
     
-    // با تأخیر کوتاه، تا اطلاعات جدید اول توی localStorage ذخیره بشن
     setTimeout(async () => {
         try {
             const success = await saveRankingToSupabase();
-            if (success) {
-                console.log(`✅ همگام‌سازی موفق (${reason})`);
-            } else {
-                console.warn(`⚠️ همگام‌سازی ناموفق (${reason})`);
-            }
+            if (success) console.log(`✅ همگام‌سازی موفق (${reason})`);
         } catch (e) {
             console.error(`❌ خطا در همگام‌سازی (${reason}):`, e);
         }
@@ -47,9 +34,7 @@ async function checkMaintenanceMode() {
     const urlParams = new URLSearchParams(window.location.search);
     const isAdmin = urlParams.get('admin') === ADMIN_CODE;
     
-    if (isAdmin) {
-        console.log('👑 حالت ادمین فعال - ورود به برنامه');
-    }
+    if (isAdmin) console.log('👑 حالت ادمین فعال - ورود به برنامه');
     
     try {
         const response = await fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' });
@@ -60,7 +45,6 @@ async function checkMaintenanceMode() {
         console.log('📢 وضعیت انتشار:', isPublished ? 'منتشر شده ✅' : 'منتشر نشده 🔒');
         
         if (isAdmin) return false;
-        
         return data.maintenance === true;
     } catch(e) {
         console.error('خطا در خواندن maintenance.json:', e);
@@ -82,6 +66,9 @@ async function startApp() {
             checkDeadlineWarning();
             updateNotificationBadge();
             checkVideoNotification();
+            if (typeof checkTeacherMessagesBadge === 'function') {
+                checkTeacherMessagesBadge();
+            }
             if (localStorage.getItem('guideCompleted') !== 'true') {
                 currentGuideStep = 0;
                 showGuideStep();
@@ -237,6 +224,188 @@ window.addEventListener('appinstalled', () => {
 });
 
 // ============================================================
+// 🆕 بارگذاری مسابقات فعال در صفحه خانه
+// ============================================================
+async function loadHomeContests() {
+    const section = document.getElementById('home-contests-section');
+    const list = document.getElementById('home-contests-list');
+    
+    if (!section || !list) return;
+    
+    try {
+        if (typeof TEACHER_API_URL === 'undefined') return;
+        
+        const response = await fetch(TEACHER_API_URL + '?action=getContests&t=' + Date.now(), {
+            cache: 'no-store'
+        });
+        const result = await response.json();
+        
+        if (!result.success || !result.data || result.data.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        
+        const today = getPersianDate();
+        const activeContests = result.data.filter(c => {
+            const endNum = persianDateToNumber(c.end_date);
+            const todayNum = persianDateToNumber(today);
+            return endNum >= todayNum;
+        });
+        
+        if (activeContests.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        
+        list.innerHTML = activeContests.slice(0, 3).map(c => `
+            <div class="home-contest-item">
+                <div class="home-contest-icon">🏆</div>
+                <div class="home-contest-info">
+                    <div class="home-contest-title">${c.title}</div>
+                    <div class="home-contest-meta">🎁 ${c.prize || 'بدون جایزه'} • تا ${c.end_date}</div>
+                </div>
+            </div>
+        `).join('');
+        
+        section.style.display = 'block';
+        
+    } catch (error) {
+        console.warn('خطا در مسابقات:', error);
+        section.style.display = 'none';
+    }
+}
+
+// ============================================================
+// 🆕 بارگذاری کتابخانه در صفحه خانه
+// ============================================================
+async function loadHomeLibrary() {
+    const section = document.getElementById('home-library-section');
+    const list = document.getElementById('home-library-list');
+    
+    if (!section || !list) return;
+    
+    try {
+        if (typeof TEACHER_API_URL === 'undefined') return;
+        
+        const response = await fetch(TEACHER_API_URL + '?action=getLibrary&t=' + Date.now(), {
+            cache: 'no-store'
+        });
+        const result = await response.json();
+        
+        if (!result.success || !result.data || result.data.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        
+        const typeIcons = { video: '🎬', pdf: '📄', audio: '🎵', site: '🌐', book: '📚' };
+        
+        list.innerHTML = result.data.slice(0, 4).map(item => `
+            <a href="${item.url}" target="_blank" class="home-library-item">
+                <div class="home-library-icon">${typeIcons[item.type] || '📄'}</div>
+                <div class="home-library-info">
+                    <div class="home-library-title">${item.title}</div>
+                </div>
+            </a>
+        `).join('');
+        
+        section.style.display = 'block';
+        
+    } catch (error) {
+        console.warn('خطا در کتابخانه:', error);
+        section.style.display = 'none';
+    }
+}
+
+// ============================================================
+// 🆕 چک کردن پیام جدید از معلم
+// ============================================================
+async function checkTeacherMessages() {
+    try {
+        const userClass = localStorage.getItem('userClass') || 'هفتم یک';
+        const studentId = localStorage.getItem('studentUUID');
+        const classSlug = typeof classNameToSlug === 'function' ? classNameToSlug(userClass) : userClass;
+        
+        if (typeof TEACHER_API_URL === 'undefined') return;
+        
+        const response = await fetch(TEACHER_API_URL + '?action=getMessages&t=' + Date.now(), {
+            cache: 'no-store'
+        });
+        const result = await response.json();
+        
+        if (!result.success || !result.data) return;
+        
+        const myMessages = result.data.filter(msg => {
+            if (msg.target_type === 'all') return true;
+            if (msg.target_type === 'class' && msg.target_value === classSlug) return true;
+            if (msg.target_type === 'student' && msg.target_value === studentId) return true;
+            return false;
+        });
+        
+        const seenMessages = JSON.parse(localStorage.getItem('seenTeacherMessages') || '[]');
+        const newMessages = myMessages.filter(m => !seenMessages.includes(m.message_id));
+        
+        if (newMessages.length > 0) {
+            console.log('📬 پیام جدید از معلم:', newMessages.length);
+            
+            const badge = document.getElementById('notif-badge-dot');
+            if (badge) badge.classList.add('show');
+            
+            showTeacherMessageNotification(newMessages[0]);
+        }
+        
+        const allIds = myMessages.map(m => m.message_id);
+        localStorage.setItem('seenTeacherMessages', JSON.stringify(allIds));
+        
+    } catch (error) {
+        console.warn('خطا در چک پیام‌های معلم:', error);
+    }
+}
+
+// ============================================================
+// 🆕 نمایش اعلان پیام معلم
+// ============================================================
+function showTeacherMessageNotification(message) {
+    const dismissed = JSON.parse(localStorage.getItem('dismissedTeacherMessages') || '[]');
+    if (dismissed.includes(message.message_id)) return;
+    
+    const notif = document.createElement('div');
+    notif.className = 'teacher-message-notification';
+    notif.innerHTML = `
+        <button class="notification-close" onclick="dismissTeacherNotification('${message.message_id}', this)">✕</button>
+        <div class="notification-icon">👨‍🏫</div>
+        <div class="notification-text">
+            <div class="notification-title">پیام از معلم</div>
+            <div class="notification-sub">${message.title}</div>
+        </div>
+        <button class="notification-btn" onclick="goToTeacherMessage()">مشاهده</button>
+    `;
+    
+    const container = document.getElementById('app-container');
+    if (container) container.appendChild(notif);
+    
+    setTimeout(() => notif.classList.add('show'), 100);
+}
+
+function dismissTeacherNotification(messageId, btn) {
+    const notif = btn.closest('.teacher-message-notification');
+    if (notif) {
+        notif.classList.remove('show');
+        setTimeout(() => notif.remove(), 300);
+    }
+    
+    const dismissed = JSON.parse(localStorage.getItem('dismissedTeacherMessages') || '[]');
+    if (!dismissed.includes(messageId)) {
+        dismissed.push(messageId);
+        localStorage.setItem('dismissedTeacherMessages', JSON.stringify(dismissed));
+    }
+}
+
+function goToTeacherMessage() {
+    document.querySelectorAll('.teacher-message-notification').forEach(n => n.remove());
+    goToScreen('screen-notifications');
+}
+
+// ============================================================
 // بارگذاری اولیه (Window Load)
 // ============================================================
 window.addEventListener('load', async () => {
@@ -251,7 +420,7 @@ window.addEventListener('load', async () => {
     loadUserInfo();
     loadTheme();
 
-    // 🆕 ۳. اگه کاربر ثبت‌نام کرده ولی UUID نداره، بسازش
+    // ۳. اگه کاربر ثبت‌نام کرده ولی UUID نداره، بسازش
     if (localStorage.getItem('userRegistered') === 'true' && !localStorage.getItem('studentUUID')) {
         console.log('🆕 کاربر قدیمی - ساخت UUID...');
         const newUUID = generateUUID();
@@ -259,7 +428,7 @@ window.addEventListener('load', async () => {
         console.log('✅ UUID ساخته شد:', newUUID);
     }
 
-    // 🆕 ۴. همگام‌سازی خودکار بعد از ورود به برنامه
+    // ۴. همگام‌سازی خودکار بعد از ورود به برنامه
     if (localStorage.getItem('userRegistered') === 'true') {
         autoSyncRanking('ورود به برنامه');
     }
@@ -302,6 +471,9 @@ window.addEventListener('load', async () => {
                     updateNotificationBadge();
                 }
                 checkVideoNotification();
+                if (typeof checkTeacherMessagesBadge === 'function') {
+                    checkTeacherMessagesBadge();
+                }
                 setTimeout(() => showStreakMessage(), 800);
             }, 300);
         } else {
@@ -311,11 +483,30 @@ window.addEventListener('load', async () => {
         pushHistory('screen-splash');
         setTimeout(typeMotivation, 500);
     }
+
+    // ۷. چک کردن پیام‌های معلم (هر ۳۰ ثانیه)
+    setInterval(() => {
+        if (localStorage.getItem('userRegistered') === 'true') {
+            const activeScreen = document.querySelector('.screen.active');
+            if (activeScreen && activeScreen.id !== 'screen-teacher-messages') {
+                if (typeof checkTeacherMessagesBadge === 'function') {
+                    checkTeacherMessagesBadge();
+                }
+            }
+        }
+    }, 30000);
+
+    // ۸. بارگذاری مسابقات و کتابخانه
+    setTimeout(() => {
+        if (localStorage.getItem('userRegistered') === 'true') {
+            loadHomeContests();
+            loadHomeLibrary();
+        }
+    }, 3000);
 });
 
 // ============================================================
 // 🆕 همگام‌سازی خودکار وقتی کاربر برگشت به برنامه
-// (مثلاً بعد از minimize یا باز کردن دوباره)
 // ============================================================
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {

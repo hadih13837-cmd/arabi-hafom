@@ -1,12 +1,17 @@
 // ============================================================
 // rankings.js — سیستم رتبه‌بندی
-// نسخه: ۱۶.۰.۰ — با auto-refresh هر ۳ ثانیه
+// نسخه: ۱۷.۰.۰ — با عکس وکتور پسر پیش‌فرض
 // ============================================================
 
 let currentRankings = [];
 let currentRankingsClass = '';
-let autoRefreshInterval = null;  // 🆕
-let lastRankingsHash = '';        // 🆕
+let autoRefreshInterval = null;
+let lastRankingsHash = '';
+
+// ============================================================
+// آواتار پیش‌فرض (عکس وکتور پسر)
+// ============================================================
+const DEFAULT_AVATAR_IMG = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
 
 // ============================================================
 // بارگذاری صفحه رتبه‌بندی (با کش + auto-refresh)
@@ -19,7 +24,7 @@ async function loadRankingsPage() {
     const studentId = localStorage.getItem('studentUUID');
     const cacheKey = 'rankings_cache_' + userClass;
     
-    // ⚡ اول از کش نشون بده
+    // اول از کش نشون بده
     const cachedData = localStorage.getItem(cacheKey);
     let hasCachedData = false;
     
@@ -78,7 +83,7 @@ async function loadRankingsPage() {
             container.innerHTML = renderEmptyRankings();
         }
         
-        // 🆕 شروع auto-refresh
+        // شروع auto-refresh
         startAutoRefresh();
         
     } catch (error) {
@@ -98,7 +103,7 @@ async function loadRankingsPage() {
 }
 
 // ============================================================
-// 🆕 ساخت hash از رتبه‌بندی
+// ساخت hash از رتبه‌بندی
 // ============================================================
 function getRankingsHash(rankings) {
     if (!rankings || rankings.length === 0) return '';
@@ -108,18 +113,15 @@ function getRankingsHash(rankings) {
 }
 
 // ============================================================
-// 🆕 شروع auto-refresh (هر ۳ ثانیه)
+// شروع auto-refresh (هر ۳ ثانیه)
 // ============================================================
 function startAutoRefresh() {
     stopAutoRefresh();
-    
     console.log('🔄 Auto-refresh شروع شد (هر ۳ ثانیه)');
     
     autoRefreshInterval = setInterval(async () => {
         const activeScreen = document.querySelector('.screen.active');
-        if (!activeScreen || activeScreen.id !== 'screen-rankings') {
-            return;
-        }
+        if (!activeScreen || activeScreen.id !== 'screen-rankings') return;
         
         const anyModalOpen = document.querySelector('.profile-card-overlay.active, .user-medals-overlay.active, .exit-modal-overlay.active, .modal-overlay.active');
         if (anyModalOpen) return;
@@ -129,14 +131,12 @@ function startAutoRefresh() {
             const studentId = localStorage.getItem('studentUUID');
             
             const rankings = await getRankingsByClass(userClass);
-            
             if (!rankings || rankings.length === 0) return;
             
             const newHash = getRankingsHash(rankings);
             
             if (newHash !== lastRankingsHash) {
                 console.log('🆕 تغییر در رتبه‌بندی تشخیص داده شد!');
-                
                 currentRankings = rankings;
                 lastRankingsHash = newHash;
                 
@@ -151,7 +151,6 @@ function startAutoRefresh() {
                 if (container) {
                     container.innerHTML = renderRankingsList(currentRankings, userClass, studentId);
                 }
-                
                 vibrate(10);
             }
         } catch (error) {
@@ -161,7 +160,7 @@ function startAutoRefresh() {
 }
 
 // ============================================================
-// 🆕 توقف auto-refresh
+// توقف auto-refresh
 // ============================================================
 function stopAutoRefresh() {
     if (autoRefreshInterval) {
@@ -328,10 +327,17 @@ function getClassPersianName(slug) {
 // گرفتن کلاس آواتار
 // ============================================================
 function getAvatarClass(ranking) {
-    const avatarUrl = ranking.avatar_url || 'emoji:👦🏻';
+    const avatarUrl = ranking.avatar_url || '';
+    
+    // اگه ایموجی بود
     if (avatarUrl.startsWith('emoji:')) {
-        return 'lb-avatar-emoji-mode';
+        const emoji = avatarUrl.replace('emoji:', '');
+        if (emoji && emoji !== '👤' && emoji !== '👦🏻') {
+            return 'lb-avatar-emoji-mode';
+        }
     }
+    
+    // در غیر این صورت → عکس
     return 'lb-avatar-image-mode';
 }
 
@@ -350,28 +356,39 @@ function getClassNumberFromSlug(slug) {
 }
 
 // ============================================================
-// رندر آواتار
+// 🆕 رندر آواتار (نسخه نهایی)
+// ============================================================
+// ============================================================
+// 🆕 رندر آواتار در رتبه‌بندی (با عکس پیش‌فرض از حساب کاربری)
 // ============================================================
 function renderAvatar(ranking) {
-    const avatarUrl = ranking.avatar_url || 'emoji:👦🏻';
+    // 🆕 این همون عکسیه که توی حساب کاربری استفاده میشه
+    const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
     
+    const avatarUrl = ranking.avatar_url || '';
+    
+    // حالت ایموجی
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '');
-        if (!emoji || emoji === '👤') {
-            return `<span class="lb-avatar-emoji">👦🏻</span>`;
+        // اگه ایموجی خالی یا پیش‌فرض قدیمی بود، عکس پیش‌فرض نشون بده
+        if (!emoji || emoji === '👤' || emoji === '👦🏻') {
+            return `<img src="${DEFAULT_AVATAR_URL}" alt="آواتار" class="lb-avatar-img">`;
         }
         return `<span class="lb-avatar-emoji">${emoji}</span>`;
     }
     
+    // حالت عکس base64
     if (avatarUrl.startsWith('data:image')) {
         return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img">`;
     }
     
+    // حالت URL عکس
     if (avatarUrl.startsWith('http')) {
         return `<img src="${avatarUrl}" alt="آواتار" class="lb-avatar-img" crossorigin="anonymous">`;
     }
     
-    return `<span class="lb-avatar-emoji">👦🏻</span>`;
+    // 🆕 حالت پیش‌فرض: همون عکس حساب کاربری
+    return `<img src="${DEFAULT_AVATAR_URL}" alt="آواتار" class="lb-avatar-img">`;
 }
 
 // ============================================================
@@ -583,7 +600,7 @@ function openProfileCard(studentId) {
 }
 
 // ============================================================
-// باز کردن صفحه‌ی مدال‌ها
+// باز کردن صفحه مدال‌های کاربر
 // ============================================================
 function openMedalsPage(studentId) {
     const ranking = currentRankings.find(r => r.student_id === studentId);
@@ -674,16 +691,13 @@ function getUserEarnedMedals(ranking) {
 }
 
 // ============================================================
-// بستن صفحه‌ی مدال‌ها
+// بستن مدال‌ها و پروفایل
 // ============================================================
 function closeUserMedals() {
     const modal = document.getElementById('user-medals-modal');
     if (modal) modal.classList.remove('active');
 }
 
-// ============================================================
-// بستن کارت پروفایل
-// ============================================================
 function closeProfileCard() {
     const modal = document.getElementById('profile-card-modal');
     if (modal) modal.classList.remove('active');
