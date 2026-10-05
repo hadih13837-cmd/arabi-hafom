@@ -1,12 +1,12 @@
 // ============================================================
-// notifications.js — نسخه ۱۴.۰.۰
-// با Supabase Realtime — بدون polling
+// notifications.js — نسخه ۱۵.۰.۰
+// با Supabase Realtime + رفع باگ دوبار subscribe
 // ============================================================
 
 // ============================================================
 // ثابت‌ها
 // ============================================================
-const MESSAGES_CACHE_DURATION = 1800000;  // ۳۰ دقیقه
+const MESSAGES_CACHE_DURATION = 1800000;
 const BADGE_CACHE_KEY = 'studentBadgeCache';
 const SEEN_CHAT_KEY = 'seenChatMessages';
 const SEEN_CLASS_KEY = 'seenClassMessages';
@@ -18,6 +18,9 @@ let isFetchingChat = false;
 // 🆕 کانال‌های Realtime
 let personalMessagesChannel = null;
 let classMessagesChannel = null;
+
+// 🆕 محافظ برای جلوگیری از دوبار شروع
+let isRealtimeStarted = false;
 
 // ============================================================
 // Badge
@@ -102,7 +105,7 @@ function markAllClassMessagesAsSeen(messages) {
 }
 
 // ============================================================
-// محاسبه Badge از LocalStorage
+// محاسبه Badge
 // ============================================================
 function computeBadgeFromLocal() {
     let total = 0;
@@ -178,89 +181,98 @@ function setCachedData(key, data) {
 }
 
 // ============================================================
-// 🆕 Realtime — گوش دادن به پیام‌های شخصی
+// 🆕 Realtime — گوش دادن به پیام‌های شخصی و کلاسی
+// با محافظ isRealtimeStarted
 // ============================================================
 function startRealtimeSubscriptions() {
+    // 🆕 جلوگیری از دوبار شروع
+    if (isRealtimeStarted) {
+        console.log('📡 Realtime قبلاً شروع شده');
+        return;
+    }
+    
     const studentId = localStorage.getItem('studentUUID');
     if (!studentId) return;
     
     const userClass = localStorage.getItem('userClass') || 'هفتم یک';
     
-    // ۱. گوش دادن به پیام‌های شخصی خودم
-    personalMessagesChannel = subscribeToPersonalMessages(studentId, async (payload) => {
-        console.log('📨 Realtime: پیام شخصی جدید', payload);
-        
-        // رفرش کش پیام‌های شخصی
-        const messages = await getPersonalMessages(studentId);
-        setCachedData('studentChatCache_' + studentId, messages);
-        
-        // اگه توی چت هستیم، پیام‌ها رو نمایش بده
-        const activeScreen = document.querySelector('.screen.active');
-        if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
-            const activeTab = document.querySelector('.student-messages-tab.active');
-            if (activeTab && activeTab.dataset.tab === 'chat') {
-                renderStudentChatMessages(messages);
-                markAllChatMessagesAsSeen(messages);
+    isRealtimeStarted = true;
+    console.log('📡 شروع Realtime...');
+    
+    // ۱. گوش دادن به پیام‌های شخصی
+    try {
+        personalMessagesChannel = subscribeToPersonalMessages(studentId, async (payload) => {
+            console.log('📨 Realtime: پیام شخصی جدید', payload.eventType);
+            
+            const messages = await getPersonalMessages(studentId);
+            setCachedData('studentChatCache_' + studentId, messages);
+            
+            const activeScreen = document.querySelector('.screen.active');
+            if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
+                const activeTab = document.querySelector('.student-messages-tab.active');
+                if (activeTab && activeTab.dataset.tab === 'chat') {
+                    renderStudentChatMessages(messages);
+                    markAllChatMessagesAsSeen(messages);
+                    markAllMessagesAsSeenSupabase(studentId, 'student').catch(() => {});
+                }
+            } else {
+                if (payload.eventType === 'INSERT' && payload.new && payload.new.sender === 'teacher') {
+                    playStudentDingSound();
+                    vibrate([30, 50, 30]);
+                    showStudentInAppNotification('پیام جدید از معلم', payload.new.text || '');
+                }
+            }
+            
+            updateBadgeImmediately();
+        });
+    } catch(e) {
+        console.warn('خطا در Realtime پیام‌های شخصی:', e);
+    }
+    
+    // ۲. گوش دادن به پیام‌های کلاسی (با تأخیر)
+    setTimeout(() => {
+        try {
+            classMessagesChannel = subscribeToClassMessages(userClass, async (payload) => {
+                console.log('📢 Realtime: پیام کلاسی جدید', payload.eventType);
                 
-                // علامت‌گذاری سرور
-                markAllMessagesAsSeenSupabase(studentId, 'student').catch(() => {});
-            }
-        } else {
-            // اگه توی چت نیستیم، نوتیف بده
-            if (payload.eventType === 'INSERT' && payload.new.sender === 'teacher') {
-                playStudentDingSound();
-                vibrate([30, 50, 30]);
-                showStudentInAppNotification('پیام جدید از معلم', payload.new.text);
-            }
+                const messages = await getClassMessagesFromSupabase(userClass);
+                setCachedData('studentClassMessagesCache', messages);
+                
+                const activeScreen = document.querySelector('.screen.active');
+                if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
+                    const activeTab = document.querySelector('.student-messages-tab.active');
+                    if (activeTab && activeTab.dataset.tab === 'class') {
+                        renderStudentClassMessages(messages);
+                        markAllClassMessagesAsSeen(messages);
+                    }
+                } else {
+                    playStudentDingSound();
+                    vibrate([30, 50, 30]);
+                    showStudentInAppNotification('📢 پیام جدید کلاسی', payload.new?.title || 'پیام جدید');
+                }
+                
+                updateBadgeImmediately();
+            });
+        } catch(e) {
+            console.warn('خطا در Realtime پیام‌های کلاسی:', e);
         }
-        
-        updateBadgeImmediately();
-    });
-    
-    // ۲. گوش دادن به پیام‌های کلاسی
-    classMessagesChannel = subscribeToClassMessages(userClass, async (payload) => {
-        console.log('📢 Realtime: پیام کلاسی جدید', payload);
-        
-        // رفرش کش
-        const messages = await getClassMessagesFromSupabase(userClass);
-        setCachedData('studentClassMessagesCache', messages);
-        
-        // اگه توی صفحه پیام‌های کلاسی هستیم، نمایش بده
-        const activeScreen = document.querySelector('.screen.active');
-        if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
-            const activeTab = document.querySelector('.student-messages-tab.active');
-            if (activeTab && activeTab.dataset.tab === 'class') {
-                renderStudentClassMessages(messages);
-                markAllClassMessagesAsSeen(messages);
-            }
-        } else {
-            playStudentDingSound();
-            vibrate([30, 50, 30]);
-            showStudentInAppNotification('📢 پیام جدید کلاسی', payload.new.title || 'پیام جدید');
-        }
-        
-        updateBadgeImmediately();
-    });
-    
-    console.log('📡 Realtime شروع شد');
+    }, 500);
 }
 
 function stopRealtimeSubscriptions() {
-    if (personalMessagesChannel) {
-        try {
-            const client = getSupabase();
-            if (client) client.removeChannel(personalMessagesChannel);
-        } catch(e) {}
-        personalMessagesChannel = null;
-    }
+    isRealtimeStarted = false;
     
-    if (classMessagesChannel) {
-        try {
-            const client = getSupabase();
-            if (client) client.removeChannel(classMessagesChannel);
-        } catch(e) {}
-        classMessagesChannel = null;
-    }
+    try {
+        const client = getSupabase();
+        if (client) {
+            client.removeAllChannels();
+        }
+    } catch(e) {}
+    
+    personalMessagesChannel = null;
+    classMessagesChannel = null;
+    
+    console.log('📴 Realtime قطع شد');
 }
 
 // ============================================================
@@ -904,7 +916,6 @@ async function loadStudentChat() {
         renderStudentChatMessages(messages);
         markAllChatMessagesAsSeen(messages);
         
-        // علامت‌گذاری سرور
         markAllMessagesAsSeenSupabase(studentId, 'student').catch(() => {});
         
         updateBadgeImmediately();
@@ -913,9 +924,6 @@ async function loadStudentChat() {
     } catch (error) {}
 }
 
-// ============================================================
-// رندر پیام با تیک دوگانه
-// ============================================================
 function renderStudentChatMessages(messages) {
     const container = document.getElementById('student-chat-messages');
     if (!container) return;
@@ -1015,16 +1023,13 @@ async function sendStudentMessage() {
         container.appendChild(msgEl);
         container.scrollTop = container.scrollHeight;
         
-        // ذخیره در کش
         const cached = getCachedData(cacheKey) || [];
         cached.push(messageData);
         setCachedData(cacheKey, cached);
         
-        // ارسال به Supabase
         await sendPersonalMessageToSupabase(messageData);
         
         vibrate(15);
-        console.log('✅ پیام ارسال شد:', messageData.message_id);
         
     } catch (error) {
         console.error('❌ خطا در ارسال پیام:', error);
@@ -1044,7 +1049,7 @@ function showStudentInAppNotification(title, text) {
         <div class="inapp-icon">💬</div>
         <div class="inapp-content">
             <div class="inapp-title">${title}</div>
-            <div class="inapp-text">${text.substring(0, 60)}${text.length > 60 ? '...' : ''}</div>
+            <div class="inapp-text">${(text || '').substring(0, 60)}${(text || '').length > 60 ? '...' : ''}</div>
         </div>
     `;
     notif.onclick = () => {
@@ -1205,7 +1210,6 @@ function renderStudentEmpty(icon, title, text) {
 // ============================================================
 window.addEventListener('load', () => {
     setTimeout(async () => {
-        // بار اول: از Supabase بخون
         const studentId = localStorage.getItem('studentUUID');
         if (studentId) {
             try {
@@ -1224,8 +1228,8 @@ window.addEventListener('load', () => {
         
         updateBadgeImmediately();
         
-        // شروع Realtime
-        if (localStorage.getItem('userRegistered') === 'true') {
+        // 🆕 شروع Realtime (اگه هنوز شروع نشده)
+        if (localStorage.getItem('userRegistered') === 'true' && !isRealtimeStarted) {
             setTimeout(() => startRealtimeSubscriptions(), 1000);
         }
     }, 500);

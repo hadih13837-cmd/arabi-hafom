@@ -1,13 +1,13 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۶.۰.۰ — Real-time + سرعت بالا
+// نسخه: ۶.۱.۰ — با رفع باگ Realtime
 // ============================================================
 
 // ============================================================
-// 🔄 سازگاری با کد قدیمی (که TEACHER_API_URL رو صدا می‌زنه)
+// 🔄 سازگاری با کد قدیمی
 // ============================================================
-const TEACHER_API_URL = SUPABASE_URL;
-const API_URL = SUPABASE_URL;
+const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
+const API_URL = TEACHER_API_URL;
 
 // ============================================================
 // ذخیره/آپدیت امتیاز کاربر
@@ -20,7 +20,6 @@ async function saveRankingToSupabase() {
             return false;
         }
         
-        // اگه studentUUID نداره، بساز
         let studentId = localStorage.getItem('studentUUID');
         if (!studentId) {
             studentId = (typeof crypto !== 'undefined' && crypto.randomUUID) 
@@ -68,7 +67,6 @@ async function saveRankingToSupabase() {
             last_update: new Date().toISOString()
         };
         
-        // 🆕 UPSERT: اگه رکورد هست، آپدیت کن؛ اگه نه، درج کن
         const { data, error } = await client
             .from('rankings')
             .upsert(payload, { 
@@ -178,7 +176,6 @@ async function getMyRank() {
 // پیام‌های کلاسی
 // ============================================================
 
-// ارسال پیام کلاسی (معلم)
 async function sendClassMessageToSupabase(data) {
     try {
         const client = getSupabase();
@@ -213,7 +210,6 @@ async function sendClassMessageToSupabase(data) {
     }
 }
 
-// گرفتن پیام‌های کلاسی
 async function getClassMessagesFromSupabase(className) {
     try {
         const client = getSupabase();
@@ -249,7 +245,6 @@ async function getClassMessagesFromSupabase(className) {
 // پیام‌های شخصی (چت)
 // ============================================================
 
-// ارسال پیام شخصی
 async function sendPersonalMessageToSupabase(data) {
     try {
         const client = getSupabase();
@@ -286,7 +281,6 @@ async function sendPersonalMessageToSupabase(data) {
     }
 }
 
-// گرفتن پیام‌های شخصی یک دانش‌آموز
 async function getPersonalMessages(studentId) {
     try {
         const client = getSupabase();
@@ -311,7 +305,6 @@ async function getPersonalMessages(studentId) {
     }
 }
 
-// گرفتن لیست مکالمات (برای معلم)
 async function getStudentConversationsFromSupabase() {
     try {
         const client = getSupabase();
@@ -327,7 +320,6 @@ async function getStudentConversationsFromSupabase() {
             return [];
         }
         
-        // گروه‌بندی بر اساس student_id
         const conversationsMap = {};
         
         (data || []).forEach(msg => {
@@ -352,7 +344,6 @@ async function getStudentConversationsFromSupabase() {
             
             conversationsMap[studentId].messages.push(msg);
             
-            // آپدیت آخرین پیام
             if (new Date(msg.date) > new Date(conversationsMap[studentId].last_date || 0)) {
                 conversationsMap[studentId].last_message = msg.text || '';
                 conversationsMap[studentId].last_sender = msg.sender || '';
@@ -361,13 +352,12 @@ async function getStudentConversationsFromSupabase() {
                 conversationsMap[studentId].last_message_time = msg.date;
             }
             
-            // محاسبه unread
             if (msg.sender === 'student' && !msg.is_seen) {
                 conversationsMap[studentId].unread_count++;
             }
         });
         
-        // اضافه کردن آواتار از rankings
+        // اضافه کردن آواتار
         try {
             const studentIds = Object.keys(conversationsMap);
             if (studentIds.length > 0) {
@@ -401,14 +391,11 @@ async function getStudentConversationsFromSupabase() {
 // علامت‌گذاری پیام‌ها به عنوان دیده‌شده
 // ============================================================
 
-// علامت‌گذاری همه پیام‌های یک مکالمه
 async function markAllMessagesAsSeenSupabase(studentId, reader) {
     try {
         const client = getSupabase();
         if (!client) return { success: false };
         
-        // reader = 'teacher' → پیام‌های student رو دیده‌شده کن
-        // reader = 'student' → پیام‌های teacher رو دیده‌شده کن
         const senderToMark = reader === 'teacher' ? 'student' : 'teacher';
         
         const { error } = await client
@@ -423,7 +410,6 @@ async function markAllMessagesAsSeenSupabase(studentId, reader) {
             return { success: false, error: error.message };
         }
         
-        console.log('✅ پیام‌ها به عنوان دیده‌شده علامت‌گذاری شدند');
         return { success: true };
         
     } catch (error) {
@@ -591,24 +577,31 @@ async function getLibraryFromSupabase() {
 }
 
 // ============================================================
-// 🆕 Realtime — گوش دادن به تغییرات
+// 🆕 Realtime — با رفع باگ
 // ============================================================
 
-let realtimeChannel = null;
+let personalRealtimeChannel = null;
+let classRealtimeChannel = null;
+let conversationsRealtimeChannel = null;
 
-// شروع گوش دادن به پیام‌های شخصی
+// 🆕 گوش دادن به پیام‌های شخصی
 function subscribeToPersonalMessages(studentId, onNewMessage) {
     try {
         const client = getSupabase();
         if (!client) return null;
         
-        // اگه قبلاً subscribe شده، پاک کن
-        if (realtimeChannel) {
-            client.removeChannel(realtimeChannel);
+        // اگه کانال قبلی وجود داره، پاکش کن
+        if (personalRealtimeChannel) {
+            try {
+                client.removeChannel(personalRealtimeChannel);
+            } catch(e) {}
+            personalRealtimeChannel = null;
         }
         
-        realtimeChannel = client
-            .channel('personal_messages_realtime_' + studentId)
+        const channelName = 'personal_rt_' + studentId + '_' + Date.now();
+        
+        personalRealtimeChannel = client
+            .channel(channelName)
             .on(
                 'postgres_changes',
                 {
@@ -618,34 +611,43 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
                     filter: `student_id=eq.${studentId}`
                 },
                 (payload) => {
-                    console.log('📨 تغییر در پیام‌های شخصی:', payload);
+                    console.log('📨 Realtime: پیام شخصی:', payload.eventType);
                     if (typeof onNewMessage === 'function') {
                         onNewMessage(payload);
                     }
                 }
             )
             .subscribe((status) => {
-                console.log('📡 وضعیت Realtime:', status);
+                console.log('📡 Personal Realtime:', status);
             });
         
-        return realtimeChannel;
+        return personalRealtimeChannel;
         
     } catch (error) {
-        console.error('❌ خطا در Realtime:', error);
+        console.error('❌ خطا در Personal Realtime:', error);
         return null;
     }
 }
 
-// شروع گوش دادن به پیام‌های کلاسی
+// 🆕 گوش دادن به پیام‌های کلاسی
 function subscribeToClassMessages(className, onNewMessage) {
     try {
         const client = getSupabase();
         if (!client) return null;
         
-        const classSlug = classNameToSlug(className);
+        // اگه کانال قبلی وجود داره، پاکش کن
+        if (classRealtimeChannel) {
+            try {
+                client.removeChannel(classRealtimeChannel);
+            } catch(e) {}
+            classRealtimeChannel = null;
+        }
         
-        const channel = client
-            .channel('class_messages_realtime_' + classSlug)
+        const classSlug = classNameToSlug(className);
+        const channelName = 'class_rt_' + classSlug + '_' + Date.now();
+        
+        classRealtimeChannel = client
+            .channel(channelName)
             .on(
                 'postgres_changes',
                 {
@@ -654,30 +656,42 @@ function subscribeToClassMessages(className, onNewMessage) {
                     table: 'class_messages'
                 },
                 (payload) => {
-                    console.log('📢 پیام کلاسی جدید:', payload);
+                    console.log('📢 Realtime: پیام کلاسی:', payload.eventType);
                     if (typeof onNewMessage === 'function') {
                         onNewMessage(payload);
                     }
                 }
             )
-            .subscribe();
+            .subscribe((status) => {
+                console.log('📡 Class Realtime:', status);
+            });
         
-        return channel;
+        return classRealtimeChannel;
         
     } catch (error) {
-        console.error('❌ خطا:', error);
+        console.error('❌ خطا در Class Realtime:', error);
         return null;
     }
 }
 
-// شروع گوش دادن به لیست مکالمات (پنل معلم)
+// 🆕 گوش دادن به لیست مکالمات (پنل معلم)
 function subscribeToConversations(onChange) {
     try {
         const client = getSupabase();
         if (!client) return null;
         
-        const channel = client
-            .channel('conversations_realtime')
+        // اگه کانال قبلی وجود داره، پاکش کن
+        if (conversationsRealtimeChannel) {
+            try {
+                client.removeChannel(conversationsRealtimeChannel);
+            } catch(e) {}
+            conversationsRealtimeChannel = null;
+        }
+        
+        const channelName = 'conversations_rt_' + Date.now();
+        
+        conversationsRealtimeChannel = client
+            .channel(channelName)
             .on(
                 'postgres_changes',
                 {
@@ -686,30 +700,36 @@ function subscribeToConversations(onChange) {
                     table: 'personal_messages'
                 },
                 (payload) => {
-                    console.log('💬 تغییر در مکالمات:', payload);
+                    console.log('💬 Realtime: مکالمه:', payload.eventType);
                     if (typeof onChange === 'function') {
                         onChange(payload);
                     }
                 }
             )
-            .subscribe();
+            .subscribe((status) => {
+                console.log('📡 Conversations Realtime:', status);
+            });
         
-        return channel;
+        return conversationsRealtimeChannel;
         
     } catch (error) {
-        console.error('❌ خطا:', error);
+        console.error('❌ خطا در Conversations Realtime:', error);
         return null;
     }
 }
 
-// قطع اتصال Realtime
+// قطع اتصال
 function unsubscribeAll() {
     try {
         const client = getSupabase();
         if (!client) return;
         
         client.removeAllChannels();
-        realtimeChannel = null;
+        
+        personalRealtimeChannel = null;
+        classRealtimeChannel = null;
+        conversationsRealtimeChannel = null;
+        
         console.log('📴 همه اتصال‌های Realtime قطع شد');
         
     } catch (error) {

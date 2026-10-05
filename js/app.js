@@ -1,6 +1,6 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۵.۰.۰ — با Supabase
+// نسخه: ۵.۱.۰ — با محافظ Realtime
 // ============================================================
 
 // ============================================================
@@ -72,8 +72,10 @@ async function startApp() {
             }
             
             // 🆕 شروع Realtime (اگه هنوز شروع نشده)
-            if (typeof startRealtimeSubscriptions === 'function') {
-                startRealtimeSubscriptions();
+            if (typeof startRealtimeSubscriptions === 'function' && 
+                typeof isRealtimeStarted !== 'undefined' && 
+                !isRealtimeStarted) {
+                setTimeout(() => startRealtimeSubscriptions(), 500);
             }
             
             if (localStorage.getItem('guideCompleted') !== 'true') {
@@ -463,9 +465,11 @@ window.addEventListener('load', async () => {
                     checkTeacherMessagesBadge();
                 }
                 
-                // 🆕 شروع Realtime
-                if (typeof startRealtimeSubscriptions === 'function') {
-                    startRealtimeSubscriptions();
+                // 🆕 شروع Realtime (فقط اگه هنوز شروع نشده)
+                if (typeof startRealtimeSubscriptions === 'function' && 
+                    typeof isRealtimeStarted !== 'undefined' && 
+                    !isRealtimeStarted) {
+                    setTimeout(() => startRealtimeSubscriptions(), 1000);
                 }
                 
                 setTimeout(() => showStreakMessage(), 800);
@@ -501,8 +505,10 @@ document.addEventListener('visibilitychange', () => {
             autoSyncRanking('بازگشت به برنامه');
             
             // 🆕 اگه Realtime قطع شده بود، دوباره وصل کن
-            if (typeof startRealtimeSubscriptions === 'function') {
-                startRealtimeSubscriptions();
+            if (typeof startRealtimeSubscriptions === 'function' && 
+                typeof isRealtimeStarted !== 'undefined' && 
+                !isRealtimeStarted) {
+                setTimeout(() => startRealtimeSubscriptions(), 1000);
             }
         }
     }
