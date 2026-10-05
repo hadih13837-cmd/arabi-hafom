@@ -5681,3 +5681,499 @@ body.dark-mode .teacher-messages-empty-text { color: #607d8b; }
     .home-welcome-avatar.emoji-mode .emoji-avatar { font-size: 48px; }
     .profile-avatar.emoji-mode .emoji-avatar { font-size: 80px; }
 }
+/* ============================================================
+   🆕 پیام‌رسان دانش‌آموز
+   ============================================================ */
+
+/* تب‌های پیام‌رسان */
+.student-messages-tabs {
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
+    padding: 12px 15px;
+    background: #fff;
+    border-bottom: 2px solid var(--primary-light);
+    box-shadow: 0 2px 10px rgba(25, 118, 210, 0.05);
+}
+
+.student-messages-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f8fbff;
+    border: 1.5px solid var(--primary-light);
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    color: #546e7a;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.student-messages-tab:active { transform: scale(0.97); }
+
+.student-messages-tab.active {
+    background: var(--primary-gradient);
+    color: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.student-messages-tab .tab-icon { font-size: 16px; }
+
+.student-messages-tab .tab-badge {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    background: linear-gradient(135deg, #f44336, #c62828);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+    padding: 2px 7px;
+    border-radius: 10px;
+    border: 2px solid #fff;
+    min-width: 20px;
+    text-align: center;
+    box-shadow: 0 3px 8px rgba(244, 67, 54, 0.5);
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+.student-messages-tab-content {
+    display: none;
+    flex: 1;
+    overflow: hidden;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.student-messages-tab-content.active {
+    display: flex !important;
+}
+
+/* ═══════════════════════════════════════
+   تب ۱: پیام‌های کلاس (کارتی)
+   ═══════════════════════════════════════ */
+
+.student-class-messages-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 15px;
+    background: #f0f7ff;
+    box-sizing: border-box;
+}
+
+.student-class-message-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 2px solid #e3f2fd;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    animation: messageCardIn 0.4s ease;
+}
+
+@keyframes messageCardIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.student-class-message-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(180deg, #2196f3, #1976d2);
+}
+
+.student-class-message-card.type-info::after { background: linear-gradient(180deg, #2196f3, #1976d2); }
+.student-class-message-card.type-warning::after { background: linear-gradient(180deg, #ff9800, #f57c00); }
+.student-class-message-card.type-success::after { background: linear-gradient(180deg, #4caf50, #2e7d32); }
+.student-class-message-card.type-reminder::after { background: linear-gradient(180deg, #9c27b0, #6a1b9a); }
+
+.student-class-message-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed #e3f2fd;
+}
+
+.student-class-message-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(255, 193, 7, 0.3);
+}
+
+.student-class-message-info {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+}
+
+.student-class-message-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: #e65100;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.student-class-message-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #90a4ae;
+    flex-wrap: wrap;
+}
+
+.student-class-message-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.student-class-message-type-badge.info { background: #e3f2fd; color: #0d47a1; }
+.student-class-message-type-badge.warning { background: #fff3e0; color: #e65100; }
+.student-class-message-type-badge.success { background: #e8f5e9; color: #1b5e20; }
+.student-class-message-type-badge.reminder { background: #f3e5f5; color: #6a1b9a; }
+
+.student-class-message-text {
+    font-size: 14px;
+    color: #455a64;
+    font-weight: bold;
+    line-height: 1.9;
+    text-align: right;
+    white-space: pre-wrap;
+}
+
+/* حالت خالی */
+.student-messages-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.student-messages-empty-icon {
+    font-size: 80px;
+    margin-bottom: 18px;
+    opacity: 0.5;
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.student-messages-empty-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: #78909c;
+    margin-bottom: 10px;
+}
+
+.student-messages-empty-text {
+    font-size: 13px;
+    color: #90a4ae;
+    font-weight: bold;
+    line-height: 1.7;
+    max-width: 260px;
+}
+
+/* ═══════════════════════════════════════
+   تب ۲: چت با معلم
+   ═══════════════════════════════════════ */
+
+.student-chat-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.student-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 15px;
+    background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+}
+
+.student-chat-message {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1.6;
+    position: relative;
+    word-wrap: break-word;
+    animation: messageIn 0.3s ease;
+}
+
+@keyframes messageIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* پیام معلم - سمت چپ */
+.student-chat-message.teacher {
+    align-self: flex-start;
+    background: var(--primary-gradient);
+    color: #fff;
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.25);
+}
+
+/* پیام دانش‌آموز - سمت راست */
+.student-chat-message.student {
+    align-self: flex-end;
+    background: #fff;
+    color: var(--text);
+    border-bottom-left-radius: 6px;
+    border: 1.5px solid var(--primary-light);
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.08);
+}
+
+.student-chat-message-time {
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0.7;
+    margin-top: 4px;
+    text-align: left;
+}
+
+.student-chat-message.teacher .student-chat-message-time {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.student-chat-message.student .student-chat-message-time {
+    color: #90a4ae;
+}
+
+.student-chat-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #90a4ae;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1.8;
+}
+
+.student-chat-empty-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+/* ورودی چت */
+.student-chat-input-wrapper {
+    flex-shrink: 0;
+    padding: 12px 15px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    background: #fff;
+    border-top: 2px solid var(--primary-light);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    box-shadow: 0 -4px 15px rgba(25, 118, 210, 0.05);
+}
+
+.student-chat-input {
+    flex: 1;
+    padding: 13px 18px;
+    border: 1.5px solid var(--primary-light);
+    border-radius: 50px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    outline: none;
+    background: #f8fbff;
+    transition: all 0.2s ease;
+    color: var(--text);
+}
+
+.student-chat-input:focus {
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
+}
+
+.student-chat-send-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+    transition: transform 0.15s ease;
+}
+
+.student-chat-send-btn:active { transform: scale(0.9); }
+
+.student-chat-send-btn svg {
+    width: 22px;
+    height: 22px;
+    stroke: #fff;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ============================================================
+   حالت شب — پیام‌رسان دانش‌آموز
+   ============================================================ */
+body.dark-mode #screen-teacher-messages {
+    background: #0f1419;
+}
+
+body.dark-mode .student-messages-tabs {
+    background: #1a2332;
+    border-color: #2a3444;
+}
+
+body.dark-mode .student-messages-tab {
+    background: #0f1419;
+    border-color: #2a3444;
+    color: #90a4ae;
+}
+
+body.dark-mode .student-messages-tab.active {
+    background: var(--primary-gradient);
+    color: #fff;
+}
+
+body.dark-mode .student-class-messages-content {
+    background: #0f1419;
+}
+
+body.dark-mode .student-class-message-card {
+    background: #1a2332;
+    border-color: #2a3444;
+}
+
+body.dark-mode .student-class-message-header {
+    border-color: #2a3444;
+}
+
+body.dark-mode .student-class-message-title {
+    color: #ffcc80;
+}
+
+body.dark-mode .student-class-message-text {
+    color: #e0e0e0;
+}
+
+body.dark-mode .student-chat-messages {
+    background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%);
+}
+
+body.dark-mode .student-chat-message.student {
+    background: #1a2332;
+    border-color: #2a3444;
+    color: #e0e0e0;
+}
+
+body.dark-mode .student-chat-input-wrapper {
+    background: #1a2332;
+    border-color: #2a3444;
+}
+
+body.dark-mode .student-chat-input {
+    background: #0f1419;
+    border-color: #2a3444;
+    color: #e0e0e0;
+}
+
+body.dark-mode .student-chat-input:focus {
+    background: #1a2332;
+    border-color: var(--primary);
+}
+
+body.dark-mode .student-messages-empty-title {
+    color: #90a4ae;
+}
+
+body.dark-mode .student-messages-empty-text {
+    color: #607d8b;
+}
+
+/* ============================================================
+   ریسپانسیو
+   ============================================================ */
+@media (max-width: 400px) {
+    .student-messages-tab {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+    .student-messages-tab .tab-icon {
+        font-size: 14px;
+    }
+    .student-class-message-card {
+        padding: 15px;
+    }
+    .student-class-message-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    .student-class-message-title {
+        font-size: 14px;
+    }
+    .student-class-message-text {
+        font-size: 13px;
+    }
+    .student-chat-message {
+        font-size: 13px;
+        padding: 10px 14px;
+    }
+    .student-chat-input {
+        padding: 11px 16px;
+        font-size: 13px;
+    }
+    .student-chat-send-btn {
+        width: 42px;
+        height: 42px;
+    }
+    .student-chat-send-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+}
