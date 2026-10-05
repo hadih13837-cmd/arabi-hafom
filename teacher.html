@@ -261,86 +261,141 @@
         <!-- ═══════════════════════════════════════
              صفحه ۴: پیام‌رسانی
              ═══════════════════════════════════════ -->
-        <section class="page" id="page-messages">
+        <!-- ═══════════════════════════════════════
+     صفحه ۴: پیام‌رسانی (جدید)
+     ═══════════════════════════════════════ -->
+<section class="page" id="page-messages">
+    
+    <!-- تب‌های پیام‌رسانی -->
+    <div class="messages-tabs">
+        <button class="messages-tab-btn active" data-tab="class" onclick="switchMessagesTab('class')">
+            <span class="tab-icon">📢</span>
+            <span>پیام کلاسی</span>
+        </button>
+        <button class="messages-tab-btn" data-tab="personal" onclick="switchMessagesTab('personal')">
+            <span class="tab-icon">👤</span>
+            <span>چت شخصی</span>
+            <span class="tab-badge" id="personal-unread-badge" style="display: none;">0</span>
+        </button>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         تب ۱: پیام کلاسی (کارتی)
+         ═══════════════════════════════════════ -->
+    <div class="messages-tab-content active" id="tab-class">
+        
+        <!-- فرم ارسال پیام کلاسی -->
+        <div class="class-message-form-card">
+            <div class="class-message-form-title">📢 ارسال پیام جدید به کلاس</div>
             
-            <div class="messages-layout">
+            <div class="class-message-form-field">
+                <label class="class-message-form-label">کلاس</label>
+                <select class="class-message-form-input" id="class-message-target">
+                    <option value="all">همه کلاس‌ها</option>
+                    <option value="hafom-1">هفتم یک</option>
+                    <option value="hafom-2">هفتم دو</option>
+                    <option value="hafom-3">هفتم سه</option>
+                    <option value="hafom-4">هفتم چهار</option>
+                    <option value="hafom-5">هفتم پنج</option>
+                </select>
+            </div>
+            
+            <div class="class-message-form-field">
+                <label class="class-message-form-label">عنوان</label>
+                <input type="text" class="class-message-form-input" id="class-message-title" placeholder="مثال: امتحان هفته آینده">
+            </div>
+            
+            <div class="class-message-form-field">
+                <label class="class-message-form-label">متن پیام</label>
+                <textarea class="class-message-form-textarea" id="class-message-text" placeholder="متن پیام را بنویسید..."></textarea>
+            </div>
+            
+            <div class="class-message-form-field">
+                <label class="class-message-form-label">نوع پیام</label>
+                <select class="class-message-form-input" id="class-message-type">
+                    <option value="info">ℹ️ اطلاعیه</option>
+                    <option value="warning">⚠️ هشدار</option>
+                    <option value="success">✅ تبریک</option>
+                    <option value="reminder">🔔 یادآوری</option>
+                </select>
+            </div>
+            
+            <button class="class-message-send-btn" onclick="sendClassMessage()">
+                📤 ارسال به کلاس
+            </button>
+        </div>
+        
+        <!-- لیست پیام‌های کلاسی -->
+        <div class="class-messages-list-card">
+            <div class="class-messages-list-title">📋 پیام‌های ارسال شده به کلاس</div>
+            <div class="class-messages-list" id="class-messages-list">
+                <!-- توسط JS پر میشه -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         تب ۲: چت شخصی
+         ═══════════════════════════════════════ -->
+    <div class="messages-tab-content" id="tab-personal">
+        
+        <!-- بخش مکالمات -->
+        <div class="personal-chat-wrapper">
+            
+            <!-- لیست دانش‌آموزان (سایدبار) -->
+            <div class="personal-chat-sidebar" id="chat-sidebar">
+                <div class="chat-sidebar-header">
+                    <div class="chat-sidebar-title">💬 مکالمات</div>
+                    <button class="chat-sidebar-refresh" onclick="loadStudentConversations()">🔄</button>
+                </div>
+                <div class="chat-sidebar-search">
+                    <input type="text" id="chat-search" placeholder="جستجوی دانش‌آموز..." oninput="filterConversations(this.value)">
+                </div>
+                <div class="chat-sidebar-list" id="conversations-list">
+                    <!-- توسط JS پر میشه -->
+                </div>
+            </div>
+            
+            <!-- پنجره چت -->
+            <div class="personal-chat-main" id="chat-main">
+                <div class="chat-empty-state" id="chat-empty-state">
+                    <div class="chat-empty-icon">💬</div>
+                    <div class="chat-empty-title">یک دانش‌آموز رو انتخاب کن</div>
+                    <div class="chat-empty-text">برای شروع چت، از لیست سمت راست انتخاب کن</div>
+                </div>
                 
-                <!-- فرم ارسال پیام -->
-                <div class="message-form-card">
-                    <div class="message-form-title">📤 ارسال پیام جدید</div>
-                    
-                    <div class="message-form-field">
-                        <label class="message-form-label">نوع گیرنده</label>
-                        <div class="message-form-options">
-                            <button class="message-option-btn active" data-target="all" onclick="selectMessageTarget('all')">
-                                👥 همه دانش‌آموزان
-                            </button>
-                            <button class="message-option-btn" data-target="class" onclick="selectMessageTarget('class')">
-                                🎓 یک کلاس خاص
-                            </button>
-                            <button class="message-option-btn" data-target="student" onclick="selectMessageTarget('student')">
-                                👤 یک دانش‌آموز خاص
-                            </button>
+                <div class="chat-window" id="chat-window" style="display: none;">
+                    <div class="chat-window-header">
+                        <button class="chat-back-btn" onclick="closeChatWindow()">→</button>
+                        <div class="chat-student-avatar" id="chat-student-avatar">
+                            <span>👤</span>
+                        </div>
+                        <div class="chat-student-info">
+                            <div class="chat-student-name" id="chat-student-name">دانش‌آموز</div>
+                            <div class="chat-student-class" id="chat-student-class">هفتم یک</div>
                         </div>
                     </div>
                     
-                    <div class="message-form-field" id="class-selector" style="display: none;">
-                        <label class="message-form-label">کلاس</label>
-                        <select class="message-form-input" id="message-class">
-                            <option value="hafom-1">هفتم یک</option>
-                            <option value="hafom-2">هفتم دو</option>
-                            <option value="hafom-3">هفتم سه</option>
-                            <option value="hafom-4">هفتم چهار</option>
-                            <option value="hafom-5">هفتم پنج</option>
-                        </select>
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- پیام‌ها اینجا نمایش داده میشن -->
                     </div>
                     
-                    <div class="message-form-field" id="student-selector" style="display: none;">
-                        <label class="message-form-label">دانش‌آموز</label>
-                        <select class="message-form-input" id="message-student">
-                            <option value="">در حال بارگذاری...</option>
-                        </select>
-                    </div>
-                    
-                    <div class="message-form-field">
-                        <label class="message-form-label">عنوان پیام</label>
-                        <input type="text" class="message-form-input" id="message-title" placeholder="مثال: امتحان فردا">
-                    </div>
-                    
-                    <div class="message-form-field">
-                        <label class="message-form-label">متن پیام</label>
-                        <textarea class="message-form-textarea" id="message-text" placeholder="متن پیام را اینجا بنویسید..."></textarea>
-                    </div>
-                    
-                    <div class="message-form-field">
-                        <label class="message-form-label">نوع پیام</label>
-                        <select class="message-form-input" id="message-type">
-                            <option value="info">ℹ️ اطلاعیه</option>
-                            <option value="warning">⚠️ هشدار</option>
-                            <option value="success">✅ تبریک</option>
-                            <option value="reminder">🔔 یادآوری</option>
-                        </select>
-                    </div>
-                    
-                    <button class="message-send-btn" onclick="sendMessage()">
-                        📤 ارسال پیام
-                    </button>
-                </div>
-                
-                <!-- لیست پیام‌های ارسال شده -->
-                <div class="message-history-card">
-                    <div class="message-history-header">
-                        <div class="message-history-title">📬 پیام‌های ارسال شده</div>
-                        <button class="message-history-refresh" onclick="loadMessages()">🔄</button>
-                    </div>
-                    <div class="message-history-list" id="messages-list">
-                        <!-- توسط جاوااسکریپت پر میشه -->
+                    <div class="chat-input-wrapper">
+                        <input type="text" class="chat-input" id="chat-input" placeholder="پیام بنویسید..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                        <button class="chat-send-btn" onclick="sendChatMessage()">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
-                
             </div>
             
-        </section>
+        </div>
+    </div>
+    
+</section>
 
         <!-- ═══════════════════════════════════════
              صفحه ۵: مدیریت تکالیف
