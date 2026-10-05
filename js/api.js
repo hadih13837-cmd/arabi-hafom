@@ -1,12 +1,12 @@
 // ============================================================
 // api.js — اتصال به Google Sheets API
-// نسخه: ۴.۰.۰ — با URL جدید
+// نسخه: ۵.۰.۰ — URL جدید
 // ============================================================
 
 // ============================================================
 // آدرس API — 🆕 آپدیت شده
 // ============================================================
-const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbwPGbB6DGpWYQGbvTdTKnegMiHHCiueBBPqgZ5Eqam0MYimQMeQLv6eaDY1fFqV3JVq2g/exec';
+const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbzwzU7HKqlWOSyG2gN750kFSi-qQLoqzwDRYMnEKqpmTgCMPlRyQZcQrcoZlI4MIR3o/exec';
 
 // برای سازگاری با کد قدیمی
 const API_URL = TEACHER_API_URL;
@@ -129,7 +129,7 @@ async function saveRankingToSupabase() {
             : 0;
         const streakDays = streakData.count || 0;
         
-        // 🆕 گرفتن آواتار (با پیش‌فرض عکس پسر)
+        // گرفتن آواتار
         let avatarUrl = 'default';
         if (typeof getAvatarForRanking === 'function') {
             avatarUrl = getAvatarForRanking();
@@ -320,9 +320,10 @@ async function getLibrary() {
 // ============================================================
 async function testSupabaseConnection() {
     try {
-        const result = await apiGet({ action: 'getAllStudents', t: Date.now() });
+        const result = await apiGet({ action: 'test', t: Date.now() });
         if (result && result.success) {
             console.log('✅ اتصال به Google Sheets موفق');
+            console.log('📊 شیت‌ها:', result.sheets);
             return true;
         }
         return false;

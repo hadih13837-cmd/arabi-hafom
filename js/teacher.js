@@ -1,12 +1,12 @@
 // ============================================================
 // teacher.js — منطق پنل معلم
-// نسخه: ۸.۰.۰ — با Badge دقیق و صفر شدن unread بعد از خواندن
+// نسخه: ۹.۰.۰ — با URL جدید
 // ============================================================
 
 // ============================================================
 // تنظیمات — 🆕 URL جدید
 // ============================================================
-const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbwPGbB6DGpWYQGbvTdTKnegMiHHCiueBBPqgZ5Eqam0MYimQMeQLv6eaDY1fFqV3JVq2g/exec';
+const TEACHER_API_URL = 'https://script.google.com/macros/s/AKfycbzwzU7HKqlWOSyG2gN750kFSi-qQLoqzwDRYMnEKqpmTgCMPlRyQZcQrcoZlI4MIR3o/exec';
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
 const DEFAULT_PASSWORD = 'hadi1383';
 const READ_TIMES_KEY = 'teacherReadTimes';
@@ -95,7 +95,7 @@ function setReadTime(studentId) {
 }
 
 // ============================================================
-// 🆕 محاسبه unread برای هر مکالمه (بر اساس readTime)
+// محاسبه unread برای هر مکالمه (بر اساس readTime)
 // ============================================================
 function computeUnreadForConversation(conv) {
     // اگه آخرین پیام از طرف معلمه، unread = 0
@@ -325,7 +325,7 @@ async function apiPost(data) {
 }
 
 // ============================================================
-// 🆕 محاسبه کل unread (با اعمال readTime)
+// محاسبه کل unread (با اعمال readTime)
 // ============================================================
 function computeTotalUnread() {
     if (!currentConversations || currentConversations.length === 0) return 0;
@@ -338,7 +338,7 @@ function computeTotalUnread() {
 }
 
 // ============================================================
-// 🆕 آپدیت فوری Badge ها (از LocalStorage)
+// آپدیت فوری Badge ها (از LocalStorage)
 // ============================================================
 function updateHomeBadgesImmediately() {
     const cached = getCachedData(CONVERSATIONS_CACHE_KEY);
@@ -500,7 +500,7 @@ function switchMessagesTab(tab) {
 }
 
 // ============================================================
-// 🆕 Polling لیست مکالمات (۱.۵ ثانیه)
+// Polling لیست مکالمات
 // ============================================================
 function startConversationPolling() {
     stopConversationPolling();
@@ -589,7 +589,7 @@ async function sendClassMessage() {
 }
 
 // ============================================================
-// بارگذاری پیام‌های کلاسی (با کش)
+// بارگذاری پیام‌های کلاسی
 // ============================================================
 async function loadClassMessages() {
     const container = document.getElementById('class-messages-list');
@@ -653,7 +653,7 @@ function renderClassMessages(messages) {
 }
 
 // ============================================================
-// 🆕 بارگذاری مکالمات (با محاسبه unread بر اساس readTime)
+// بارگذاری مکالمات
 // ============================================================
 async function loadStudentConversations() {
     const container = document.getElementById('messenger-list-items');
@@ -764,7 +764,7 @@ function filterMessengerList(query) {
 }
 
 // ============================================================
-// 🆕 باز کردن چت (با صفر کردن unread)
+// باز کردن چت
 // ============================================================
 async function openChatWith(studentId, studentName, className) {
     currentChatStudent = {
@@ -970,7 +970,7 @@ async function sendChatMessage() {
 }
 
 // ============================================================
-// 🆕 Polling سریع چت (۱ ثانیه)
+// Polling سریع چت
 // ============================================================
 function startChatPolling(studentId) {
     stopChatPolling();
@@ -1224,7 +1224,7 @@ function goToChatWith(studentId, studentName, className) {
 }
 
 // ============================================================
-// رتبه‌بندی (تک‌کلاسی)
+// رتبه‌بندی
 // ============================================================
 function switchRankingClass(className, btn) {
     currentRankingClass = className;
@@ -1781,7 +1781,7 @@ function clearCache() {
 // ============================================================
 // شروع
 // ============================================================
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۸.۰.۰');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۹.۰.۰');
 console.log('✅ URL جدید اعمال شد');
 console.log('✅ Badge دقیق بر اساس readTime');
 console.log('✅ صفر شدن unread بعد از خواندن');
