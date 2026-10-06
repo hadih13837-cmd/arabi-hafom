@@ -4,24 +4,10 @@
       "id": "lesson1",
       "title": "جزوه و کلمات درس اول",
       "subtitle": "اَلدَّرْسُ الأَوَّل",
-      "background": "https://cdn.imgurl.ir/uploads/YOUR_BG_IMAGE_1.png",
-      "pdfFile": "https://cdn.imgurl.ir/uploads/YOUR_PDF_1.pdf",
-      "imageFiles": [
-        "https://cdn.imgurl.ir/uploads/YOUR_WORDS_1_IMG_1.png",
-        "https://cdn.imgurl.ir/uploads/YOUR_WORDS_1_IMG_2.png"
-      ],
+      "background": "https://cdn.imgurl.ir/uploads/b261969__.png",
+      "pdfFile": "https://cdn.imgurl.ir/uploads/b819061__-__.pdf",
+      "imageFiles": [],
       "color": "blue"
-    },
-    {
-      "id": "lesson2",
-      "title": "جزوه و کلمات درس دوم",
-      "subtitle": "اَلدَّرْسُ الثّانی",
-      "background": "https://cdn.imgurl.ir/uploads/YOUR_BG_IMAGE_2.png",
-      "pdfFile": "https://cdn.imgurl.ir/uploads/YOUR_PDF_2.pdf",
-      "imageFiles": [
-        "https://cdn.imgurl.ir/uploads/YOUR_WORDS_2_IMG_1.png"
-      ],
-      "color": "purple"
     }
   ]
 }
