@@ -1,9 +1,9 @@
 // ============================================================
 // service-worker.js — کش کردن فایل‌ها
-// نسخه: v166 — با بروزرسانی خودکار
+// نسخه: v169 — با پشتیبانی از جزوه و کلمات
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v166';
+const CACHE_NAME = 'arabi-hafom-v169';
 
 const urlsToCache = [
     './',
@@ -117,7 +117,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // عکس‌های CDN خارجی
+    // عکس‌های CDN خارجی — بدون کش
     if (url.includes('cdn.imgurl.ir') || 
         url.includes('imgurl.ir') ||
         url.includes('githubusercontent.com') ||

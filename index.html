@@ -17,7 +17,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
     
-    <!-- 🆕 Supabase Library -->
+    <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link rel="stylesheet" href="./css/style.css">
@@ -284,7 +284,7 @@
     </div>
 </div>
 
-<!-- 🆕 مودال بروزرسانی -->
+<!-- مودال بروزرسانی -->
 <div class="update-modal-overlay" id="update-modal">
     <div class="update-modal-card">
         <div class="update-header">
@@ -337,7 +337,7 @@
     </div>
 </div>
 
-<!-- 🆕 راهنمای رتبه‌بندی -->
+<!-- راهنمای رتبه‌بندی -->
 <div class="rankings-guide-overlay" id="rankings-guide">
     <div class="rankings-guide-card">
         <div class="rankings-guide-header">
@@ -625,7 +625,7 @@
                 <div class="notification-swipe-hint"></div>
             </div>
 
-            <!-- 🆕 نوتیفیکیشن پیام‌های معلم -->
+            <!-- نوتیفیکیشن پیام‌های معلم -->
             <div class="new-message-notification" id="new-message-notification">
                 <button class="notification-close" onclick="dismissNewMessageNotification()">✕</button>
                 <div class="notification-icon">💬</div>
@@ -634,6 +634,18 @@
                     <div class="notification-sub" id="new-message-notification-sub">برای مشاهده کلیک کنید</div>
                 </div>
                 <button class="notification-btn" onclick="goToTeacherMessagesFromNotification()">مشاهده</button>
+                <div class="notification-swipe-hint"></div>
+            </div>
+
+            <!-- نوتیفیکیشن جزوه جدید -->
+            <div class="new-jozve-notification" id="new-jozve-notification">
+                <button class="notification-close" onclick="dismissNewJozveNotification()">✕</button>
+                <div class="notification-icon">📖</div>
+                <div class="notification-text">
+                    <div class="notification-title">جزوه جدید دارید!</div>
+                    <div class="notification-sub" id="new-jozve-notification-sub">برای مشاهده کلیک کنید</div>
+                </div>
+                <button class="notification-btn" onclick="goToJozveFromNotification()">مشاهده</button>
                 <div class="notification-swipe-hint"></div>
             </div>
 
@@ -693,14 +705,14 @@
                 </div>
             </div>
 
-            <!-- 🆕 دکمه کلیپ‌های آموزشی -->
+            <!-- دکمه کلیپ‌های آموزشی -->
             <div class="home-clips-row">
                 <button class="clip-button" id="guide-clips-btn" onclick="openClipsPage()">
                     <img src="https://cdn.imgurl.ir/uploads/b632041_IMG__.png" alt="کلیپ‌های آموزشی" class="clip-button-image">
                 </button>
             </div>
 
-            <!-- 🆕 دکمه جزوه و کلمات -->
+            <!-- دکمه جزوه و کلمات -->
             <div class="home-clips-row">
                 <button class="clip-button" id="guide-jozve-btn" onclick="openJozvePage()">
                     <img src="https://cdn.imgurl.ir/uploads/769875_file_00000000b5a88243a4bc0c8e7e4081bf.png" alt="جزوه و کلمات" class="clip-button-image">
@@ -708,7 +720,7 @@
             </div>
         </div>
         
-        <!-- 🆕 آیکون شناور پیام‌های معلم — اصلاح موقعیت -->
+        <!-- آیکون شناور پیام‌های معلم -->
         <button class="home-messages-fab" id="home-messages-fab" onclick="goToTeacherMessages()" style="display: none;">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1089,7 +1101,6 @@
             </button>
         </div>
     </div>
-
     <!-- ============ صفحه تنظیمات ============ -->
     <div id="screen-settings" class="screen">
         <div class="page-header">
