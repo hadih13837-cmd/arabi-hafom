@@ -1,6 +1,6 @@
 // ============================================================
-// notifications.js — نسخه ۱۵.۰.۰
-// با Supabase Realtime + رفع باگ دوبار subscribe
+// notifications.js — نسخه ۱۶.۰.۰
+// با پشتیبانی از نوتیفیکیشن جزوه + Realtime
 // ============================================================
 
 // ============================================================
@@ -11,15 +11,15 @@ const BADGE_CACHE_KEY = 'studentBadgeCache';
 const SEEN_CHAT_KEY = 'seenChatMessages';
 const SEEN_CLASS_KEY = 'seenClassMessages';
 
-// 🆕 محافظ‌ها
+// محافظ‌ها
 let isFetchingBadge = false;
 let isFetchingChat = false;
 
-// 🆕 کانال‌های Realtime
+// کانال‌های Realtime
 let personalMessagesChannel = null;
 let classMessagesChannel = null;
 
-// 🆕 محافظ برای جلوگیری از دوبار شروع
+// محافظ برای جلوگیری از دوبار شروع
 let isRealtimeStarted = false;
 
 // ============================================================
@@ -181,11 +181,53 @@ function setCachedData(key, data) {
 }
 
 // ============================================================
-// 🆕 Realtime — گوش دادن به پیام‌های شخصی و کلاسی
-// با محافظ isRealtimeStarted
+// 🆕 چیدمان نوتیفیکیشن‌ها (پشت سر هم، بدون تداخل)
+// ============================================================
+function repositionNotifications() {
+    const lessonNotif = document.getElementById('new-lesson-notification');
+    const videoNotif = document.getElementById('video-notification');
+    const messageNotif = document.getElementById('new-message-notification');
+    const jozveNotif = document.getElementById('new-jozve-notification');
+    const deadlineNotif = document.getElementById('deadline-notification');
+    
+    let topPos = 15;
+    const gap = 85; // فاصله بین نوتیفیکیشن‌ها
+    
+    // ۱. تکلیف جدید
+    if (lessonNotif && lessonNotif.classList.contains('show')) {
+        lessonNotif.style.top = topPos + 'px';
+        topPos += gap;
+    }
+    
+    // ۲. ویدیو جدید
+    if (videoNotif && videoNotif.classList.contains('show')) {
+        videoNotif.style.top = topPos + 'px';
+        topPos += gap;
+    }
+    
+    // ۳. پیام معلم
+    if (messageNotif && messageNotif.classList.contains('show')) {
+        messageNotif.style.top = topPos + 'px';
+        topPos += gap;
+    }
+    
+    // ۴. جزوه جدید
+    if (jozveNotif && jozveNotif.classList.contains('show')) {
+        jozveNotif.style.top = topPos + 'px';
+        topPos += gap;
+    }
+    
+    // ۵. مهلت تکلیف
+    if (deadlineNotif && deadlineNotif.classList.contains('show')) {
+        deadlineNotif.style.top = topPos + 'px';
+        topPos += gap;
+    }
+}
+
+// ============================================================
+// Realtime — گوش دادن به پیام‌ها
 // ============================================================
 function startRealtimeSubscriptions() {
-    // 🆕 جلوگیری از دوبار شروع
     if (isRealtimeStarted) {
         console.log('📡 Realtime قبلاً شروع شده');
         return;
@@ -199,7 +241,7 @@ function startRealtimeSubscriptions() {
     isRealtimeStarted = true;
     console.log('📡 شروع Realtime...');
     
-    // ۱. گوش دادن به پیام‌های شخصی
+    // ۱. پیام‌های شخصی
     try {
         personalMessagesChannel = subscribeToPersonalMessages(studentId, async (payload) => {
             console.log('📨 Realtime: پیام شخصی جدید', payload.eventType);
@@ -229,7 +271,7 @@ function startRealtimeSubscriptions() {
         console.warn('خطا در Realtime پیام‌های شخصی:', e);
     }
     
-    // ۲. گوش دادن به پیام‌های کلاسی (با تأخیر)
+    // ۲. پیام‌های کلاسی
     setTimeout(() => {
         try {
             classMessagesChannel = subscribeToClassMessages(userClass, async (payload) => {
@@ -325,7 +367,8 @@ function getNotifIcon(type) {
         info: '<svg viewBox="0 0 24 24"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',
         success: '<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
         warning: '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-        teacher: '<svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>'
+        teacher: '<svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>',
+        jozve: '<svg viewBox="0 0 24 24"><path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/><path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/></svg>'
     };
     return icons[type] || icons.info;
 }
@@ -483,7 +526,10 @@ function checkVideoNotification() {
     if (newVideos.length > 0 && notification) {
         subText.textContent = `${toPersianNum(newVideos.length)} ویدیوی جدید در انتظار شماست`;
         repositionNotifications();
-        setTimeout(() => notification.classList.add('show'), 800);
+        setTimeout(() => {
+            notification.classList.add('show');
+            repositionNotifications();
+        }, 600);
     } else if (notification) {
         notification.classList.remove('show');
     }
@@ -529,6 +575,7 @@ function checkAndShowNotification() {
     if (pendingLessons.length > 0 && allLessons.length > 0) {
         subText.textContent = `${toPersianNum(pendingLessons.length)} تکلیف در انتظار شماست`;
         notification.classList.add('show');
+        repositionNotifications();
     } else {
         notification.classList.remove('show');
     }
@@ -553,7 +600,10 @@ function checkDeadlineWarning() {
     const subText = document.getElementById('deadline-notification-sub-text');
     if (urgentLessons.length > 0 && deadlineNotif) {
         subText.textContent = `${toPersianNum(urgentLessons.length)} تکلیف مهلتش داره تموم میشه!`;
-        setTimeout(() => deadlineNotif.classList.add('show'), 600);
+        setTimeout(() => {
+            deadlineNotif.classList.add('show');
+            repositionNotifications();
+        }, 800);
         const today = getPersianDate();
         const lastDeadlineNotifDate = localStorage.getItem('lastDeadlineNotifDate');
         if (lastDeadlineNotifDate !== today) {
@@ -592,6 +642,7 @@ function goToDeadlineLesson() {
 
 function dismissNotification() {
     const notif = document.getElementById('new-lesson-notification');
+    if (!notif) return;
     notif.classList.add('swiping');
     notif.style.transform = 'translateY(-200%)';
     notif.style.opacity = '0';
@@ -629,50 +680,6 @@ function checkNewLessons() {
 }
 
 // ============================================================
-// 🆕 چیدمان نوتیفیکیشن‌ها (پشت سر هم، بدون تداخل)
-// ============================================================
-function repositionNotifications() {
-    const lessonNotif = document.getElementById('new-lesson-notification');
-    const videoNotif = document.getElementById('video-notification');
-    const messageNotif = document.getElementById('new-message-notification');
-    const jozveNotif = document.getElementById('new-jozve-notification');
-    const deadlineNotif = document.getElementById('deadline-notification');
-    
-    let topPos = 15;
-    const gap = 85; // فاصله بین هر نوتیفیکیشن
-    
-    // ۱. تکلیف جدید
-    if (lessonNotif && lessonNotif.classList.contains('show')) {
-        lessonNotif.style.top = topPos + 'px';
-        topPos += gap;
-    }
-    
-    // ۲. ویدیو جدید
-    if (videoNotif && videoNotif.classList.contains('show')) {
-        videoNotif.style.top = topPos + 'px';
-        topPos += gap;
-    }
-    
-    // ۳. پیام معلم
-    if (messageNotif && messageNotif.classList.contains('show')) {
-        messageNotif.style.top = topPos + 'px';
-        topPos += gap;
-    }
-    
-    // ۴. جزوه جدید
-    if (jozveNotif && jozveNotif.classList.contains('show')) {
-        jozveNotif.style.top = topPos + 'px';
-        topPos += gap;
-    }
-    
-    // ۵. مهلت تکلیف
-    if (deadlineNotif && deadlineNotif.classList.contains('show')) {
-        deadlineNotif.style.top = topPos + 'px';
-        topPos += gap;
-    }
-}
-
-// ============================================================
 // Swipe
 // ============================================================
 let notifSwipeStartX = 0, notifSwipeStartY = 0, notifCurrentX = 0;
@@ -680,7 +687,7 @@ let notifIsDragging = false, notifSwipeDirection = null;
 let currentSwipeNotifId = null;
 
 function initNotificationSwipe() {
-    ['new-lesson-notification', 'video-notification', 'deadline-notification'].forEach(id => {
+    ['new-lesson-notification', 'video-notification', 'new-message-notification', 'new-jozve-notification', 'deadline-notification'].forEach(id => {
         const notif = document.getElementById(id);
         if (!notif) return;
         notif.addEventListener('touchstart', (e) => handleNotifTouchStart(e, id), { passive: true });
@@ -745,13 +752,25 @@ function handleNotifTouchEnd() {
             notif.classList.remove('show', 'swiping');
             notif.style.transform = '';
             notif.style.opacity = '';
+            
+            // علامت‌گذاری بر اساس نوع
             if (id === 'new-lesson-notification') {
                 if (allLessons.length > 0) {
                     localStorage.setItem('seenLessons', JSON.stringify(allLessons.map(l => l.id)));
                 }
             } else if (id === 'video-notification') {
                 localStorage.setItem('seenVideos', JSON.stringify(['video_1']));
+            } else if (id === 'new-message-notification') {
+                if (typeof dismissNewMessageNotification === 'function') {
+                    // صدا زده نمیشه چون همین الان بسته شد
+                }
+                localStorage.setItem('dismissedNewMessageNotif', 'true');
+            } else if (id === 'new-jozve-notification') {
+                if (typeof saveJozveSeen === 'function') {
+                    saveJozveSeen();
+                }
             }
+            
             repositionNotifications();
         }, 300);
     } else {
@@ -1254,7 +1273,6 @@ window.addEventListener('load', () => {
         
         updateBadgeImmediately();
         
-        // 🆕 شروع Realtime (اگه هنوز شروع نشده)
         if (localStorage.getItem('userRegistered') === 'true' && !isRealtimeStarted) {
             setTimeout(() => startRealtimeSubscriptions(), 1000);
         }

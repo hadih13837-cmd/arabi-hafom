@@ -1,6 +1,6 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۱۰.۰.۰ — با نوتیفیکیشن جزوه، پیام و بروزرسانی خودکار
+// نسخه: ۹.۰.۰ — با نوتیفیکیشن سریع جزوه
 // ============================================================
 
 // ============================================================
@@ -192,11 +192,17 @@ function checkAndShowNewMessageNotification() {
             }
             
             subText.textContent = text;
-            repositionNotifications();
+            
+            if (typeof repositionNotifications === 'function') {
+                repositionNotifications();
+            }
             
             setTimeout(() => {
                 notif.classList.add('show');
-            }, 1000);
+                if (typeof repositionNotifications === 'function') {
+                    repositionNotifications();
+                }
+            }, 600);
         }
     }
 }
@@ -213,7 +219,10 @@ function dismissNewMessageNotification() {
         notif.classList.remove('show', 'swiping');
         notif.style.transform = '';
         notif.style.opacity = '';
-        repositionNotifications();
+        
+        if (typeof repositionNotifications === 'function') {
+            repositionNotifications();
+        }
     }, 300);
     
     localStorage.setItem('dismissedNewMessageNotif', 'true');
@@ -231,7 +240,7 @@ function resetNewMessageNotification() {
 }
 
 // ============================================================
-// 🆕 نوتیفیکیشن جزوه جدید
+// 🆕 نوتیفیکیشن جزوه جدید (سریع)
 // ============================================================
 async function checkAndShowNewJozveNotification() {
     const dismissed = localStorage.getItem('dismissedNewJozveNotif') === 'true';
@@ -264,7 +273,7 @@ async function checkAndShowNewJozveNotification() {
                     repositionNotifications();
                 }
                 
-                // 🆕 سریع‌تر نمایش بده
+                // 🆕 سریع‌تر: ۳۰۰ میلی‌ثانیه
                 setTimeout(() => {
                     notif.classList.add('show');
                     if (typeof repositionNotifications === 'function') {
@@ -290,18 +299,21 @@ function dismissNewJozveNotification() {
         notif.classList.remove('show', 'swiping');
         notif.style.transform = '';
         notif.style.opacity = '';
-        repositionNotifications();
+        
+        if (typeof repositionNotifications === 'function') {
+            repositionNotifications();
+        }
     }, 300);
     
     saveJozveSeen();
 }
 
-// 🆕 دکمه مشاهده نوتیفیکیشن جزوه - مستقیم بره به صفحه
+// 🆕 رفتن به صفحه جزوه (درست شده)
 function goToJozveFromNotification() {
     dismissNewJozveNotification();
     setTimeout(() => {
         window.location.href = './jozve.html';
-    }, 200);
+    }, 250);
 }
 
 async function saveJozveSeen() {
@@ -383,10 +395,12 @@ async function startApp() {
             
             checkAndShowUpdateModal();
             
+            // 🆕 نوتیفیکیشن پیام (سریع‌تر)
             setTimeout(() => {
                 checkAndShowNewMessageNotification();
             }, 1500);
             
+            // 🆕 نوتیفیکیشن جزوه (سریع‌تر)
             setTimeout(() => {
                 checkAndShowNewJozveNotification();
             }, 2000);
@@ -732,11 +746,11 @@ document.addEventListener('visibilitychange', () => {
             
             setTimeout(() => {
                 checkAndShowNewMessageNotification();
-            }, 1500);
+            }, 1000);
             
             setTimeout(() => {
                 checkAndShowNewJozveNotification();
-            }, 2000);
+            }, 1500);
         }
     }
 });
@@ -812,6 +826,7 @@ window.addEventListener('load', async () => {
                 
                 checkAndShowUpdateModal();
                 
+                // 🆕 سریع‌تر
                 setTimeout(() => {
                     checkAndShowNewMessageNotification();
                 }, 1500);
