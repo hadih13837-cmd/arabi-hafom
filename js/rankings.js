@@ -1,6 +1,6 @@
 // ============================================================
 // rankings.js — سیستم رتبه‌بندی
-// نسخه: ۲۰.۰.۰ — با مودال پروفایل جدید
+// نسخه: ۲۱.۰.۰ — با پشتیبانی از امتیازهای دستی معلم
 // ============================================================
 
 let currentRankings = [];
@@ -8,6 +8,17 @@ let currentRankingsClass = '';
 let autoRefreshInterval = null;
 let lastRankingsHash = '';
 let isLoadingRankings = false;
+
+// ============================================================
+// 🆕 محاسبه امتیاز کل با احتساب امتیازهای دستی معلم
+// ============================================================
+function calculateTotalPointsFromRanking(ranking) {
+    if (!ranking) return 0;
+    const basePoints = ranking.total_points || 0;
+    const customTotal = ranking.custom_total_points || 0;
+    const customAdded = ranking.custom_points_added || 0;
+    return basePoints + customTotal + customAdded;
+}
 
 // ============================================================
 // بارگذاری صفحه رتبه‌بندی
@@ -56,6 +67,9 @@ async function loadRankingsPage() {
             const rankings = await getRankingsByClass(userClass);
             
             if (rankings && rankings.length > 0) {
+                // 🆕 مرتب‌سازی بر اساس امتیاز کل با احتساب امتیازهای دستی
+                rankings.sort((a, b) => calculateTotalPointsFromRanking(b) - calculateTotalPointsFromRanking(a));
+                
                 const newHash = getRankingsHash(rankings);
                 
                 if (newHash !== lastRankingsHash) {
@@ -100,7 +114,7 @@ async function loadRankingsPage() {
 function getRankingsHash(rankings) {
     if (!rankings || rankings.length === 0) return '';
     return rankings.map(r => 
-        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.avg_percent}_${r.avatar_url || ''}`
+        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.avg_percent}_${r.avatar_url || ''}_${r.custom_total_points || 0}_${r.custom_points_added || 0}`
     ).join('|');
 }
 
@@ -131,6 +145,9 @@ function startAutoRefresh() {
                 isLoadingRankings = false;
                 return;
             }
+            
+            // 🆕 مرتب‌سازی بر اساس امتیاز کل
+            rankings.sort((a, b) => calculateTotalPointsFromRanking(b) - calculateTotalPointsFromRanking(a));
             
             const newHash = getRankingsHash(rankings);
             
@@ -180,6 +197,11 @@ function renderRankingsList(rankings, userClass, studentId) {
         const isSecondMe = second.student_id === studentId;
         const isThirdMe = third.student_id === studentId;
         
+        // 🆕 استفاده از امتیاز کل محاسبه‌شده
+        const firstPoints = calculateTotalPointsFromRanking(first);
+        const secondPoints = calculateTotalPointsFromRanking(second);
+        const thirdPoints = calculateTotalPointsFromRanking(third);
+        
         html += `
             <div class="lb-podium-vector-wrapper">
                 <img src="https://cdn.imgurl.ir/uploads/w806666_ChatGPT_Image_Oct_4_2026_02_49_35_PM.png" 
@@ -196,7 +218,7 @@ function renderRankingsList(rankings, userClass, studentId) {
                             <div class="lb-person-name">${truncateName(second.name)}</div>
                             <div class="lb-person-points">
                                 <span>⭐</span>
-                                <span>${toPersianNum(second.total_points)}</span>
+                                <span>${toPersianNum(secondPoints)}</span>
                             </div>
                         </div>
                     </div>
@@ -211,7 +233,7 @@ function renderRankingsList(rankings, userClass, studentId) {
                             <div class="lb-person-name">${truncateName(first.name)}</div>
                             <div class="lb-person-points">
                                 <span>⭐</span>
-                                <span>${toPersianNum(first.total_points)}</span>
+                                <span>${toPersianNum(firstPoints)}</span>
                             </div>
                         </div>
                     </div>
@@ -225,7 +247,7 @@ function renderRankingsList(rankings, userClass, studentId) {
                             <div class="lb-person-name">${truncateName(third.name)}</div>
                             <div class="lb-person-points">
                                 <span>⭐</span>
-                                <span>${toPersianNum(third.total_points)}</span>
+                                <span>${toPersianNum(thirdPoints)}</span>
                             </div>
                         </div>
                     </div>
@@ -239,6 +261,9 @@ function renderRankingsList(rankings, userClass, studentId) {
     rankings.forEach((ranking, index) => {
         const rank = index + 1;
         const isMe = ranking.student_id === studentId;
+        
+        // 🆕 امتیاز کل با احتساب امتیازهای دستی
+        const totalPoints = calculateTotalPointsFromRanking(ranking);
         
         let medalEmoji = '';
         if (rank === 1) medalEmoji = '🥇';
@@ -266,7 +291,7 @@ function renderRankingsList(rankings, userClass, studentId) {
                 
                 <div class="lb-row-points">
                     <span class="lb-row-star">⭐</span>
-                    <span class="lb-row-points-value">${toPersianNum(ranking.total_points)}</span>
+                    <span class="lb-row-points-value">${toPersianNum(totalPoints)}</span>
                 </div>
                 
                 <div class="lb-row-avatar ${getAvatarClass(ranking)}">
@@ -391,6 +416,9 @@ async function refreshRankings() {
         const rankings = await getRankingsByClass(userClass);
         
         if (rankings && rankings.length > 0) {
+            // 🆕 مرتب‌سازی
+            rankings.sort((a, b) => calculateTotalPointsFromRanking(b) - calculateTotalPointsFromRanking(a));
+            
             currentRankings = rankings;
             currentRankingsClass = userClass;
             lastRankingsHash = getRankingsHash(currentRankings);
@@ -420,10 +448,7 @@ async function refreshRankings() {
 }
 
 // ============================================================
-// 🆕 باز کردن کارت پروفایل — نسخه جدید (کاور بالا)
-// ============================================================
-// ============================================================
-// 🆕 باز کردن کارت پروفایل — مدال کنار اسم
+// باز کردن کارت پروفایل
 // ============================================================
 function openProfileCard(studentId) {
     const ranking = currentRankings.find(r => r.student_id === studentId);
@@ -441,7 +466,9 @@ function openProfileCard(studentId) {
     const isMe = studentId === localStorage.getItem('studentUUID');
     const medalCount = getUserEarnedMedals(ranking).length;
     
-    // 🆕 تشخیص نوع آواتار
+    // 🆕 امتیاز کل با احتساب امتیازهای دستی
+    const totalPoints = calculateTotalPointsFromRanking(ranking);
+    
     const avatarUrl = (ranking && ranking.avatar_url) ? String(ranking.avatar_url).trim() : '';
     const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
     
@@ -449,7 +476,6 @@ function openProfileCard(studentId) {
     let emojiValue = '';
     let imageUrl = '';
     
-    // چک ایموجی
     if (avatarUrl.startsWith('emoji:')) {
         const emoji = avatarUrl.replace('emoji:', '').trim();
         if (emoji && emoji !== '👤' && emoji !== '👦🏻' && emoji !== '👦') {
@@ -458,7 +484,6 @@ function openProfileCard(studentId) {
         }
     }
     
-    // چک عکس
     if (!isEmoji) {
         if (avatarUrl.startsWith('data:image')) {
             imageUrl = avatarUrl;
@@ -469,7 +494,6 @@ function openProfileCard(studentId) {
         }
     }
     
-    // 🆕 ساخت کاور (بالای کارت)
     let coverHTML = '';
     if (isEmoji) {
         coverHTML = `
@@ -485,7 +509,6 @@ function openProfileCard(studentId) {
         `;
     }
     
-    // 🆕 مدال کنار اسم
     let medalHTML = '';
     if (rank === 1) medalHTML = '🥇';
     else if (rank === 2) medalHTML = '🥈';
@@ -518,7 +541,7 @@ function openProfileCard(studentId) {
                     </div>
                     <div class="pc-modal-info-row">
                         <span class="pc-modal-info-label">امتیاز کل</span>
-                        <span class="pc-modal-info-value">${toPersianNum(ranking.total_points)}</span>
+                        <span class="pc-modal-info-value">${toPersianNum(totalPoints)}</span>
                     </div>
                     <div class="pc-modal-info-row">
                         <span class="pc-modal-info-label">پایه</span>
@@ -541,7 +564,7 @@ function openProfileCard(studentId) {
                         </div>
                         <div class="pc-modal-stat-content-v2">
                             <div class="pc-modal-stat-label-v2">امتیاز کل</div>
-                            <div class="pc-modal-stat-value-v2">${toPersianNum(ranking.total_points)}</div>
+                            <div class="pc-modal-stat-value-v2">${toPersianNum(totalPoints)}</div>
                         </div>
                     </div>
                     
@@ -648,7 +671,7 @@ function openMedalsPage(studentId) {
 }
 
 function getUserEarnedMedals(ranking) {
-    const points = ranking.total_points || 0;
+    const points = calculateTotalPointsFromRanking(ranking);
     const lessons = ranking.completed_lessons || 0;
     const avg = ranking.avg_percent || 0;
     const streak = ranking.streak_days || 0;

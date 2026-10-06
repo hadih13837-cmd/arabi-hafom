@@ -1,6 +1,6 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۷.۰.۰ — رفع قطعی باگ Realtime
+// نسخه: ۸.۰.۰ — با پشتیبانی از امتیازهای دستی معلم
 // ============================================================
 
 // ============================================================
@@ -50,15 +50,13 @@ async function saveRankingToSupabase() {
             : 0;
         const streakDays = streakData.count || 0;
         
-        // 🆕 گرفتن آواتار با تشخیص نوع
+        // گرفتن آواتار با تشخیص نوع
         let avatarUrl = 'default';
         const avatarImg = localStorage.getItem('userAvatar');
         const avatarEmoji = localStorage.getItem('userAvatarEmoji');
         
         if (avatarImg) {
-            // اگه عکس هست، کوتاهش کن (اگه خیلی طولانی باشه)
             if (avatarImg.length > 100000) {
-                console.warn('⚠️ عکس خیلی طولانیه، به emoji تبدیل میشه');
                 avatarUrl = 'emoji:👤';
             } else {
                 avatarUrl = avatarImg;
@@ -81,8 +79,8 @@ async function saveRankingToSupabase() {
         
         console.log('📤 ذخیره در Supabase:', {
             name: payload.name,
-            avatar_type: avatarUrl.substring(0, 30) + '...',
-            avatar_length: avatarUrl.length
+            total_points: totalPoints,
+            avg_percent: avgPercent
         });
         
         const { data, error } = await client
@@ -104,6 +102,71 @@ async function saveRankingToSupabase() {
     } catch (error) {
         console.error('❌ خطا:', error);
         return false;
+    }
+}
+
+// ============================================================
+// 🆕 گرفتن وضعیت تکالیف (فعال/غیرفعال + امتیاز دستی)
+// ============================================================
+async function getStudentLessonStatus(studentId) {
+    try {
+        const client = getSupabase();
+        if (!client) return {};
+        
+        const { data, error } = await client
+            .from('lesson_status')
+            .select('*')
+            .eq('student_id', studentId);
+        
+        if (error) {
+            console.error('خطا در گرفتن وضعیت تکالیف:', error.message);
+            return {};
+        }
+        
+        const statusMap = {};
+        (data || []).forEach(item => {
+            statusMap[item.lesson_id] = {
+                is_enabled: item.is_enabled !== false,
+                custom_points: item.custom_points || 0
+            };
+        });
+        
+        console.log('📋 وضعیت تکالیف دریافت شد:', statusMap);
+        return statusMap;
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return {};
+    }
+}
+
+// ============================================================
+// 🆕 گرفتن مجموع امتیاز دستی از جدول rankings
+// ============================================================
+async function getCustomPointsFromRankings(studentId) {
+    try {
+        const client = getSupabase();
+        if (!client) return { customTotal: 0, customAdded: 0 };
+        
+        const { data, error } = await client
+            .from('rankings')
+            .select('custom_total_points, custom_points_added')
+            .eq('student_id', studentId)
+            .maybeSingle();
+        
+        if (error) {
+            console.error('خطا در گرفتن امتیاز دستی:', error.message);
+            return { customTotal: 0, customAdded: 0 };
+        }
+        
+        return {
+            customTotal: (data && data.custom_total_points) || 0,
+            customAdded: (data && data.custom_points_added) || 0
+        };
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return { customTotal: 0, customAdded: 0 };
     }
 }
 
@@ -375,7 +438,6 @@ async function getStudentConversationsFromSupabase() {
             }
         });
         
-        // اضافه کردن آواتار
         try {
             const studentIds = Object.keys(conversationsMap);
             if (studentIds.length > 0) {
@@ -580,26 +642,20 @@ async function getLibraryFromSupabase() {
 }
 
 // ============================================================
-// Realtime — نسخه نهایی با رفع قطعی باگ
+// Realtime
 // ============================================================
 
 let personalRealtimeChannel = null;
 let classRealtimeChannel = null;
 let conversationsRealtimeChannel = null;
 
-// 🆕 گوش دادن به پیام‌های شخصی
 function subscribeToPersonalMessages(studentId, onNewMessage) {
     try {
         const client = getSupabase();
         if (!client) return null;
         
-        // 🆕 پاک کردن کانال قبلی
         if (personalRealtimeChannel) {
-            try {
-                client.removeChannel(personalRealtimeChannel);
-            } catch(e) {
-                console.warn('خطا در حذف کانال قبلی:', e);
-            }
+            try { client.removeChannel(personalRealtimeChannel); } catch(e) {}
             personalRealtimeChannel = null;
         }
         
@@ -617,9 +673,7 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
                 },
                 (payload) => {
                     console.log('📨 Realtime: پیام شخصی:', payload.eventType);
-                    if (typeof onNewMessage === 'function') {
-                        onNewMessage(payload);
-                    }
+                    if (typeof onNewMessage === 'function') onNewMessage(payload);
                 }
             )
             .subscribe((status) => {
@@ -634,19 +688,13 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
     }
 }
 
-// 🆕 گوش دادن به پیام‌های کلاسی — با رفع قطعی باگ
 function subscribeToClassMessages(className, onNewMessage) {
     try {
         const client = getSupabase();
         if (!client) return null;
         
-        // 🆕 پاک کردن کانال قبلی (این خط خیلی مهمه)
         if (classRealtimeChannel) {
-            try {
-                client.removeChannel(classRealtimeChannel);
-            } catch(e) {
-                console.warn('خطا در حذف کانال قبلی:', e);
-            }
+            try { client.removeChannel(classRealtimeChannel); } catch(e) {}
             classRealtimeChannel = null;
         }
         
@@ -664,9 +712,7 @@ function subscribeToClassMessages(className, onNewMessage) {
                 },
                 (payload) => {
                     console.log('📢 Realtime: پیام کلاسی:', payload.eventType);
-                    if (typeof onNewMessage === 'function') {
-                        onNewMessage(payload);
-                    }
+                    if (typeof onNewMessage === 'function') onNewMessage(payload);
                 }
             )
             .subscribe((status) => {
@@ -681,19 +727,13 @@ function subscribeToClassMessages(className, onNewMessage) {
     }
 }
 
-// 🆕 گوش دادن به لیست مکالمات (پنل معلم)
 function subscribeToConversations(onChange) {
     try {
         const client = getSupabase();
         if (!client) return null;
         
-        // 🆕 پاک کردن کانال قبلی
         if (conversationsRealtimeChannel) {
-            try {
-                client.removeChannel(conversationsRealtimeChannel);
-            } catch(e) {
-                console.warn('خطا در حذف کانال قبلی:', e);
-            }
+            try { client.removeChannel(conversationsRealtimeChannel); } catch(e) {}
             conversationsRealtimeChannel = null;
         }
         
@@ -710,9 +750,7 @@ function subscribeToConversations(onChange) {
                 },
                 (payload) => {
                     console.log('💬 Realtime: مکالمه:', payload.eventType);
-                    if (typeof onChange === 'function') {
-                        onChange(payload);
-                    }
+                    if (typeof onChange === 'function') onChange(payload);
                 }
             )
             .subscribe((status) => {
