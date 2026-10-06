@@ -1,17 +1,15 @@
 // ============================================================
-// service-worker.js — کش کردن فایل‌ها برای کارکرد آفلاین
-// نسخه: v154 — با رفع CORS و چشمک زدن
+// service-worker.js — کش کردن فایل‌ها
+// نسخه: v166 — با بروزرسانی خودکار
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v162;
+const CACHE_NAME = 'arabi-hafom-v166';
 
-// ============================================================
-// فایل‌های ضروری (فقط فایل‌های خود پروژه)
-// ============================================================
 const urlsToCache = [
     './',
     './index.html',
     './clips.html',
+    './jozve.html',
     './teacher.html',
     './maintenance.html',
     './maintenance.json',
@@ -41,6 +39,8 @@ const urlsToCache = [
     './lessons/lesson1.json',
     './lessons/lesson2.json',
 
+    './jozve/index.json',
+
     'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
     'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css',
     'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
@@ -49,15 +49,13 @@ const urlsToCache = [
 ];
 
 // ============================================================
-// 🆕 نصب — با try/catch برای هر فایل
+// نصب
 // ============================================================
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
                 console.log('✅ شروع ذخیره فایل‌ها');
-                
-                // 🆕 هر فایل رو جداگانه اضافه کن (اگه یکی fail شد، بقیه ادامه بدن)
                 return Promise.all(
                     urlsToCache.map(url => {
                         return cache.add(url).catch(err => {
@@ -68,12 +66,12 @@ self.addEventListener('install', event => {
             })
             .then(() => {
                 console.log('✅ همه فایل‌ها ذخیره شدند');
+                return self.skipWaiting();
             })
             .catch(err => {
                 console.log('❌ خطا:', err);
             })
     );
-    self.skipWaiting();
 });
 
 // ============================================================
@@ -94,39 +92,36 @@ self.addEventListener('activate', event => {
             })
             .then(() => {
                 console.log('✅ Service Worker فعال شد');
+                return self.clients.claim();
             })
     );
-    self.clients.claim();
 });
 
 // ============================================================
-// 🆕 مدیریت fetch — با رفع قطعی CORS
+// مدیریت fetch
 // ============================================================
 self.addEventListener('fetch', event => {
-    // فقط GET
     if (event.request.method !== 'GET') return;
 
     const url = event.request.url;
 
-    // 🆕 ۱. درخواست‌های Supabase — مستقیم از شبکه (نه کش)
+    // درخواست‌های Supabase — مستقیم از شبکه
     if (url.includes('supabase.co')) {
         event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
         return;
     }
 
-    // 🆕 ۲. WebSocket / Realtime — مستقیم از شبکه
+    // WebSocket / Realtime
     if (url.includes('realtime') || url.includes('ws')) {
         event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
         return;
     }
 
-    // 🆕 ۳. عکس‌های CDN خارجی (imgurl, githubusercontent و...) — کش نکن، مستقیم برو
-    // این خط، مشکل CORS و چشمک زدن رو حل می‌کنه
+    // عکس‌های CDN خارجی
     if (url.includes('cdn.imgurl.ir') || 
         url.includes('imgurl.ir') ||
         url.includes('githubusercontent.com') ||
         url.includes('googleusercontent.com')) {
-        // 🆕 از کش نخون، مستقیم از شبکه
         event.respondWith(
             fetch(event.request, { mode: 'no-cors' })
                 .catch(() => new Response('', { status: 503 }))
@@ -134,7 +129,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // 🆕 ۴. maintenance.json — همیشه از شبکه
+    // maintenance.json — همیشه از شبکه
     if (url.includes('maintenance.json')) {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' })
@@ -143,8 +138,8 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // 🆕 ۵. فایل‌های درس — همیشه از شبکه چک
-    if (url.includes('/lessons/')) {
+    // فایل‌های درس و جزوه — همیشه از شبکه چک
+    if (url.includes('/lessons/') || url.includes('/jozve/')) {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' })
                 .then(response => {
@@ -161,14 +156,13 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // 🆕 ۶. بقیه درخواست‌ها — اول از کش
+    // بقیه — اول از کش
     event.respondWith(
         caches.match(event.request)
             .then(response => {
                 if (response) return response;
                 return fetch(event.request)
                     .then(response => {
-                        // فقط درخواست‌های موفق و same-origin رو کش کن
                         if (!response || response.status !== 200 || response.type !== 'basic') {
                             return response;
                         }
