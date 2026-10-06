@@ -1,6 +1,6 @@
 // ============================================================
 // navigation.js — ناوبری، منو، مودال‌ها، راهنما، تم
-// نسخه: ۵.۰.۰ — با پیام‌رسان دانش‌آموز
+// نسخه: ۷.۰.۰ — با پشتیبانی از جزوه و کلمات
 // ============================================================
 
 // ============================================================
@@ -23,6 +23,14 @@ function closeModal() {
 function openClipsPage() {
     sessionStorage.setItem('cameFromClips', 'true');
     window.location.href = './clips.html';
+}
+
+// ============================================================
+// 🆕 رفتن به صفحه جزوه و کلمات
+// ============================================================
+function openJozvePage() {
+    sessionStorage.setItem('cameFromClips', 'true');
+    window.location.href = './jozve.html';
 }
 
 // ============================================================
@@ -68,11 +76,6 @@ function goToScreen(screenId, addToHistory = true) {
         }, 500);
     }
     
-    // توقف polling چت
-    if (screenId !== 'screen-teacher-messages' && typeof stopStudentChatPolling === 'function') {
-        stopStudentChatPolling();
-    }
-    
     // ترتیب نوار پایین
     document.querySelectorAll('.bottom-nav').forEach(nav => {
         const items = nav.querySelectorAll('.bottom-nav-item');
@@ -84,6 +87,7 @@ function goToScreen(screenId, addToHistory = true) {
     });
     
     if (addToHistory) pushHistory(screenId);
+    
     if (['screen-quiz', 'screen-feedback', 'screen-result'].includes(screenId)) {
         if (bgMusic && !bgMusic.paused) bgMusic.pause();
     } else {
@@ -91,6 +95,7 @@ function goToScreen(screenId, addToHistory = true) {
             bgMusic.play().catch(e => console.log(e));
         }
     }
+    
     if (screenId === 'screen-lessons') {
         loadLessonsList();
         showLessonsGuide();
@@ -99,24 +104,28 @@ function goToScreen(screenId, addToHistory = true) {
     if (screenId === 'screen-profile') loadProfileData();
     if (screenId === 'screen-medals') loadMedals();
     if (screenId === 'screen-notifications') loadNotifications();
-    if (screenId === 'screen-rankings') {
-    loadRankingsPage();
     
-    // 🆕 نمایش راهنمای رتبه‌بندی (فقط بار اول)
-    if (typeof checkAndShowRankingsGuide === 'function') {
-        setTimeout(() => checkAndShowRankingsGuide(), 1500);
+    // 🆕 صفحه رتبه‌بندی + راهنما
+    if (screenId === 'screen-rankings') {
+        loadRankingsPage();
+        
+        // 🆕 نمایش راهنمای رتبه‌بندی (فقط بار اول)
+        if (typeof checkAndShowRankingsGuide === 'function') {
+            setTimeout(() => checkAndShowRankingsGuide(), 1500);
+        }
     }
-}
+    
     if (screenId === 'screen-teacher-messages') {
         loadStudentMessages();
-        // مخفی کردن FAB
         const fab = document.getElementById('home-messages-fab');
         if (fab) fab.style.display = 'none';
     }
+    
     if (screenId === 'screen-calendar') {
         calendarCurrentMonth = null;
         renderCalendar();
     }
+    
     if (screenId === 'screen-home') {
         typeMotivation();
         if (allLessons.length === 0) {
@@ -133,12 +142,19 @@ function goToScreen(screenId, addToHistory = true) {
         checkVideoNotification();
         displayStreak();
         
-        // چک کردن پیام‌های معلم
+        // آیکون شناور پیام‌ها
         setTimeout(() => {
             if (typeof checkTeacherMessagesBadge === 'function') {
                 checkTeacherMessagesBadge();
             }
         }, 500);
+        
+        // 🆕 چک کردن نوتیفیکیشن پیام‌های معلم
+        if (typeof checkAndShowNewMessageNotification === 'function') {
+            setTimeout(() => {
+                checkAndShowNewMessageNotification();
+            }, 1500);
+        }
     }
 }
 
@@ -374,8 +390,17 @@ function closeDeleteAccountModal() {
 }
 
 function confirmDeleteAccount() {
+    // 🆕 پاک کردن همه چیز شامل نشانه‌های بروزرسانی
     localStorage.clear();
+    
     caches.keys().then(names => names.forEach(name => caches.delete(name)));
+    
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(reg => reg.unregister());
+        });
+    }
+    
     closeDeleteAccountModal();
     setTimeout(() => location.reload(), 300);
 }
