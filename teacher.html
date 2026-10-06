@@ -12,7 +12,7 @@
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
     
-    <!-- 🆕 Supabase Library -->
+    <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link rel="stylesheet" href="./css/teacher.css">
@@ -76,7 +76,6 @@
              ═══════════════════════════════════════════════════ -->
         <section class="page active" id="page-home">
             
-            <!-- خوش‌آمد -->
             <div class="home-welcome-card">
                 <div class="home-welcome-emoji">👋</div>
                 <div class="home-welcome-text">
@@ -85,7 +84,6 @@
                 </div>
             </div>
 
-            <!-- آمار سریع -->
             <div class="home-stats-row">
                 <div class="home-stat-mini">
                     <div class="home-stat-mini-value" id="home-stat-students">۰</div>
@@ -101,7 +99,6 @@
                 </div>
             </div>
 
-            <!-- گرید منو (کارت‌های گرافیکی) -->
             <div class="home-menu-grid">
                 
                 <div class="home-menu-card card-blue" onclick="showPage('students')">
@@ -161,15 +158,12 @@
                 
             </div>
             
-            <!-- بهترین دانش‌آموزان -->
             <div class="home-top-card">
                 <div class="home-top-header">
                     <div class="home-top-title">🏆 بهترین دانش‌آموزان</div>
                     <button class="home-top-refresh" onclick="loadHomeData()">🔄</button>
                 </div>
-                <div class="home-top-list" id="home-top-students">
-                    <!-- توسط JS پر میشه -->
-                </div>
+                <div class="home-top-list" id="home-top-students"></div>
             </div>
             
         </section>
@@ -207,21 +201,11 @@
         <section class="page" id="page-rankings">
             
             <div class="rankings-class-tabs" id="rankings-class-tabs">
-                <button class="rankings-class-tab active" data-class="hafom-1" onclick="switchRankingClass('hafom-1', this)">
-                    هفتم یک
-                </button>
-                <button class="rankings-class-tab" data-class="hafom-2" onclick="switchRankingClass('hafom-2', this)">
-                    هفتم دو
-                </button>
-                <button class="rankings-class-tab" data-class="hafom-3" onclick="switchRankingClass('hafom-3', this)">
-                    هفتم سه
-                </button>
-                <button class="rankings-class-tab" data-class="hafom-4" onclick="switchRankingClass('hafom-4', this)">
-                    هفتم چهار
-                </button>
-                <button class="rankings-class-tab" data-class="hafom-5" onclick="switchRankingClass('hafom-5', this)">
-                    هفتم پنج
-                </button>
+                <button class="rankings-class-tab active" data-class="hafom-1" onclick="switchRankingClass('hafom-1', this)">هفتم یک</button>
+                <button class="rankings-class-tab" data-class="hafom-2" onclick="switchRankingClass('hafom-2', this)">هفتم دو</button>
+                <button class="rankings-class-tab" data-class="hafom-3" onclick="switchRankingClass('hafom-3', this)">هفتم سه</button>
+                <button class="rankings-class-tab" data-class="hafom-4" onclick="switchRankingClass('hafom-4', this)">هفتم چهار</button>
+                <button class="rankings-class-tab" data-class="hafom-5" onclick="switchRankingClass('hafom-5', this)">هفتم پنج</button>
             </div>
             
             <div class="rankings-header-card">
@@ -246,11 +230,10 @@
         </section>
 
         <!-- ═══════════════════════════════════════════════════
-             صفحه ۴: پیام‌رسانی (پیام‌رسان واقعی)
+             صفحه ۴: پیام‌رسانی
              ═══════════════════════════════════════════════════ -->
         <section class="page" id="page-messages">
             
-            <!-- تب‌ها -->
             <div class="messages-tabs">
                 <button class="messages-tab-btn active" data-tab="class" onclick="switchMessagesTab('class')">
                     <span class="tab-icon">📢</span>
@@ -311,11 +294,10 @@
                 </div>
             </div>
 
-            <!-- ═══ تب ۲: چت شخصی (پیام‌رسان واقعی) ═══ -->
+            <!-- ═══ تب ۲: چت شخصی ═══ -->
             <div class="messages-tab-content" id="tab-personal">
                 <div class="messenger-wrapper" id="messenger-wrapper">
                     
-                    <!-- لیست چت‌ها (پیام‌رسان) -->
                     <div class="messenger-list" id="messenger-list">
                         <div class="messenger-search">
                             <svg viewBox="0 0 24 24" fill="none">
@@ -324,12 +306,9 @@
                             </svg>
                             <input type="text" id="messenger-search-input" placeholder="جستجوی دانش‌آموز..." oninput="filterMessengerList(this.value)">
                         </div>
-                        <div class="messenger-list-items" id="messenger-list-items">
-                            <!-- توسط JS پر میشه -->
-                        </div>
+                        <div class="messenger-list-items" id="messenger-list-items"></div>
                     </div>
                     
-                    <!-- پنجره چت -->
                     <div class="messenger-chat" id="messenger-chat" style="display: none;">
                         <div class="messenger-chat-header">
                             <button class="messenger-chat-back" onclick="closeMessengerChat()">
@@ -344,9 +323,7 @@
                             </div>
                         </div>
                         
-                        <div class="messenger-chat-messages" id="messenger-chat-messages">
-                            <!-- پیام‌ها -->
-                        </div>
+                        <div class="messenger-chat-messages" id="messenger-chat-messages"></div>
                         
                         <div class="messenger-chat-input-wrapper">
                             <input type="text" class="messenger-chat-input" id="messenger-chat-input" placeholder="پیام خود را بنویسید..." onkeypress="if(event.key==='Enter') sendChatMessage()">
@@ -359,7 +336,6 @@
                         </div>
                     </div>
                     
-                    <!-- حالت خالی -->
                     <div class="messenger-empty" id="messenger-empty">
                         <div class="messenger-empty-icon">💬</div>
                         <div class="messenger-empty-title">یک دانش‌آموز رو انتخاب کن</div>
@@ -579,11 +555,18 @@
             </div>
         </section>
 
+        <!-- ═══════════════════════════════════════════════════
+             🆕 صفحه ۱۱: پروفایل اختصاصی دانش‌آموز
+             ═══════════════════════════════════════════════════ -->
+        <section class="page" id="page-student-profile">
+            <div id="student-profile-content"></div>
+        </section>
+
     </main>
 
 </div>
 
-<!-- مودال جزئیات دانش‌آموز -->
+<!-- مودال جزئیات دانش‌آموز (قدیمی — هنوز استفاده می‌شه برای جایگزین) -->
 <div class="modal-overlay" id="student-modal">
     <div class="modal-card">
         <button class="modal-close-btn" onclick="closeStudentModal()">✕</button>
@@ -597,12 +580,9 @@
     <div class="toast-text" id="toast-text">پیام</div>
 </div>
 
-<!-- ============================================================
-     🆕 ترتیب مهم است:
-     1. supabase-config.js — تنظیمات Supabase
-     2. api.js — توابع Supabase (getAllStudents, ...)
-     3. teacher.js — منطق پنل معلم
-     ============================================================ -->
+<!-- ============================================================ -->
+<!-- بارگذاری فایل‌های JavaScript                                 -->
+<!-- ============================================================ -->
 <script src="./js/supabase-config.js"></script>
 <script src="./js/api.js"></script>
 <script src="./js/teacher.js"></script>
