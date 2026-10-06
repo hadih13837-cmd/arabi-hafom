@@ -1,6 +1,6 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۷.۰.۰ — با مودال بروزرسانی، راهنمای رتبه‌بندی و نوتیفیکیشن پیام
+// نسخه: ۸.۰.۰ — با بروزرسانی خودکار Service Worker
 // ============================================================
 
 // ============================================================
@@ -322,7 +322,7 @@ function generateUUID() {
 }
 
 // ============================================================
-// PWA — Service Worker
+// 🆕 PWA — Service Worker با بروزرسانی خودکار
 // ============================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -330,47 +330,105 @@ if ('serviceWorker' in navigator) {
             const registration = await navigator.serviceWorker.register('./service-worker.js');
             console.log('✅ Service Worker ثبت شد');
 
-            setInterval(() => registration.update(), 60000);
+            // 🆕 هر ۳۰ ثانیه چک کن که نسخه‌ی جدید اومده یا نه
+            setInterval(() => {
+                registration.update().then(() => {
+                    console.log('🔄 چک کردن بروزرسانی...');
+                }).catch(() => {});
+            }, 30000);
 
+            // 🆕 وقتی نسخه‌ی جدید پیدا شد
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
+                if (!newWorker) return;
+                
+                console.log('🆕 نسخه‌ی جدید پیدا شد!');
+
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                        console.log('✅ نسخه‌ی جدید آماده‌ست - در حال بارگذاری...');
+                        
+                        // 🆕 نمایش پیام بروزرسانی
                         showUpdateNotification();
+                        
+                        // 🆕 بعد از ۱.۵ ثانیه، خودکار reload کن
+                        setTimeout(() => {
+                            newWorker.postMessage({ type: 'SKIP_WAITING' });
+                        }, 1500);
                     }
                 });
             });
 
+            // 🆕 وقتی Service Worker جدید فعال شد، صفحه رو reload کن
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
                     refreshing = true;
+                    console.log('🔄 بارگذاری مجدد برای اعمال تغییرات...');
                     window.location.reload();
                 }
             });
+
         } catch (e) {
             console.log('⚠️ خطا در Service Worker:', e);
         }
     });
 }
 
+// ============================================================
+// 🆕 پیام بروزرسانی Service Worker
+// ============================================================
 function showUpdateNotification() {
+    // اگه قبلاً نشون داده شده، دوباره نشون نده
+    if (document.getElementById('sw-update-notification')) return;
+    
     const notif = document.createElement('div');
+    notif.id = 'sw-update-notification';
     notif.style.cssText = `
-        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100px);
         background: linear-gradient(135deg, #4caf50, #2e7d32);
-        color: #fff; padding: 12px 20px; border-radius: 50px;
-        font-family: 'Vazirmatn', sans-serif; font-size: 13px; font-weight: 900;
-        z-index: 999999; box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
-        display: flex; align-items: center; gap: 8px;
+        color: #fff;
+        padding: 14px 22px;
+        border-radius: 50px;
+        font-family: 'Vazirmatn', sans-serif;
+        font-size: 14px;
+        font-weight: 900;
+        z-index: 999999;
+        box-shadow: 0 8px 30px rgba(76, 175, 80, 0.6);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     `;
-    notif.innerHTML = '🎉 نسخه‌ی جدید در حال بارگذاری...';
+    notif.innerHTML = `
+        <span style="font-size: 20px; animation: swSpin 1s linear infinite;">🔄</span>
+        <span>نسخه‌ی جدید در حال بارگذاری...</span>
+    `;
     document.body.appendChild(notif);
 
+    // 🆕 انیمیشن spin
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes swSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // 🆕 با انیمیشن بیاد پایین
     setTimeout(() => {
-        notif.style.transition = 'opacity 0.3s ease';
+        notif.style.transform = 'translateX(-50%) translateY(0)';
+    }, 50);
+
+    // 🆕 بعد از ۲ ثانیه محو بشه
+    setTimeout(() => {
+        notif.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         notif.style.opacity = '0';
+        notif.style.transform = 'translateX(-50%) translateY(-100px)';
         setTimeout(() => notif.remove(), 300);
     }, 2000);
 }
