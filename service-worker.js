@@ -3,7 +3,7 @@
 // نسخه: v169 — با پشتیبانی از جزوه و کلمات
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v169';
+const CACHE_NAME = 'arabi-hafom-v170';
 
 const urlsToCache = [
     './',
