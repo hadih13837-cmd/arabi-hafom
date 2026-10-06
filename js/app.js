@@ -1,6 +1,6 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۹.۰.۰ — با نوتیفیکیشن جزوه و بروزرسانی خودکار
+// نسخه: ۱۰.۰.۰ — با نوتیفیکیشن جزوه، پیام و بروزرسانی خودکار
 // ============================================================
 
 // ============================================================
@@ -196,7 +196,7 @@ function checkAndShowNewMessageNotification() {
             
             setTimeout(() => {
                 notif.classList.add('show');
-            }, 1200);
+            }, 1000);
         }
     }
 }
@@ -260,18 +260,17 @@ async function checkAndShowNewJozveNotification() {
                 
                 subText.textContent = text;
                 
-                // 🆕 چیدمان مجدد نوتیفیکیشن‌ها
                 if (typeof repositionNotifications === 'function') {
                     repositionNotifications();
                 }
                 
+                // 🆕 سریع‌تر نمایش بده
                 setTimeout(() => {
                     notif.classList.add('show');
-                    // 🆕 بعد از نمایش، دوباره چیدمان کن
                     if (typeof repositionNotifications === 'function') {
                         repositionNotifications();
                     }
-                }, 1200);
+                }, 300);
             }
         }
     } catch (e) {
@@ -291,14 +290,36 @@ function dismissNewJozveNotification() {
         notif.classList.remove('show', 'swiping');
         notif.style.transform = '';
         notif.style.opacity = '';
-        
-        // 🆕 چیدمان مجدد بعد از بستن
-        if (typeof repositionNotifications === 'function') {
-            repositionNotifications();
-        }
+        repositionNotifications();
     }, 300);
     
     saveJozveSeen();
+}
+
+// 🆕 دکمه مشاهده نوتیفیکیشن جزوه - مستقیم بره به صفحه
+function goToJozveFromNotification() {
+    dismissNewJozveNotification();
+    setTimeout(() => {
+        window.location.href = './jozve.html';
+    }, 200);
+}
+
+async function saveJozveSeen() {
+    try {
+        const response = await fetch('./jozve/index.json?t=' + Date.now());
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        const items = data.items || [];
+        const ids = items.map(item => item.id);
+        
+        localStorage.setItem('seenJozveIds', JSON.stringify(ids));
+        localStorage.setItem('dismissedNewJozveNotif', 'true');
+    } catch (e) {}
+}
+
+function resetJozveNotification() {
+    localStorage.removeItem('dismissedNewJozveNotif');
 }
 
 // ============================================================
@@ -364,11 +385,11 @@ async function startApp() {
             
             setTimeout(() => {
                 checkAndShowNewMessageNotification();
-            }, 2500);
+            }, 1500);
             
             setTimeout(() => {
                 checkAndShowNewJozveNotification();
-            }, 3500);
+            }, 2000);
             
             if (localStorage.getItem('guideCompleted') !== 'true') {
                 currentGuideStep = 0;
@@ -550,6 +571,7 @@ window.addEventListener('appinstalled', () => {
     installBanner.classList.remove('show');
     localStorage.setItem('installBannerDismissed', 'true');
 });
+
 // ============================================================
 // بارگذاری مسابقات
 // ============================================================
@@ -695,7 +717,7 @@ function goToTeacherMessage() {
 }
 
 // ============================================================
-// 🆕 مدیریت visibility change
+// مدیریت visibility change
 // ============================================================
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
@@ -710,37 +732,33 @@ document.addEventListener('visibilitychange', () => {
             
             setTimeout(() => {
                 checkAndShowNewMessageNotification();
-            }, 2000);
+            }, 1500);
             
             setTimeout(() => {
                 checkAndShowNewJozveNotification();
-            }, 3000);
+            }, 2000);
         }
     }
 });
 
 // ============================================================
-// 🆕 بارگذاری اولیه
+// بارگذاری اولیه
 // ============================================================
 window.addEventListener('load', async () => {
-    // ۱. بررسی حالت بروزرسانی
     const isMaintenance = await checkMaintenanceMode();
     if (isMaintenance) {
         window.location.replace('./maintenance.html');
         return;
     }
 
-    // ۲. بارگذاری اطلاعات و تنظیمات
     loadUserInfo();
     loadTheme();
 
-    // ۳. اگه کاربر ثبت‌نام کرده ولی UUID نداره، بسازش
     if (localStorage.getItem('userRegistered') === 'true' && !localStorage.getItem('studentUUID')) {
         const newUUID = generateUUID();
         localStorage.setItem('studentUUID', newUUID);
     }
 
-    // ۴. تنظیمات ظاهری
     if (localStorage.getItem('soundsEnabled') === 'false') {
         const el = document.getElementById('setting-sounds');
         if (el) el.checked = false;
@@ -755,10 +773,8 @@ window.addEventListener('load', async () => {
         document.body.classList.add('dark-mode');
     }
 
-    // ۵. فعال‌سازی swipe
     initNotificationSwipe();
 
-    // ۶. تصمیم‌گیری درباره صفحه اولیه
     const cameFromClips = sessionStorage.getItem('cameFromClips') === 'true';
     const isRegistered = localStorage.getItem('userRegistered') === 'true';
 
@@ -771,7 +787,6 @@ window.addEventListener('load', async () => {
             goToScreen('screen-home', false);
             
             setTimeout(() => {
-                // نوتیفیکیشن‌ها
                 if (allLessons.length === 0) {
                     loadLessonsListForNotification().then(() => {
                         checkAndShowNotification();
@@ -795,18 +810,15 @@ window.addEventListener('load', async () => {
                     setTimeout(() => startRealtimeSubscriptions(), 1000);
                 }
                 
-                // 🆕 مودال بروزرسانی
                 checkAndShowUpdateModal();
                 
-                // 🆕 نوتیفیکیشن پیام
                 setTimeout(() => {
                     checkAndShowNewMessageNotification();
-                }, 3000);
+                }, 1500);
                 
-                // 🆕 نوتیفیکیشن جزوه
                 setTimeout(() => {
                     checkAndShowNewJozveNotification();
-                }, 4000);
+                }, 2000);
                 
                 setTimeout(() => showStreakMessage(), 800);
             }, 300);
@@ -818,12 +830,10 @@ window.addEventListener('load', async () => {
         setTimeout(typeMotivation, 500);
     }
 
-    // ۷. همگام‌سازی خودکار
     if (isRegistered) {
         setTimeout(() => autoSyncRanking('ورود به برنامه'), 1500);
     }
 
-    // ۸. بارگذاری مسابقات و کتابخانه
     setTimeout(() => {
         if (isRegistered) {
             loadHomeContests();
