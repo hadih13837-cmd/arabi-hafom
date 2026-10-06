@@ -7759,3 +7759,425 @@ body.dark-mode .rankings-guide-btn-skip {
     color: #90a4ae;
     border-color: #2a3444;
 }
+/* ============================================================
+   🆕 نوتیفیکیشن پیام‌های معلم در صفحه خانه
+   ============================================================ */
+.new-message-notification {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%);
+    border: 2px solid #8e24aa;
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 25px rgba(142, 36, 170, 0.4);
+    z-index: 205;
+    animation: slideDown 0.5s ease;
+    touch-action: pan-y;
+    cursor: grab;
+}
+
+.new-message-notification.show {
+    display: flex;
+}
+
+.new-message-notification .notification-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    animation: bellRing 1s ease-in-out infinite;
+}
+
+.new-message-notification .notification-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #4a148c;
+    margin-bottom: 3px;
+}
+
+.new-message-notification .notification-sub {
+    font-size: 12px;
+    color: #6a1b9a;
+    font-weight: bold;
+}
+
+.new-message-notification .notification-btn {
+    background: linear-gradient(135deg, #8e24aa, #6a1b9a);
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    flex-shrink: 0;
+}
+
+.new-message-notification .notification-btn:active {
+    transform: scale(0.95);
+}
+
+.new-message-notification .notification-close {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.1);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #4a148c;
+    font-weight: bold;
+}
+
+.new-message-notification .notification-swipe-hint {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: rgba(74, 20, 140, 0.3);
+    border-radius: 3px;
+}
+
+/* حالت شب */
+body.dark-mode .new-message-notification {
+    background: linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%);
+    border-color: #ce93d8;
+}
+
+body.dark-mode .new-message-notification .notification-title {
+    color: #e1bee7;
+}
+
+body.dark-mode .new-message-notification .notification-sub {
+    color: #ce93d8;
+}
+/* ============================================================
+   🆕 نوتیفیکیشن پیام‌های معلم در صفحه خانه
+   ============================================================ */
+.new-message-notification {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%);
+    border: 2px solid #8e24aa;
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 25px rgba(142, 36, 170, 0.4);
+    z-index: 205;
+    animation: slideDown 0.5s ease;
+    touch-action: pan-y;
+    cursor: grab;
+}
+
+.new-message-notification.show {
+    display: flex;
+}
+
+.new-message-notification .notification-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    animation: bellRing 1s ease-in-out infinite;
+}
+
+.new-message-notification .notification-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #4a148c;
+    margin-bottom: 3px;
+}
+
+.new-message-notification .notification-sub {
+    font-size: 12px;
+    color: #6a1b9a;
+    font-weight: bold;
+}
+
+.new-message-notification .notification-btn {
+    background: linear-gradient(135deg, #8e24aa, #6a1b9a);
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    flex-shrink: 0;
+}
+
+.new-message-notification .notification-btn:active {
+    transform: scale(0.95);
+}
+
+.new-message-notification .notification-close {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.1);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #4a148c;
+    font-weight: bold;
+}
+
+.new-message-notification .notification-swipe-hint {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: rgba(74, 20, 140, 0.3);
+    border-radius: 3px;
+}
+
+body.dark-mode .new-message-notification {
+    background: linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%);
+    border-color: #ce93d8;
+}
+
+body.dark-mode .new-message-notification .notification-title {
+    color: #e1bee7;
+}
+
+body.dark-mode .new-message-notification .notification-sub {
+    color: #ce93d8;
+}
+
+/* ============================================================
+   🆕 مودال بروزرسانی
+   ============================================================ */
+.update-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: pcFadeIn 0.3s ease;
+}
+
+.update-modal-overlay.active {
+    display: flex;
+}
+
+.update-modal-card {
+    background: linear-gradient(180deg, #fff 0%, #f0f7ff 100%);
+    border-radius: 28px;
+    padding: 30px 24px 24px 24px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    animation: pcSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+}
+
+.update-header {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.update-header-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px auto;
+    font-size: 48px;
+    box-shadow: 0 10px 30px rgba(25, 118, 210, 0.4);
+    animation: updateIconBounce 2s ease-in-out infinite;
+    border: 4px solid #fff;
+}
+
+@keyframes updateIconBounce {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-8px) rotate(5deg); }
+}
+
+.update-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 8px;
+}
+
+.update-subtitle {
+    font-size: 14px;
+    color: #78909c;
+    font-weight: bold;
+    line-height: 1.6;
+}
+
+.update-features-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 12px;
+    padding-right: 6px;
+    border-right: 4px solid #1976d2;
+}
+
+.update-feature-item {
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 2px solid #e3f2fd;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.06);
+    transition: all 0.2s ease;
+}
+
+.update-feature-item:active {
+    transform: scale(0.98);
+}
+
+.update-feature-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    box-shadow: 0 4px 10px rgba(25, 118, 210, 0.15);
+}
+
+.update-feature-icon.blue { background: linear-gradient(135deg, #e3f2fd, #90caf9); }
+.update-feature-icon.green { background: linear-gradient(135deg, #e8f5e9, #a5d6a7); }
+.update-feature-icon.purple { background: linear-gradient(135deg, #f3e5f5, #ce93d8); }
+.update-feature-icon.orange { background: linear-gradient(135deg, #fff3e0, #ffcc80); }
+.update-feature-icon.pink { background: linear-gradient(135deg, #fce4ec, #f48fb1); }
+
+.update-feature-info {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+}
+
+.update-feature-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 4px;
+}
+
+.update-feature-desc {
+    font-size: 12px;
+    color: #546e7a;
+    font-weight: bold;
+    line-height: 1.6;
+}
+
+.update-feature-badge {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-weight: 900;
+    flex-shrink: 0;
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+.update-modal-btn {
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+    color: #fff;
+    border: none;
+    padding: 16px 30px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 18px;
+    font-family: 'Vazirmatn', sans-serif;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+    transition: transform 0.15s ease;
+}
+
+.update-modal-btn:active {
+    transform: scale(0.97);
+}
+
+body.dark-mode .update-modal-card {
+    background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%);
+}
+
+body.dark-mode .update-title { color: #90caf9; }
+body.dark-mode .update-subtitle { color: #90a4ae; }
+body.dark-mode .update-features-title {
+    color: #90caf9;
+    border-color: #90caf9;
+}
+body.dark-mode .update-feature-item {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+body.dark-mode .update-feature-title { color: #90caf9; }
+body.dark-mode .update-feature-desc { color: #90a4ae; }
+
+/* ============================================================
+   🆕 راهنمای رتبه‌بندی
+   ============================================================ */
+.rankings-guide-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center
