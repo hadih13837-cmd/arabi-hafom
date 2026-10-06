@@ -1,16 +1,16 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۶.۰.۰ — با مودال بروزرسانی و راهنمای رتبه‌بندی
+// نسخه: ۷.۰.۰ — با مودال بروزرسانی، راهنمای رتبه‌بندی و نوتیفیکیشن پیام
 // ============================================================
 
 // ============================================================
 // متغیر سراسری
 // ============================================================
 let isPublished = true;
-const UPDATE_VERSION = 'v2.0.0'; // 🆕 نسخه فعلی
+const UPDATE_VERSION = 'v2.0.0';
 
 // ============================================================
-// 🆕 مودال بروزرسانی
+// مودال بروزرسانی
 // ============================================================
 function checkAndShowUpdateModal() {
     const seenVersion = localStorage.getItem('seenUpdateVersion');
@@ -41,7 +41,7 @@ function closeUpdateModal() {
 }
 
 // ============================================================
-// 🆕 راهنمای رتبه‌بندی
+// راهنمای رتبه‌بندی
 // ============================================================
 let rankingsGuideStep = 0;
 
@@ -147,6 +147,90 @@ function closeRankingsGuide() {
 }
 
 // ============================================================
+// نوتیفیکیشن پیام‌های معلم در صفحه خانه
+// ============================================================
+function checkAndShowNewMessageNotification() {
+    const dismissed = localStorage.getItem('dismissedNewMessageNotif') === 'true';
+    if (dismissed) return;
+    
+    const studentId = localStorage.getItem('studentUUID');
+    if (!studentId) return;
+    
+    const cachedChat = getCachedData('studentChatCache_' + studentId);
+    const cachedClass = getCachedData('studentClassMessagesCache');
+    
+    if (!cachedChat && !cachedClass) return;
+    
+    const seenChat = JSON.parse(localStorage.getItem('seenChatMessages') || '[]');
+    const seenClass = JSON.parse(localStorage.getItem('seenClassMessages') || '[]');
+    
+    let unreadChat = 0;
+    let unreadClass = 0;
+    
+    if (cachedChat && cachedChat.length > 0) {
+        unreadChat = cachedChat.filter(m => m.sender === 'teacher' && !seenChat.includes(m.message_id)).length;
+    }
+    
+    if (cachedClass && cachedClass.length > 0) {
+        unreadClass = cachedClass.filter(m => !seenClass.includes(m.message_id)).length;
+    }
+    
+    const totalUnread = unreadChat + unreadClass;
+    
+    if (totalUnread > 0) {
+        const notif = document.getElementById('new-message-notification');
+        const subText = document.getElementById('new-message-notification-sub');
+        
+        if (notif && subText) {
+            let text = '';
+            if (unreadChat > 0 && unreadClass > 0) {
+                text = `${toPersianNum(unreadChat)} پیام شخصی و ${toPersianNum(unreadClass)} پیام کلاسی جدید`;
+            } else if (unreadChat > 0) {
+                text = unreadChat === 1 ? 'یک پیام شخصی جدید داری' : `${toPersianNum(unreadChat)} پیام شخصی جدید داری`;
+            } else {
+                text = unreadClass === 1 ? 'یک پیام کلاسی جدید داری' : `${toPersianNum(unreadClass)} پیام کلاسی جدید داری`;
+            }
+            
+            subText.textContent = text;
+            repositionNotifications();
+            
+            setTimeout(() => {
+                notif.classList.add('show');
+            }, 1200);
+        }
+    }
+}
+
+function dismissNewMessageNotification() {
+    const notif = document.getElementById('new-message-notification');
+    if (!notif) return;
+    
+    notif.classList.add('swiping');
+    notif.style.transform = 'translateY(-200%)';
+    notif.style.opacity = '0';
+    
+    setTimeout(() => {
+        notif.classList.remove('show', 'swiping');
+        notif.style.transform = '';
+        notif.style.opacity = '';
+        repositionNotifications();
+    }, 300);
+    
+    localStorage.setItem('dismissedNewMessageNotif', 'true');
+}
+
+function goToTeacherMessagesFromNotification() {
+    dismissNewMessageNotification();
+    setTimeout(() => {
+        goToScreen('screen-teacher-messages');
+    }, 200);
+}
+
+function resetNewMessageNotification() {
+    localStorage.removeItem('dismissedNewMessageNotif');
+}
+
+// ============================================================
 // همگام‌سازی خودکار
 // ============================================================
 function autoSyncRanking(reason = 'unknown') {
@@ -204,6 +288,12 @@ async function startApp() {
                 !isRealtimeStarted) {
                 setTimeout(() => startRealtimeSubscriptions(), 500);
             }
+            
+            checkAndShowUpdateModal();
+            
+            setTimeout(() => {
+                checkAndShowNewMessageNotification();
+            }, 2500);
             
             if (localStorage.getItem('guideCompleted') !== 'true') {
                 currentGuideStep = 0;
@@ -341,7 +431,7 @@ window.addEventListener('appinstalled', () => {
 });
 
 // ============================================================
-// بارگذاری مسابقات و کتابخانه
+// بارگذاری مسابقات
 // ============================================================
 async function loadHomeContests() {
     const section = document.getElementById('home-contests-section');
@@ -385,6 +475,9 @@ async function loadHomeContests() {
     }
 }
 
+// ============================================================
+// بارگذاری کتابخانه
+// ============================================================
 async function loadHomeLibrary() {
     const section = document.getElementById('home-library-section');
     const list = document.getElementById('home-library-list');
@@ -548,8 +641,11 @@ window.addEventListener('load', async () => {
                     setTimeout(() => startRealtimeSubscriptions(), 1000);
                 }
                 
-                // 🆕 چک کردن مودال بروزرسانی
                 checkAndShowUpdateModal();
+                
+                setTimeout(() => {
+                    checkAndShowNewMessageNotification();
+                }, 3000);
                 
                 setTimeout(() => showStreakMessage(), 800);
             }, 300);
@@ -586,6 +682,10 @@ document.addEventListener('visibilitychange', () => {
                 !isRealtimeStarted) {
                 setTimeout(() => startRealtimeSubscriptions(), 1000);
             }
+            
+            setTimeout(() => {
+                checkAndShowNewMessageNotification();
+            }, 2000);
         }
     }
 });
