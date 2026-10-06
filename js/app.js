@@ -1,6 +1,6 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۸.۰.۰ — با بروزرسانی خودکار Service Worker
+// نسخه: ۹.۰.۰ — با نوتیفیکیشن جزوه و بروزرسانی خودکار
 // ============================================================
 
 // ============================================================
@@ -147,7 +147,7 @@ function closeRankingsGuide() {
 }
 
 // ============================================================
-// نوتیفیکیشن پیام‌های معلم در صفحه خانه
+// نوتیفیکیشن پیام‌های معلم
 // ============================================================
 function checkAndShowNewMessageNotification() {
     const dismissed = localStorage.getItem('dismissedNewMessageNotif') === 'true';
@@ -231,6 +231,77 @@ function resetNewMessageNotification() {
 }
 
 // ============================================================
+// 🆕 نوتیفیکیشن جزوه جدید
+// ============================================================
+async function checkAndShowNewJozveNotification() {
+    const dismissed = localStorage.getItem('dismissedNewJozveNotif') === 'true';
+    if (dismissed) return;
+    
+    try {
+        const response = await fetch('./jozve/index.json?t=' + Date.now());
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        const items = data.items || [];
+        
+        if (items.length === 0) return;
+        
+        const seenJozve = JSON.parse(localStorage.getItem('seenJozveIds') || '[]');
+        const newItems = items.filter(item => !seenJozve.includes(item.id));
+        
+        if (newItems.length > 0) {
+            const notif = document.getElementById('new-jozve-notification');
+            const subText = document.getElementById('new-jozve-notification-sub');
+            
+            if (notif && subText) {
+                const text = newItems.length === 1 
+                    ? `«${newItems[0].title}» اضافه شد` 
+                    : `${toPersianNum(newItems.length)} جزوه جدید اضافه شد`;
+                
+                subText.textContent = text;
+                
+                // 🆕 چیدمان مجدد نوتیفیکیشن‌ها
+                if (typeof repositionNotifications === 'function') {
+                    repositionNotifications();
+                }
+                
+                setTimeout(() => {
+                    notif.classList.add('show');
+                    // 🆕 بعد از نمایش، دوباره چیدمان کن
+                    if (typeof repositionNotifications === 'function') {
+                        repositionNotifications();
+                    }
+                }, 1200);
+            }
+        }
+    } catch (e) {
+        console.warn('خطا در چک جزوه:', e);
+    }
+}
+
+function dismissNewJozveNotification() {
+    const notif = document.getElementById('new-jozve-notification');
+    if (!notif) return;
+    
+    notif.classList.add('swiping');
+    notif.style.transform = 'translateY(-200%)';
+    notif.style.opacity = '0';
+    
+    setTimeout(() => {
+        notif.classList.remove('show', 'swiping');
+        notif.style.transform = '';
+        notif.style.opacity = '';
+        
+        // 🆕 چیدمان مجدد بعد از بستن
+        if (typeof repositionNotifications === 'function') {
+            repositionNotifications();
+        }
+    }, 300);
+    
+    saveJozveSeen();
+}
+
+// ============================================================
 // همگام‌سازی خودکار
 // ============================================================
 function autoSyncRanking(reason = 'unknown') {
@@ -295,6 +366,10 @@ async function startApp() {
                 checkAndShowNewMessageNotification();
             }, 2500);
             
+            setTimeout(() => {
+                checkAndShowNewJozveNotification();
+            }, 3500);
+            
             if (localStorage.getItem('guideCompleted') !== 'true') {
                 currentGuideStep = 0;
                 showGuideStep();
@@ -322,7 +397,7 @@ function generateUUID() {
 }
 
 // ============================================================
-// 🆕 PWA — Service Worker با بروزرسانی خودکار
+// PWA — Service Worker با بروزرسانی خودکار
 // ============================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -330,14 +405,12 @@ if ('serviceWorker' in navigator) {
             const registration = await navigator.serviceWorker.register('./service-worker.js');
             console.log('✅ Service Worker ثبت شد');
 
-            // 🆕 هر ۳۰ ثانیه چک کن که نسخه‌ی جدید اومده یا نه
             setInterval(() => {
                 registration.update().then(() => {
                     console.log('🔄 چک کردن بروزرسانی...');
                 }).catch(() => {});
             }, 30000);
 
-            // 🆕 وقتی نسخه‌ی جدید پیدا شد
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 if (!newWorker) return;
@@ -348,10 +421,8 @@ if ('serviceWorker' in navigator) {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                         console.log('✅ نسخه‌ی جدید آماده‌ست - در حال بارگذاری...');
                         
-                        // 🆕 نمایش پیام بروزرسانی
                         showUpdateNotification();
                         
-                        // 🆕 بعد از ۱.۵ ثانیه، خودکار reload کن
                         setTimeout(() => {
                             newWorker.postMessage({ type: 'SKIP_WAITING' });
                         }, 1500);
@@ -359,7 +430,6 @@ if ('serviceWorker' in navigator) {
                 });
             });
 
-            // 🆕 وقتی Service Worker جدید فعال شد، صفحه رو reload کن
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
@@ -375,11 +445,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// ============================================================
-// 🆕 پیام بروزرسانی Service Worker
-// ============================================================
 function showUpdateNotification() {
-    // اگه قبلاً نشون داده شده، دوباره نشون نده
     if (document.getElementById('sw-update-notification')) return;
     
     const notif = document.createElement('div');
@@ -409,7 +475,6 @@ function showUpdateNotification() {
     `;
     document.body.appendChild(notif);
 
-    // 🆕 انیمیشن spin
     const style = document.createElement('style');
     style.textContent = `
         @keyframes swSpin {
@@ -419,12 +484,10 @@ function showUpdateNotification() {
     `;
     document.head.appendChild(style);
 
-    // 🆕 با انیمیشن بیاد پایین
     setTimeout(() => {
         notif.style.transform = 'translateX(-50%) translateY(0)';
     }, 50);
 
-    // 🆕 بعد از ۲ ثانیه محو بشه
     setTimeout(() => {
         notif.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         notif.style.opacity = '0';
@@ -487,7 +550,6 @@ window.addEventListener('appinstalled', () => {
     installBanner.classList.remove('show');
     localStorage.setItem('installBannerDismissed', 'true');
 });
-
 // ============================================================
 // بارگذاری مسابقات
 // ============================================================
@@ -633,23 +695,52 @@ function goToTeacherMessage() {
 }
 
 // ============================================================
-// بارگذاری اولیه
+// 🆕 مدیریت visibility change
+// ============================================================
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        if (localStorage.getItem('userRegistered') === 'true') {
+            autoSyncRanking('بازگشت به برنامه');
+            
+            if (typeof startRealtimeSubscriptions === 'function' && 
+                typeof isRealtimeStarted !== 'undefined' && 
+                !isRealtimeStarted) {
+                setTimeout(() => startRealtimeSubscriptions(), 1000);
+            }
+            
+            setTimeout(() => {
+                checkAndShowNewMessageNotification();
+            }, 2000);
+            
+            setTimeout(() => {
+                checkAndShowNewJozveNotification();
+            }, 3000);
+        }
+    }
+});
+
+// ============================================================
+// 🆕 بارگذاری اولیه
 // ============================================================
 window.addEventListener('load', async () => {
+    // ۱. بررسی حالت بروزرسانی
     const isMaintenance = await checkMaintenanceMode();
     if (isMaintenance) {
         window.location.replace('./maintenance.html');
         return;
     }
 
+    // ۲. بارگذاری اطلاعات و تنظیمات
     loadUserInfo();
     loadTheme();
 
+    // ۳. اگه کاربر ثبت‌نام کرده ولی UUID نداره، بسازش
     if (localStorage.getItem('userRegistered') === 'true' && !localStorage.getItem('studentUUID')) {
         const newUUID = generateUUID();
         localStorage.setItem('studentUUID', newUUID);
     }
 
+    // ۴. تنظیمات ظاهری
     if (localStorage.getItem('soundsEnabled') === 'false') {
         const el = document.getElementById('setting-sounds');
         if (el) el.checked = false;
@@ -664,18 +755,23 @@ window.addEventListener('load', async () => {
         document.body.classList.add('dark-mode');
     }
 
+    // ۵. فعال‌سازی swipe
     initNotificationSwipe();
 
+    // ۶. تصمیم‌گیری درباره صفحه اولیه
     const cameFromClips = sessionStorage.getItem('cameFromClips') === 'true';
     const isRegistered = localStorage.getItem('userRegistered') === 'true';
 
     if (cameFromClips || window.location.hash === '#home') {
         sessionStorage.removeItem('cameFromClips');
         history.replaceState({ screen: 'screen-home' }, '', '');
+        
         if (isRegistered) {
             updateStreak();
             goToScreen('screen-home', false);
+            
             setTimeout(() => {
+                // نوتیفیکیشن‌ها
                 if (allLessons.length === 0) {
                     loadLessonsListForNotification().then(() => {
                         checkAndShowNotification();
@@ -699,11 +795,18 @@ window.addEventListener('load', async () => {
                     setTimeout(() => startRealtimeSubscriptions(), 1000);
                 }
                 
+                // 🆕 مودال بروزرسانی
                 checkAndShowUpdateModal();
                 
+                // 🆕 نوتیفیکیشن پیام
                 setTimeout(() => {
                     checkAndShowNewMessageNotification();
                 }, 3000);
+                
+                // 🆕 نوتیفیکیشن جزوه
+                setTimeout(() => {
+                    checkAndShowNewJozveNotification();
+                }, 4000);
                 
                 setTimeout(() => showStreakMessage(), 800);
             }, 300);
@@ -715,35 +818,16 @@ window.addEventListener('load', async () => {
         setTimeout(typeMotivation, 500);
     }
 
+    // ۷. همگام‌سازی خودکار
     if (isRegistered) {
         setTimeout(() => autoSyncRanking('ورود به برنامه'), 1500);
     }
 
+    // ۸. بارگذاری مسابقات و کتابخانه
     setTimeout(() => {
         if (isRegistered) {
             loadHomeContests();
             loadHomeLibrary();
         }
     }, 3000);
-});
-
-// ============================================================
-// همگام‌سازی خودکار
-// ============================================================
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        if (localStorage.getItem('userRegistered') === 'true') {
-            autoSyncRanking('بازگشت به برنامه');
-            
-            if (typeof startRealtimeSubscriptions === 'function' && 
-                typeof isRealtimeStarted !== 'undefined' && 
-                !isRealtimeStarted) {
-                setTimeout(() => startRealtimeSubscriptions(), 1000);
-            }
-            
-            setTimeout(() => {
-                checkAndShowNewMessageNotification();
-            }, 2000);
-        }
-    }
 });

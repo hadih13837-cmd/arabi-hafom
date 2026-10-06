@@ -628,21 +628,47 @@ function checkNewLessons() {
     else if (badge) badge.style.display = 'none';
 }
 
+// ============================================================
+// 🆕 چیدمان نوتیفیکیشن‌ها (پشت سر هم، بدون تداخل)
+// ============================================================
 function repositionNotifications() {
     const lessonNotif = document.getElementById('new-lesson-notification');
-    const deadlineNotif = document.getElementById('deadline-notification');
     const videoNotif = document.getElementById('video-notification');
+    const messageNotif = document.getElementById('new-message-notification');
+    const jozveNotif = document.getElementById('new-jozve-notification');
+    const deadlineNotif = document.getElementById('deadline-notification');
+    
     let topPos = 15;
+    const gap = 85; // فاصله بین هر نوتیفیکیشن
+    
+    // ۱. تکلیف جدید
     if (lessonNotif && lessonNotif.classList.contains('show')) {
         lessonNotif.style.top = topPos + 'px';
-        topPos += 80;
+        topPos += gap;
     }
-    if (deadlineNotif && deadlineNotif.classList.contains('show')) {
-        deadlineNotif.style.top = topPos + 'px';
-        topPos += 80;
-    }
+    
+    // ۲. ویدیو جدید
     if (videoNotif && videoNotif.classList.contains('show')) {
         videoNotif.style.top = topPos + 'px';
+        topPos += gap;
+    }
+    
+    // ۳. پیام معلم
+    if (messageNotif && messageNotif.classList.contains('show')) {
+        messageNotif.style.top = topPos + 'px';
+        topPos += gap;
+    }
+    
+    // ۴. جزوه جدید
+    if (jozveNotif && jozveNotif.classList.contains('show')) {
+        jozveNotif.style.top = topPos + 'px';
+        topPos += gap;
+    }
+    
+    // ۵. مهلت تکلیف
+    if (deadlineNotif && deadlineNotif.classList.contains('show')) {
+        deadlineNotif.style.top = topPos + 'px';
+        topPos += gap;
     }
 }
 
