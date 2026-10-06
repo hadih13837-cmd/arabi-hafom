@@ -1,6 +1,6 @@
 /* ============================================================
    teacher.css — پنل معلم عربی هفتم
-   نسخه: ۳.۰.۰ — با صفحه خانه گرافیکی و پیام‌رسان
+   نسخه: ۴.۰.۰ — با پروفایل اختصاصی دانش‌آموز
    ============================================================ */
 
 @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
@@ -1205,7 +1205,6 @@ body {
     position: relative;
 }
 
-/* لیست چت‌ها */
 .messenger-list {
     display: flex;
     flex-direction: column;
@@ -1353,7 +1352,6 @@ body {
     box-shadow: 0 3px 8px rgba(244, 67, 54, 0.4);
 }
 
-/* پنجره چت */
 .messenger-chat {
     position: absolute;
     top: 0;
@@ -1590,7 +1588,6 @@ body {
     stroke-linejoin: round;
 }
 
-/* حالت خالی پیام‌رسان */
 .messenger-empty {
     flex: 1;
     display: flex;
@@ -1621,7 +1618,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════
-   بقیه استایل‌ها (تکالیف، تقویم، مسابقات، کتابخانه، گزارش‌ها، تنظیمات)
+   تکالیف، تقویم، مسابقات، کتابخانه، گزارش‌ها، تنظیمات
    ══════════════════════════════════════════════════════════ */
 .info-banner {
     display: flex;
@@ -2100,6 +2097,532 @@ body {
 .toast.warning { border-color: #ff9800; }
 
 /* ══════════════════════════════════════════════════════════
+   تیک پیام‌ها
+   ══════════════════════════════════════════════════════════ */
+.chat-tick {
+    display: inline-block;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-right: 5px;
+    font-weight: bold;
+    letter-spacing: -1px;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.messenger-chat-message.teacher .chat-tick {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.messenger-chat-message.teacher .chat-tick-seen {
+    color: #4fc3f7 !important;
+    font-weight: 900;
+    animation: tickPop 0.3s ease;
+}
+
+.messenger-chat-message.student .chat-tick {
+    color: #90a4ae;
+}
+
+.messenger-chat-message.student .chat-tick-seen {
+    color: #0288d1 !important;
+    font-weight: 900;
+}
+
+@keyframes tickPop {
+    0% { transform: scale(0.5); opacity: 0.5; }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   نوتیفیکیشن درون‌برنامه‌ای
+   ══════════════════════════════════════════════════════════ */
+.inapp-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-120px);
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    color: #fff;
+    padding: 14px 18px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 40px rgba(25, 118, 210, 0.4), 0 0 0 3px rgba(255, 255, 255, 0.15);
+    z-index: 99999;
+    max-width: 90%;
+    width: 360px;
+    cursor: pointer;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+.inapp-notification.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.inapp-notification:active {
+    transform: translateX(-50%) translateY(0) scale(0.97);
+}
+
+.inapp-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    animation: inappBellRing 1s ease-in-out infinite;
+}
+
+@keyframes inappBellRing {
+    0%, 100% { transform: rotate(0); }
+    10% { transform: rotate(15deg); }
+    20% { transform: rotate(-15deg); }
+    30% { transform: rotate(10deg); }
+    40% { transform: rotate(-10deg); }
+    50% { transform: rotate(0); }
+}
+
+.inapp-content {
+    flex: 1;
+    text-align: right;
+    min-width: 0;
+}
+
+.inapp-title {
+    font-size: 14px;
+    font-weight: 900;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inapp-text {
+    font-size: 12px;
+    opacity: 0.9;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ══════════════════════════════════════════════════════════
+   🆕 پروفایل اختصاصی دانش‌آموز
+   ══════════════════════════════════════════════════════════ */
+
+.profile-header-card {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    border-radius: 24px;
+    padding: 30px 20px 25px 20px;
+    text-align: center;
+    margin-bottom: 15px;
+    box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header-card::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.profile-avatar-big {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    margin: 0 auto 15px auto;
+    overflow: hidden;
+    border: 4px solid #fff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.profile-avatar-big img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-name-big {
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 5px;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-class-big {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 5px 18px;
+    border-radius: 20px;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+}
+
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.profile-stat-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px;
+    text-align: center;
+    box-shadow: 0 3px 12px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid #e3f2fd;
+}
+
+.profile-stat-icon {
+    font-size: 26px;
+    margin-bottom: 6px;
+}
+
+.profile-stat-value {
+    font-size: 20px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 3px;
+    line-height: 1.2;
+}
+
+.profile-stat-label {
+    font-size: 11px;
+    color: #78909c;
+    font-weight: bold;
+}
+
+.profile-chat-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: #fff;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 50px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(245, 124, 0, 0.4);
+    margin-bottom: 15px;
+    transition: transform 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 50px;
+}
+
+.profile-chat-btn:active {
+    transform: scale(0.97);
+}
+
+.profile-total-points-card {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+    border: 2px solid #ffc107;
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 15px;
+    box-shadow: 0 5px 20px rgba(255, 193, 7, 0.25);
+}
+
+.profile-total-points-label {
+    font-size: 14px;
+    font-weight: 900;
+    color: #e65100;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.profile-total-points-value {
+    font-size: 36px;
+    font-weight: 900;
+    color: #f57c00;
+    text-align: center;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 8px rgba(245, 124, 0, 0.2);
+    line-height: 1.2;
+}
+
+.profile-total-points-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.profile-total-points-actions .point-btn {
+    flex: 1;
+    padding: 10px 6px;
+    border-radius: 50px;
+    border: none;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    min-height: 42px;
+}
+
+.profile-total-points-actions .point-btn.minus {
+    background: linear-gradient(135deg, #ef5350, #c62828);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(198, 40, 40, 0.3);
+}
+
+.profile-total-points-actions .point-btn.plus {
+    background: linear-gradient(135deg, #66bb6a, #2e7d32);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(46, 125, 50, 0.3);
+}
+
+.profile-total-points-actions .point-btn:active {
+    transform: scale(0.94);
+}
+
+.profile-lessons-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 1.5px solid #e3f2fd;
+}
+
+.profile-lessons-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed #e3f2fd;
+}
+
+.profile-lessons-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.profile-lesson-item {
+    background: #f8fbff;
+    border-radius: 14px;
+    padding: 14px;
+    border: 1.5px solid #e3f2fd;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.profile-lesson-item.disabled {
+    opacity: 0.55;
+    background: #f5f5f5;
+    border-color: #e0e0e0;
+}
+
+.profile-lesson-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.profile-lesson-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1a237e;
+    flex: 1;
+    line-height: 1.4;
+    text-align: right;
+}
+
+.profile-lesson-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #90a4ae;
+    flex-wrap: wrap;
+}
+
+.profile-lesson-report {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    border: 1px dashed #e3f2fd;
+    flex-wrap: wrap;
+}
+
+.report-badge {
+    font-size: 11px;
+    font-weight: 900;
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+.report-badge.success {
+    background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+    color: #1b5e20;
+}
+
+.report-badge.pending {
+    background: linear-gradient(135deg, #ffecb3, #ffe082);
+    color: #e65100;
+}
+
+.report-info {
+    font-size: 11px;
+    font-weight: bold;
+    color: #546e7a;
+}
+
+.profile-lesson-status {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.switch-small {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.switch-small input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider-small {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cfd8dc;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.slider-small::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.switch-small input:checked + .slider-small {
+    background: linear-gradient(135deg, #66bb6a, #2e7d32);
+}
+
+.switch-small input:checked + .slider-small::before {
+    transform: translateX(20px);
+}
+
+.profile-lesson-points {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #fff;
+    border-radius: 50px;
+    padding: 8px 12px;
+    border: 1.5px solid #e3f2fd;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.05);
+}
+
+.profile-lesson-points .points-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #78909c;
+    flex-shrink: 0;
+}
+
+.profile-lesson-points .point-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.profile-lesson-points .point-btn.minus {
+    background: linear-gradient(135deg, #ef5350, #c62828);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(198, 40, 40, 0.3);
+}
+
+.profile-lesson-points .point-btn.plus {
+    background: linear-gradient(135deg, #66bb6a, #2e7d32);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+}
+
+.profile-lesson-points .point-btn:active {
+    transform: scale(0.88);
+}
+
+.profile-lesson-points .point-value {
+    min-width: 40px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 900;
+    color: #1976d2;
+    line-height: 1;
+}
+
+/* ══════════════════════════════════════════════════════════
    ریسپانسیو
    ══════════════════════════════════════════════════════════ */
 @media (min-width: 768px) {
@@ -2149,71 +2672,35 @@ body {
         height: 46px;
         font-size: 22px;
     }
-}
-/* ============================================================
-   🆕 تیک پیام‌ها (یک تیک / دو تیک)
-   ============================================================ */
-.chat-tick {
-    display: inline-block;
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.6);
-    margin-right: 5px;
-    font-weight: bold;
-    letter-spacing: -1px;
-    transition: color 0.2s ease;
-}
 
-.messenger-chat-message.teacher .chat-tick {
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.messenger-chat-message.teacher .chat-tick-seen {
-    color: #4fc3f7 !important;
-    font-weight: 900;
-}
-
-.messenger-chat-message.student .chat-tick {
-    color: #90a4ae;
-}
-
-.messenger-chat-message.student .chat-tick-seen {
-    color: #0288d1 !important;
-    font-weight: 900;
-}
-/* ============================================================
-   🆕 تیک پیام‌ها (پنل معلم)
-   ============================================================ */
-.chat-tick {
-    display: inline-block;
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.6);
-    margin-right: 5px;
-    font-weight: bold;
-    letter-spacing: -1px;
-    transition: color 0.3s ease, transform 0.2s ease;
-}
-
-.messenger-chat-message.teacher .chat-tick {
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.messenger-chat-message.teacher .chat-tick-seen {
-    color: #4fc3f7 !important;
-    font-weight: 900;
-    animation: tickPop 0.3s ease;
-}
-
-.messenger-chat-message.student .chat-tick {
-    color: #90a4ae;
-}
-
-.messenger-chat-message.student .chat-tick-seen {
-    color: #0288d1 !important;
-    font-weight: 900;
-}
-
-@keyframes tickPop {
-    0% { transform: scale(0.5); opacity: 0.5; }
-    50% { transform: scale(1.3); }
-    100% { transform: scale(1); opacity: 1; }
+    /* پروفایل */
+    .profile-avatar-big {
+        width: 85px;
+        height: 85px;
+        font-size: 42px;
+    }
+    .profile-name-big {
+        font-size: 19px;
+    }
+    .profile-total-points-value {
+        font-size: 30px;
+    }
+    .profile-stat-value {
+        font-size: 17px;
+    }
+    .profile-stat-icon {
+        font-size: 22px;
+    }
+    .profile-lesson-title {
+        font-size: 13px;
+    }
+    .profile-lesson-points .point-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+    }
+    .profile-lesson-points .point-value {
+        font-size: 16px;
+        min-width: 32px;
+    }
 }

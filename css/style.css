@@ -8294,3 +8294,629 @@ body.dark-mode .new-jozve-notification .notification-title {
 body.dark-mode .new-jozve-notification .notification-sub {
     color: #80cbc4;
 }
+/* ============================================================
+   🆕 نوتیفیکیشن پیام‌های معلم در صفحه خانه
+   ============================================================ */
+.new-message-notification {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%);
+    border: 2px solid #8e24aa;
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 25px rgba(142, 36, 170, 0.4);
+    z-index: 205;
+    animation: slideDown 0.5s ease;
+    touch-action: pan-y;
+    cursor: grab;
+    transition: top 0.3s ease;
+}
+
+.new-message-notification.show {
+    display: flex;
+}
+
+.new-message-notification.dragging {
+    transition: none;
+    cursor: grabbing;
+}
+
+.new-message-notification.swiping {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.new-message-notification .notification-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    animation: bellRing 1s ease-in-out infinite;
+}
+
+.new-message-notification .notification-text {
+    flex: 1;
+    text-align: right;
+}
+
+.new-message-notification .notification-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #4a148c;
+    margin-bottom: 3px;
+}
+
+.new-message-notification .notification-sub {
+    font-size: 12px;
+    color: #6a1b9a;
+    font-weight: bold;
+}
+
+.new-message-notification .notification-btn {
+    background: linear-gradient(135deg, #8e24aa, #6a1b9a);
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    flex-shrink: 0;
+}
+
+.new-message-notification .notification-btn:active {
+    transform: scale(0.95);
+}
+
+.new-message-notification .notification-close {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.1);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #4a148c;
+    font-weight: bold;
+}
+
+.new-message-notification .notification-swipe-hint {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: rgba(74, 20, 140, 0.3);
+    border-radius: 3px;
+}
+
+body.dark-mode .new-message-notification {
+    background: linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%);
+    border-color: #ce93d8;
+}
+
+body.dark-mode .new-message-notification .notification-title {
+    color: #e1bee7;
+}
+
+body.dark-mode .new-message-notification .notification-sub {
+    color: #ce93d8;
+}
+
+/* ============================================================
+   🆕 نوتیفیکیشن جزوه جدید
+   ============================================================ */
+.new-jozve-notification {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #b2dfdb 0%, #80cbc4 100%);
+    border: 2px solid #00897b;
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 25px rgba(0, 137, 123, 0.4);
+    z-index: 206;
+    animation: slideDown 0.5s ease;
+    touch-action: pan-y;
+    cursor: grab;
+    transition: top 0.3s ease;
+}
+
+.new-jozve-notification.show {
+    display: flex;
+}
+
+.new-jozve-notification.dragging {
+    transition: none;
+    cursor: grabbing;
+}
+
+.new-jozve-notification.swiping {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.new-jozve-notification .notification-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    animation: bellRing 1s ease-in-out infinite;
+}
+
+.new-jozve-notification .notification-text {
+    flex: 1;
+    text-align: right;
+}
+
+.new-jozve-notification .notification-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #004d40;
+    margin-bottom: 3px;
+}
+
+.new-jozve-notification .notification-sub {
+    font-size: 12px;
+    color: #00695c;
+    font-weight: bold;
+}
+
+.new-jozve-notification .notification-btn {
+    background: linear-gradient(135deg, #00897b, #00695c);
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    flex-shrink: 0;
+}
+
+.new-jozve-notification .notification-btn:active {
+    transform: scale(0.95);
+}
+
+.new-jozve-notification .notification-close {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.1);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #004d40;
+    font-weight: bold;
+}
+
+.new-jozve-notification .notification-swipe-hint {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: rgba(0, 77, 64, 0.3);
+    border-radius: 3px;
+}
+
+body.dark-mode .new-jozve-notification {
+    background: linear-gradient(135deg, #004d40 0%, #00695c 100%);
+    border-color: #80cbc4;
+}
+
+body.dark-mode .new-jozve-notification .notification-title {
+    color: #b2dfdb;
+}
+
+body.dark-mode .new-jozve-notification .notification-sub {
+    color: #80cbc4;
+}
+
+/* ============================================================
+   🆕 مودال بروزرسانی
+   ============================================================ */
+.update-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: pcFadeIn 0.3s ease;
+}
+
+.update-modal-overlay.active {
+    display: flex;
+}
+
+.update-modal-card {
+    background: linear-gradient(180deg, #fff 0%, #f0f7ff 100%);
+    border-radius: 28px;
+    padding: 30px 24px 24px 24px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    animation: pcSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+}
+
+.update-header {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.update-header-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px auto;
+    font-size: 48px;
+    box-shadow: 0 10px 30px rgba(25, 118, 210, 0.4);
+    animation: updateIconBounce 2s ease-in-out infinite;
+    border: 4px solid #fff;
+}
+
+@keyframes updateIconBounce {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-8px) rotate(5deg); }
+}
+
+.update-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: #1976d2;
+    margin-bottom: 8px;
+}
+
+.update-subtitle {
+    font-size: 14px;
+    color: #78909c;
+    font-weight: bold;
+    line-height: 1.6;
+}
+
+.update-features-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 12px;
+    padding-right: 6px;
+    border-right: 4px solid #1976d2;
+}
+
+.update-feature-item {
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 2px solid #e3f2fd;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.06);
+    transition: all 0.2s ease;
+}
+
+.update-feature-item:active {
+    transform: scale(0.98);
+}
+
+.update-feature-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    box-shadow: 0 4px 10px rgba(25, 118, 210, 0.15);
+}
+
+.update-feature-icon.blue { background: linear-gradient(135deg, #e3f2fd, #90caf9); }
+.update-feature-icon.green { background: linear-gradient(135deg, #e8f5e9, #a5d6a7); }
+.update-feature-icon.purple { background: linear-gradient(135deg, #f3e5f5, #ce93d8); }
+.update-feature-icon.orange { background: linear-gradient(135deg, #fff3e0, #ffcc80); }
+.update-feature-icon.pink { background: linear-gradient(135deg, #fce4ec, #f48fb1); }
+
+.update-feature-info {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+}
+
+.update-feature-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1a237e;
+    margin-bottom: 4px;
+}
+
+.update-feature-desc {
+    font-size: 12px;
+    color: #546e7a;
+    font-weight: bold;
+    line-height: 1.6;
+}
+
+.update-feature-badge {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #fff;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-weight: 900;
+    flex-shrink: 0;
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+.update-modal-btn {
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+    color: #fff;
+    border: none;
+    padding: 16px 30px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 18px;
+    font-family: 'Vazirmatn', sans-serif;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+    transition: transform 0.15s ease;
+}
+
+.update-modal-btn:active {
+    transform: scale(0.97);
+}
+
+body.dark-mode .update-modal-card {
+    background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%);
+}
+
+body.dark-mode .update-title { color: #90caf9; }
+body.dark-mode .update-subtitle { color: #90a4ae; }
+body.dark-mode .update-features-title {
+    color: #90caf9;
+    border-color: #90caf9;
+}
+body.dark-mode .update-feature-item {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+body.dark-mode .update-feature-title { color: #90caf9; }
+body.dark-mode .update-feature-desc { color: #90a4ae; }
+
+/* ============================================================
+   🆕 راهنمای رتبه‌بندی
+   ============================================================ */
+.rankings-guide-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+}
+
+.rankings-guide-overlay.active {
+    display: flex;
+}
+
+.rankings-guide-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 0;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    animation: pcSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+}
+
+.rankings-guide-header {
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+    padding: 24px 20px 20px 20px;
+    text-align: center;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.rankings-guide-header::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 130px;
+    height: 130px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.rankings-guide-step {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 900;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.rankings-guide-icon {
+    font-size: 55px;
+    margin-bottom: 10px;
+    display: block;
+    position: relative;
+    z-index: 1;
+    animation: guideIconFloat 3s ease-in-out infinite;
+}
+
+@keyframes guideIconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.rankings-guide-title {
+    font-size: 20px;
+    font-weight: 900;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+}
+
+.rankings-guide-subtitle {
+    font-size: 13px;
+    opacity: 0.9;
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+}
+
+.rankings-guide-body {
+    padding: 22px 20px;
+    text-align: center;
+}
+
+.rankings-guide-text {
+    font-size: 14px;
+    color: #546e7a;
+    font-weight: bold;
+    line-height: 2;
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.rankings-guide-text strong {
+    color: #1976d2;
+    font-weight: 900;
+}
+
+.rankings-guide-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.rankings-guide-btn-skip {
+    flex: 1;
+    background: #f5f5f5;
+    color: #666;
+    border: 2px solid #e0e0e0;
+    padding: 12px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.rankings-guide-btn-skip:active {
+    transform: scale(0.96);
+}
+
+.rankings-guide-btn-next {
+    flex: 2;
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.4);
+    transition: transform 0.15s ease;
+}
+
+.rankings-guide-btn-next:active {
+    transform: scale(0.96);
+}
+
+.rankings-guide-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 18px;
+}
+
+.rankings-guide-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.rankings-guide-dot.active {
+    background: #1976d2;
+    width: 24px;
+    border-radius: 4px;
+}
+
+body.dark-mode .rankings-guide-card { background: #1a2332; }
+body.dark-mode .rankings-guide-text { color: #90a4ae; }
+body.dark-mode .rankings-guide-text strong { color: #90caf9; }
+body.dark-mode .rankings-guide-btn-skip {
+    background: #0f1419;
+    color: #90a4ae;
+    border-color: #2a3444;
+}
