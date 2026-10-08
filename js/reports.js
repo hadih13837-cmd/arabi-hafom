@@ -1,6 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۷.۰.۰ — با صفحه پیش‌نمایش PDF + همگام‌سازی خودکار
+// نسخه: ۸.۰.۰ — با ذخیره در Supabase برای پنل معلم
 // ============================================================
 
 // ============================================================
@@ -58,12 +58,56 @@ function loadReports() {
 }
 
 // ============================================================
-// ذخیره کارنامه
+// 🆕 ذخیره کارنامه (localStorage + Supabase)
 // ============================================================
-function saveReport(report) {
+async function saveReport(report) {
+    // ذخیره در localStorage (مثل قبل)
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     reports.push(report);
     localStorage.setItem('reports', JSON.stringify(reports));
+    
+    // 🆕 ذخیره در Supabase برای نمایش در پنل معلم
+    try {
+        const client = getSupabase();
+        if (!client) {
+            console.warn('⚠️ Supabase Client موجود نیست');
+            return;
+        }
+        
+        const studentId = localStorage.getItem('studentUUID');
+        if (!studentId) {
+            console.warn('⚠️ studentUUID موجود نیست');
+            return;
+        }
+        
+        const payload = {
+            student_id: studentId,
+            lesson_id: report.lessonId,
+            lesson_title: report.lessonTitle,
+            percent: report.percent || 0,
+            score: report.score || 0,
+            total_points: report.totalPoints || 0,
+            correct: report.correct || 0,
+            wrong: report.wrong || 0,
+            time_taken: report.timeTaken || 0,
+            created_at: new Date().toISOString()
+        };
+        
+        console.log('📤 ذخیره کارنامه در Supabase:', payload);
+        
+        const { data, error } = await client
+            .from('reports')
+            .insert(payload)
+            .select();
+        
+        if (error) {
+            console.error('❌ خطا در ذخیره کارنامه در Supabase:', error.message);
+        } else {
+            console.log('✅ کارنامه در Supabase ذخیره شد:', data);
+        }
+    } catch (e) {
+        console.error('❌ خطا:', e);
+    }
 }
 
 // ============================================================
@@ -427,6 +471,7 @@ function showReportCard() {
         surveyAnswer: surveyAnswerText
     };
     
+    // 🆕 ذخیره در localStorage + Supabase
     saveReport(report);
     
     const container = document.getElementById('report-view-content');
@@ -449,7 +494,6 @@ function showReportCard() {
     
     setTimeout(() => checkForNewMedals(), 1500);
     
-    // 🆕 همگام‌سازی خودکار بعد از ثبت کارنامه
     if (typeof autoSyncRanking === 'function') {
         autoSyncRanking('ثبت کارنامه جدید');
     } else if (typeof saveRankingToSupabase === 'function') {

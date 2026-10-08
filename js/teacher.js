@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۱۵.۱.۰ — با پروفایل اختصاصی دانش‌آموز + vibrate
+// نسخه: ۱۶.۰.۰ — با کارنامه‌های واقعی + سوییچ واضح
 // ============================================================
 
 // ============================================================
@@ -18,17 +18,16 @@ const EVENTS_CACHE_KEY = 'teacherEventsCache';
 const CONTESTS_CACHE_KEY = 'teacherContestsCache';
 const LIBRARY_CACHE_KEY = 'teacherLibraryCache';
 const LESSON_STATUS_CACHE_KEY = 'teacherLessonStatusCache';
+const REPORTS_CACHE_KEY = 'teacherReportsCache';
 
 const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
 
 // ============================================================
-// 🆕 لرزش دستگاه (برای موبایل)
+// لرزش دستگاه
 // ============================================================
 function vibrate(pattern = 30) {
     if (navigator.vibrate) {
-        try {
-            navigator.vibrate(pattern);
-        } catch (e) {}
+        try { navigator.vibrate(pattern); } catch (e) {}
     }
 }
 
@@ -142,7 +141,7 @@ function renderAvatarHTML(student) {
 }
 
 // ============================================================
-// توابع مدیریت lesson_status
+// توابع lesson_status
 // ============================================================
 async function getLessonStatusForStudent(studentId) {
     try {
@@ -157,7 +156,6 @@ async function getLessonStatusForStudent(studentId) {
         (data || []).forEach(item => {
             statusMap[item.lesson_id] = {
                 is_enabled: item.is_enabled !== false,
-                custom_points: item.custom_points || 0,
                 id: item.id
             };
         });
@@ -191,7 +189,7 @@ async function updateLessonStatus(studentId, lessonId, updates) {
                     student_id: studentId,
                     lesson_id: lessonId,
                     is_enabled: updates.is_enabled !== undefined ? updates.is_enabled : true,
-                    custom_points: updates.custom_points || 0
+                    custom_points: 0
                 });
             if (error) throw error;
         }
@@ -218,6 +216,7 @@ async function getStudentReports(studentId) {
             console.error('خطا در گرفتن کارنامه‌ها:', error);
             return [];
         }
+        console.log('✅ کارنامه‌ها دریافت شد:', data);
         return data || [];
     } catch (error) {
         console.error('خطا:', error);
@@ -226,13 +225,12 @@ async function getStudentReports(studentId) {
 }
 
 // ============================================================
-// محاسبه امتیاز کل با احتساب custom_total_points
+// محاسبه امتیاز کل
 // ============================================================
 function calculateTotalPoints(student) {
     const basePoints = student.total_points || 0;
-    const customPoints = student.custom_total_points || 0;
     const customAdded = student.custom_points_added || 0;
-    return basePoints + customPoints + customAdded;
+    return basePoints + customAdded;
 }
 
 // ============================================================
@@ -857,7 +855,7 @@ function filterStudents() {
 }
 
 // ============================================================
-// باز کردن پروفایل دانش‌آموز (صفحه اختصاصی)
+// باز کردن پروفایل دانش‌آموز
 // ============================================================
 async function openStudentProfile(studentId) {
     const student = allStudents.find(s => s.student_id === studentId);
@@ -876,8 +874,14 @@ async function openStudentProfile(studentId) {
         const data = await response.json();
         currentProfileLessons = data.lessons || [];
 
+        console.log('📋 شروع بارگذاری اطلاعات دانش‌آموز:', student.name);
+        
+        // بارگذاری وضعیت و کارنامه‌ها
         currentProfileStatus = await getLessonStatusForStudent(studentId);
         currentProfileReports = await getStudentReports(studentId);
+        
+        console.log('✅ وضعیت تکالیف:', currentProfileStatus);
+        console.log('✅ کارنامه‌ها:', currentProfileReports);
 
         renderStudentProfile();
     } catch (error) {
@@ -897,6 +901,7 @@ function renderStudentProfile() {
     const totalPoints = calculateTotalPoints(student);
     const classPersian = getClassPersianName(student.class_name);
 
+    // نقشه‌ی کارنامه‌ها
     const reportMap = {};
     currentProfileReports.forEach(r => {
         if (!reportMap[r.lesson_id]) {
@@ -906,51 +911,67 @@ function renderStudentProfile() {
 
     let lessonsHTML = '';
     currentProfileLessons.forEach(lesson => {
-        const status = currentProfileStatus[lesson.id] || { is_enabled: true, custom_points: 0 };
+        const status = currentProfileStatus[lesson.id] || { is_enabled: true };
         const isEnabled = status.is_enabled !== false;
-        const customPoints = status.custom_points || 0;
         const report = reportMap[lesson.id];
+        const isDone = !!report;
 
         let reportHTML = '';
-        if (report) {
+        if (isDone) {
             reportHTML = `
-                <div class="profile-lesson-report">
-                    <span class="report-badge success">✅ انجام شده</span>
-                    <span class="report-info">درصد: ${toPersianNum(report.percent || 0)}%</span>
-                    <span class="report-info">امتیاز اصلی: ${toPersianNum(report.score || 0)}</span>
+                <div class="profile-lesson-report done">
+                    <div class="report-row">
+                        <span class="report-label">✅ انجام شده</span>
+                        <span class="report-value-percent">${toPersianNum(report.percent || 0)}%</span>
+                    </div>
+                    <div class="report-row">
+                        <span class="report-label">امتیاز کسب‌شده:</span>
+                        <span class="report-value-points">${toPersianNum(report.score || 0)} از ${toPersianNum(report.total_points || 0)}</span>
+                    </div>
+                    <div class="report-row">
+                        <span class="report-label">پاسخ صحیح:</span>
+                        <span class="report-value">${toPersianNum(report.correct || 0)}</span>
+                    </div>
+                    <div class="report-row">
+                        <span class="report-label">پاسخ غلط:</span>
+                        <span class="report-value">${toPersianNum(report.wrong || 0)}</span>
+                    </div>
                 </div>
             `;
         } else {
             reportHTML = `
-                <div class="profile-lesson-report">
+                <div class="profile-lesson-report pending">
                     <span class="report-badge pending">⏳ انجام نشده</span>
                 </div>
             `;
         }
 
+        // سوییچ فقط برای تکالیف انجام‌نشده
+        const toggleHTML = isDone ? '' : `
+            <div class="profile-lesson-toggle">
+                <span class="toggle-label ${isEnabled ? 'enabled' : 'disabled'}">
+                    ${isEnabled ? '🟢 فعال' : '🔴 غیرفعال'}
+                </span>
+                <label class="switch-small">
+                    <input type="checkbox" ${isEnabled ? 'checked' : ''}
+                           onchange="toggleLessonEnabled('${lesson.id}', this.checked)">
+                    <span class="slider-small"></span>
+                </label>
+            </div>
+        `;
+
         lessonsHTML += `
-            <div class="profile-lesson-item ${!isEnabled ? 'disabled' : ''}">
+            <div class="profile-lesson-item ${!isEnabled && !isDone ? 'disabled' : ''} ${isDone ? 'done' : ''}">
                 <div class="profile-lesson-header">
                     <div class="profile-lesson-title">${lesson.title}</div>
-                    <div class="profile-lesson-status">
-                        <label class="switch-small">
-                            <input type="checkbox" ${isEnabled ? 'checked' : ''}
-                                   onchange="toggleLessonEnabled('${lesson.id}', this.checked)">
-                            <span class="slider-small"></span>
-                        </label>
-                    </div>
+                    ${isDone ? '<span class="lesson-done-badge">✓</span>' : ''}
                 </div>
                 <div class="profile-lesson-meta">
                     <span>📅 مهلت: ${lesson.dueDate || 'نامشخص'}</span>
                     <span>📝 ${toPersianNum(lesson.activityCount || 0)} سوال</span>
                 </div>
                 ${reportHTML}
-                <div class="profile-lesson-points">
-                    <span class="points-label">امتیاز دستی:</span>
-                    <button class="point-btn minus" onclick="changeCustomPoints('${lesson.id}', -1)">−</button>
-                    <span class="point-value">${toPersianNum(customPoints)}</span>
-                    <button class="point-btn plus" onclick="changeCustomPoints('${lesson.id}', 1)">+</button>
-                </div>
+                ${toggleHTML}
             </div>
         `;
     });
@@ -1014,47 +1035,30 @@ function renderStudentProfile() {
 }
 
 // ============================================================
-// تغییر امتیاز دستی یک تکلیف
-// ============================================================
-async function changeCustomPoints(lessonId, delta) {
-    if (!currentProfileStudent) return;
-    vibrate(15);
-
-    const status = currentProfileStatus[lessonId] || { is_enabled: true, custom_points: 0 };
-    const newPoints = Math.max(0, (status.custom_points || 0) + delta);
-
-    const result = await updateLessonStatus(currentProfileStudent.student_id, lessonId, {
-        custom_points: newPoints
-    });
-
-    if (result.success) {
-        currentProfileStatus[lessonId] = { ...status, custom_points: newPoints };
-        await recalculateAndUpdateTotalPoints();
-        renderStudentProfile();
-        showToast('امتیاز به‌روزرسانی شد', 'success');
-    } else {
-        showToast('خطا در به‌روزرسانی', 'error');
-    }
-}
-
-// ============================================================
 // فعال/غیرفعال کردن تکلیف
 // ============================================================
 async function toggleLessonEnabled(lessonId, isEnabled) {
     if (!currentProfileStudent) return;
     vibrate(15);
-
-    const status = currentProfileStatus[lessonId] || { is_enabled: true, custom_points: 0 };
-
+    
+    const status = currentProfileStatus[lessonId] || { is_enabled: true };
+    
+    console.log('🔄 تغییر وضعیت:', {
+        student: currentProfileStudent.student_id,
+        lesson: lessonId,
+        newState: isEnabled
+    });
+    
     const result = await updateLessonStatus(currentProfileStudent.student_id, lessonId, {
         is_enabled: isEnabled
     });
-
+    
     if (result.success) {
         currentProfileStatus[lessonId] = { ...status, is_enabled: isEnabled };
         renderStudentProfile();
-        showToast(isEnabled ? 'تکلیف فعال شد' : 'تکلیف غیرفعال شد', 'success');
+        showToast(isEnabled ? '✅ تکلیف فعال شد' : '⛔ تکلیف غیرفعال شد', 'success');
     } else {
+        console.error('❌ خطا:', result.error);
         showToast('خطا در تغییر وضعیت', 'error');
     }
 }
@@ -1068,9 +1072,20 @@ async function changeTotalPoints(delta) {
 
     try {
         const client = getSupabase();
-        if (!client) return;
+        if (!client) {
+            showToast('اتصال به سرور برقرار نیست', 'error');
+            return;
+        }
 
-        const newCustomAdded = (currentProfileStudent.custom_points_added || 0) + delta;
+        const currentAdded = parseInt(currentProfileStudent.custom_points_added) || 0;
+        const newCustomAdded = currentAdded + delta;
+
+        console.log('🔄 تغییر امتیاز کل:', {
+            student: currentProfileStudent.name,
+            oldAdded: currentAdded,
+            newAdded: newCustomAdded,
+            delta: delta
+        });
 
         const { error } = await client
             .from('rankings')
@@ -1079,43 +1094,19 @@ async function changeTotalPoints(delta) {
 
         if (error) throw error;
 
+        // به‌روزرسانی در حافظه
         currentProfileStudent.custom_points_added = newCustomAdded;
+        
+        // پاک کردن کش‌ها
+        localStorage.removeItem(STUDENTS_CACHE_KEY);
+        
+        // به‌روزرسانی صفحه
         renderStudentProfile();
-        showToast('امتیاز کل به‌روزرسانی شد', 'success');
-
-        localStorage.removeItem(STUDENTS_CACHE_KEY);
+        showToast(`امتیاز کل ${delta > 0 ? '+' + delta : delta} شد`, 'success');
+        
     } catch (error) {
-        console.error('خطا:', error);
+        console.error('❌ خطا در تغییر امتیاز:', error);
         showToast('خطا در به‌روزرسانی امتیاز کل', 'error');
-    }
-}
-
-// ============================================================
-// محاسبه مجدد امتیاز کل بر اساس custom_points تکالیف
-// ============================================================
-async function recalculateAndUpdateTotalPoints() {
-    if (!currentProfileStudent) return;
-
-    try {
-        const client = getSupabase();
-        if (!client) return;
-
-        let totalCustomPoints = 0;
-        Object.values(currentProfileStatus).forEach(status => {
-            totalCustomPoints += status.custom_points || 0;
-        });
-
-        const { error } = await client
-            .from('rankings')
-            .update({ custom_total_points: totalCustomPoints })
-            .eq('student_id', currentProfileStudent.student_id);
-
-        if (error) throw error;
-
-        currentProfileStudent.custom_total_points = totalCustomPoints;
-        localStorage.removeItem(STUDENTS_CACHE_KEY);
-    } catch (error) {
-        console.error('خطا در محاسبه مجدد:', error);
     }
 }
 
@@ -1538,6 +1529,6 @@ function clearCache() {
     }
 }
 
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۵.۱.۰');
-console.log('✅ پروفایل اختصاصی دانش‌آموز');
-console.log('✅ تابع vibrate اضافه شد');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۶.۰.۰');
+console.log('✅ کارنامه‌های واقعی از Supabase');
+console.log('✅ سوییچ فعال/غیرفعال واضح');
