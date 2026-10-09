@@ -1,6 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۸.۰.۰ — با ذخیره در Supabase برای پنل معلم
+// نسخه: ۱۰.۰.۰ — با UUID جدید + به‌روزرسانی خودکار rankings
 // ============================================================
 
 // ============================================================
@@ -61,12 +61,12 @@ function loadReports() {
 // 🆕 ذخیره کارنامه (localStorage + Supabase)
 // ============================================================
 async function saveReport(report) {
-    // ذخیره در localStorage (مثل قبل)
+    // ذخیره در localStorage
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     reports.push(report);
     localStorage.setItem('reports', JSON.stringify(reports));
     
-    // 🆕 ذخیره در Supabase برای نمایش در پنل معلم
+    // 🆕 ذخیره در Supabase برای پنل معلم
     try {
         const client = getSupabase();
         if (!client) {
@@ -74,14 +74,15 @@ async function saveReport(report) {
             return;
         }
         
-        const studentId = localStorage.getItem('studentUUID');
-        if (!studentId) {
+        // 🆕 استفاده از userUUID (جدید) یا studentUUID (قدیمی)
+        const studentUUID = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
+        if (!studentUUID) {
             console.warn('⚠️ studentUUID موجود نیست');
             return;
         }
         
         const payload = {
-            student_id: studentId,
+            student_id: studentUUID,
             lesson_id: report.lessonId,
             lesson_title: report.lessonTitle,
             percent: report.percent || 0,
@@ -101,12 +102,96 @@ async function saveReport(report) {
             .select();
         
         if (error) {
-            console.error('❌ خطا در ذخیره کارنامه در Supabase:', error.message);
+            console.error('❌ خطا در ذخیره کارنامه:', error.message);
         } else {
             console.log('✅ کارنامه در Supabase ذخیره شد:', data);
+            
+            // 🆕 به‌روزرسانی جدول rankings
+            await updateRankingsAfterReport(studentUUID);
         }
     } catch (e) {
         console.error('❌ خطا:', e);
+    }
+}
+
+// ============================================================
+// 🆕 به‌روزرسانی rankings بعد از ذخیره کارنامه
+// ============================================================
+async function updateRankingsAfterReport(studentUUID) {
+    try {
+        const client = getSupabase();
+        if (!client) return;
+        
+        // گرفتن همه کارنامه‌های دانش‌آموز
+        const { data: reports, error } = await client
+            .from('reports')
+            .select('*')
+            .eq('student_id', studentUUID);
+        
+        if (error) {
+            console.warn('خطا در گرفتن کارنامه‌ها:', error);
+            return;
+        }
+        
+        const completedLessons = reports ? reports.length : 0;
+        const totalPoints = reports ? reports.reduce((sum, r) => sum + (r.score || 0), 0) : 0;
+        const avgPercent = reports && reports.length > 0
+            ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length)
+            : 0;
+        
+        // اطلاعات کاربر
+        const userName = localStorage.getItem('userName') || '';
+        const userClass = localStorage.getItem('userClass') || 'هفتم یک';
+        const avatarImg = localStorage.getItem('userAvatar');
+        const avatarEmoji = localStorage.getItem('userAvatarEmoji');
+        
+        let avatarUrl = 'default';
+        if (avatarImg) avatarUrl = avatarImg;
+        else if (avatarEmoji) avatarUrl = 'emoji:' + avatarEmoji;
+        
+        // چک کن رکورد rankings وجود داره یا نه
+        const { data: existing } = await client
+            .from('rankings')
+            .select('id')
+            .eq('student_id', studentUUID)
+            .maybeSingle();
+        
+        const rankingsPayload = {
+            student_id: studentUUID,
+            name: userName,
+            class_name: classNameToSlug(userClass),
+            total_points: totalPoints,
+            completed_lessons: completedLessons,
+            avg_percent: avgPercent,
+            avatar_url: String(avatarUrl),
+            last_update: new Date().toISOString()
+        };
+        
+        if (existing) {
+            await client
+                .from('rankings')
+                .update(rankingsPayload)
+                .eq('student_id', studentUUID);
+        } else {
+            const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
+            await client
+                .from('rankings')
+                .insert({
+                    ...rankingsPayload,
+                    streak_days: streakData.count || 0,
+                    custom_points_added: 0,
+                    custom_total_points: 0
+                });
+        }
+        
+        console.log('✅ رتبه‌بندی به‌روزرسانی شد:', {
+            totalPoints,
+            completedLessons,
+            avgPercent
+        });
+        
+    } catch (e) {
+        console.warn('خطا در آپدیت rankings:', e);
     }
 }
 
@@ -318,7 +403,7 @@ async function downloadPdfFromPreview() {
 }
 
 // ============================================================
-// دانلود PDF — با html2canvas + jsPDF مستقیم
+// دانلود PDF — با html2canvas + jsPDF
 // ============================================================
 async function downloadReportFast(report, filename) {
     let container = null;
@@ -427,15 +512,12 @@ async function downloadReportById(index) {
     openPdfPreview(report, filename, 'list', index);
 }
 
-// ============================================================
-// دانلود از توی صفحه‌ی مشاهده
-// ============================================================
 async function downloadReportByData(index) {
     await downloadReportById(index);
 }
 
 // ============================================================
-// نمایش کارنامه بعد از تکلیف + ثبت امتیاز
+// نمایش کارنامه بعد از تکلیف
 // ============================================================
 function showReportCard() {
     if (isPracticeMode) {
@@ -471,7 +553,7 @@ function showReportCard() {
         surveyAnswer: surveyAnswerText
     };
     
-    // 🆕 ذخیره در localStorage + Supabase
+    // 🆕 ذخیره در localStorage + Supabase + آپدیت rankings
     saveReport(report);
     
     const container = document.getElementById('report-view-content');
@@ -496,8 +578,6 @@ function showReportCard() {
     
     if (typeof autoSyncRanking === 'function') {
         autoSyncRanking('ثبت کارنامه جدید');
-    } else if (typeof saveRankingToSupabase === 'function') {
-        setTimeout(() => saveRankingToSupabase(), 1000);
     }
 }
 
@@ -524,3 +604,5 @@ async function downloadCurrentReport() {
     const filename = `کارنامه_${taskTitle}_${dateStr.replace(/\//g, '-')}.pdf`;
     openPdfPreview(report, filename, 'after-lesson', -1);
 }
+
+console.log('📄 reports.js بارگذاری شد — نسخه ۱۰.۰.۰');

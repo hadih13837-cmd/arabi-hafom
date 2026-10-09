@@ -1,40 +1,62 @@
 // ============================================================
-// settings.js — تنظیمات، پروفایل، موسیقی، صداها، UUID، بروزرسانی
-// نسخه: ۸.۰.۰ — حفظ کامل داده‌ها در بروزرسانی
+// settings.js — تنظیمات، پروفایل، ثبت‌نام، ویرایش آیدی
+// نسخه: ۹.۰.۰ — با سیستم ورود با آیدی
 // ============================================================
 
 // ============================================================
-// اطلاعات کاربر (Welcome) — با UUID
+// اطلاعات کاربر (Welcome — ثبت‌نام جدید)
 // ============================================================
-function saveUserInfo() {
+async function saveUserInfo() {
     const name = document.getElementById('welcome-name').value.trim();
     const cls = document.getElementById('welcome-class').value;
     const school = document.getElementById('welcome-school').value.trim();
-    if (!name) { showModal('خطا', 'لطفاً نام خود را وارد کنید.', '⚠️'); return; }
-    if (!cls) { showModal('خطا', 'لطفاً کلاس خود را انتخاب کنید.', '⚠️'); return; }
     
-    localStorage.setItem('userName', name);
-    localStorage.setItem('userClass', cls);
-    localStorage.setItem('userSchool', school || 'تعیین نشده');
-    localStorage.setItem('userYear', '۱۴۰۵-۱۴۰۶');
-    localStorage.setItem('userRegistered', 'true');
+    if (!name) { 
+        showModal('خطا', 'لطفاً نام خود را وارد کنید.', '⚠️'); 
+        return; 
+    }
+    if (!cls) { 
+        showModal('خطا', 'لطفاً کلاس خود را انتخاب کنید.', '⚠️'); 
+        return; 
+    }
     
-    getOrCreateStudentUUID();
+    // نمایش لودینگ
+    const btn = document.querySelector('.welcome-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'در حال ثبت‌نام...';
+    }
     
-    updateStreak();
-    updateHomeUI();
-    document.getElementById('welcome-user-name').textContent = name;
-    setTimeout(() => {
-        document.getElementById('welcome-graphic-modal').classList.add('active');
-    }, 400);
-    
-    if (typeof autoSyncRanking === 'function') {
-        autoSyncRanking('ثبت‌نام جدید');
-    } else if (typeof saveRankingToSupabase === 'function') {
-        setTimeout(() => saveRankingToSupabase(), 1500);
+    try {
+        // ثبت‌نام در Supabase
+        const result = await registerNewStudent(name, cls, school || 'تعیین نشده');
+        
+        if (!result.success) {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'ثبت‌نام و ورود 🚀';
+            }
+            showModal('خطا در ثبت‌نام', result.error || 'مشکلی پیش اومد.', '❌');
+            return;
+        }
+        
+        // ✅ ثبت‌نام موفق — ذخیره اطلاعات
+        const studentData = result.data;
+        await handleSuccessfulLogin(studentData);
+        
+    } catch (error) {
+        console.error('خطا:', error);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'ثبت‌نام و ورود 🚀';
+        }
+        showModal('خطا', 'مشکلی پیش اومد. دوباره تلاش کن.', '❌');
     }
 }
 
+// ============================================================
+// به‌روزرسانی UI صفحه خانه
+// ============================================================
 function updateHomeUI() {
     const name = localStorage.getItem('userName');
     if (name) {
@@ -54,36 +76,104 @@ function loadUserInfo() {
 }
 
 // ============================================================
-// پروفایل
+// پروفایل (بارگذاری اطلاعات)
 // ============================================================
 function loadProfileData() {
     const name = localStorage.getItem('userName') || 'دانش‌آموز';
     const cls = localStorage.getItem('userClass') || 'هفتم';
     const school = localStorage.getItem('userSchool') || 'تعیین نشده';
     const year = localStorage.getItem('userYear') || '۱۴۰۵-۱۴۰۶';
+    const userId = localStorage.getItem('userId') || '-';
     
-    document.getElementById('profile-name-display').textContent = name;
-    document.getElementById('profile-grade-display').textContent = `پایه ${cls}`;
-    document.getElementById('profile-fullname').textContent = name;
-    document.getElementById('profile-class').textContent = cls;
-    document.getElementById('profile-school').textContent = school;
-    document.getElementById('profile-year').textContent = year;
+    // اطلاعات پایه
+    const nameDisplay = document.getElementById('profile-name-display');
+    const gradeDisplay = document.getElementById('profile-grade-display');
+    const fullnameEl = document.getElementById('profile-fullname');
+    const classEl = document.getElementById('profile-class');
+    const schoolEl = document.getElementById('profile-school');
+    const yearEl = document.getElementById('profile-year');
+    const userIdEl = document.getElementById('profile-userid-display');
     
+    if (nameDisplay) nameDisplay.textContent = name;
+    if (gradeDisplay) gradeDisplay.textContent = `پایه ${cls}`;
+    if (fullnameEl) fullnameEl.textContent = name;
+    if (classEl) classEl.textContent = cls;
+    if (schoolEl) schoolEl.textContent = school;
+    if (yearEl) yearEl.textContent = year;
+    if (userIdEl) userIdEl.textContent = userId;
+    
+    // آواتار
     if (typeof applyAvatarToElements === 'function') {
         applyAvatarToElements();
     }
     
+    // آمار
+    loadProfileStatsFromSupabase();
+}
+
+// ============================================================
+// بارگذاری آمار پروفایل از Supabase
+// ============================================================
+async function loadProfileStatsFromSupabase() {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
-    const totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
+    let totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
     const completedLessons = reports.length;
     const avgPercent = reports.length > 0
         ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length)
         : 0;
-    const stats = getUserStats();
-    document.getElementById('stat-points').textContent = toPersianNum(totalPoints);
-    document.getElementById('stat-medals').textContent = toPersianNum(stats.unlockedMedals.length);
-    document.getElementById('stat-completed').textContent = toPersianNum(completedLessons);
-    document.getElementById('stat-percent').textContent = toPersianNum(avgPercent) + '%';
+    
+    // نمایش اولیه
+    const stats = typeof getUserStats === 'function' ? getUserStats() : { unlockedMedals: [] };
+    const statPointsEl = document.getElementById('stat-points');
+    const statMedalsEl = document.getElementById('stat-medals');
+    const statCompletedEl = document.getElementById('stat-completed');
+    const statPercentEl = document.getElementById('stat-percent');
+    
+    if (statPointsEl) statPointsEl.textContent = toPersianNum(totalPoints);
+    if (statMedalsEl) statMedalsEl.textContent = toPersianNum(stats.unlockedMedals.length);
+    if (statCompletedEl) statCompletedEl.textContent = toPersianNum(completedLessons);
+    if (statPercentEl) statPercentEl.textContent = toPersianNum(avgPercent) + '%';
+    
+    // 🆕 دریافت امتیاز دستی معلم از Supabase
+    try {
+        const client = getSupabase();
+        if (!client) return;
+        
+        const studentUUID = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
+        if (!studentUUID) return;
+        
+        const { data, error } = await client
+            .from('rankings')
+            .select('custom_points_added, custom_total_points')
+            .eq('student_id', studentUUID)
+            .maybeSingle();
+        
+        if (error) {
+            console.warn('⚠️ خطا در گرفتن امتیاز از Supabase:', error.message);
+            return;
+        }
+        
+        if (data) {
+            const customAdded = data.custom_points_added || 0;
+            const customTotal = data.custom_total_points || 0;
+            const finalTotalPoints = totalPoints + customAdded + customTotal;
+            
+            console.log('📊 آمار پروفایل:', {
+                base: totalPoints,
+                customAdded: customAdded,
+                customTotal: customTotal,
+                final: finalTotalPoints
+            });
+            
+            if (statPointsEl) statPointsEl.textContent = toPersianNum(finalTotalPoints);
+            
+            // ذخیره برای استفاده‌های بعدی
+            localStorage.setItem('customPointsAdded', customAdded);
+            localStorage.setItem('customTotalPoints', customTotal);
+        }
+    } catch (e) {
+        console.warn('⚠️ خطا:', e);
+    }
 }
 
 // ============================================================
@@ -105,14 +195,18 @@ function toggleDarkMode(el) {
 function toggleMusicSetting(el) {
     if (el.checked) {
         localStorage.setItem('musicEnabled', 'true');
-        bgMusic.volume = 0.9;
-        const activeScreen = document.querySelector('.screen.active');
-        if (activeScreen && !['screen-quiz', 'screen-feedback', 'screen-result'].includes(activeScreen.id)) {
-            bgMusic.play().catch(e => console.log(e));
+        const bgMusic = document.getElementById('bg-music');
+        if (bgMusic) {
+            bgMusic.volume = 0.9;
+            const activeScreen = document.querySelector('.screen.active');
+            if (activeScreen && !['screen-quiz', 'screen-feedback', 'screen-result'].includes(activeScreen.id)) {
+                bgMusic.play().catch(e => console.log(e));
+            }
         }
     } else {
         localStorage.setItem('musicEnabled', 'false');
-        bgMusic.pause();
+        const bgMusic = document.getElementById('bg-music');
+        if (bgMusic) bgMusic.pause();
     }
 }
 
@@ -126,13 +220,14 @@ function toggleSoundsSetting(el) {
 // ============================================================
 // موسیقی پس‌زمینه
 // ============================================================
-const bgMusic = document.getElementById('bg-music');
 let musicStarted = false;
 let isMuted = false;
 
 function startMusic() {
     if (musicStarted && !isMuted) return;
     if (localStorage.getItem('musicEnabled') === 'false') return;
+    const bgMusic = document.getElementById('bg-music');
+    if (!bgMusic) return;
     bgMusic.volume = 0.9;
     bgMusic.play().then(() => { musicStarted = true; }).catch(e => console.log(e));
 }
@@ -201,6 +296,14 @@ function typeMotivation() {
     const el = document.getElementById('home-motivation-text');
     if (!el) return;
     if (motivationTimer) clearTimeout(motivationTimer);
+    
+    const MOTIVATIONS = typeof window.MOTIVATIONS !== 'undefined' ? window.MOTIVATIONS : [
+        "امروز روز یادگیریه، بیا شروع کنیم!",
+        "تو می‌تونی، فقط باورت کن!",
+        "هر روز یه قدم به موفقیت نزدیک‌تر!",
+        "بیا با هم عربی رو حرفه‌ای یاد بگیریم!"
+    ];
+    
     const text = MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)];
     let index = 0;
     el.innerHTML = '';
@@ -220,7 +323,7 @@ function typeMotivation() {
 }
 
 // ============================================================
-// 🆕 بروزرسانی اطلاعات — نسخه نهایی (حفظ کامل داده‌ها)
+// بروزرسانی اطلاعات — نسخه نهایی
 // ============================================================
 function openUpdateDataModal() {
     document.getElementById('update-data-modal').classList.add('active');
@@ -235,83 +338,44 @@ async function confirmUpdateData() {
     showModal('⏳ در حال بروزرسانی...', 'لطفاً چند لحظه صبر کنید.\nاطلاعات شما حفظ می‌شود.', '🔄');
 
     try {
-        // ═══════════════════════════════════════════════════════════
-        // ۱. ذخیره‌ی همه‌ی داده‌های مهم در یک آبجکت
-        // ═══════════════════════════════════════════════════════════
         const savedData = {};
         const savedKeys = [];
         
-        // ذخیره‌ی همه‌ی کلیدهای موجود (به‌جز کلیدهای موقت)
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (!key) continue;
-            
-            // کلیدهای موقت که نیازی به حفظ ندارن
-            const tempKeys = [
-                'temp_data',
-                'cache_temp',
-                'lastUpdateCheck'
-            ];
-            
+            const tempKeys = ['temp_data', 'cache_temp', 'lastUpdateCheck'];
             if (tempKeys.includes(key)) continue;
-            
             savedData[key] = localStorage.getItem(key);
             savedKeys.push(key);
         }
         
         console.log('💾 ذخیره‌شده:', savedKeys.length, 'کلید');
-        console.log('📋 کلیدها:', savedKeys);
 
-        // ═══════════════════════════════════════════════════════════
-        // ۲. پاک کردن Cache Storage (فقط فایل‌های PWA)
-        // ═══════════════════════════════════════════════════════════
         if ('caches' in window) {
             try {
                 const cacheNames = await caches.keys();
                 await Promise.all(cacheNames.map(name => caches.delete(name)));
-                console.log('🗑️ Cache Storage پاک شد');
-            } catch (cacheError) {
-                console.warn('⚠️ خطا در پاک کردن Cache Storage:', cacheError);
-            }
+            } catch (cacheError) {}
         }
 
-        // ═══════════════════════════════════════════════════════════
-        // ۳. Unregister کردن Service Worker (برای دریافت نسخه جدید)
-        // ═══════════════════════════════════════════════════════════
         if ('serviceWorker' in navigator) {
             try {
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 for (let registration of registrations) {
                     await registration.unregister();
                 }
-                console.log('🗑️ Service Worker حذف شد');
-            } catch (swError) {
-                console.warn('⚠️ خطا در حذف Service Worker:', swError);
-            }
+            } catch (swError) {}
         }
 
-        // ═══════════════════════════════════════════════════════════
-        // ۴. اطمینان از حفظ داده‌ها (بازنویسی)
-        // ═══════════════════════════════════════════════════════════
-        // چون فقط Cache Storage و Service Worker رو پاک کردیم،
-        // localStorage دست نخورده باقی مونده. ولی برای اطمینان:
         Object.keys(savedData).forEach(key => {
             if (savedData[key] !== null && savedData[key] !== undefined) {
-                try {
-                    localStorage.setItem(key, savedData[key]);
-                } catch (e) {
-                    console.warn('⚠️ خطا در بازنویسی:', key);
-                }
+                try { localStorage.setItem(key, savedData[key]); } catch (e) {}
             }
         });
-        
-        console.log('✅ همه‌ی داده‌ها حفظ شدند');
 
         showModal('✅ بروزرسانی موفق', 'اطلاعات شما با موفقیت حفظ شد.\nبرنامه در حال بارگذاری مجدد...', '✅');
 
-        // ═══════════════════════════════════════════════════════════
-        // ۵. رفرش کامل صفحه
-        // ═══════════════════════════════════════════════════════════
         setTimeout(() => {
             const url = new URL(window.location.href);
             url.searchParams.set('updated', Date.now());
@@ -330,182 +394,11 @@ async function confirmUpdateData() {
 }
 
 // ============================================================
-// 🆕 بازیابی رتبه‌بندی (راه‌حل جایگزین)
-// ============================================================
-async function recoverRankings() {
-    showModal('⏳ در حال بازیابی...', 'لطفاً چند لحظه صبر کنید.', '🔄');
-    
-    try {
-        const classes = ['هفتم یک', 'هفتم دو', 'هفتم سه', 'هفتم چهار', 'هفتم پنج'];
-        let totalRecovered = 0;
-        
-        for (const cls of classes) {
-            const classSlug = classNameToSlug(cls);
-            
-            try {
-                const response = await fetch(
-                    TEACHER_API_URL + '?action=getRankings&class_name=' + classSlug + '&t=' + Date.now(),
-                    { cache: 'no-store' }
-                );
-                const result = await response.json();
-                
-                if (result.success && result.data && result.data.length > 0) {
-                    localStorage.setItem('rankings_cache_' + cls, JSON.stringify({
-                        data: result.data,
-                        timestamp: Date.now()
-                    }));
-                    totalRecovered += result.data.length;
-                    console.log('✅ کش پر شد:', cls, '-', result.data.length, 'نفر');
-                }
-            } catch (e) {
-                console.warn('❌ خطا در', cls, ':', e.message);
-            }
-        }
-        
-        if (totalRecovered > 0) {
-            showModal('✅ بازیابی موفق', `${toPersianNum(totalRecovered)} رتبه بازیابی شد.\nصفحه دوباره بارگذاری می‌شود.`, '✅');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showModal('⚠️ توجه', 'داده‌ای برای بازیابی پیدا نشد.\nلطفاً اتصال اینترنت خود را چک کنید.', '⚠️');
-        }
-    } catch (error) {
-        console.error('❌ خطا:', error);
-        showModal('❌ خطا', 'مشکلی در بازیابی پیش آمد.', '❌');
-    }
-}
-
-// ============================================================
-// 🆕 بازیابی کامل داده‌ها از سرور (روش نهایی)
-// ============================================================
-async function fullDataRecovery() {
-    showModal('⏳ در حال بازیابی کامل...', 'این ممکن است چند ثانیه طول بکشد.', '🔄');
-    
-    try {
-        let recovered = 0;
-        
-        // ۱. بازیابی رتبه‌بندی
-        const classes = ['هفتم یک', 'هفتم دو', 'هفتم سه', 'هفتم چهار', 'هفتم پنج'];
-        for (const cls of classes) {
-            const classSlug = classNameToSlug(cls);
-            try {
-                const response = await fetch(
-                    TEACHER_API_URL + '?action=getRankings&class_name=' + classSlug + '&t=' + Date.now(),
-                    { cache: 'no-store' }
-                );
-                const result = await response.json();
-                if (result.success && result.data && result.data.length > 0) {
-                    localStorage.setItem('rankings_cache_' + cls, JSON.stringify({
-                        data: result.data,
-                        timestamp: Date.now()
-                    }));
-                    recovered++;
-                }
-            } catch (e) {}
-        }
-        
-        // ۲. بازیابی دانش‌آموزان (برای پنل معلم)
-        try {
-            const response = await fetch(
-                TEACHER_API_URL + '?action=getAllStudents&t=' + Date.now(),
-                { cache: 'no-store' }
-            );
-            const result = await response.json();
-            if (result.success && result.data) {
-                localStorage.setItem('teacherStudentsCache', JSON.stringify({
-                    data: result.data,
-                    timestamp: Date.now()
-                }));
-                recovered++;
-            }
-        } catch (e) {}
-        
-        // ۳. بازیابی پیام‌های کلاسی
-        try {
-            const response = await fetch(
-                TEACHER_API_URL + '?action=getClassMessages&t=' + Date.now(),
-                { cache: 'no-store' }
-            );
-            const result = await response.json();
-            if (result.success && result.data) {
-                localStorage.setItem('teacherClassMessagesCache', JSON.stringify({
-                    data: result.data,
-                    timestamp: Date.now()
-                }));
-                recovered++;
-            }
-        } catch (e) {}
-        
-        // ۴. بازیابی مسابقات
-        try {
-            const response = await fetch(
-                TEACHER_API_URL + '?action=getContests&t=' + Date.now(),
-                { cache: 'no-store' }
-            );
-            const result = await response.json();
-            if (result.success && result.data) {
-                localStorage.setItem('teacherContestsCache', JSON.stringify({
-                    data: result.data,
-                    timestamp: Date.now()
-                }));
-                recovered++;
-            }
-        } catch (e) {}
-        
-        // ۵. بازیابی کتابخانه
-        try {
-            const response = await fetch(
-                TEACHER_API_URL + '?action=getLibrary&t=' + Date.now(),
-                { cache: 'no-store' }
-            );
-            const result = await response.json();
-            if (result.success && result.data) {
-                localStorage.setItem('teacherLibraryCache', JSON.stringify({
-                    data: result.data,
-                    timestamp: Date.now()
-                }));
-                recovered++;
-            }
-        } catch (e) {}
-        
-        if (recovered > 0) {
-            showModal('✅ بازیابی موفق', `${toPersianNum(recovered)} بخش بازیابی شد.\nصفحه دوباره بارگذاری می‌شود.`, '✅');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showModal('⚠️ توجه', 'داده‌ای پیدا نشد.\nاتصال اینترنت را چک کنید.', '⚠️');
-        }
-    } catch (error) {
-        console.error('❌ خطا:', error);
-        showModal('❌ خطا', 'مشکلی در بازیابی پیش آمد.', '❌');
-    }
-}
-
-// ============================================================
-// 🆕 رفرش امن (فقط کش‌های موقت)
-// ============================================================
-function safeRefresh() {
-    // فقط کش‌های موقت رو پاک کن، نه داده‌های کاربر
-    const tempKeys = [
-        'notifications',
-        'temp_data',
-        'cache_temp'
-    ];
-    
-    tempKeys.forEach(key => {
-        localStorage.removeItem(key);
-    });
-    
-    console.log('✅ کش‌های موقت پاک شدند');
-    location.reload();
-}
-
-// ============================================================
-// 🆕 تغییر آواتار (عکس از گالری) — نسخه نهایی
+// تغییر آواتار (عکس از گالری)
 // ============================================================
 function changeAvatar(event) {
     const file = event.target.files[0];
     if (!file) return;
-
-    console.log('📸 فایل انتخاب شد:', file.name, Math.round(file.size / 1024), 'KB');
 
     if (file.size > 5 * 1024 * 1024) {
         showModal('خطا', 'حجم عکس باید کمتر از ۵ مگابایت باشد.', '⚠️');
@@ -545,8 +438,6 @@ function changeAvatar(event) {
                 
                 let compressedData = canvas.toDataURL('image/jpeg', 0.85);
                 
-                console.log('📸 حجم عکس فشرده:', Math.round(compressedData.length / 1024), 'KB');
-                
                 if (compressedData.length > 45000) {
                     compressedData = canvas.toDataURL('image/jpeg', 0.6);
                 }
@@ -579,11 +470,9 @@ function changeAvatar(event) {
                 
                 showModal('موفق', 'عکس پروفایل با موفقیت تغییر کرد.', '✅');
                 
-                if (typeof autoSyncRanking === 'function') {
-                    autoSyncRanking('تغییر آواتار');
-                } else if (typeof saveRankingToSupabase === 'function') {
-                    setTimeout(() => saveRankingToSupabase(), 800);
-                }
+                // آپدیت در Supabase
+                updateAvatarInSupabase('data:image/jpeg;base64,' + compressedData.split(',')[1]);
+                
             } catch (err) {
                 console.error('❌ خطا در پردازش عکس:', err);
                 showModal('خطا', 'مشکلی در پردازش عکس پیش آمد.', '❌');
@@ -600,6 +489,28 @@ function changeAvatar(event) {
     reader.readAsDataURL(file);
 
     event.target.value = '';
+}
+
+// ============================================================
+// 🆕 آپدیت آواتار در Supabase
+// ============================================================
+async function updateAvatarInSupabase(avatarData) {
+    try {
+        const client = getSupabase();
+        if (!client) return;
+        
+        const uuid = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
+        if (!uuid) return;
+        
+        await client
+            .from('students')
+            .update({ avatar_url: avatarData })
+            .eq('uuid', uuid);
+            
+        console.log('✅ آواتار در Supabase آپدیت شد');
+    } catch (e) {
+        console.warn('خطا در آپدیت آواتار:', e);
+    }
 }
 
 // ============================================================
@@ -645,7 +556,6 @@ function openEditProfile() {
     document.getElementById('edit-name').value = localStorage.getItem('userName') || '';
     document.getElementById('edit-class').value = localStorage.getItem('userClass') || 'هفتم یک';
     document.getElementById('edit-school').value = localStorage.getItem('userSchool') || '';
-    document.getElementById('edit-year').value = '۱۴۰۵-۱۴۰۶';
     document.getElementById('edit-profile-modal').classList.add('active');
 }
 
@@ -653,25 +563,65 @@ function closeEditProfile() {
     document.getElementById('edit-profile-modal').classList.remove('active');
 }
 
-function saveProfileChanges() {
+async function saveProfileChanges() {
     const newName = document.getElementById('edit-name').value.trim();
     const newClass = document.getElementById('edit-class').value;
     const newSchool = document.getElementById('edit-school').value.trim();
+    
     if (!newName) {
         showModal('خطا', 'لطفاً نام خود را وارد کنید.', '⚠️');
         return;
     }
+    
+    const oldName = localStorage.getItem('userName');
+    
+    // اگه نام تغییر کرده، چک کن تکراری نباشه
+    if (newName !== oldName) {
+        const exists = await checkFullNameExists(newName);
+        if (exists) {
+            showModal('نام تکراری', 'این نام قبلاً استفاده شده. لطفاً نام دیگه‌ای وارد کن.', '⚠️');
+            return;
+        }
+    }
+    
+    // ذخیره در localStorage
     localStorage.setItem('userName', newName);
     localStorage.setItem('userClass', newClass);
     localStorage.setItem('userSchool', newSchool || 'تعیین نشده');
+    
+    // آپدیت در Supabase
+    try {
+        const uuid = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
+        if (uuid) {
+            const client = getSupabase();
+            if (client) {
+                await client
+                    .from('students')
+                    .update({
+                        full_name: newName,
+                        class_name: newClass,
+                        school: newSchool || 'تعیین نشده'
+                    })
+                    .eq('uuid', uuid);
+                
+                // آپدیت در rankings
+                await client
+                    .from('rankings')
+                    .update({
+                        name: newName,
+                        class_name: classNameToSlug(newClass)
+                    })
+                    .eq('student_id', uuid);
+            }
+        }
+    } catch (e) {
+        console.warn('خطا در آپدیت Supabase:', e);
+    }
+    
     updateHomeUI();
     loadProfileData();
     closeEditProfile();
     showModal('موفق', 'اطلاعات شما با موفقیت ذخیره شد.', '✅');
-
-    if (typeof autoSyncRanking === 'function') {
-        autoSyncRanking('ویرایش پروفایل');
-    } else if (typeof saveRankingToSupabase === 'function') {
-        setTimeout(() => saveRankingToSupabase(), 800);
-    }
 }
+
+console.log('⚙️ settings.js بارگذاری شد');

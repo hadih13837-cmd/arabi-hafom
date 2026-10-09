@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۱۶.۰.۰ — با کارنامه‌های واقعی + سوییچ واضح
+// نسخه: ۱۷.۰.۰ — با تمدید مهلت، حذف کارنامه، رفع باگ‌ها
 // ============================================================
 
 // ============================================================
@@ -17,8 +17,6 @@ const LESSONS_CACHE_KEY = 'teacherLessonsCache';
 const EVENTS_CACHE_KEY = 'teacherEventsCache';
 const CONTESTS_CACHE_KEY = 'teacherContestsCache';
 const LIBRARY_CACHE_KEY = 'teacherLibraryCache';
-const LESSON_STATUS_CACHE_KEY = 'teacherLessonStatusCache';
-const REPORTS_CACHE_KEY = 'teacherReportsCache';
 
 const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
 
@@ -71,18 +69,13 @@ function showToast(message, type = 'success') {
     setTimeout(() => { toast.classList.remove('show'); }, 3000);
 }
 
-// ============================================================
-// مدیریت زمان خواندن
-// ============================================================
 function getReadTimes() {
     try { return JSON.parse(localStorage.getItem(READ_TIMES_KEY) || '{}'); } catch (e) { return {}; }
 }
-
 function getReadTime(studentId) {
     const times = getReadTimes();
     return times[studentId] || 0;
 }
-
 function setReadTime(studentId) {
     const times = getReadTimes();
     times[studentId] = Date.now();
@@ -99,9 +92,6 @@ function computeUnreadForConversation(conv) {
     return parseInt(conv.unread_count) || 0;
 }
 
-// ============================================================
-// کش
-// ============================================================
 function getCachedData(key, duration = MESSAGES_CACHE_DURATION) {
     try {
         const cached = JSON.parse(localStorage.getItem(key) || 'null');
@@ -116,9 +106,6 @@ function setCachedData(key, data) {
     } catch (e) {}
 }
 
-// ============================================================
-// رندر آواتار
-// ============================================================
 function renderAvatarHTML(student) {
     const avatarUrl = (student && student.avatar_url) ? String(student.avatar_url).trim() : '';
     if (!avatarUrl || avatarUrl === '' || avatarUrl === 'null' || avatarUrl === 'undefined' || avatarUrl === 'default') {
@@ -151,11 +138,12 @@ async function getLessonStatusForStudent(studentId) {
             .from('lesson_status')
             .select('*')
             .eq('student_id', studentId);
-        if (error) { console.error('خطا در گرفتن وضعیت:', error); return {}; }
+        if (error) { console.error('خطا:', error); return {}; }
         const statusMap = {};
         (data || []).forEach(item => {
             statusMap[item.lesson_id] = {
                 is_enabled: item.is_enabled !== false,
+                custom_due_date: item.custom_due_date || null,
                 id: item.id
             };
         });
@@ -170,12 +158,14 @@ async function updateLessonStatus(studentId, lessonId, updates) {
     try {
         const client = getSupabase();
         if (!client) return { success: false };
+
         const { data: existing } = await client
             .from('lesson_status')
             .select('id')
             .eq('student_id', studentId)
             .eq('lesson_id', lessonId)
             .maybeSingle();
+
         if (existing) {
             const { error } = await client
                 .from('lesson_status')
@@ -183,14 +173,16 @@ async function updateLessonStatus(studentId, lessonId, updates) {
                 .eq('id', existing.id);
             if (error) throw error;
         } else {
+            const insertData = {
+                student_id: studentId,
+                lesson_id: lessonId,
+                is_enabled: updates.is_enabled !== undefined ? updates.is_enabled : true,
+                custom_points: 0,
+                custom_due_date: updates.custom_due_date || null
+            };
             const { error } = await client
                 .from('lesson_status')
-                .insert({
-                    student_id: studentId,
-                    lesson_id: lessonId,
-                    is_enabled: updates.is_enabled !== undefined ? updates.is_enabled : true,
-                    custom_points: 0
-                });
+                .insert(insertData);
             if (error) throw error;
         }
         return { success: true };
@@ -200,9 +192,6 @@ async function updateLessonStatus(studentId, lessonId, updates) {
     }
 }
 
-// ============================================================
-// گرفتن کارنامه‌های دانش‌آموز از Supabase
-// ============================================================
 async function getStudentReports(studentId) {
     try {
         const client = getSupabase();
@@ -213,20 +202,31 @@ async function getStudentReports(studentId) {
             .eq('student_id', studentId)
             .order('created_at', { ascending: false });
         if (error) {
-            console.error('خطا در گرفتن کارنامه‌ها:', error);
+            console.error('خطا:', error);
             return [];
         }
-        console.log('✅ کارنامه‌ها دریافت شد:', data);
         return data || [];
     } catch (error) {
-        console.error('خطا:', error);
         return [];
     }
 }
 
-// ============================================================
-// محاسبه امتیاز کل
-// ============================================================
+async function deleteReport(studentUUID, lessonId) {
+    try {
+        const client = getSupabase();
+        if (!client) return { success: false };
+        const { error } = await client
+            .from('reports')
+            .delete()
+            .eq('student_id', studentUUID)
+            .eq('lesson_id', lessonId);
+        if (error) throw error;
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
 function calculateTotalPoints(student) {
     const basePoints = student.total_points || 0;
     const customAdded = student.custom_points_added || 0;
@@ -376,7 +376,7 @@ function goBack() {
 }
 
 // ============================================================
-// محاسبه کل unread
+// unread
 // ============================================================
 function computeTotalUnread() {
     if (!currentConversations || currentConversations.length === 0) return 0;
@@ -490,9 +490,6 @@ function switchMessagesTab(tab) {
     else if (tab === 'class') loadClassMessages();
 }
 
-// ============================================================
-// ارسال پیام کلاسی
-// ============================================================
 async function sendClassMessage() {
     const className = document.getElementById('class-message-target').value;
     const title = document.getElementById('class-message-title').value.trim();
@@ -517,9 +514,6 @@ async function sendClassMessage() {
     } catch (error) { showToast('خطا در ارسال پیام', 'error'); }
 }
 
-// ============================================================
-// بارگذاری پیام‌های کلاسی
-// ============================================================
 async function loadClassMessages() {
     const container = document.getElementById('class-messages-list');
     if (!container) return;
@@ -563,9 +557,6 @@ function renderClassMessages(messages) {
     container.innerHTML = html;
 }
 
-// ============================================================
-// بارگذاری مکالمات
-// ============================================================
 async function loadStudentConversations() {
     const container = document.getElementById('messenger-list-items');
     if (!container) return;
@@ -627,9 +618,6 @@ function filterMessengerList(query) {
     renderMessengerList(filtered);
 }
 
-// ============================================================
-// باز کردن چت
-// ============================================================
 async function openChatWith(studentId, studentName, className) {
     currentChatStudent = { student_id: studentId, student_name: studentName, class_name: className };
     document.getElementById('messenger-empty').style.display = 'none';
@@ -661,9 +649,6 @@ function closeMessengerChat() {
     loadStudentConversations();
 }
 
-// ============================================================
-// بارگذاری پیام‌های چت
-// ============================================================
 async function loadChatMessages(studentId) {
     const container = document.getElementById('messenger-chat-messages');
     if (!container) return;
@@ -708,9 +693,6 @@ function renderChatMessages(messages) {
     container.scrollTop = container.scrollHeight;
 }
 
-// ============================================================
-// ارسال پیام چت
-// ============================================================
 async function sendChatMessage() {
     if (!currentChatStudent) return;
     const input = document.getElementById('messenger-chat-input');
@@ -746,9 +728,6 @@ async function sendChatMessage() {
     } catch (error) { showToast('خطا در ارسال پیام', 'error'); }
 }
 
-// ============================================================
-// نوتیفیکیشن درون‌برنامه‌ای
-// ============================================================
 function showTeacherInAppNotification(studentName, message, studentId) {
     document.querySelectorAll('.inapp-notification').forEach(n => n.remove());
     const notif = document.createElement('div');
@@ -776,9 +755,6 @@ function showTeacherInAppNotification(studentName, message, studentId) {
     setTimeout(() => { notif.classList.remove('show'); setTimeout(() => notif.remove(), 400); }, 6000);
 }
 
-// ============================================================
-// صدای دینگ
-// ============================================================
 function playDingSound() {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -855,7 +831,7 @@ function filterStudents() {
 }
 
 // ============================================================
-// باز کردن پروفایل دانش‌آموز
+// پروفایل دانش‌آموز
 // ============================================================
 async function openStudentProfile(studentId) {
     const student = allStudents.find(s => s.student_id === studentId);
@@ -874,25 +850,16 @@ async function openStudentProfile(studentId) {
         const data = await response.json();
         currentProfileLessons = data.lessons || [];
 
-        console.log('📋 شروع بارگذاری اطلاعات دانش‌آموز:', student.name);
-        
-        // بارگذاری وضعیت و کارنامه‌ها
         currentProfileStatus = await getLessonStatusForStudent(studentId);
         currentProfileReports = await getStudentReports(studentId);
-        
-        console.log('✅ وضعیت تکالیف:', currentProfileStatus);
-        console.log('✅ کارنامه‌ها:', currentProfileReports);
 
         renderStudentProfile();
     } catch (error) {
-        console.error('خطا در بارگذاری پروفایل:', error);
+        console.error('خطا:', error);
         if (content) content.innerHTML = '<div style="text-align:center; padding:60px; color:#c62828; font-weight:bold;">خطا در بارگذاری</div>';
     }
 }
 
-// ============================================================
-// رندر پروفایل دانش‌آموز
-// ============================================================
 function renderStudentProfile() {
     const container = document.getElementById('student-profile-content');
     if (!container || !currentProfileStudent) return;
@@ -901,7 +868,6 @@ function renderStudentProfile() {
     const totalPoints = calculateTotalPoints(student);
     const classPersian = getClassPersianName(student.class_name);
 
-    // نقشه‌ی کارنامه‌ها
     const reportMap = {};
     currentProfileReports.forEach(r => {
         if (!reportMap[r.lesson_id]) {
@@ -911,10 +877,15 @@ function renderStudentProfile() {
 
     let lessonsHTML = '';
     currentProfileLessons.forEach(lesson => {
-        const status = currentProfileStatus[lesson.id] || { is_enabled: true };
+        const status = currentProfileStatus[lesson.id] || { is_enabled: true, custom_due_date: null };
         const isEnabled = status.is_enabled !== false;
+        const customDueDate = status.custom_due_date || null;
         const report = reportMap[lesson.id];
         const isDone = !!report;
+
+        // تاریخ مهلت واقعی (سفارشی یا اصلی)
+        const actualDueDate = customDueDate || lesson.dueDate || 'نامشخص';
+        const isCustomDate = !!customDueDate;
 
         let reportHTML = '';
         if (isDone) {
@@ -936,6 +907,9 @@ function renderStudentProfile() {
                         <span class="report-label">پاسخ غلط:</span>
                         <span class="report-value">${toPersianNum(report.wrong || 0)}</span>
                     </div>
+                    <button class="delete-report-btn" onclick="confirmDeleteReport('${lesson.id}')">
+                        🗑️ حذف کارنامه (برای شروع مجدد)
+                    </button>
                 </div>
             `;
         } else {
@@ -946,7 +920,6 @@ function renderStudentProfile() {
             `;
         }
 
-        // سوییچ فقط برای تکالیف انجام‌نشده
         const toggleHTML = isDone ? '' : `
             <div class="profile-lesson-toggle">
                 <span class="toggle-label ${isEnabled ? 'enabled' : 'disabled'}">
@@ -967,11 +940,16 @@ function renderStudentProfile() {
                     ${isDone ? '<span class="lesson-done-badge">✓</span>' : ''}
                 </div>
                 <div class="profile-lesson-meta">
-                    <span>📅 مهلت: ${lesson.dueDate || 'نامشخص'}</span>
+                    <span class="${isCustomDate ? 'custom-due-date' : ''}">
+                        📅 مهلت: ${actualDueDate} ${isCustomDate ? '(تمدید شده)' : ''}
+                    </span>
                     <span>📝 ${toPersianNum(lesson.activityCount || 0)} سوال</span>
                 </div>
                 ${reportHTML}
                 ${toggleHTML}
+                <button class="extend-due-btn" onclick="openExtendDueModal('${lesson.id}', '${actualDueDate}')">
+                    📅 تمدید / تغییر مهلت
+                </button>
             </div>
         `;
     });
@@ -1035,24 +1013,96 @@ function renderStudentProfile() {
 }
 
 // ============================================================
-// فعال/غیرفعال کردن تکلیف
+// 🆕 تمدید مهلت
+// ============================================================
+function openExtendDueModal(lessonId, currentDueDate) {
+    // ساخت مودال به صورت داینامیک
+    let modal = document.getElementById('extend-due-modal');
+    if (modal) modal.remove();
+
+    modal = document.createElement('div');
+    modal.id = 'extend-due-modal';
+    modal.className = 'modal-overlay active';
+    modal.innerHTML = `
+        <div class="edit-modal-box">
+            <div class="edit-title">📅 تغییر مهلت تکلیف</div>
+            <div class="edit-field">
+                <label class="edit-field-label">تاریخ جدید (شمسی)</label>
+                <input type="text" class="edit-field-input" id="new-due-date" 
+                       placeholder="مثال: ۱۴۰۵/۱۰/۲۰" 
+                       value="${currentDueDate !== 'نامشخص' ? currentDueDate : ''}"
+                       autocomplete="off">
+                <div style="font-size: 11px; color: #90a4ae; font-weight: bold; margin-top: 8px; text-align: right;">
+                    📌 تاریخ رو به صورت ۱۴۰۵/۱۰/۲۰ وارد کنید
+                </div>
+            </div>
+            <div class="edit-buttons">
+                <button class="edit-btn-cancel" onclick="closeExtendDueModal()">انصراف</button>
+                <button class="edit-btn-save" onclick="saveExtendedDueDate('${lessonId}')">ذخیره</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeExtendDueModal() {
+    const modal = document.getElementById('extend-due-modal');
+    if (modal) modal.remove();
+}
+
+async function saveExtendedDueDate(lessonId) {
+    const newDate = document.getElementById('new-due-date').value.trim();
+
+    if (!newDate) {
+        showToast('لطفاً تاریخ جدید رو وارد کنید', 'warning');
+        return;
+    }
+
+    // اعتبارسنجی فرمت تاریخ
+    if (!/^[۱-۹0-9]{4}\/[۰-۹0-9]{1,2}\/[۰-۹0-9]{1,2}$/.test(newDate)) {
+        showToast('فرمت تاریخ درست نیست. مثال: ۱۴۰۵/۱۰/۲۰', 'warning');
+        return;
+    }
+
+    if (!currentProfileStudent) return;
+
+    const result = await updateLessonStatus(currentProfileStudent.student_id, lessonId, {
+        custom_due_date: newDate
+    });
+
+    if (result.success) {
+        currentProfileStatus[lessonId] = { 
+            ...currentProfileStatus[lessonId], 
+            custom_due_date: newDate 
+        };
+        closeExtendDueModal();
+        renderStudentProfile();
+        showToast('✅ مهلت با موفقیت تمدید شد', 'success');
+        vibrate([30, 50, 30]);
+    } else {
+        showToast('خطا در تمدید مهلت', 'error');
+    }
+}
+
+// ============================================================
+// فعال/غیرفعال
 // ============================================================
 async function toggleLessonEnabled(lessonId, isEnabled) {
     if (!currentProfileStudent) return;
     vibrate(15);
-    
+
     const status = currentProfileStatus[lessonId] || { is_enabled: true };
-    
+
     console.log('🔄 تغییر وضعیت:', {
         student: currentProfileStudent.student_id,
         lesson: lessonId,
         newState: isEnabled
     });
-    
+
     const result = await updateLessonStatus(currentProfileStudent.student_id, lessonId, {
         is_enabled: isEnabled
     });
-    
+
     if (result.success) {
         currentProfileStatus[lessonId] = { ...status, is_enabled: isEnabled };
         renderStudentProfile();
@@ -1060,6 +1110,101 @@ async function toggleLessonEnabled(lessonId, isEnabled) {
     } else {
         console.error('❌ خطا:', result.error);
         showToast('خطا در تغییر وضعیت', 'error');
+    }
+}
+
+// ============================================================
+// 🆕 حذف کارنامه
+// ============================================================
+function confirmDeleteReport(lessonId) {
+    let modal = document.getElementById('delete-report-modal');
+    if (modal) modal.remove();
+
+    modal = document.createElement('div');
+    modal.id = 'delete-report-modal';
+    modal.className = 'exit-modal-overlay active';
+    modal.innerHTML = `
+        <div class="exit-modal-box">
+            <div class="exit-icon-wrapper" style="background: linear-gradient(135deg, #ffebee, #ffcdd2);">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="stroke: #c62828; fill: none; stroke-width: 2;">
+                    <path d="M3 6H5H21"/>
+                    <path d="M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6"/>
+                </svg>
+            </div>
+            <div class="exit-title">حذف کارنامه</div>
+            <div class="exit-text">
+                آیا مطمئن هستید که می‌خواهید کارنامه این تکلیف رو حذف کنید؟<br><br>
+                <strong>دانش‌آموز می‌تونه دوباره این تکلیف رو انجام بده و کارنامه جدید بگیره.</strong>
+            </div>
+            <div class="exit-buttons">
+                <button class="exit-btn-cancel" onclick="closeDeleteReportModal()">انصراف</button>
+                <button class="exit-btn-confirm" onclick="deleteReportConfirmed('${lessonId}')">حذف کن</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeDeleteReportModal() {
+    const modal = document.getElementById('delete-report-modal');
+    if (modal) modal.remove();
+}
+
+async function deleteReportConfirmed(lessonId) {
+    if (!currentProfileStudent) return;
+    closeDeleteReportModal();
+
+    const result = await deleteReport(currentProfileStudent.student_id, lessonId);
+
+    if (result.success) {
+        showToast('✅ کارنامه حذف شد. دانش‌آموز می‌تونه دوباره انجام بده', 'success');
+        vibrate([30, 50, 30]);
+        
+        // بارگذاری مجدد کارنامه‌ها
+        currentProfileReports = await getStudentReports(currentProfileStudent.student_id);
+        renderStudentProfile();
+        
+        // آپدیت امتیاز در rankings
+        await updateStudentRankingAfterDelete();
+    } else {
+        showToast('خطا در حذف کارنامه', 'error');
+    }
+}
+
+async function updateStudentRankingAfterDelete() {
+    try {
+        const client = getSupabase();
+        if (!client || !currentProfileStudent) return;
+
+        // شمارش کارنامه‌های فعلی
+        const { data: reports } = await client
+            .from('reports')
+            .select('*')
+            .eq('student_id', currentProfileStudent.student_id);
+
+        const completedLessons = reports ? reports.length : 0;
+        const totalPoints = reports ? reports.reduce((sum, r) => sum + (r.score || 0), 0) : 0;
+        const avgPercent = reports && reports.length > 0
+            ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length)
+            : 0;
+
+        await client
+            .from('rankings')
+            .update({
+                total_points: totalPoints,
+                completed_lessons: completedLessons,
+                avg_percent: avgPercent
+            })
+            .eq('student_id', currentProfileStudent.student_id);
+
+        // آپدیت در localStorage
+        currentProfileStudent.total_points = totalPoints;
+        currentProfileStudent.completed_lessons = completedLessons;
+        currentProfileStudent.avg_percent = avgPercent;
+
+        localStorage.removeItem(STUDENTS_CACHE_KEY);
+    } catch (e) {
+        console.warn('خطا در آپدیت rankings:', e);
     }
 }
 
@@ -1080,13 +1225,6 @@ async function changeTotalPoints(delta) {
         const currentAdded = parseInt(currentProfileStudent.custom_points_added) || 0;
         const newCustomAdded = currentAdded + delta;
 
-        console.log('🔄 تغییر امتیاز کل:', {
-            student: currentProfileStudent.name,
-            oldAdded: currentAdded,
-            newAdded: newCustomAdded,
-            delta: delta
-        });
-
         const { error } = await client
             .from('rankings')
             .update({ custom_points_added: newCustomAdded })
@@ -1094,25 +1232,16 @@ async function changeTotalPoints(delta) {
 
         if (error) throw error;
 
-        // به‌روزرسانی در حافظه
         currentProfileStudent.custom_points_added = newCustomAdded;
-        
-        // پاک کردن کش‌ها
         localStorage.removeItem(STUDENTS_CACHE_KEY);
-        
-        // به‌روزرسانی صفحه
         renderStudentProfile();
         showToast(`امتیاز کل ${delta > 0 ? '+' + delta : delta} شد`, 'success');
-        
     } catch (error) {
-        console.error('❌ خطا در تغییر امتیاز:', error);
+        console.error('❌ خطا:', error);
         showToast('خطا در به‌روزرسانی امتیاز کل', 'error');
     }
 }
 
-// ============================================================
-// رفتن به چت از پروفایل
-// ============================================================
 function goToChatFromProfile() {
     if (!currentProfileStudent) return;
     const student = currentProfileStudent;
@@ -1184,7 +1313,7 @@ async function loadRankings() {
 }
 
 // ============================================================
-// مدیریت تکالیف
+// تکالیف
 // ============================================================
 async function loadLessonsPage() {
     const container = document.getElementById('lessons-list');
@@ -1230,7 +1359,7 @@ function renderLessonsList(lessons) {
 }
 
 // ============================================================
-// تقویم
+// تقویم / مسابقات / کتابخانه / گزارش‌ها
 // ============================================================
 async function addEvent() {
     const title = document.getElementById('event-title').value.trim();
@@ -1290,9 +1419,6 @@ function renderEvents(events) {
     container.innerHTML = html;
 }
 
-// ============================================================
-// مسابقات
-// ============================================================
 async function addContest() {
     const title = document.getElementById('contest-title').value.trim();
     const prize = document.getElementById('contest-prize').value.trim();
@@ -1352,9 +1478,6 @@ function renderContests(contests) {
     container.innerHTML = html;
 }
 
-// ============================================================
-// کتابخانه
-// ============================================================
 async function addLibraryItem() {
     const title = document.getElementById('lib-title').value.trim();
     const type = document.getElementById('lib-type').value;
@@ -1412,9 +1535,6 @@ function renderLibrary(items) {
     container.innerHTML = html;
 }
 
-// ============================================================
-// گزارش‌ها
-// ============================================================
 function downloadAllStudents() {
     if (allStudents.length === 0) { showToast('داده‌ای برای دانلود نیست', 'warning'); return; }
     let csv = '\uFEFF';
@@ -1506,9 +1626,6 @@ function generateFullReport() {
     container.innerHTML = html;
 }
 
-// ============================================================
-// تنظیمات
-// ============================================================
 function changePassword() {
     const newPassword = prompt('رمز جدید را وارد کنید:');
     if (newPassword && newPassword.length >= 4) {
@@ -1529,6 +1646,5 @@ function clearCache() {
     }
 }
 
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۶.۰.۰');
-console.log('✅ کارنامه‌های واقعی از Supabase');
-console.log('✅ سوییچ فعال/غیرفعال واضح');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۷.۰.۰');
+console.log('✅ تمدید مهلت + حذف کارنامه');

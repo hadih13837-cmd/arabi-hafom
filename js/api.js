@@ -812,3 +812,283 @@ async function testConnection() {
         return { success: false, error: error.message };
     }
 }
+// ============================================================
+// 🆕 توابع جدید برای مدیریت دانش‌آموزان (جدول students)
+// نسخه: ۹.۰.۰
+// ============================================================
+
+// ============================================================
+// گرفتن اطلاعات یک دانش‌آموز با user_id
+// ============================================================
+async function getStudentByUserId(userId) {
+    try {
+        const client = getSupabase();
+        if (!client) return null;
+
+        const { data, error } = await client
+            .from('students')
+            .select('*')
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        if (error) {
+            console.error('❌ خطا در گرفتن دانش‌آموز:', error.message);
+            return null;
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// گرفتن اطلاعات یک دانش‌آموز با UUID
+// ============================================================
+async function getStudentByUUID(uuid) {
+    try {
+        const client = getSupabase();
+        if (!client) return null;
+
+        const { data, error } = await client
+            .from('students')
+            .select('*')
+            .eq('uuid', uuid)
+            .maybeSingle();
+
+        if (error) {
+            console.error('❌ خطا در گرفتن دانش‌آموز:', error.message);
+            return null;
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// گرفتن همه دانش‌آموزان (برای پنل معلم)
+// ============================================================
+async function getAllStudentsList() {
+    try {
+        const client = getSupabase();
+        if (!client) return [];
+
+        const { data, error } = await client
+            .from('students')
+            .select('*')
+            .order('user_id', { ascending: true });
+
+        if (error) {
+            console.error('❌ خطا در گرفتن لیست دانش‌آموزان:', error.message);
+            return [];
+        }
+
+        return data || [];
+
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return [];
+    }
+}
+
+// ============================================================
+// به‌روزرسانی اطلاعات یک دانش‌آموز
+// ============================================================
+async function updateStudentInfo(uuid, updates) {
+    try {
+        const client = getSupabase();
+        if (!client) return { success: false };
+
+        const { error } = await client
+            .from('students')
+            .update(updates)
+            .eq('uuid', uuid);
+
+        if (error) {
+            console.error('❌ خطا در آپدیت:', error.message);
+            return { success: false, error: error.message };
+        }
+
+        return { success: true };
+
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ============================================================
+// چک کردن وجود آیدی
+// ============================================================
+async function checkUserIdExists(userId) {
+    try {
+        const client = getSupabase();
+        if (!client) return false;
+
+        const { data, error } = await client
+            .from('students')
+            .select('user_id')
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        if (error) return false;
+        return !!data;
+
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return false;
+    }
+}
+
+// ============================================================
+// چک کردن وجود نام کامل
+// ============================================================
+async function checkFullNameExists(fullName) {
+    try {
+        const client = getSupabase();
+        if (!client) return false;
+
+        const { data, error } = await client
+            .from('students')
+            .select('full_name')
+            .eq('full_name', fullName)
+            .maybeSingle();
+
+        if (error) return false;
+        return !!data;
+
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return false;
+    }
+}
+
+// ============================================================
+// گرفتن رتبه‌بندی یک کلاس (از جدول students)
+// ============================================================
+async function getRankingsFromStudents(className) {
+    try {
+        const client = getSupabase();
+        if (!client) return [];
+
+        const classSlug = classNameToSlug(className);
+
+        const { data, error } = await client
+            .from('students')
+            .select('*')
+            .eq('class_name', classSlug)
+            .order('custom_points_added', { ascending: false });
+
+        if (error) {
+            console.error('❌ خطا در گرفتن رتبه‌بندی:', error.message);
+            return [];
+        }
+
+        return data || [];
+
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return [];
+    }
+}
+
+// ============================================================
+// 🆕 تمدید مهلت تکلیف برای یک دانش‌آموز
+// ============================================================
+async function extendLessonDueDate(studentUUID, lessonId, newDueDate) {
+    try {
+        const client = getSupabase();
+        if (!client) return { success: false };
+
+        // چک کن آیا رکورد وجود داره
+        const { data: existing } = await client
+            .from('lesson_status')
+            .select('id')
+            .eq('student_id', studentUUID)
+            .eq('lesson_id', lessonId)
+            .maybeSingle();
+
+        if (existing) {
+            const { error } = await client
+                .from('lesson_status')
+                .update({ custom_due_date: newDueDate })
+                .eq('id', existing.id);
+            if (error) throw error;
+        } else {
+            const { error } = await client
+                .from('lesson_status')
+                .insert({
+                    student_id: studentUUID,
+                    lesson_id: lessonId,
+                    custom_due_date: newDueDate,
+                    is_enabled: true,
+                    custom_points: 0
+                });
+            if (error) throw error;
+        }
+
+        console.log('✅ مهلت تمدید شد:', newDueDate);
+        return { success: true };
+
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ============================================================
+// 🆕 گرفتن مهلت سفارشی یک تکلیف برای یک دانش‌آموز
+// ============================================================
+async function getCustomDueDate(studentUUID, lessonId) {
+    try {
+        const client = getSupabase();
+        if (!client) return null;
+
+        const { data, error } = await client
+            .from('lesson_status')
+            .select('custom_due_date, is_enabled')
+            .eq('student_id', studentUUID)
+            .eq('lesson_id', lessonId)
+            .maybeSingle();
+
+        if (error) return null;
+        return data;
+
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// 🆕 حذف کارنامه یک درس برای یک دانش‌آموز (برای شروع مجدد)
+// ============================================================
+async function deleteReportForLesson(studentUUID, lessonId) {
+    try {
+        const client = getSupabase();
+        if (!client) return { success: false };
+
+        const { error } = await client
+            .from('reports')
+            .delete()
+            .eq('student_id', studentUUID)
+            .eq('lesson_id', lessonId);
+
+        if (error) throw error;
+
+        console.log('✅ کارنامه حذف شد');
+        return { success: true };
+
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+console.log('✅ api.js — توابع جدید اضافه شد');

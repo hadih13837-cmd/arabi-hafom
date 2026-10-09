@@ -1,23 +1,131 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۹.۰.۰ — با نوتیفیکیشن سریع جزوه
+// نسخه: ۱۰.۰.۰ — با سیستم ورود با آیدی
 // ============================================================
 
 // ============================================================
 // متغیر سراسری
 // ============================================================
 let isPublished = true;
-const UPDATE_VERSION = 'v2.0.0';
+const UPDATE_VERSION = 'v3.0.0';
+
+// ============================================================
+// شروع برنامه (دکمه Splash)
+// ============================================================
+async function startApp() {
+    const isRegistered = localStorage.getItem('userRegistered') === 'true';
+    const userId = localStorage.getItem('userId');
+    
+    if (isRegistered && userId) {
+        // ✅ قبلاً وارد شده — مستقیم برو به خانه
+        await continueSession();
+    } else {
+        // ❌ وارد نشده — برو به صفحه ورود
+        goToScreen('screen-login', false);
+    }
+}
+
+// ============================================================
+// ادامه جلسه قبلی
+// ============================================================
+async function continueSession() {
+    // اطمینان از داشتن UUID
+    let studentUUID = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
+    
+    if (!studentUUID) {
+        // اگه UUID نداره، ببرش به صفحه ورود
+        goToScreen('screen-login', false);
+        return;
+    }
+    
+    // اطمینان از اینکه studentUUID هم ست شده (برای سازگاری)
+    localStorage.setItem('studentUUID', studentUUID);
+    
+    // 🆕 چک کن کاربر در Supabase وجود داره یا نه
+    try {
+        const student = await getStudentByUUID(studentUUID);
+        if (!student) {
+            // کاربر در Supabase نیست — ببرش به ورود
+            console.log('⚠️ کاربر در Supabase پیدا نشد');
+            localStorage.removeItem('userRegistered');
+            goToScreen('screen-login', false);
+            return;
+        }
+        
+        // آپدیت اطلاعات از Supabase به localStorage (اگه تغییر کرده باشه)
+        localStorage.setItem('userName', student.full_name);
+        localStorage.setItem('userId', student.user_id);
+        localStorage.setItem('userClass', student.class_name || 'هفتم یک');
+        localStorage.setItem('userSchool', student.school || 'تعیین نشده');
+        
+        // آواتار
+        if (student.avatar_url && student.avatar_url !== 'default') {
+            if (student.avatar_url.startsWith('emoji:')) {
+                localStorage.setItem('userAvatarEmoji', student.avatar_url.replace('emoji:', ''));
+                localStorage.removeItem('userAvatar');
+            } else {
+                localStorage.setItem('userAvatar', student.avatar_url);
+                localStorage.removeItem('userAvatarEmoji');
+            }
+        }
+        
+        // 🆕 همگام‌سازی کارنامه‌ها از Supabase
+        if (typeof syncStudentDataFromSupabase === 'function') {
+            await syncStudentDataFromSupabase(studentUUID);
+        }
+        
+    } catch (e) {
+        console.warn('خطا در چک کردن کاربر:', e);
+    }
+    
+    updateStreak();
+    await loadLessonsListForNotification();
+    updateHomeUI();
+    
+    goToScreen('screen-home', false);
+    
+    setTimeout(() => {
+        checkAndShowNotification();
+        checkDeadlineWarning();
+        updateNotificationBadge();
+        checkVideoNotification();
+        
+        if (typeof checkTeacherMessagesBadge === 'function') {
+            checkTeacherMessagesBadge();
+        }
+        
+        if (typeof startRealtimeSubscriptions === 'function' && 
+            typeof isRealtimeStarted !== 'undefined' && 
+            !isRealtimeStarted) {
+            setTimeout(() => startRealtimeSubscriptions(), 500);
+        }
+        
+        checkAndShowUpdateModal();
+        
+        setTimeout(() => {
+            checkAndShowNewMessageNotification();
+        }, 1500);
+        
+        setTimeout(() => {
+            checkAndShowNewJozveNotification();
+        }, 2000);
+        
+        if (localStorage.getItem('guideCompleted') !== 'true') {
+            if (typeof currentGuideStep !== 'undefined') currentGuideStep = 0;
+            showGuideStep();
+        } else {
+            showStreakMessage();
+        }
+    }, 500);
+}
 
 // ============================================================
 // مودال بروزرسانی
 // ============================================================
 function checkAndShowUpdateModal() {
     const seenVersion = localStorage.getItem('seenUpdateVersion');
-    
     if (seenVersion === UPDATE_VERSION) return;
     if (localStorage.getItem('userRegistered') !== 'true') return;
-    
     setTimeout(() => showUpdateModal(), 2500);
 }
 
@@ -32,12 +140,9 @@ function showUpdateModal() {
 function closeUpdateModal() {
     const modal = document.getElementById('update-modal');
     if (modal) modal.classList.remove('active');
-    
     localStorage.setItem('seenUpdateVersion', UPDATE_VERSION);
     localStorage.setItem('seenUpdateDate', new Date().toISOString());
-    
     vibrate(20);
-    console.log('✅ بروزرسانی دیده شد');
 }
 
 // ============================================================
@@ -46,36 +151,15 @@ function closeUpdateModal() {
 let rankingsGuideStep = 0;
 
 const RANKINGS_GUIDE_STEPS = [
-    {
-        icon: '🏆',
-        title: 'رتبه‌بندی کلاس',
-        subtitle: 'با دوستات رقابت کن!',
-        text: 'اینجا می‌تونی <strong>رتبه‌ت رو در کلاس</strong> ببینی. هر کسی که امتیاز بیشتری داشته باشه، بالاتر قرار می‌گیره.'
-    },
-    {
-        icon: '🥇',
-        title: 'سکوی قهرمانی',
-        subtitle: 'سه نفر اول',
-        text: 'سه نفر اول کلاس با <strong>مدال طلا، نقره و برنز</strong> نشون داده میشن. سعی کن به این سه نفر برسی!'
-    },
-    {
-        icon: '👆',
-        title: 'کارت پروفایل',
-        subtitle: 'اطلاعات کامل',
-        text: 'با کلیک روی هر دانش‌آموز، <strong>کارت پروفایلش</strong> باز میشه و می‌تونی اطلاعات کامل و مدال‌هاش رو ببینی.'
-    },
-    {
-        icon: '⭐',
-        title: 'امتیاز بگیر',
-        subtitle: 'تکالیف رو انجام بده',
-        text: 'برای بالا رفتن در رتبه‌بندی، <strong>تکالیفت رو انجام بده</strong> و امتیاز جمع کن. هر چه امتیاز بیشتر، رتبه بالاتر!'
-    }
+    { icon: '🏆', title: 'رتبه‌بندی کلاس', subtitle: 'با دوستات رقابت کن!', text: 'اینجا می‌تونی <strong>رتبه‌ت رو در کلاس</strong> ببینی.' },
+    { icon: '🥇', title: 'سکوی قهرمانی', subtitle: 'سه نفر اول', text: 'سه نفر اول کلاس با <strong>مدال طلا، نقره و برنز</strong> نشون داده میشن.' },
+    { icon: '👆', title: 'کارت پروفایل', subtitle: 'اطلاعات کامل', text: 'با کلیک روی هر دانش‌آموز، <strong>کارت پروفایلش</strong> باز میشه.' },
+    { icon: '⭐', title: 'امتیاز بگیر', subtitle: 'تکالیف رو انجام بده', text: 'برای بالا رفتن در رتبه‌بندی، <strong>تکالیفت رو انجام بده</strong>.' }
 ];
 
 function checkAndShowRankingsGuide() {
     const hasSeen = localStorage.getItem('hasSeenRankingsGuide') === 'true';
     if (hasSeen) return false;
-    
     setTimeout(() => showRankingsGuide(), 800);
     return true;
 }
@@ -83,7 +167,6 @@ function checkAndShowRankingsGuide() {
 function showRankingsGuide() {
     rankingsGuideStep = 0;
     updateRankingsGuideStep();
-    
     const overlay = document.getElementById('rankings-guide');
     if (overlay) overlay.classList.add('active');
 }
@@ -107,9 +190,7 @@ function updateRankingsGuideStep() {
     if (textEl) textEl.innerHTML = step.text;
     
     if (nextBtn) {
-        nextBtn.textContent = (rankingsGuideStep === RANKINGS_GUIDE_STEPS.length - 1) 
-            ? 'شروع! 🎯' 
-            : 'فهمیدم';
+        nextBtn.textContent = (rankingsGuideStep === RANKINGS_GUIDE_STEPS.length - 1) ? 'شروع! 🎯' : 'فهمیدم';
     }
     
     if (dotsEl) {
@@ -124,7 +205,6 @@ function updateRankingsGuideStep() {
 function nextRankingsGuide() {
     vibrate(15);
     rankingsGuideStep++;
-    
     if (rankingsGuideStep >= RANKINGS_GUIDE_STEPS.length) {
         closeRankingsGuide();
     } else {
@@ -140,10 +220,8 @@ function skipRankingsGuide() {
 function closeRankingsGuide() {
     const overlay = document.getElementById('rankings-guide');
     if (overlay) overlay.classList.remove('active');
-    
     localStorage.setItem('hasSeenRankingsGuide', 'true');
     localStorage.setItem('rankingsGuideSeenDate', new Date().toISOString());
-    console.log('✅ راهنمای رتبه‌بندی دیده شد');
 }
 
 // ============================================================
@@ -153,7 +231,7 @@ function checkAndShowNewMessageNotification() {
     const dismissed = localStorage.getItem('dismissedNewMessageNotif') === 'true';
     if (dismissed) return;
     
-    const studentId = localStorage.getItem('studentUUID');
+    const studentId = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
     if (!studentId) return;
     
     const cachedChat = getCachedData('studentChatCache_' + studentId);
@@ -219,7 +297,6 @@ function dismissNewMessageNotification() {
         notif.classList.remove('show', 'swiping');
         notif.style.transform = '';
         notif.style.opacity = '';
-        
         if (typeof repositionNotifications === 'function') {
             repositionNotifications();
         }
@@ -240,7 +317,7 @@ function resetNewMessageNotification() {
 }
 
 // ============================================================
-// 🆕 نوتیفیکیشن جزوه جدید (سریع)
+// نوتیفیکیشن جزوه جدید
 // ============================================================
 async function checkAndShowNewJozveNotification() {
     const dismissed = localStorage.getItem('dismissedNewJozveNotif') === 'true';
@@ -273,7 +350,6 @@ async function checkAndShowNewJozveNotification() {
                     repositionNotifications();
                 }
                 
-                // 🆕 سریع‌تر: ۳۰۰ میلی‌ثانیه
                 setTimeout(() => {
                     notif.classList.add('show');
                     if (typeof repositionNotifications === 'function') {
@@ -299,7 +375,6 @@ function dismissNewJozveNotification() {
         notif.classList.remove('show', 'swiping');
         notif.style.transform = '';
         notif.style.opacity = '';
-        
         if (typeof repositionNotifications === 'function') {
             repositionNotifications();
         }
@@ -308,7 +383,6 @@ function dismissNewJozveNotification() {
     saveJozveSeen();
 }
 
-// 🆕 رفتن به صفحه جزوه (درست شده)
 function goToJozveFromNotification() {
     dismissNewJozveNotification();
     setTimeout(() => {
@@ -353,7 +427,7 @@ function autoSyncRanking(reason = 'unknown') {
 // ============================================================
 async function checkMaintenanceMode() {
     const urlParams = new URLSearchParams(window.location.search);
-    const isAdmin = urlParams.get('admin') === ADMIN_CODE;
+    const isAdmin = urlParams.get('admin') === (typeof ADMIN_CODE !== 'undefined' ? ADMIN_CODE : '');
     
     try {
         const response = await fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' });
@@ -365,55 +439,6 @@ async function checkMaintenanceMode() {
         return data.maintenance === true;
     } catch(e) {
         return false;
-    }
-}
-
-// ============================================================
-// شروع برنامه
-// ============================================================
-async function startApp() {
-    const isRegistered = localStorage.getItem('userRegistered') === 'true';
-    if (isRegistered) {
-        updateStreak();
-        await loadLessonsListForNotification();
-        goToScreen('screen-home');
-        setTimeout(() => {
-            checkAndShowNotification();
-            checkDeadlineWarning();
-            updateNotificationBadge();
-            checkVideoNotification();
-            
-            if (typeof checkTeacherMessagesBadge === 'function') {
-                checkTeacherMessagesBadge();
-            }
-            
-            if (typeof startRealtimeSubscriptions === 'function' && 
-                typeof isRealtimeStarted !== 'undefined' && 
-                !isRealtimeStarted) {
-                setTimeout(() => startRealtimeSubscriptions(), 500);
-            }
-            
-            checkAndShowUpdateModal();
-            
-            // 🆕 نوتیفیکیشن پیام (سریع‌تر)
-            setTimeout(() => {
-                checkAndShowNewMessageNotification();
-            }, 1500);
-            
-            // 🆕 نوتیفیکیشن جزوه (سریع‌تر)
-            setTimeout(() => {
-                checkAndShowNewJozveNotification();
-            }, 2000);
-            
-            if (localStorage.getItem('guideCompleted') !== 'true') {
-                currentGuideStep = 0;
-                showGuideStep();
-            } else {
-                showStreakMessage();
-            }
-        }, 500);
-    } else {
-        goToScreen('screen-welcome');
     }
 }
 
@@ -432,7 +457,7 @@ function generateUUID() {
 }
 
 // ============================================================
-// PWA — Service Worker با بروزرسانی خودکار
+// PWA — Service Worker
 // ============================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -441,23 +466,16 @@ if ('serviceWorker' in navigator) {
             console.log('✅ Service Worker ثبت شد');
 
             setInterval(() => {
-                registration.update().then(() => {
-                    console.log('🔄 چک کردن بروزرسانی...');
-                }).catch(() => {});
+                registration.update().catch(() => {});
             }, 30000);
 
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 if (!newWorker) return;
                 
-                console.log('🆕 نسخه‌ی جدید پیدا شد!');
-
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        console.log('✅ نسخه‌ی جدید آماده‌ست - در حال بارگذاری...');
-                        
                         showUpdateNotification();
-                        
                         setTimeout(() => {
                             newWorker.postMessage({ type: 'SKIP_WAITING' });
                         }, 1500);
@@ -469,7 +487,6 @@ if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
                     refreshing = true;
-                    console.log('🔄 بارگذاری مجدد برای اعمال تغییرات...');
                     window.location.reload();
                 }
             });
@@ -511,12 +528,7 @@ function showUpdateNotification() {
     document.body.appendChild(notif);
 
     const style = document.createElement('style');
-    style.textContent = `
-        @keyframes swSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-    `;
+    style.textContent = `@keyframes swSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
     document.head.appendChild(style);
 
     setTimeout(() => {
@@ -546,20 +558,20 @@ function wasDismissed() {
 }
 
 function dismissInstallBanner() {
-    installBanner.classList.remove('show');
+    if (installBanner) installBanner.classList.remove('show');
     localStorage.setItem('installBannerDismissed', 'true');
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    if (!isAppInstalled() && !wasDismissed()) {
+    if (!isAppInstalled() && !wasDismissed() && installBanner) {
         setTimeout(() => installBanner.classList.add('show'), 3000);
     }
 });
 
 setTimeout(() => {
-    if (!isAppInstalled() && !wasDismissed() && !deferredPrompt) {
+    if (!isAppInstalled() && !wasDismissed() && !deferredPrompt && installBanner) {
         installBanner.classList.add('show');
     }
 }, 3000);
@@ -569,7 +581,7 @@ async function installApp() {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
-            installBanner.classList.remove('show');
+            if (installBanner) installBanner.classList.remove('show');
             localStorage.setItem('installBannerDismissed', 'true');
         }
         deferredPrompt = null;
@@ -582,7 +594,7 @@ async function installApp() {
 }
 
 window.addEventListener('appinstalled', () => {
-    installBanner.classList.remove('show');
+    if (installBanner) installBanner.classList.remove('show');
     localStorage.setItem('installBannerDismissed', 'true');
 });
 
@@ -670,7 +682,7 @@ async function loadHomeLibrary() {
 // ============================================================
 async function checkTeacherMessages() {
     try {
-        const studentId = localStorage.getItem('studentUUID');
+        const studentId = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
         if (typeof getPersonalMessages !== 'function') return;
         
         const messages = await getPersonalMessages(studentId);
@@ -682,52 +694,10 @@ async function checkTeacherMessages() {
         if (newMessages.length > 0) {
             const badge = document.getElementById('notif-badge-dot');
             if (badge) badge.classList.add('show');
-            showTeacherMessageNotification(newMessages[0]);
         }
         
         localStorage.setItem('seenTeacherMessages', JSON.stringify(messages.map(m => m.message_id)));
     } catch (error) {}
-}
-
-function showTeacherMessageNotification(message) {
-    const dismissed = JSON.parse(localStorage.getItem('dismissedTeacherMessages') || '[]');
-    if (dismissed.includes(message.message_id)) return;
-    
-    const notif = document.createElement('div');
-    notif.className = 'teacher-message-notification';
-    notif.innerHTML = `
-        <button class="notification-close" onclick="dismissTeacherNotification('${message.message_id}', this)">✕</button>
-        <div class="notification-icon">👨‍🏫</div>
-        <div class="notification-text">
-            <div class="notification-title">پیام از معلم</div>
-            <div class="notification-sub">${message.text ? message.text.substring(0, 40) : 'پیام جدید'}</div>
-        </div>
-        <button class="notification-btn" onclick="goToTeacherMessage()">مشاهده</button>
-    `;
-    
-    const container = document.getElementById('app-container');
-    if (container) container.appendChild(notif);
-    
-    setTimeout(() => notif.classList.add('show'), 100);
-}
-
-function dismissTeacherNotification(messageId, btn) {
-    const notif = btn.closest('.teacher-message-notification');
-    if (notif) {
-        notif.classList.remove('show');
-        setTimeout(() => notif.remove(), 300);
-    }
-    
-    const dismissed = JSON.parse(localStorage.getItem('dismissedTeacherMessages') || '[]');
-    if (!dismissed.includes(messageId)) {
-        dismissed.push(messageId);
-        localStorage.setItem('dismissedTeacherMessages', JSON.stringify(dismissed));
-    }
-}
-
-function goToTeacherMessage() {
-    document.querySelectorAll('.teacher-message-notification').forEach(n => n.remove());
-    goToScreen('screen-teacher-messages');
 }
 
 // ============================================================
@@ -768,9 +738,14 @@ window.addEventListener('load', async () => {
     loadUserInfo();
     loadTheme();
 
-    if (localStorage.getItem('userRegistered') === 'true' && !localStorage.getItem('studentUUID')) {
-        const newUUID = generateUUID();
-        localStorage.setItem('studentUUID', newUUID);
+    if (localStorage.getItem('userRegistered') === 'true') {
+        // اطمینان از داشتن UUID
+        let studentUUID = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
+        if (!studentUUID) {
+            studentUUID = generateUUID();
+            localStorage.setItem('studentUUID', studentUUID);
+            localStorage.setItem('userUUID', studentUUID);
+        }
     }
 
     if (localStorage.getItem('soundsEnabled') === 'false') {
@@ -787,65 +762,29 @@ window.addEventListener('load', async () => {
         document.body.classList.add('dark-mode');
     }
 
-    initNotificationSwipe();
+    if (typeof initNotificationSwipe === 'function') {
+        initNotificationSwipe();
+    }
 
     const cameFromClips = sessionStorage.getItem('cameFromClips') === 'true';
     const isRegistered = localStorage.getItem('userRegistered') === 'true';
+    const userId = localStorage.getItem('userId');
 
     if (cameFromClips || window.location.hash === '#home') {
         sessionStorage.removeItem('cameFromClips');
         history.replaceState({ screen: 'screen-home' }, '', '');
         
-        if (isRegistered) {
-            updateStreak();
-            goToScreen('screen-home', false);
-            
-            setTimeout(() => {
-                if (allLessons.length === 0) {
-                    loadLessonsListForNotification().then(() => {
-                        checkAndShowNotification();
-                        checkDeadlineWarning();
-                        updateNotificationBadge();
-                    });
-                } else {
-                    checkAndShowNotification();
-                    checkDeadlineWarning();
-                    updateNotificationBadge();
-                }
-                checkVideoNotification();
-                
-                if (typeof checkTeacherMessagesBadge === 'function') {
-                    checkTeacherMessagesBadge();
-                }
-                
-                if (typeof startRealtimeSubscriptions === 'function' && 
-                    typeof isRealtimeStarted !== 'undefined' && 
-                    !isRealtimeStarted) {
-                    setTimeout(() => startRealtimeSubscriptions(), 1000);
-                }
-                
-                checkAndShowUpdateModal();
-                
-                // 🆕 سریع‌تر
-                setTimeout(() => {
-                    checkAndShowNewMessageNotification();
-                }, 1500);
-                
-                setTimeout(() => {
-                    checkAndShowNewJozveNotification();
-                }, 2000);
-                
-                setTimeout(() => showStreakMessage(), 800);
-            }, 300);
+        if (isRegistered && userId) {
+            await continueSession();
         } else {
-            goToScreen('screen-welcome', false);
+            goToScreen('screen-login', false);
         }
     } else {
-        pushHistory('screen-splash');
+        if (typeof pushHistory === 'function') pushHistory('screen-splash');
         setTimeout(typeMotivation, 500);
     }
 
-    if (isRegistered) {
+    if (isRegistered && userId) {
         setTimeout(() => autoSyncRanking('ورود به برنامه'), 1500);
     }
 
@@ -856,3 +795,5 @@ window.addEventListener('load', async () => {
         }
     }, 3000);
 });
+
+console.log('📱 app.js بارگذاری شد — نسخه ۱۰.۰.۰');
