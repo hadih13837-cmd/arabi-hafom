@@ -17,6 +17,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
     
+    <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link rel="stylesheet" href="./css/style.css">
@@ -95,27 +96,13 @@
                 <option value="دبیرستان دارالقرآن الکریم"></option>
             </datalist>
         </div>
+        <div class="edit-field">
+            <label class="edit-field-label">سال تحصیلی</label>
+            <input type="text" class="edit-field-input" id="edit-year" value="۱۴۰۵-۱۴۰۶" readonly style="background:#f0f4f8;cursor:not-allowed;">
+        </div>
         <div class="edit-buttons">
             <button class="edit-btn-cancel" onclick="closeEditProfile()">انصراف</button>
             <button class="edit-btn-save" onclick="saveProfileChanges()">ذخیره</button>
-        </div>
-    </div>
-</div>
-
-<!-- 🆕 مودال ویرایش آیدی -->
-<div class="modal-overlay" id="edit-userid-modal">
-    <div class="edit-modal-box">
-        <div class="edit-title">🆔 ویرایش آیدی</div>
-        <div class="edit-field">
-            <label class="edit-field-label">آیدی جدید</label>
-            <input type="text" class="edit-field-input" id="edit-userid" placeholder="مثال: ali_ahmadi" autocomplete="off">
-            <div style="font-size: 11px; color: #90a4ae; font-weight: bold; margin-top: 8px; text-align: right; line-height: 1.6;">
-                ⚠️ آیدی باید یکتا باشه. فقط حروف انگلیسی، عدد و _ مجاز هستن.
-            </div>
-        </div>
-        <div class="edit-buttons">
-            <button class="edit-btn-cancel" onclick="closeEditUserId()">انصراف</button>
-            <button class="edit-btn-save" onclick="saveUserIdChanges()">ذخیره</button>
         </div>
     </div>
 </div>
@@ -172,7 +159,9 @@
         <div class="exit-text">
             این کار باعث می‌شه آخرین تغییرات برنامه دریافت بشه.<br><br>
             ✅ <strong>اطلاعات شما حفظ می‌شه:</strong><br>
-            نام، کلاس، مدرسه، آواتار، کارنامه‌ها، امتیازها و مدال‌ها
+            نام، کلاس، مدرسه، آواتار، کارنامه‌ها، امتیازها و مدال‌ها<br><br>
+            🔄 <strong>موارد بروزرسانی:</strong><br>
+            کش برنامه، اعلان‌ها و تکالیف جدید
         </div>
         <div class="exit-buttons">
             <button class="exit-btn-cancel" onclick="closeUpdateDataModal()">انصراف</button>
@@ -253,7 +242,7 @@
     </div>
 </div>
 
-<!-- 🆕 مودال خوش‌آمدگویی -->
+<!-- مودال خوش‌آمدگویی -->
 <div class="welcome-graphic-overlay" id="welcome-graphic-modal">
     <div class="welcome-graphic-card">
         <span class="welcome-graphic-emoji">👋</span>
@@ -295,6 +284,84 @@
     </div>
 </div>
 
+<!-- مودال بروزرسانی -->
+<div class="update-modal-overlay" id="update-modal">
+    <div class="update-modal-card">
+        <div class="update-header">
+            <div class="update-header-icon">🎉</div>
+            <div class="update-title">بروزرسانی جدید!</div>
+            <div class="update-subtitle">قابلیت‌های جذابی به برنامه اضافه شده</div>
+        </div>
+        
+        <div class="update-features-title">✨ چیزهای جدید</div>
+        
+        <div class="update-feature-item">
+            <div class="update-feature-icon purple">💬</div>
+            <div class="update-feature-info">
+                <div class="update-feature-title">پیام‌های معلم</div>
+                <div class="update-feature-desc">حالا می‌تونی با معلمت چت کنی و پیام‌های کلاسی رو ببینی</div>
+            </div>
+            <span class="update-feature-badge">جدید</span>
+        </div>
+        
+        <div class="update-feature-item">
+            <div class="update-feature-icon orange">🏆</div>
+            <div class="update-feature-info">
+                <div class="update-feature-title">رتبه‌بندی زنده</div>
+                <div class="update-feature-desc">رتبه‌ت رو در کلاس ببین و با دوستات رقابت کن</div>
+            </div>
+            <span class="update-feature-badge">جدید</span>
+        </div>
+        
+        <div class="update-feature-item">
+            <div class="update-feature-icon blue">📖</div>
+            <div class="update-feature-info">
+                <div class="update-feature-title">جزوه و کلمات</div>
+                <div class="update-feature-desc">جزوه‌ها و کلمات هر درس رو ببین و دانلود کن</div>
+            </div>
+            <span class="update-feature-badge">جدید</span>
+        </div>
+        
+        <div class="update-feature-item">
+            <div class="update-feature-icon green">✓✓</div>
+            <div class="update-feature-info">
+                <div class="update-feature-title">تیک دوگانه</div>
+                <div class="update-feature-desc">می‌بینی کی پیامت رو خونده</div>
+            </div>
+            <span class="update-feature-badge">جدید</span>
+        </div>
+        
+        <button class="update-modal-btn" onclick="closeUpdateModal()">
+            عالیه! بزن بریم 🚀
+        </button>
+    </div>
+</div>
+
+<!-- راهنمای رتبه‌بندی -->
+<div class="rankings-guide-overlay" id="rankings-guide">
+    <div class="rankings-guide-card">
+        <div class="rankings-guide-header">
+            <div class="rankings-guide-step" id="rankings-guide-step">گام ۱ از ۴</div>
+            <span class="rankings-guide-icon" id="rankings-guide-icon">🏆</span>
+            <div class="rankings-guide-title" id="rankings-guide-title">رتبه‌بندی کلاس</div>
+            <div class="rankings-guide-subtitle" id="rankings-guide-subtitle">با دوستات رقابت کن!</div>
+        </div>
+        <div class="rankings-guide-body">
+            <div class="rankings-guide-text" id="rankings-guide-text">
+                اینجا می‌تونی رتبه‌ت رو در کلاس ببینی.
+            </div>
+            <div class="rankings-guide-buttons">
+                <button class="rankings-guide-btn-skip" onclick="skipRankingsGuide()">
+                    رد کن
+                </button>
+                <button class="rankings-guide-btn-next" id="rankings-guide-next" onclick="nextRankingsGuide()">
+                    فهمیدم
+                </button>
+            </div>
+            <div class="rankings-guide-dots" id="rankings-guide-dots"></div>
+        </div>
+    </div>
+</div>
 <!-- منوی کناری -->
 <div class="side-menu-overlay" id="side-menu-overlay" onclick="closeSideMenu()"></div>
 <div class="side-menu" id="side-menu">
@@ -471,8 +538,8 @@
                 </svg>
             </div>
             <div class="side-menu-item-text">
-                <div class="side-menu-item-title">خروج از حساب</div>
-                <div class="side-menu-item-desc">بازگشت به صفحه ورود</div>
+                <div class="side-menu-item-title">خروج از برنامه</div>
+                <div class="side-menu-item-desc">بستن برنامه</div>
             </div>
         </div>
     </div>
@@ -506,36 +573,13 @@
         </div>
     </div>
 
-    <!-- ============ 🆕 صفحه ورود با آیدی ============ -->
-    <div id="screen-login" class="screen">
-        <div class="login-video-wrapper">
-            <video src="https://cdn.imgurl.ir/uploads/j02258_InShot_20260921_091848739.mp4" autoplay loop muted playsinline preload="auto"></video>
-        </div>
-        
-        <h1 class="login-title">سلام! خوش آمدی 👋</h1>
-        <p class="login-sub">آیدی خودت را وارد کن تا وارد بشی:</p>
-        
-        <input type="text" class="login-input" id="login-userid" placeholder="مثال: 163" autocomplete="off" inputmode="text">
-        
-        <button class="login-btn" onclick="loginWithUserId()">ورود به برنامه 🚀</button>
-        
-        <div class="login-hint">
-            اگه آیدیت رو نمی‌دونی، از معلمت بپرس.
-        </div>
-        
-        <button class="login-register-btn" onclick="goToScreen('screen-welcome')">
-            ثبت‌نام دانش‌آموز جدید
-        </button>
-    </div>
-
-    <!-- ============ صفحه خوش‌آمد (ثبت‌نام جدید) ============ -->
+    <!-- ============ صفحه خوش‌آمد ============ -->
     <div id="screen-welcome" class="screen">
         <div class="welcome-video-wrapper">
             <video src="https://cdn.imgurl.ir/uploads/j02258_InShot_20260921_091848739.mp4" autoplay loop muted playsinline preload="auto"></video>
         </div>
-        <h1 class="welcome-title">ثبت‌نام دانش‌آموز جدید 🎓</h1>
-        <p class="welcome-sub">برای شروع، اطلاعات خودت رو وارد کن:</p>
-        
+        <h1 class="welcome-title">سلام! خوش آمدی 👋</h1>
+        <p class="welcome-sub">برای شروع، لطفاً نام و کلاس خودت را وارد کن:</p>
         <input type="text" class="welcome-input" id="welcome-name" placeholder="نام و نام خانوادگی">
         <select class="welcome-input" id="welcome-class">
             <option value="" disabled selected>انتخاب کلاس</option>
@@ -549,19 +593,15 @@
         <datalist id="schools-list-welcome">
             <option value="دبیرستان دارالقرآن الکریم"></option>
         </datalist>
-        
-        <div class="welcome-hint-box">
-            🆔 آیدی ورود شما به صورت خودکار ساخته می‌شه و بعداً می‌تونید تغییرش بدید.
-        </div>
-        
-        <button class="welcome-btn" onclick="saveUserInfo()">ثبت‌نام و ورود 🚀</button>
-        <button class="welcome-back-btn" onclick="goToScreen('screen-login')">بازگشت به ورود</button>
+        <input type="text" class="welcome-input" id="welcome-year" value="۱۴۰۵-۱۴۰۶" readonly style="background:#f0f4f8;cursor:not-allowed;">
+        <button class="welcome-btn" onclick="saveUserInfo()">ورود به برنامه 🚀</button>
     </div>
 
     <!-- ============ صفحه خانه ============ -->
     <div id="screen-home" class="screen">
         <div class="home-scroll-area">
             
+            <!-- نوتیفیکیشن تکلیف جدید -->
             <div class="new-lesson-notification" id="new-lesson-notification">
                 <button class="notification-close" onclick="dismissNotification()">✕</button>
                 <div class="notification-icon">🔔</div>
@@ -573,6 +613,7 @@
                 <div class="notification-swipe-hint"></div>
             </div>
 
+            <!-- نوتیفیکیشن ویدیو جدید -->
             <div class="video-notification" id="video-notification">
                 <button class="notification-close" onclick="dismissVideoNotification()">✕</button>
                 <div class="notification-icon">🎬</div>
@@ -584,6 +625,7 @@
                 <div class="notification-swipe-hint"></div>
             </div>
 
+            <!-- نوتیفیکیشن پیام‌های معلم -->
             <div class="new-message-notification" id="new-message-notification">
                 <button class="notification-close" onclick="dismissNewMessageNotification()">✕</button>
                 <div class="notification-icon">💬</div>
@@ -595,6 +637,7 @@
                 <div class="notification-swipe-hint"></div>
             </div>
 
+            <!-- نوتیفیکیشن جزوه جدید -->
             <div class="new-jozve-notification" id="new-jozve-notification">
                 <button class="notification-close" onclick="dismissNewJozveNotification()">✕</button>
                 <div class="notification-icon">📖</div>
@@ -606,6 +649,7 @@
                 <div class="notification-swipe-hint"></div>
             </div>
 
+            <!-- نوتیفیکیشن مهلت -->
             <div class="deadline-notification" id="deadline-notification">
                 <button class="notification-close" onclick="dismissDeadlineNotification()">✕</button>
                 <div class="notification-icon">⚠️</div>
@@ -649,6 +693,7 @@
                 </div>
             </div>
 
+            <!-- دکمه‌های تکالیف و کارنامه -->
             <div class="home-menu-grid">
                 <div class="menu-button" id="guide-lessons-btn" onclick="goToScreen('screen-lessons')">
                     <span id="new-lesson-badge" class="badge-new" style="display: none;">جدید</span>
@@ -660,12 +705,14 @@
                 </div>
             </div>
 
+            <!-- دکمه کلیپ‌های آموزشی -->
             <div class="home-clips-row">
                 <button class="clip-button" id="guide-clips-btn" onclick="openClipsPage()">
                     <img src="https://cdn.imgurl.ir/uploads/b632041_IMG__.png" alt="کلیپ‌های آموزشی" class="clip-button-image">
                 </button>
             </div>
 
+            <!-- دکمه جزوه و کلمات -->
             <div class="home-clips-row">
                 <button class="clip-button" id="guide-jozve-btn" onclick="openJozvePage()">
                     <img src="https://cdn.imgurl.ir/uploads/769875_file_00000000b5a88243a4bc0c8e7e4081bf.png" alt="جزوه و کلمات" class="clip-button-image">
@@ -673,6 +720,7 @@
             </div>
         </div>
         
+        <!-- آیکون شناور پیام‌های معلم -->
         <button class="home-messages-fab" id="home-messages-fab" onclick="goToTeacherMessages()" style="display: none;">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -680,6 +728,7 @@
             <span class="home-messages-fab-badge" id="home-messages-fab-badge">0</span>
         </button>
         
+        <!-- نوار پایین -->
         <div class="bottom-nav">
             <button class="bottom-nav-item medals-item" id="guide-medals-btn" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -720,7 +769,6 @@
             </button>
         </div>
     </div>
-
     <!-- ============ صفحه تکالیف ============ -->
     <div id="screen-lessons" class="screen">
         <div class="lessons-header">
@@ -974,7 +1022,7 @@
                     <span>اطلاعات برنامه</span>
                 </div>
                 <div class="about-info-row"><span class="label">نام برنامه</span><span class="value">عربی هفتم</span></div>
-                <div class="about-info-row"><span class="label">نسخه</span><span class="value">۴.۰.۰</span></div>
+                <div class="about-info-row"><span class="label">نسخه</span><span class="value">۳.۰.۰</span></div>
                 <div class="about-info-row"><span class="label">پایه تحصیلی</span><span class="value">هفتم</span></div>
                 <div class="about-info-row"><span class="label">سال تحصیلی</span><span class="value">۱۴۰۵-۱۴۰۶</span></div>
             </div>
@@ -1053,7 +1101,6 @@
             </button>
         </div>
     </div>
-
     <!-- ============ صفحه تنظیمات ============ -->
     <div id="screen-settings" class="screen">
         <div class="page-header">
@@ -1257,20 +1304,6 @@
                 <div class="profile-info-row"><span class="label">کلاس</span><span class="value" id="profile-class">-</span></div>
                 <div class="profile-info-row"><span class="label">مدرسه</span><span class="value" id="profile-school">-</span></div>
                 <div class="profile-info-row"><span class="label">سال تحصیلی</span><span class="value" id="profile-year">۱۴۰۵-۱۴۰۶</span></div>
-            </div>
-            
-            <!-- 🆕 بخش آیدی -->
-            <div class="profile-userid-section">
-                <div class="profile-userid-card">
-                    <div class="profile-userid-label">🆔 آیدی ورود شما</div>
-                    <div class="profile-userid-value" id="profile-userid-display">-</div>
-                    <button class="profile-userid-edit-btn" onclick="openEditUserId()">
-                        ✏️ ویرایش آیدی
-                    </button>
-                </div>
-                <div class="profile-userid-hint">
-                    💡 با این آیدی می‌تونید در هر گوشی وارد بشید و اطلاعاتتون برگرده.
-                </div>
             </div>
             
             <div class="profile-stats-title">آمار کلی</div>
@@ -1477,13 +1510,12 @@
 
 </div>
 
-<!-- ============================================================ -->
-<!-- لود فایل‌های JavaScript                                       -->
-<!-- ============================================================ -->
+<!-- ============================================================
+     لود فایل‌های JavaScript
+     ============================================================ -->
 <script src="./js/config.js"></script>
 <script src="./js/utils.js"></script>
 <script src="./js/supabase-config.js"></script>
-<script src="./js/auth.js"></script>
 <script src="./js/api.js"></script>
 <script src="./js/avatars.js"></script>
 <script src="./js/navigation.js"></script>
