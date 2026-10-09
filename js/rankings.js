@@ -1,6 +1,6 @@
 // ============================================================
 // rankings.js — سیستم رتبه‌بندی
-// نسخه: ۲۲.۰.۰ — با پشتیبانی کامل از امتیازهای دستی
+// نسخه: ۲۱.۰.۰ — با پشتیبانی از امتیازهای دستی معلم
 // ============================================================
 
 let currentRankings = [];
@@ -10,13 +10,14 @@ let lastRankingsHash = '';
 let isLoadingRankings = false;
 
 // ============================================================
-// محاسبه امتیاز کل با احتساب امتیازهای دستی معلم
+// 🆕 محاسبه امتیاز کل با احتساب امتیازهای دستی معلم
 // ============================================================
 function calculateTotalPointsFromRanking(ranking) {
     if (!ranking) return 0;
     const basePoints = ranking.total_points || 0;
+    const customTotal = ranking.custom_total_points || 0;
     const customAdded = ranking.custom_points_added || 0;
-    return basePoints + customAdded;
+    return basePoints + customTotal + customAdded;
 }
 
 // ============================================================
@@ -27,7 +28,7 @@ async function loadRankingsPage() {
     if (!container) return;
     
     const userClass = localStorage.getItem('userClass') || 'هفتم یک';
-    const studentId = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
+    const studentId = localStorage.getItem('studentUUID');
     const cacheKey = 'rankings_cache_' + userClass;
     
     let hasCachedData = false;
@@ -66,7 +67,7 @@ async function loadRankingsPage() {
             const rankings = await getRankingsByClass(userClass);
             
             if (rankings && rankings.length > 0) {
-                // مرتب‌سازی بر اساس امتیاز کل با احتساب امتیازهای دستی
+                // 🆕 مرتب‌سازی بر اساس امتیاز کل با احتساب امتیازهای دستی
                 rankings.sort((a, b) => calculateTotalPointsFromRanking(b) - calculateTotalPointsFromRanking(a));
                 
                 const newHash = getRankingsHash(rankings);
@@ -113,7 +114,7 @@ async function loadRankingsPage() {
 function getRankingsHash(rankings) {
     if (!rankings || rankings.length === 0) return '';
     return rankings.map(r => 
-        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.avg_percent}_${r.avatar_url || ''}_${r.custom_points_added || 0}`
+        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.avg_percent}_${r.avatar_url || ''}_${r.custom_total_points || 0}_${r.custom_points_added || 0}`
     ).join('|');
 }
 
@@ -136,7 +137,7 @@ function startAutoRefresh() {
         
         try {
             const userClass = localStorage.getItem('userClass') || 'هفتم یک';
-            const studentId = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
+            const studentId = localStorage.getItem('studentUUID');
             
             const rankings = await getRankingsByClass(userClass);
             
@@ -145,6 +146,7 @@ function startAutoRefresh() {
                 return;
             }
             
+            // 🆕 مرتب‌سازی بر اساس امتیاز کل
             rankings.sort((a, b) => calculateTotalPointsFromRanking(b) - calculateTotalPointsFromRanking(a));
             
             const newHash = getRankingsHash(rankings);
@@ -195,6 +197,7 @@ function renderRankingsList(rankings, userClass, studentId) {
         const isSecondMe = second.student_id === studentId;
         const isThirdMe = third.student_id === studentId;
         
+        // 🆕 استفاده از امتیاز کل محاسبه‌شده
         const firstPoints = calculateTotalPointsFromRanking(first);
         const secondPoints = calculateTotalPointsFromRanking(second);
         const thirdPoints = calculateTotalPointsFromRanking(third);
@@ -258,6 +261,8 @@ function renderRankingsList(rankings, userClass, studentId) {
     rankings.forEach((ranking, index) => {
         const rank = index + 1;
         const isMe = ranking.student_id === studentId;
+        
+        // 🆕 امتیاز کل با احتساب امتیازهای دستی
         const totalPoints = calculateTotalPointsFromRanking(ranking);
         
         let medalEmoji = '';
@@ -406,11 +411,12 @@ async function refreshRankings() {
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const userClass = localStorage.getItem('userClass') || 'هفتم یک';
-        const studentId = localStorage.getItem('userUUID') || localStorage.getItem('studentUUID');
+        const studentId = localStorage.getItem('studentUUID');
         
         const rankings = await getRankingsByClass(userClass);
         
         if (rankings && rankings.length > 0) {
+            // 🆕 مرتب‌سازی
             rankings.sort((a, b) => calculateTotalPointsFromRanking(b) - calculateTotalPointsFromRanking(a));
             
             currentRankings = rankings;
@@ -457,9 +463,10 @@ function openProfileCard(studentId) {
     if (!modal || !content) return;
     
     const classPersian = getClassPersianName(ranking.class_name);
-    const isMe = studentId === (localStorage.getItem('userUUID') || localStorage.getItem('studentUUID'));
+    const isMe = studentId === localStorage.getItem('studentUUID');
     const medalCount = getUserEarnedMedals(ranking).length;
     
+    // 🆕 امتیاز کل با احتساب امتیازهای دستی
     const totalPoints = calculateTotalPointsFromRanking(ranking);
     
     const avatarUrl = (ranking && ranking.avatar_url) ? String(ranking.avatar_url).trim() : '';
@@ -704,5 +711,3 @@ function closeProfileCard() {
     const modal = document.getElementById('profile-card-modal');
     if (modal) modal.classList.remove('active');
 }
-
-console.log('🏆 rankings.js بارگذاری شد — نسخه ۲۲.۰.۰');
