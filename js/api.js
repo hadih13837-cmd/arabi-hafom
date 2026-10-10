@@ -1,11 +1,8 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۸.۰.۰ — با پشتیبانی از امتیازهای دستی معلم
+// نسخه: ۹.۰.۰ — با پشتیبانی از مهلت سفارشی و وضعیت تکالیف
 // ============================================================
 
-// ============================================================
-// سازگاری با کد قدیمی
-// ============================================================
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
 const API_URL = TEACHER_API_URL;
 
@@ -50,7 +47,6 @@ async function saveRankingToSupabase() {
             : 0;
         const streakDays = streakData.count || 0;
         
-        // گرفتن آواتار با تشخیص نوع
         let avatarUrl = 'default';
         const avatarImg = localStorage.getItem('userAvatar');
         const avatarEmoji = localStorage.getItem('userAvatarEmoji');
@@ -106,7 +102,7 @@ async function saveRankingToSupabase() {
 }
 
 // ============================================================
-// 🆕 گرفتن وضعیت تکالیف (فعال/غیرفعال + امتیاز دستی)
+// 🆕 گرفتن وضعیت تکالیف از Supabase (مهلت سفارشی + فعال/غیرفعال)
 // ============================================================
 async function getStudentLessonStatus(studentId) {
     try {
@@ -127,46 +123,17 @@ async function getStudentLessonStatus(studentId) {
         (data || []).forEach(item => {
             statusMap[item.lesson_id] = {
                 is_enabled: item.is_enabled !== false,
+                custom_due_date: item.custom_due_date || null,
                 custom_points: item.custom_points || 0
             };
         });
         
-        console.log('📋 وضعیت تکالیف دریافت شد:', statusMap);
+        console.log('📋 وضعیت تکالیف:', statusMap);
         return statusMap;
         
     } catch (error) {
         console.error('❌ خطا:', error);
         return {};
-    }
-}
-
-// ============================================================
-// 🆕 گرفتن مجموع امتیاز دستی از جدول rankings
-// ============================================================
-async function getCustomPointsFromRankings(studentId) {
-    try {
-        const client = getSupabase();
-        if (!client) return { customTotal: 0, customAdded: 0 };
-        
-        const { data, error } = await client
-            .from('rankings')
-            .select('custom_total_points, custom_points_added')
-            .eq('student_id', studentId)
-            .maybeSingle();
-        
-        if (error) {
-            console.error('خطا در گرفتن امتیاز دستی:', error.message);
-            return { customTotal: 0, customAdded: 0 };
-        }
-        
-        return {
-            customTotal: (data && data.custom_total_points) || 0,
-            customAdded: (data && data.custom_points_added) || 0
-        };
-        
-    } catch (error) {
-        console.error('❌ خطا:', error);
-        return { customTotal: 0, customAdded: 0 };
     }
 }
 
@@ -179,7 +146,6 @@ async function getRankingsByClass(className) {
         if (!client) return [];
         
         const classSlug = classNameToSlug(className);
-        console.log('🔍 گرفتن رتبه‌بندی کلاس:', classSlug);
         
         const { data, error } = await client
             .from('rankings')
@@ -194,7 +160,6 @@ async function getRankingsByClass(className) {
             return [];
         }
         
-        console.log('✅ دریافت شد:', data.length, 'نفر');
         return data || [];
         
     } catch (error) {
@@ -217,7 +182,7 @@ async function getAllStudents() {
             .order('total_points', { ascending: false });
         
         if (error) {
-            console.error('❌ خطا در گرفتن دانش‌آموزان:', error.message);
+            console.error('❌ خطا:', error.message);
             return [];
         }
         
@@ -248,7 +213,6 @@ async function getMyRank() {
             data: rankings[myIndex]
         };
     } catch (error) {
-        console.error('❌ خطا:', error);
         return null;
     }
 }
@@ -256,7 +220,6 @@ async function getMyRank() {
 // ============================================================
 // پیام‌های کلاسی
 // ============================================================
-
 async function sendClassMessageToSupabase(data) {
     try {
         const client = getSupabase();
@@ -278,15 +241,13 @@ async function sendClassMessageToSupabase(data) {
             .select();
         
         if (error) {
-            console.error('❌ خطا در ارسال پیام کلاسی:', error.message);
+            console.error('❌ خطا:', error.message);
             return { success: false, error: error.message };
         }
         
-        console.log('✅ پیام کلاسی ارسال شد');
         return { success: true, data: result };
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return { success: false, error: error.message };
     }
 }
@@ -309,15 +270,10 @@ async function getClassMessagesFromSupabase(className) {
         
         const { data, error } = await query;
         
-        if (error) {
-            console.error('❌ خطا:', error.message);
-            return [];
-        }
-        
+        if (error) return [];
         return data || [];
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return [];
     }
 }
@@ -325,7 +281,6 @@ async function getClassMessagesFromSupabase(className) {
 // ============================================================
 // پیام‌های شخصی (چت)
 // ============================================================
-
 async function sendPersonalMessageToSupabase(data) {
     try {
         const client = getSupabase();
@@ -348,16 +303,10 @@ async function sendPersonalMessageToSupabase(data) {
             .insert(payload)
             .select();
         
-        if (error) {
-            console.error('❌ خطا در ارسال پیام:', error.message);
-            return { success: false, error: error.message };
-        }
-        
-        console.log('✅ پیام ارسال شد');
+        if (error) return { success: false, error: error.message };
         return { success: true, data: result };
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return { success: false, error: error.message };
     }
 }
@@ -373,15 +322,10 @@ async function getPersonalMessages(studentId) {
             .eq('student_id', studentId)
             .order('date', { ascending: true });
         
-        if (error) {
-            console.error('❌ خطا:', error.message);
-            return [];
-        }
-        
+        if (error) return [];
         return data || [];
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return [];
     }
 }
@@ -396,10 +340,7 @@ async function getStudentConversationsFromSupabase() {
             .select('*')
             .order('date', { ascending: true });
         
-        if (error) {
-            console.error('❌ خطا:', error.message);
-            return [];
-        }
+        if (error) return [];
         
         const conversationsMap = {};
         
@@ -462,7 +403,6 @@ async function getStudentConversationsFromSupabase() {
         return conversations;
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return [];
     }
 }
@@ -470,7 +410,6 @@ async function getStudentConversationsFromSupabase() {
 // ============================================================
 // علامت‌گذاری پیام‌ها
 // ============================================================
-
 async function markAllMessagesAsSeenSupabase(studentId, reader) {
     try {
         const client = getSupabase();
@@ -485,15 +424,10 @@ async function markAllMessagesAsSeenSupabase(studentId, reader) {
             .eq('sender', senderToMark)
             .eq('is_seen', false);
         
-        if (error) {
-            console.error('❌ خطا:', error.message);
-            return { success: false, error: error.message };
-        }
-        
+        if (error) return { success: false, error: error.message };
         return { success: true };
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return { success: false };
     }
 }
@@ -501,7 +435,6 @@ async function markAllMessagesAsSeenSupabase(studentId, reader) {
 // ============================================================
 // رویدادها
 // ============================================================
-
 async function addEventToSupabase(data) {
     try {
         const client = getSupabase();
@@ -516,10 +449,7 @@ async function addEventToSupabase(data) {
             description: data.description || ''
         };
         
-        const { error } = await client
-            .from('events')
-            .insert(payload);
-        
+        const { error } = await client.from('events').insert(payload);
         if (error) return { success: false, error: error.message };
         return { success: true };
         
@@ -549,7 +479,6 @@ async function getEventsFromSupabase() {
 // ============================================================
 // مسابقات
 // ============================================================
-
 async function addContestToSupabase(data) {
     try {
         const client = getSupabase();
@@ -564,10 +493,7 @@ async function addContestToSupabase(data) {
             description: data.description || ''
         };
         
-        const { error } = await client
-            .from('contests')
-            .insert(payload);
-        
+        const { error } = await client.from('contests').insert(payload);
         if (error) return { success: false, error: error.message };
         return { success: true };
         
@@ -597,7 +523,6 @@ async function getContestsFromSupabase() {
 // ============================================================
 // کتابخانه
 // ============================================================
-
 async function addLibraryToSupabase(data) {
     try {
         const client = getSupabase();
@@ -611,10 +536,7 @@ async function addLibraryToSupabase(data) {
             description: data.description || ''
         };
         
-        const { error } = await client
-            .from('library')
-            .insert(payload);
-        
+        const { error } = await client.from('library').insert(payload);
         if (error) return { success: false, error: error.message };
         return { success: true };
         
@@ -644,7 +566,6 @@ async function getLibraryFromSupabase() {
 // ============================================================
 // Realtime
 // ============================================================
-
 let personalRealtimeChannel = null;
 let classRealtimeChannel = null;
 let conversationsRealtimeChannel = null;
@@ -663,19 +584,14 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
         
         personalRealtimeChannel = client
             .channel(channelName)
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'personal_messages',
-                    filter: `student_id=eq.${studentId}`
-                },
-                (payload) => {
-                    console.log('📨 Realtime: پیام شخصی:', payload.eventType);
-                    if (typeof onNewMessage === 'function') onNewMessage(payload);
-                }
-            )
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'personal_messages',
+                filter: `student_id=eq.${studentId}`
+            }, (payload) => {
+                if (typeof onNewMessage === 'function') onNewMessage(payload);
+            })
             .subscribe((status) => {
                 console.log('📡 Personal Realtime:', status);
             });
@@ -683,7 +599,6 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
         return personalRealtimeChannel;
         
     } catch (error) {
-        console.error('❌ خطا در Personal Realtime:', error);
         return null;
     }
 }
@@ -703,18 +618,13 @@ function subscribeToClassMessages(className, onNewMessage) {
         
         classRealtimeChannel = client
             .channel(channelName)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'class_messages'
-                },
-                (payload) => {
-                    console.log('📢 Realtime: پیام کلاسی:', payload.eventType);
-                    if (typeof onNewMessage === 'function') onNewMessage(payload);
-                }
-            )
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'class_messages'
+            }, (payload) => {
+                if (typeof onNewMessage === 'function') onNewMessage(payload);
+            })
             .subscribe((status) => {
                 console.log('📡 Class Realtime:', status);
             });
@@ -722,7 +632,6 @@ function subscribeToClassMessages(className, onNewMessage) {
         return classRealtimeChannel;
         
     } catch (error) {
-        console.error('❌ خطا در Class Realtime:', error);
         return null;
     }
 }
@@ -741,18 +650,13 @@ function subscribeToConversations(onChange) {
         
         conversationsRealtimeChannel = client
             .channel(channelName)
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'personal_messages'
-                },
-                (payload) => {
-                    console.log('💬 Realtime: مکالمه:', payload.eventType);
-                    if (typeof onChange === 'function') onChange(payload);
-                }
-            )
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'personal_messages'
+            }, (payload) => {
+                if (typeof onChange === 'function') onChange(payload);
+            })
             .subscribe((status) => {
                 console.log('📡 Conversations Realtime:', status);
             });
@@ -760,7 +664,6 @@ function subscribeToConversations(onChange) {
         return conversationsRealtimeChannel;
         
     } catch (error) {
-        console.error('❌ خطا در Conversations Realtime:', error);
         return null;
     }
 }
@@ -776,11 +679,7 @@ function unsubscribeAll() {
         classRealtimeChannel = null;
         conversationsRealtimeChannel = null;
         
-        console.log('📴 همه اتصال‌های Realtime قطع شد');
-        
-    } catch (error) {
-        console.error('❌ خطا:', error);
-    }
+    } catch (error) {}
 }
 
 // ============================================================
@@ -798,9 +697,7 @@ async function testConnection() {
             .select('count')
             .limit(1);
         
-        if (error) {
-            return { success: false, error: error.message };
-        }
+        if (error) return { success: false, error: error.message };
         
         return { 
             success: true, 

@@ -1,21 +1,65 @@
 // ============================================================
 // lessons.js — سیستم تکالیف (لیست، فیلتر، جزئیات، شروع)
-// نسخه: ۳.۰.۰ — با مودال ادامه یا شروع مجدد
+// نسخه: ۴.۰.۰ — با پشتیبانی از مهلت سفارشی معلم
 // ============================================================
 
-// متغیرهای سراسری تکالیف
 let allLessons = [];
 let currentLesson = null;
 let currentFilter = 'all';
 let isPracticeMode = false;
 let pendingLessonId = null;
 let searchQuery = '';
+let customLessonStatus = {};
+
+// ============================================================
+// بارگذاری وضعیت تکالیف از Supabase
+// ============================================================
+async function loadCustomLessonStatus() {
+    try {
+        const studentId = localStorage.getItem('studentUUID');
+        if (!studentId) {
+            customLessonStatus = {};
+            return;
+        }
+        if (typeof getStudentLessonStatus === 'function') {
+            customLessonStatus = await getStudentLessonStatus(studentId);
+            console.log('📋 وضعیت تکالیف از Supabase:', customLessonStatus);
+        } else {
+            customLessonStatus = {};
+        }
+    } catch (error) {
+        console.error('خطا در بارگذاری وضعیت تکالیف:', error);
+        customLessonStatus = {};
+    }
+}
+
+// ============================================================
+// گرفتن مهلت واقعی تکلیف (سفارشی یا پیش‌فرض)
+// ============================================================
+function getEffectiveDueDate(lesson) {
+    const custom = customLessonStatus[lesson.id];
+    if (custom && custom.custom_due_date) {
+        return custom.custom_due_date;
+    }
+    return lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+}
+
+// ============================================================
+// چک کردن فعال/غیرفعال بودن تکلیف
+// ============================================================
+function isLessonEnabled(lesson) {
+    const custom = customLessonStatus[lesson.id];
+    if (!custom) return true;
+    return custom.is_enabled !== false;
+}
 
 // ============================================================
 // بارگذاری لیست تکالیف
 // ============================================================
 async function loadLessonsList() {
     try {
+        await loadCustomLessonStatus();
+        
         const response = await fetch('./lessons/index.json');
         if (!response.ok) throw new Error('خطا در بارگذاری');
         const data = await response.json();
@@ -66,16 +110,21 @@ function renderLessonsList() {
     let lessonsToShow = allLessons.map((lesson, index) => {
         const isCompleted = completedLessonIds.includes(lesson.id);
         const isPaused = currentProgress && currentProgress.lessonId === lesson.id;
-        const lessonDueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+        const lessonDueDate = getEffectiveDueDate(lesson);
         const expired = isExpired(lessonDueDate);
         const isNearDeadline = !expired && !isCompleted && isDeadlineNear(lessonDueDate);
+        const isEnabled = isLessonEnabled(lesson);
         return {
             ...lesson, isCompleted, isPaused, isExpired: expired, isNearDeadline,
+            isEnabled,
             colorIndex: index % 6,
             taskTitle: lesson.title || LESSON_TITLES[index] || `تکلیف ${toPersianNum(index + 1)}`,
             dueDate: lessonDueDate
         };
     });
+    
+    lessonsToShow = lessonsToShow.filter(l => l.isEnabled || l.isCompleted);
+    
     if (currentFilter === 'completed') lessonsToShow = lessonsToShow.filter(l => l.isCompleted);
     else if (currentFilter === 'in-progress') lessonsToShow = lessonsToShow.filter(l => !l.isCompleted);
     if (searchQuery) {
@@ -172,12 +221,12 @@ function openLessonDetail(lessonId) {
     const isCompleted = reports.some(r => r.lessonId === lessonId);
     const currentProgress = getCurrentProgress();
     const isPaused = currentProgress && currentProgress.lessonId === lessonId;
-    const dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+    const dueDate = getEffectiveDueDate(lesson);
     const expired = isExpired(dueDate);
     const isNearDeadline = !expired && !isCompleted && isDeadlineNear(dueDate);
     const activityCount = lesson.activityCount || 10;
     const estimatedTime = lesson.estimatedTime || 10;
-    const description = lesson.description || 'در این تکلیف، با واژگان جدید، ترجمه و عبارات مهم درس اول آشنا می‌شوید. موفق باشید!';
+    const description = lesson.description || 'در این تکلیف، با واژگان جدید، ترجمه و عبارات مهم درس آشنا می‌شوید. موفق باشید!';
     let expiredWarningHTML = '';
     if (expired && !isCompleted) {
         expiredWarningHTML = `
@@ -252,17 +301,12 @@ function openLessonDetail(lessonId) {
 }
 
 // ============================================================
-// 🆕 ذخیره پیشرفت تکلیف (با اعتبارسنجی)
+// ذخیره پیشرفت تکلیف
 // ============================================================
 function saveCurrentProgress() {
     if (!currentLesson) return;
-    
     const totalQuestions = currentLesson.questions.length;
-    if (currentQuestionIndex >= totalQuestions) {
-        console.log('⚠️ questionIndex از تعداد سوالات بیشتره - ذخیره نمیشه');
-        return;
-    }
-    
+    if (currentQuestionIndex >= totalQuestions) return;
     const progress = {
         lessonId: currentLesson.lessonId,
         questionIndex: currentQuestionIndex,
@@ -274,74 +318,53 @@ function saveCurrentProgress() {
         totalQuestions: totalQuestions,
         lessonTitle: currentLesson.title
     };
-    
     localStorage.setItem('currentLessonProgress', JSON.stringify(progress));
-    console.log('💾 Progress ذخیره شد:', progress);
 }
 
-// ============================================================
-// 🆕 بازیابی پیشرفت
-// ============================================================
 function getCurrentProgress() {
     const data = localStorage.getItem('currentLessonProgress');
     if (!data) return null;
     try { return JSON.parse(data); } catch(e) { return null; }
 }
 
-// ============================================================
-// 🆕 پاک کردن پیشرفت
-// ============================================================
 function clearCurrentProgress() {
     localStorage.removeItem('currentLessonProgress');
-    console.log('🗑️ Progress پاک شد');
 }
 
 // ============================================================
-// 🆕 شروع تکلیف (با مودال ادامه یا از اول)
+// شروع تکلیف
 // ============================================================
 async function startLesson(lessonId) {
     const lesson = allLessons.find(l => l.id === lessonId);
-    const dueDate = lesson ? (lesson.dueDate || '۱۴۰۵/۰۹/۱۵') : null;
+    const dueDate = lesson ? getEffectiveDueDate(lesson) : null;
     const expired = isExpired(dueDate);
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const alreadyDone = reports.some(r => r.lessonId === lessonId);
     
-    // منقضی شده و قبلاً انجام نداده
     if (expired && !alreadyDone) {
         clearCurrentProgress();
         await runLesson(lessonId, true, 0, true);
         return;
     }
-    
-    // قبلاً انجام داده (تمرین مجدد)
     if (alreadyDone) {
         pendingLessonId = lessonId;
         document.getElementById('repeat-modal').classList.add('active');
         return;
     }
-    
-    // 🆕 اگه progress قبلی هست، مودال نشون بده
     const progress = getCurrentProgress();
     if (progress && progress.lessonId === lessonId) {
         showResumeModal(lessonId, progress);
         return;
     }
-    
-    // شروع از صفر
     clearCurrentProgress();
     await runLesson(lessonId, false, 0);
 }
 
-// ============================================================
-// 🆕 مودال "ادامه یا از اول"
-// ============================================================
 function showResumeModal(lessonId, progress) {
     const answeredCount = progress.questionIndex;
     const totalQuestions = progress.totalQuestions || 12;
-    
     const existing = document.getElementById('resume-modal');
     if (existing) existing.remove();
-    
     const modal = document.createElement('div');
     modal.id = 'resume-modal';
     modal.className = 'exit-modal-overlay active';

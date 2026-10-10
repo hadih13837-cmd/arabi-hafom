@@ -1,6 +1,6 @@
 // ============================================================
 // navigation.js — ناوبری، منو، مودال‌ها، راهنما، تم
-// نسخه: ۷.۰.۰ — با پشتیبانی از جزوه و کلمات
+// نسخه: ۸.۰.۰ — رفع خطای bgMusic + پشتیبانی از جزوه
 // ============================================================
 
 // ============================================================
@@ -26,7 +26,7 @@ function openClipsPage() {
 }
 
 // ============================================================
-// 🆕 رفتن به صفحه جزوه و کلمات
+// رفتن به صفحه جزوه و کلمات
 // ============================================================
 function openJozvePage() {
     sessionStorage.setItem('cameFromClips', 'true');
@@ -88,12 +88,21 @@ function goToScreen(screenId, addToHistory = true) {
     
     if (addToHistory) pushHistory(screenId);
     
-    if (['screen-quiz', 'screen-feedback', 'screen-result'].includes(screenId)) {
-        if (bgMusic && !bgMusic.paused) bgMusic.pause();
-    } else {
-        if (musicStarted && !isMuted && localStorage.getItem('musicEnabled') !== 'false') {
-            bgMusic.play().catch(e => console.log(e));
+    // 🆕 مدیریت موسیقی پس‌زمینه (با محافظت از خطا)
+    try {
+        if (typeof bgMusic !== 'undefined' && bgMusic) {
+            if (['screen-quiz', 'screen-feedback', 'screen-result'].includes(screenId)) {
+                if (!bgMusic.paused) bgMusic.pause();
+            } else {
+                if (typeof musicStarted !== 'undefined' && musicStarted && 
+                    typeof isMuted !== 'undefined' && !isMuted && 
+                    localStorage.getItem('musicEnabled') !== 'false') {
+                    bgMusic.play().catch(e => console.log(e));
+                }
+            }
         }
+    } catch (e) {
+        console.warn('⚠️ خطا در مدیریت موسیقی:', e);
     }
     
     if (screenId === 'screen-lessons') {
@@ -105,11 +114,10 @@ function goToScreen(screenId, addToHistory = true) {
     if (screenId === 'screen-medals') loadMedals();
     if (screenId === 'screen-notifications') loadNotifications();
     
-    // 🆕 صفحه رتبه‌بندی + راهنما
+    // صفحه رتبه‌بندی + راهنما
     if (screenId === 'screen-rankings') {
         loadRankingsPage();
         
-        // 🆕 نمایش راهنمای رتبه‌بندی (فقط بار اول)
         if (typeof checkAndShowRankingsGuide === 'function') {
             setTimeout(() => checkAndShowRankingsGuide(), 1500);
         }
@@ -142,14 +150,12 @@ function goToScreen(screenId, addToHistory = true) {
         checkVideoNotification();
         displayStreak();
         
-        // آیکون شناور پیام‌ها
         setTimeout(() => {
             if (typeof checkTeacherMessagesBadge === 'function') {
                 checkTeacherMessagesBadge();
             }
         }, 500);
         
-        // 🆕 چک کردن نوتیفیکیشن پیام‌های معلم
         if (typeof checkAndShowNewMessageNotification === 'function') {
             setTimeout(() => {
                 checkAndShowNewMessageNotification();
@@ -390,7 +396,6 @@ function closeDeleteAccountModal() {
 }
 
 function confirmDeleteAccount() {
-    // 🆕 پاک کردن همه چیز شامل نشانه‌های بروزرسانی
     localStorage.clear();
     
     caches.keys().then(names => names.forEach(name => caches.delete(name)));
@@ -426,8 +431,16 @@ function confirmResetSettings() {
     document.getElementById('setting-music').checked = true;
     document.body.classList.remove('dark-mode');
     document.body.removeAttribute('data-theme');
-    bgMusic.volume = 0.9;
-    if (!isMuted) bgMusic.play().catch(e => console.log(e));
+    
+    try {
+        if (typeof bgMusic !== 'undefined' && bgMusic) {
+            bgMusic.volume = 0.9;
+            if (typeof isMuted !== 'undefined' && !isMuted) {
+                bgMusic.play().catch(e => console.log(e));
+            }
+        }
+    } catch (e) {}
+    
     closeResetSettingsModal();
     showModal('موفق', 'تنظیمات به حالت اولیه بازگشت.', '✅');
 }

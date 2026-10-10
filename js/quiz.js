@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۳.۰.۰ — با ذخیره‌سازی درست progress
+// نسخه: ۵.۰.۰ — با تصادفی‌سازی گزینه‌ها + image-question + reading-comprehension
 // ============================================================
 
 // متغیرهای سراسری سوالات
@@ -19,6 +19,8 @@ let playingAudioIndex = -1;
 let matchedAudioPairs = [];
 let selectedErrorWord = null;
 let surveyAnswerText = '';
+let selectedFillWord = '';
+let currentShuffledOpts = []; // 🆕 ذخیره گزینه‌های تصادفی‌شده فعلی
 
 // متغیرهای match-flip
 let flippedCards = [];
@@ -72,7 +74,7 @@ function playAudioFromVideo(videoUrl, btnElement) {
 }
 
 // ============================================================
-// 🆕 اجرای تکلیف (با ریست کامل شمارنده‌ها)
+// اجرای تکلیف
 // ============================================================
 async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracticeMode = false) {
     try {
@@ -86,7 +88,6 @@ async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracti
         const lessonIndex = allLessons.findIndex(l => l.id === lessonId);
         const taskTitle = lessonMeta.title || LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
         
-        // 🆕 اگه startFromIndex > 0 (ادامه)، مقادیر رو از progress بگیر
         if (startFromIndex > 0 && !forcePracticeMode) {
             const progress = getCurrentProgress();
             if (progress && progress.lessonId === lessonId) {
@@ -96,8 +97,6 @@ async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracti
                 wrongCount = progress.wrongCount || 0;
                 isPracticeMode = progress.isPracticeMode || false;
                 startTime = progress.startTime ? new Date(progress.startTime) : new Date();
-                console.log('▶️ ادامه از سوال:', currentQuestionIndex + 1);
-                console.log('📊 شمارنده‌ها:', { correct: correctCount, wrong: wrongCount, score: score });
             } else {
                 currentQuestionIndex = 0;
                 score = 0;
@@ -105,17 +104,14 @@ async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracti
                 wrongCount = 0;
                 isPracticeMode = practiceMode || forcePracticeMode;
                 startTime = new Date();
-                console.log('🆕 شروع از صفر (progress نبود)');
             }
         } else {
-            // 🆕 شروع از صفر
             currentQuestionIndex = 0;
             score = 0;
             correctCount = 0;
             wrongCount = 0;
             isPracticeMode = practiceMode || forcePracticeMode;
             startTime = new Date();
-            console.log('🆕 شروع از صفر');
         }
         
         goToScreen('screen-quiz');
@@ -152,6 +148,8 @@ function renderQuestion() {
     matchedAudioPairs = [];
     selectedErrorWord = null;
     surveyAnswerText = '';
+    selectedFillWord = '';
+    currentShuffledOpts = []; // 🆕 ریست گزینه‌های تصادفی
     
     flippedCards = [];
     matchedFlipPairs = 0;
@@ -164,22 +162,89 @@ function renderQuestion() {
     submitBtn.disabled = false;
     submitBtn.textContent = 'بررسی سوال';
     
-    // 🆕 ذخیره progress بعد از رندر
     saveCurrentProgress();
     
     const qType = q.type || 'multiple';
-    const iconData = QUESTION_ICONS[qType] || QUESTION_ICONS.multiple;
+    const iconData = QUESTION_ICONS[qType] || QUESTION_ICONS.multiple || { class: 'qti-test', svg: '' };
     let html = '';
 
-    if (q.type === 'fill') {
-        html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
-        html += `<div class="fill-blank-sentence">${q.sentence.replace('______', '<span class="blank" id="blank-slot"></span>')}</div>`;
+    // 🆕 سوال تصویری (image-question)
+    if (q.type === 'image-question') {
+        html += `<div class="question-text">
+            <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+            <div class="question-text-text">${q.question}</div>
+        </div>`;
+        
+        // اگه جمله عربی داره (مثل سوال ۸)
+        if (q.arabicSentence) {
+            html += `<div class="arabic-question-box">
+                <div class="arabic-question-text">${q.arabicSentence}</div>
+            </div>`;
+        }
+        
+        // کادر تصویر (ایموجی)
+        html += `<div class="image-question-box">
+            <span class="image-question-emoji">${q.image || '❓'}</span>
+        </div>`;
+        
+        // 🆕 گزینه‌های تصادفی
+        currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
         html += `<div class="options-grid">`;
-        q.options.forEach((opt, index) => {
-            html += `<div class="option-btn" onclick="selectFillOption(this, '${opt}', ${index})">${opt}</div>`;
+        currentShuffledOpts.forEach((item, displayIdx) => {
+            html += `<div class="option-btn" onclick="selectOption(this, ${displayIdx})">${item.opt}</div>`;
         });
         html += `</div>`;
-    } 
+    }
+    // 🆕 درک مطلب (reading-comprehension)
+    else if (q.type === 'reading-comprehension') {
+        html += `<div class="question-text">
+            <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+            <div class="question-text-text">${q.question}</div>
+        </div>`;
+        
+        // کادر متن عربی
+        if (q.arabicText) {
+            html += `<div class="reading-text-box">
+                <div class="reading-text-content">${q.arabicText.replace(/\n/g, '<br>')}</div>
+            </div>`;
+        }
+        
+        // سوال فرعی
+        if (q.subQuestion) {
+            html += `<div class="reading-subquestion">${q.subQuestion}</div>`;
+        }
+        
+        // 🆕 گزینه‌های تصادفی
+        currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
+        html += `<div class="options-grid">`;
+        currentShuffledOpts.forEach((item, displayIdx) => {
+            html += `<div class="option-btn" onclick="selectOption(this, ${displayIdx})">${item.opt}</div>`;
+        });
+        html += `</div>`;
+    }
+    // جای خالی (fill)
+    else if (q.type === 'fill') {
+        html += `<div class="question-text">
+            <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+            <div class="question-text-text">${q.question}</div>
+        </div>`;
+        
+        // جمله با جای خالی
+        html += `<div class="fill-blank-container">
+            <div class="fill-blank-sentence" id="fill-sentence">
+                ${q.sentence.replace('.......', '<span class="blank-slot" id="blank-slot"></span>').replace('______', '<span class="blank-slot" id="blank-slot"></span>')}
+            </div>
+        </div>`;
+        
+        // 🆕 گزینه‌های تصادفی
+        currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
+        html += `<div class="options-grid">`;
+        currentShuffledOpts.forEach((item, displayIdx) => {
+            html += `<div class="option-btn" onclick="selectFillOption(this, '${item.opt}', ${displayIdx})">${item.opt}</div>`;
+        });
+        html += `</div>`;
+    }
+    // audio-match
     else if (q.type === 'audio-match') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -204,7 +269,8 @@ function renderQuestion() {
         }
         html += `</div>`;
         html += `<div class="audio-hint">👆 اول روی <span class="highlight">دکمه صدا</span> بزن، بعد <span class="highlight">کلمه فارسی</span> متناظرش رو انتخاب کن</div>`;
-    } 
+    }
+    // find-error
     else if (q.type === 'find-error') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -218,7 +284,8 @@ function renderQuestion() {
         html += `</div>`;
         html += `<div class="audio-hint">👆 روی کلمه‌ای که فکر می‌کنی <span class="highlight">اشتباه</span> است، کلیک کن</div>`;
         html += `</div>`;
-    } 
+    }
+    // word-build
     else if (q.type === 'word-build') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -240,12 +307,13 @@ function renderQuestion() {
         html += `<div class="word-build-result" id="word-build-result">کلمات رو اینجا بچین (برای برگرداندن کلیک کن)</div>`;
         html += `<div class="word-build-options" id="word-build-options">`;
         const shuffledWB = shuffleArray([...q.words]);
-        shuffledWB.forEach((word, index) => {
+        shuffledWB.forEach((word) => {
             html += `<div class="word-build-item" onclick="selectWordBuild(this, '${word}')">${word}</div>`;
         });
         html += `</div>`;
         html += `<div class="audio-hint">👆 کلمات رو به ترتیب درست بچین تا جمله ساخته بشه</div>`;
-    } 
+    }
+    // survey
     else if (q.type === 'survey') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -255,7 +323,8 @@ function renderQuestion() {
         html += `<textarea id="survey-answer" class="survey-textarea" placeholder="${q.placeholder || 'نظرت رو اینجا بنویس...'}"></textarea>`;
         html += `<div class="audio-hint">💬 نظرت برامون مهمه! هرچی بنویسی قبوله ✨</div>`;
         html += `</div>`;
-    } 
+    }
+    // match-flip
     else if (q.type === 'match-flip') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -282,7 +351,8 @@ function renderQuestion() {
         });
         html += `</div>`;
         html += `<div class="match-flip-status" id="match-flip-status">جفت‌های پیدا شده: ۰ از ${toPersianNum(totalFlipPairs)}</div>`;
-    } 
+    }
+    // word-attach
     else if (q.type === 'word-attach') {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -305,13 +375,19 @@ function renderQuestion() {
         html += `<div class="audio-hint">👆 روی ضمیر درست کلیک کن تا به کلمه بچسبه</div>`;
         html += `</div>`;
     }
+    // بقیه سوالات (multiple, match, order, image, truefalse, translation)
     else {
-        html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
+        html += `<div class="question-text">
+            <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+            <div class="question-text-text">${q.question}</div>
+        </div>`;
 
         if (q.type === 'multiple') {
+            // 🆕 گزینه‌های تصادفی
+            currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
             html += `<div class="options-grid">`;
-            q.options.forEach((opt, index) => {
-                html += `<div class="option-btn" onclick="selectOption(this, ${index})">${opt}</div>`;
+            currentShuffledOpts.forEach((item, displayIdx) => {
+                html += `<div class="option-btn" onclick="selectOption(this, ${displayIdx})">${item.opt}</div>`;
             });
             html += `</div>`;
         } 
@@ -546,21 +622,27 @@ function selectWordBuild(el, word) {
 // ============================================================
 // توابع انتخاب سوالات عادی
 // ============================================================
-function selectOption(el, index) {
+function selectOption(el, displayIdx) {
     if (isAnswered) return;
     vibrate(15);
     document.querySelectorAll('.option-btn, .image-option').forEach(e => e.classList.remove('selected'));
     el.classList.add('selected');
-    selectedOptionIndex = index;
+    selectedOptionIndex = displayIdx;
 }
 
-function selectFillOption(el, word, index) {
+function selectFillOption(el, word, displayIdx) {
     if (isAnswered) return;
     vibrate(15);
     document.querySelectorAll('.option-btn').forEach(e => e.classList.remove('selected'));
     el.classList.add('selected');
-    selectedOptionIndex = index;
-    document.getElementById('blank-slot').textContent = word;
+    selectedOptionIndex = displayIdx;
+    selectedFillWord = word;
+    
+    const slot = document.getElementById('blank-slot');
+    if (slot) {
+        slot.textContent = word;
+        slot.classList.add('filled');
+    }
 }
 
 function selectTF(el, value) {
@@ -632,7 +714,7 @@ function selectOrder(el, word) {
 }
 
 // ============================================================
-// 🆕 بررسی پاسخ (با شمارنده‌های درست)
+// بررسی پاسخ (با پشتیبانی از گزینه‌های تصادفی)
 // ============================================================
 function checkAnswer() {
     if (isAnswered) return;
@@ -640,10 +722,14 @@ function checkAnswer() {
     let isCorrect = false;
     let answerGiven = false;
 
-    if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image') {
+    if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image' || q.type === 'image-question' || q.type === 'reading-comprehension') {
         if (selectedOptionIndex !== -1) {
             answerGiven = true;
-            if (selectedOptionIndex === q.correct) isCorrect = true;
+            // 🆕 تبدیل اندیس نمایش به اندیس اصلی
+            const selectedOriginal = currentShuffledOpts[selectedOptionIndex] 
+                ? currentShuffledOpts[selectedOptionIndex].originalIdx 
+                : selectedOptionIndex;
+            if (selectedOriginal === q.correct) isCorrect = true;
         }
     } 
     else if (q.type === 'truefalse') {
@@ -768,7 +854,6 @@ function checkAnswer() {
     isAnswered = true;
     document.getElementById('submit-btn').disabled = true;
 
-    // 🆕 افزایش شمارنده‌ها **فقط یک بار**
     if (isCorrect) {
         if (!isPracticeMode) score += q.points;
         correctCount++;
@@ -782,7 +867,6 @@ function checkAnswer() {
         showFeedback(false, 0, q);
     }
     
-    // 🆕 ذخیره progress بعد از افزایش شمارنده
     saveCurrentProgress();
 }
 
@@ -790,7 +874,7 @@ function checkAnswer() {
 // گرفتن متن پاسخ صحیح
 // ============================================================
 function getCorrectAnswerText(q) {
-    if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image') return q.options[q.correct];
+    if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image' || q.type === 'image-question' || q.type === 'reading-comprehension') return q.options[q.correct];
     if (q.type === 'truefalse') return q.correct ? 'درست ✓' : 'غلط ✗';
     if (q.type === 'translation') return q.correct;
     if (q.type === 'match') return q.pairs.map(p => `${p.ar} → ${p.fa}`).join('\n');
@@ -1003,7 +1087,6 @@ function showFeedback(isCorrect, points, q) {
 function nextQuestion() {
     currentQuestionIndex++;
     if (currentQuestionIndex < currentLesson.questions.length) {
-        // 🆕 ذخیره progress قبل از رفتن به سوال بعدی
         saveCurrentProgress();
         goToScreen('screen-quiz');
         renderQuestion();
@@ -1046,6 +1129,5 @@ function showResult() {
         if (percent >= 80) showConfetti();
     }
     
-    // 🆕 پاک کردن progress بعد از اتمام
     clearCurrentProgress();
 }
