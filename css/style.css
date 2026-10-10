@@ -8920,3 +8920,232 @@ body.dark-mode .rankings-guide-btn-skip {
     color: #90a4ae;
     border-color: #2a3444;
 }
+/* ============================================================
+   🆕 استایل‌های سوالات تصویری و درک مطلب
+   ============================================================ */
+
+/* کادر تصویر سوال (image-question) */
+.image-question-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+    border: 3px dashed #90caf9;
+    border-radius: 24px;
+    padding: 30px 20px;
+    margin: 15px auto 20px auto;
+    width: 100%;
+    max-width: 300px;
+    min-height: 180px;
+    box-shadow: 0 6px 25px rgba(25, 118, 210, 0.12);
+    position: relative;
+}
+
+.image-question-box::before {
+    content: '🖼️ تصویر';
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: #fff;
+    color: #1976d2;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 3px 12px;
+    border-radius: 20px;
+    border: 2px solid #90caf9;
+}
+
+.image-question-emoji {
+    font-size: 100px;
+    line-height: 1;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.15));
+    animation: imageFloat 3s ease-in-out infinite;
+}
+
+@keyframes imageFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-8px) scale(1.05); }
+}
+
+/* کادر متن عربی برای image-question (مثل سوال ۸) */
+.arabic-question-box {
+    background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+    border: 2px solid #ffc107;
+    border-radius: 18px;
+    padding: 16px 22px;
+    margin: 12px auto;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    position: relative;
+}
+
+.arabic-question-box::before {
+    content: '📝';
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: #fff;
+    padding: 0 6px;
+    font-size: 18px;
+    border-radius: 50%;
+}
+
+.arabic-question-text {
+    font-size: 26px;
+    font-weight: 900;
+    color: #e65100;
+    direction: rtl;
+    line-height: 1.6;
+}
+
+/* کادر متن درک مطلب (reading-comprehension) */
+.reading-text-box {
+    background: linear-gradient(135deg, #ffffff 0%, #f3e5f5 100%);
+    border: 2.5px solid #ce93d8;
+    border-radius: 20px;
+    padding: 20px 24px;
+    margin: 15px auto;
+    max-width: 500px;
+    text-align: right;
+    box-shadow: 0 6px 20px rgba(142, 36, 170, 0.15);
+    position: relative;
+}
+
+.reading-text-box::before {
+    content: '📖 متن عربی';
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: #fff;
+    color: #6a1b9a;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 3px 12px;
+    border-radius: 20px;
+    border: 2px solid #ce93d8;
+}
+
+.reading-text-content {
+    font-size: 20px;
+    font-weight: 900;
+    color: #4a148c;
+    direction: rtl;
+    line-height: 2.2;
+    text-align: center;
+}
+
+/* سوال فرعی درک مطلب */
+.reading-subquestion {
+    text-align: center;
+    font-size: 19px;
+    font-weight: 900;
+    color: #1565c0;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    padding: 12px 20px;
+    border-radius: 16px;
+    margin: 15px auto 18px auto;
+    max-width: 500px;
+    direction: rtl;
+    border: 2px solid #90caf9;
+    box-shadow: 0 3px 12px rgba(25, 118, 210, 0.15);
+}
+
+/* 🆕 کادر جای خالی (fill) — بهبود یافته */
+.fill-blank-container {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2.5px solid #90caf9;
+    border-radius: 20px;
+    padding: 22px 20px;
+    margin: 15px auto;
+    max-width: 500px;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.1);
+    position: relative;
+}
+
+.fill-blank-container::before {
+    content: '✏️ جای خالی';
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: #fff;
+    color: #1976d2;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 3px 12px;
+    border-radius: 20px;
+    border: 2px solid #90caf9;
+}
+
+.fill-blank-sentence {
+    font-size: 24px;
+    font-weight: 900;
+    color: #333;
+    direction: rtl;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-align: center;
+    flex-wrap: wrap;
+    line-height: 1.8;
+}
+
+.fill-blank-sentence .blank-slot {
+    display: inline-block;
+    min-width: 110px;
+    min-height: 40px;
+    border-bottom: 3.5px solid #1976d2;
+    margin: 0 8px;
+    text-align: center;
+    font-size: 22px;
+    color: #1976d2;
+    font-weight: 900;
+    transition: all 0.3s ease;
+    padding: 0 8px;
+    vertical-align: middle;
+}
+
+.fill-blank-sentence .blank-slot.filled {
+    border-bottom-color: #4caf50;
+    color: #2e7d32;
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border-radius: 10px 10px 0 0;
+    animation: slotFill 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slotFill {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ریسپانسیو */
+@media (max-width: 500px) {
+    .image-question-box {
+        max-width: 240px;
+        min-height: 140px;
+        padding: 20px 15px;
+    }
+    .image-question-emoji {
+        font-size: 80px;
+    }
+    .arabic-question-text {
+        font-size: 22px;
+    }
+    .reading-text-content {
+        font-size: 17px;
+        line-height: 2;
+    }
+    .reading-subquestion {
+        font-size: 16px;
+        padding: 10px 15px;
+    }
+    .fill-blank-sentence {
+        font-size: 20px;
+    }
+    .fill-blank-sentence .blank-slot {
+        min-width: 90px;
+        font-size: 19px;
+        min-height: 35px;
+    }
+}
