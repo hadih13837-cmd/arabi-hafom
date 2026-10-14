@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۱۷.۰.۰ — با تمدید مهلت و مدیریت کامل تکالیف
+// نسخه: ۱۷.۱.۰ — با تمدید مهلت بهبود یافته
 // ============================================================
 
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
@@ -25,6 +25,10 @@ function vibrate(pattern = 30) {
     }
 }
 
+function fromPersianNum(str) {
+    return String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+}
+
 let allStudents = [];
 let currentConversations = [];
 let currentChatStudent = null;
@@ -37,6 +41,9 @@ let currentProfileReports = [];
 
 let conversationsChannel = null;
 
+// ============================================================
+// توابع کمکی
+// ============================================================
 function toPersianNum(num) {
     if (num === null || num === undefined) return '۰';
     const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
@@ -62,6 +69,9 @@ function showToast(message, type = 'success') {
     setTimeout(() => { toast.classList.remove('show'); }, 3000);
 }
 
+// ============================================================
+// مدیریت زمان خواندن
+// ============================================================
 function getReadTimes() {
     try { return JSON.parse(localStorage.getItem(READ_TIMES_KEY) || '{}'); } catch (e) { return {}; }
 }
@@ -84,6 +94,9 @@ function computeUnreadForConversation(conv) {
     return parseInt(conv.unread_count) || 0;
 }
 
+// ============================================================
+// کش
+// ============================================================
 function getCachedData(key, duration = MESSAGES_CACHE_DURATION) {
     try {
         const cached = JSON.parse(localStorage.getItem(key) || 'null');
@@ -95,6 +108,9 @@ function setCachedData(key, data) {
     try { localStorage.setItem(key, JSON.stringify({ data: data, timestamp: Date.now() })); } catch (e) {}
 }
 
+// ============================================================
+// رندر آواتار
+// ============================================================
 function renderAvatarHTML(student) {
     const avatarUrl = (student && student.avatar_url) ? String(student.avatar_url).trim() : '';
     if (!avatarUrl || avatarUrl === '' || avatarUrl === 'null' || avatarUrl === 'undefined' || avatarUrl === 'default') {
@@ -116,6 +132,9 @@ function renderAvatarHTML(student) {
     return `<img src="${DEFAULT_AVATAR_URL}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
 }
 
+// ============================================================
+// توابع lesson_status
+// ============================================================
 async function getLessonStatusForStudent(studentId) {
     try {
         const client = getSupabase();
@@ -194,6 +213,9 @@ function calculateTotalPoints(student) {
     return basePoints + customAdded;
 }
 
+// ============================================================
+// ورود
+// ============================================================
 function checkPassword() {
     const input = document.getElementById('login-password').value.trim();
     const savedPassword = localStorage.getItem(TEACHER_PASSWORD_KEY) || DEFAULT_PASSWORD;
@@ -246,6 +268,9 @@ window.addEventListener('load', () => {
     }
 });
 
+// ============================================================
+// Realtime
+// ============================================================
 function startConversationsRealtime() {
     if (conversationsChannel) return;
     if (typeof subscribeToConversations !== 'function') return;
@@ -280,6 +305,9 @@ function stopAllRealtime() {
     }
 }
 
+// ============================================================
+// ناوبری
+// ============================================================
 function navigateToPage(pageId, addToHistory = true) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const page = document.getElementById('page-' + pageId);
@@ -347,6 +375,9 @@ function updateHomeBadgesImmediately() {
     }
 }
 
+// ============================================================
+// صفحه خانه
+// ============================================================
 async function loadHomeData() {
     try {
         const cachedStudents = getCachedData(STUDENTS_CACHE_KEY);
@@ -425,6 +456,9 @@ function switchMessagesTab(tab) {
     else if (tab === 'class') loadClassMessages();
 }
 
+// ============================================================
+// ارسال پیام کلاسی
+// ============================================================
 async function sendClassMessage() {
     const className = document.getElementById('class-message-target').value;
     const title = document.getElementById('class-message-title').value.trim();
@@ -707,6 +741,9 @@ function playDingSound() {
     } catch (e) {}
 }
 
+// ============================================================
+// دانش‌آموزان
+// ============================================================
 async function loadStudents() {
     const container = document.getElementById('students-grid');
     if (!container) return;
@@ -761,6 +798,9 @@ function filterStudents() {
     renderStudents(filtered);
 }
 
+// ============================================================
+// پروفایل دانش‌آموز
+// ============================================================
 async function openStudentProfile(studentId) {
     const student = allStudents.find(s => s.student_id === studentId);
     if (!student) { showToast('دانش‌آموز پیدا نشد', 'error'); return; }
@@ -936,6 +976,9 @@ function renderStudentProfile() {
     `;
 }
 
+// ============================================================
+// باز کردن ویرایشگر مهلت — نسخه بهبود یافته
+// ============================================================
 function openDueDateEditor(lessonId, currentDate, isCustom) {
     if (!currentProfileStudent) return;
     vibrate(15);
@@ -945,38 +988,52 @@ function openDueDateEditor(lessonId, currentDate, isCustom) {
     
     const modal = document.createElement('div');
     modal.id = 'due-date-modal';
-    modal.className = 'exit-modal-overlay active';
+    modal.className = 'due-date-modal-overlay active';
     modal.innerHTML = `
-        <div class="exit-modal-box">
-            <div class="exit-icon-wrapper" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#1976d2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:40px;height:40px;">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="16" y1="2" x2="16" y2="6"/>
-                    <line x1="8" y1="2" x2="8" y2="6"/>
-                    <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
+        <div class="due-date-modal-box">
+            <div class="due-date-modal-header">
+                <div class="due-date-modal-icon">📅</div>
+                <div class="due-date-modal-title">تغییر مهلت تکلیف</div>
+                <div class="due-date-modal-subtitle">تاریخ جدید را به فرمت <strong>۱۴۰۵/۱۰/۲۰</strong> وارد کنید</div>
             </div>
-            <div class="exit-title">📅 تغییر مهلت تکلیف</div>
-            <div class="exit-text" style="text-align: right;">
-                تاریخ مهلت جدید رو به فرمت <strong>۱۴۰۵/۱۰/۲۰</strong> وارد کنید:
-            </div>
-            <div class="edit-field" style="margin-bottom: 20px;">
-                <input type="text" class="edit-field-input" id="new-due-date-input" 
-                       value="${isCustom ? currentDate : ''}" 
-                       placeholder="۱۴۰۵/۱۰/۲۰"
-                       style="text-align: center; font-size: 18px; font-weight: 900; letter-spacing: 2px;">
-            </div>
-            <div class="exit-buttons" style="flex-wrap: wrap; gap: 8px;">
+
+            <div class="due-date-modal-body">
+                <label class="due-date-input-label">تاریخ مهلت جدید:</label>
+                <input 
+                    type="text" 
+                    id="new-due-date-input" 
+                    class="due-date-input" 
+                    value="${isCustom && currentDate ? currentDate : ''}" 
+                    placeholder="۱۴۰۵/۱۰/۲۰"
+                    inputmode="numeric"
+                    dir="ltr"
+                    maxlength="10">
+                
+                <div class="due-date-quick-actions">
+                    <button type="button" class="quick-date-btn" onclick="setQuickDate(7)">+ ۷ روز</button>
+                    <button type="button" class="quick-date-btn" onclick="setQuickDate(14)">+ ۱۴ روز</button>
+                    <button type="button" class="quick-date-btn" onclick="setQuickDate(30)">+ ۳۰ روز</button>
+                </div>
+
                 ${isCustom ? `
-                    <button class="exit-btn-cancel" style="background: #ffebee; color: #c62828; border-color: #ef9a9a;" 
-                            onclick="removeCustomDueDate('${lessonId}')">
-                        حذف مهلت سفارشی
+                    <div class="due-date-current-hint">
+                        <span class="hint-icon">ℹ️</span>
+                        <span class="hint-text">مهلت فعلی (سفارشی): <strong>${currentDate}</strong></span>
+                    </div>
+                ` : ''}
+            </div>
+
+            <div class="due-date-modal-footer">
+                ${isCustom ? `
+                    <button class="due-date-btn due-date-btn-remove" onclick="removeCustomDueDate('${lessonId}')">
+                        🗑️ حذف سفارشی
                     </button>
                 ` : ''}
-                <button class="exit-btn-cancel" onclick="closeDueDateModal()">انصراف</button>
-                <button class="exit-btn-confirm" style="background: linear-gradient(135deg, #4caf50, #2e7d32);" 
-                        onclick="saveDueDate('${lessonId}')">
-                    ذخیره
+                <button class="due-date-btn due-date-btn-cancel" onclick="closeDueDateModal()">
+                    انصراف
+                </button>
+                <button class="due-date-btn due-date-btn-save" onclick="saveDueDate('${lessonId}')">
+                    ✅ ذخیره
                 </button>
             </div>
         </div>
@@ -985,8 +1042,48 @@ function openDueDateEditor(lessonId, currentDate, isCustom) {
     
     setTimeout(() => {
         const input = document.getElementById('new-due-date-input');
-        if (input) input.focus();
-    }, 200);
+        if (input) {
+            input.focus();
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') saveDueDate(lessonId);
+            });
+        }
+    }, 300);
+}
+
+// ============================================================
+// تنظیم تاریخ سریع (افزودن روز)
+// ============================================================
+function setQuickDate(daysToAdd) {
+    const input = document.getElementById('new-due-date-input');
+    if (!input) return;
+    
+    const today = new Date();
+    const persianDate = new Intl.DateTimeFormat('fa-IR', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit' 
+    }).format(today);
+    
+    const parts = persianDate.split('/').map(p => parseInt(fromPersianNum(p)));
+    let year = parts[0];
+    let month = parts[1];
+    let day = parts[2];
+    
+    day += daysToAdd;
+    
+    while (day > 30) {
+        day -= 30;
+        month += 1;
+        if (month > 12) {
+            month = 1;
+            year += 1;
+        }
+    }
+    
+    const newDate = `${toPersianNum(year)}/${toPersianNum(String(month).padStart(2, '0'))}/${toPersianNum(String(day).padStart(2, '0'))}`;
+    input.value = newDate;
+    vibrate(15);
 }
 
 function closeDueDateModal() {
@@ -994,6 +1091,9 @@ function closeDueDateModal() {
     if (modal) modal.remove();
 }
 
+// ============================================================
+// ذخیره تاریخ مهلت
+// ============================================================
 async function saveDueDate(lessonId) {
     if (!currentProfileStudent) return;
     
@@ -1029,6 +1129,9 @@ async function saveDueDate(lessonId) {
     }
 }
 
+// ============================================================
+// حذف مهلت سفارشی
+// ============================================================
 async function removeCustomDueDate(lessonId) {
     if (!currentProfileStudent) return;
     vibrate(15);
@@ -1049,6 +1152,9 @@ async function removeCustomDueDate(lessonId) {
     }
 }
 
+// ============================================================
+// فعال/غیرفعال کردن تکلیف
+// ============================================================
 async function toggleLessonEnabled(lessonId, isEnabled) {
     if (!currentProfileStudent) return;
     vibrate(15);
@@ -1068,6 +1174,9 @@ async function toggleLessonEnabled(lessonId, isEnabled) {
     }
 }
 
+// ============================================================
+// تغییر امتیاز کل
+// ============================================================
 async function changeTotalPoints(delta) {
     if (!currentProfileStudent) return;
     vibrate(15);
@@ -1102,6 +1211,9 @@ function goToChatFromProfile() {
     }, 300);
 }
 
+// ============================================================
+// رتبه‌بندی
+// ============================================================
 function switchRankingClass(className, btn) {
     currentRankingClass = className;
     document.querySelectorAll('.rankings-class-tab').forEach(t => t.classList.remove('active'));
@@ -1155,6 +1267,9 @@ async function loadRankings() {
     }
 }
 
+// ============================================================
+// مدیریت تکالیف
+// ============================================================
 async function loadLessonsPage() {
     const container = document.getElementById('lessons-list');
     if (!container) return;
@@ -1198,6 +1313,9 @@ function renderLessonsList(lessons) {
     container.innerHTML = html;
 }
 
+// ============================================================
+// تقویم
+// ============================================================
 async function addEvent() {
     const title = document.getElementById('event-title').value.trim();
     const date = document.getElementById('event-date').value.trim();
@@ -1256,6 +1374,9 @@ function renderEvents(events) {
     container.innerHTML = html;
 }
 
+// ============================================================
+// مسابقات
+// ============================================================
 async function addContest() {
     const title = document.getElementById('contest-title').value.trim();
     const prize = document.getElementById('contest-prize').value.trim();
@@ -1315,6 +1436,9 @@ function renderContests(contests) {
     container.innerHTML = html;
 }
 
+// ============================================================
+// کتابخانه
+// ============================================================
 async function addLibraryItem() {
     const title = document.getElementById('lib-title').value.trim();
     const type = document.getElementById('lib-type').value;
@@ -1372,6 +1496,9 @@ function renderLibrary(items) {
     container.innerHTML = html;
 }
 
+// ============================================================
+// گزارش‌ها
+// ============================================================
 function downloadAllStudents() {
     if (allStudents.length === 0) { showToast('داده‌ای نیست', 'warning'); return; }
     let csv = '\uFEFF';
@@ -1453,6 +1580,9 @@ function generateFullReport() {
     container.innerHTML = html;
 }
 
+// ============================================================
+// تنظیمات
+// ============================================================
 function changePassword() {
     const newPassword = prompt('رمز جدید:');
     if (newPassword && newPassword.length >= 4) {
@@ -1473,5 +1603,5 @@ function clearCache() {
     }
 }
 
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۷.۰.۰');
-console.log('✅ تمدید مهلت هر تکلیف برای هر دانش‌آموز');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۷.۱.۰');
+console.log('✅ تمدید مهلت با طراحی جدید');
