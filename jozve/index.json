@@ -7,7 +7,30 @@
       "background": "https://cdn.imgurl.ir/uploads/b261969__.png",
       "pdfFile": "https://cdn.imgurl.ir/uploads/t250200_Long_Image_10-06-2026_15.20.pdf",
       "imageFiles": [],
-      "color": "blue"
+      "color": "blue",
+      "subtitleNote": ""
+    },
+    {
+      "id": "lesson2",
+      "title": "جزوه و کلمات درس دوم",
+      "subtitle": "اَلدَّرْسُ الثّانی (فی الصَّف)",
+      "background": "https://cdn.imgurl.ir/uploads/n89037_file_0000000038f482108c02a930dcd0d686.png",
+      "pdfFile": "https://cdn.imgurl.ir/uploads/l5150__-__.pdf",
+      "imageFiles": [],
+      "color": "green",
+      "subtitleNote": ""
+    },
+    {
+      "id": "esm_parse",
+      "title": "تکلیف اسامی پرسشی",
+      "subtitle": "",
+      "background": "https://cdn.imgurl.ir/uploads/g369999_Persian_Question_Words_Worksheet.png",
+      "pdfFile": "",
+      "imageFiles": [
+        "https://cdn.imgurl.ir/uploads/g369999_Persian_Question_Words_Worksheet.png"
+      ],
+      "color": "purple",
+      "subtitleNote": "به صورت A4 سیاه و سفید چاپ و حل شود."
     }
   ]
 }
