@@ -51,7 +51,7 @@
             flex-direction: column;
         }
 
-        /* ============ هدر ============ */
+        /* هدر */
         .clips-header {
             flex-shrink: 0;
             display: flex;
@@ -94,7 +94,7 @@
             color: var(--primary);
         }
 
-        /* ============ محتوا ============ */
+        /* محتوا */
         .clips-content {
             flex: 1;
             overflow-y: auto;
@@ -102,7 +102,7 @@
             padding: 15px 15px 30px 15px;
         }
 
-        /* ============ سرچ ============ */
+        /* سرچ */
         .search-bar-wrapper {
             padding: 12px 0 6px 0;
         }
@@ -144,7 +144,7 @@
             color: #90a4ae;
         }
 
-        /* ============ کارت عربینو ============ */
+        /* کارت عربینو */
         .arabino-card {
             background: #fff;
             border-radius: 24px;
@@ -212,7 +212,7 @@
             font-weight: 900;
         }
 
-        /* ============ آکاردئون ویدیو ============ */
+        /* آکاردئون ویدیو */
         .video-accordion {
             background: #fff;
             border-radius: 18px;
@@ -386,7 +386,7 @@
             border-radius: 16px;
         }
 
-        /* ============ کادر گرافیکی اطلاعات ============ */
+        /* کادر گرافیکی اطلاعات */
         .video-info-card {
             background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
             border-radius: 16px;
@@ -512,10 +512,6 @@
         .badge-blue { background: linear-gradient(135deg, #bbdefb, #90caf9); color: #0d47a1; }
         .badge-green { background: linear-gradient(135deg, #c8e6c9, #a5d6a7); color: #1b5e20; }
         .badge-orange { background: linear-gradient(135deg, #ffe0b2, #ffcc80); color: #e65100; }
-        .badge-red { background: linear-gradient(135deg, #ffcdd2, #ef9a9a); color: #b71c1c; }
-        .badge-teal { background: linear-gradient(135deg, #b2dfdb, #80cbc4); color: #004d40; }
-        .badge-pink { background: linear-gradient(135deg, #f8bbd0, #f48fb1); color: #880e4f; }
-        .badge-yellow { background: linear-gradient(135deg, #fff9c4, #fff176); color: #f57f17; }
 
         /* حالت خالی */
         .report-empty {
@@ -572,7 +568,7 @@
         
         <div id="video-list-container">
             
-            <!-- ویدیو: قواعد (بنفش) -->
+            <!-- ویدیو ۱: کلمه در زبان عربی -->
             <div class="video-accordion" data-title="کلمه در زبان عربی چطوریه" onclick="toggleAccordion(this, event)">
                 <div class="video-accordion-header">
                     <div class="video-accordion-thumb">
@@ -670,10 +666,111 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 🆕 ویدیو ۲: جنسیت در زبان عربی (لینک جدید) -->
+            <div class="video-accordion" data-title="جنسیت در زبان عربی" onclick="toggleAccordion(this, event)">
+                <div class="video-accordion-header">
+                    <div class="video-accordion-thumb">
+                        <img src="https://cdn.imgurl.ir/uploads/x640373____.png" 
+                             alt="جنسیت در زبان عربی" 
+                             onerror="this.src='https://cdn.imgurl.ir/uploads/x99593_InShot_20260909_143524520.png'">
+                        <div class="video-accordion-duration">
+                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span>01:43</span>
+                        </div>
+                    </div>
+                    
+                    <div class="video-accordion-info">
+                        <div class="video-accordion-badge badge-purple">قواعد</div>
+                        <div class="video-accordion-title">جنسیت در زبان عربی 😎</div>
+                        <div class="video-accordion-desc">آشنایی با جنسیت مُذَکَّر و مُؤَنَّث</div>
+                    </div>
+                    
+                    <div class="video-accordion-action">
+                        <div class="video-accordion-arrow">
+                            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="video-accordion-body">
+                    <div class="video-accordion-inner">
+                        <div class="video-frame">
+                            <video 
+                                controls 
+                                playsinline 
+                                preload="metadata"
+                                controlsList="nodownload"
+                                poster="https://cdn.imgurl.ir/uploads/x640373____.png">
+                                <source src="https://cdn.imgurl.ir/uploads/q146593____-.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                        
+                        <div class="video-info-card">
+                            <div class="video-info-title-box">
+                                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                                <div class="video-info-title-text">جنسیت در زبان عربی 😎</div>
+                            </div>
+                            
+                            <div class="video-info-items">
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon purple">
+                                        <svg viewBox="0 0 24 24"><path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">توضیحات کلیپ</div>
+                                        <div class="video-info-item-value">جنسیت در زبان عربی به مذکر و مؤنث تقسیم میشه....</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon purple">
+                                        <svg viewBox="0 0 24 24"><path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/><path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">موضوع کلیپ</div>
+                                        <div class="video-info-item-value">قواعد - جنسیت کلمه</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon blue">
+                                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">مدت زمان</div>
+                                        <div class="video-info-item-value">۱ دقیقه و ۴۳ ثانیه</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon green">
+                                        <svg viewBox="0 0 24 24"><path d="M9 11L12 14L22 4"/><path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">در این کلیپ یاد می‌گیری</div>
+                                        <div class="video-info-item-value">تشخیص جنسیت کلمات</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="video-info-item">
+                                    <div class="video-info-item-icon orange">
+                                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                    </div>
+                                    <div class="video-info-item-content">
+                                        <div class="video-info-item-label">ویژه</div>
+                                        <div class="video-info-item-value">دانش‌آموزان پایه هفتم</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
         </div>
         
-        <!-- حالت خالی اگه سرچ نتیجه نداد -->
+        <!-- حالت خالی -->
         <div id="no-results" class="report-empty" style="display: none;">
             <div class="report-empty-icon">🔍</div>
             <div class="report-empty-text">موردی یافت نشد</div>
@@ -684,7 +781,6 @@
 </div>
 
 <script>
-    // ============ آکاردئون ============
     function toggleAccordion(element, event) {
         if (event && event.target) {
             const tag = event.target.tagName;
@@ -716,7 +812,6 @@
         }
     }
     
-    // ============ سرچ ============
     function searchClips(query) {
         query = query.toLowerCase().trim();
         const accordions = document.querySelectorAll('.video-accordion');

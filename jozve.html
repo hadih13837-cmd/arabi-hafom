@@ -52,7 +52,7 @@
             flex-direction: column;
         }
 
-        /* ============ هدر ============ */
+        /* هدر */
         .jozve-header {
             flex-shrink: 0;
             padding: 18px 20px 12px 20px;
@@ -98,7 +98,7 @@
             color: var(--primary);
         }
 
-        /* ============ سرچ ============ */
+        /* سرچ */
         .jozve-search-wrapper {
             width: 100%;
         }
@@ -145,7 +145,7 @@
             color: #90a4ae;
         }
 
-        /* ============ محتوا ============ */
+        /* محتوا */
         .jozve-content {
             flex: 1;
             overflow-y: auto;
@@ -153,20 +153,19 @@
             padding: 15px;
         }
 
-        /* ============ گرید کارت‌ها (یک به یک) ============ */
+        /* گرید */
         .jozve-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 18px;
         }
 
-        /* ============ کارت (بزرگ، مربعی) ============ */
+        /* کارت */
         .jozve-card {
             aspect-ratio: 1 / 1;
             border-radius: 24px;
             overflow: hidden;
             position: relative;
-            cursor: pointer;
             box-shadow: 0 8px 30px rgba(25, 118, 210, 0.25);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             background: #e3f2fd;
@@ -177,7 +176,6 @@
             box-shadow: 0 6px 20px rgba(25, 118, 210, 0.35);
         }
 
-        /* پس‌زمینه عکس */
         .jozve-card-bg {
             position: absolute;
             top: 0; left: 0;
@@ -189,7 +187,6 @@
             z-index: 1;
         }
 
-        /* گرادیانت روی عکس */
         .jozve-card-overlay {
             position: absolute;
             top: 0; left: 0;
@@ -206,7 +203,6 @@
             pointer-events: none;
         }
 
-        /* عنوان بالای کارت */
         .jozve-card-title-wrapper {
             position: absolute;
             top: 16px;
@@ -231,7 +227,27 @@
             max-width: 100%;
         }
 
-        /* دکمه‌های پایین کارت */
+        .jozve-card-subtitle-note {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 900;
+            padding: 8px 14px;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(245, 124, 0, 0.4);
+            line-height: 1.4;
+            margin-top: 8px;
+            max-width: 100%;
+            animation: notePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes notePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        /* دکمه‌ها */
         .jozve-card-actions {
             position: absolute;
             bottom: 16px;
@@ -316,7 +332,39 @@
             line-height: 1.7;
         }
 
-        /* ============ صفحه‌ی مشاهده (Inline Preview) ============ */
+        /* Loading */
+        .jozve-loading {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 80px 20px !important;
+            gap: 20px !important;
+        }
+
+        .jozve-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(25, 118, 210, 0.15);
+            border-top-color: #1976d2;
+            border-right-color: #1976d2;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .jozve-loading-text {
+            font-size: 15px;
+            font-weight: 900;
+            color: #1976d2;
+            text-align: center;
+        }
+
+        /* صفحه مشاهده */
         .jozve-viewer-page {
             position: absolute;
             top: 0; left: 0;
@@ -422,52 +470,6 @@
             stroke-linejoin: round;
         }
 
-        /* تب‌ها */
-        .jozve-viewer-page-tabs {
-            flex-shrink: 0;
-            display: flex;
-            gap: 8px;
-            padding: 10px 16px;
-            background: #f8fbff;
-            border-bottom: 1.5px solid #e3f2fd;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-
-        .jozve-viewer-page-tabs::-webkit-scrollbar {
-            display: none;
-        }
-
-        .jozve-viewer-page-tab {
-            flex-shrink: 0;
-            background: #fff;
-            border: 1.5px solid #e3f2fd;
-            color: #546e7a;
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: 900;
-            cursor: pointer;
-            font-family: 'Vazirmatn', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.2s ease;
-        }
-
-        .jozve-viewer-page-tab.active {
-            background: var(--primary-gradient);
-            border-color: var(--primary);
-            color: #fff;
-            box-shadow: 0 3px 10px rgba(25, 118, 210, 0.5);
-        }
-
-        .jozve-viewer-page-tab:active {
-            transform: scale(0.96);
-        }
-
-        /* بدنه مشاهده */
         .jozve-viewer-page-body {
             flex: 1;
             overflow: auto;
@@ -495,39 +497,7 @@
             background: #fff;
         }
 
-        /* ============ Loading ============ */
-        .jozve-loading {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            padding: 80px 20px !important;
-            gap: 20px !important;
-        }
-
-        .jozve-spinner {
-            width: 60px;
-            height: 60px;
-            border: 5px solid rgba(25, 118, 210, 0.15);
-            border-top-color: #1976d2;
-            border-right-color: #1976d2;
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .jozve-loading-text {
-            font-size: 15px;
-            font-weight: 900;
-            color: #1976d2;
-            text-align: center;
-        }
-
-        /* ============ ریسپانسیو ============ */
+        /* ریسپانسیو */
         @media (min-width: 768px) {
             .jozve-card {
                 max-width: 600px;
@@ -539,6 +509,10 @@
             .jozve-card-title {
                 font-size: 14px;
                 padding: 8px 12px;
+            }
+            .jozve-card-subtitle-note {
+                font-size: 11px;
+                padding: 6px 12px;
             }
             .jozve-card-btn {
                 font-size: 12px;
@@ -562,10 +536,9 @@
 
 <div id="app-container">
     
-    <!-- ============ صفحه اصلی جزوه ============ -->
+    <!-- صفحه اصلی جزوه -->
     <div id="jozve-main-page" style="display: flex; flex-direction: column; width: 100%; height: 100%;">
         
-        <!-- هدر -->
         <div class="jozve-header">
             <div class="jozve-header-title-row">
                 <div class="jozve-header-icon">
@@ -577,7 +550,6 @@
                 <div class="jozve-header-title">جزوه و کلمات</div>
             </div>
             
-            <!-- سرچ -->
             <div class="jozve-search-wrapper">
                 <div class="jozve-search-bar">
                     <svg viewBox="0 0 24 24">
@@ -589,13 +561,12 @@
             </div>
         </div>
         
-        <!-- محتوا -->
         <div class="jozve-content">
             <div class="jozve-grid" id="jozve-grid"></div>
         </div>
     </div>
     
-    <!-- ============ صفحه مشاهده (Inline) ============ -->
+    <!-- صفحه مشاهده -->
     <div class="jozve-viewer-page" id="jozve-viewer-page">
         <div class="jozve-viewer-page-header">
             <button class="jozve-viewer-page-back" onclick="closeJozveViewer()">
@@ -611,8 +582,6 @@
                 دانلود
             </button>
         </div>
-        
-        <div class="jozve-viewer-page-tabs" id="jozve-viewer-page-tabs" style="display: none;"></div>
         
         <div class="jozve-viewer-page-body" id="jozve-viewer-page-body"></div>
     </div>
@@ -650,6 +619,8 @@
             const data = await response.json();
             jozveItems = data.items || [];
             filteredJozveItems = [...jozveItems];
+            
+            console.log('✅ لیست جزوه‌ها لود شد:', jozveItems.length, 'آیتم');
             
             renderJozveGrid();
             
@@ -712,8 +683,36 @@
         filteredJozveItems.forEach((item) => {
             const originalIndex = jozveItems.indexOf(item);
             
+            const hasFile = item.pdfFile || (item.imageFiles && item.imageFiles.length > 0);
+            
+            const subtitleNoteHTML = item.subtitleNote 
+                ? `<div class="jozve-card-subtitle-note">📝 ${item.subtitleNote}</div>` 
+                : '';
+            
+            // دکمه‌ها
+            let buttonsHTML = '';
+            if (hasFile) {
+                buttonsHTML = `
+                    <button class="jozve-card-btn view" onclick="event.stopPropagation(); openJozveViewer(${originalIndex})">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        مشاهده
+                    </button>
+                    <button class="jozve-card-btn download" onclick="event.stopPropagation(); downloadFromCard(${originalIndex})">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        دانلود
+                    </button>
+                `;
+            }
+            
             html += `
-                <div class="jozve-card" onclick="openJozveViewer(${originalIndex})">
+                <div class="jozve-card">
                     <img src="${item.background}" alt="" class="jozve-card-bg" 
                          onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, #1976d2, #6a1b9a)';"
                          loading="lazy">
@@ -722,24 +721,11 @@
                     
                     <div class="jozve-card-title-wrapper">
                         <div class="jozve-card-title">${item.title}</div>
+                        ${subtitleNoteHTML}
                     </div>
                     
                     <div class="jozve-card-actions">
-                        <button class="jozve-card-btn view" onclick="event.stopPropagation(); openJozveViewer(${originalIndex})">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                            مشاهده
-                        </button>
-                        <button class="jozve-card-btn download" onclick="event.stopPropagation(); downloadFromCard(${originalIndex})">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7 10 12 15 17 10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
-                            </svg>
-                            دانلود
-                        </button>
+                        ${buttonsHTML}
                     </div>
                 </div>
             `;
@@ -749,7 +735,7 @@
     }
 
     // ============================================================
-    // 🆕 باز کردن صفحه مشاهده (Inline)
+    // باز کردن صفحه مشاهده
     // ============================================================
     function openJozveViewer(index) {
         const item = jozveItems[index];
@@ -759,7 +745,6 @@
         currentFiles = [];
         currentFileIndex = 0;
         
-        // PDF
         if (item.pdfFile) {
             currentFiles.push({
                 type: 'pdf',
@@ -769,14 +754,13 @@
             });
         }
         
-        // عکس‌های کلمات
         if (item.imageFiles && item.imageFiles.length > 0) {
             item.imageFiles.forEach((url, i) => {
                 currentFiles.push({
                     type: 'image',
-                    title: item.imageFiles.length > 1 ? `کلمات ${i + 1} 📝` : 'کلمات 📝',
+                    title: item.imageFiles.length > 1 ? `تصویر ${i + 1} 📝` : 'تصویر 📝',
                     url: url,
-                    filename: sanitizeFilename(item.title) + '_words_' + (i + 1) + '.png'
+                    filename: sanitizeFilename(item.title) + '_image_' + (i + 1) + '.png'
                 });
             });
         }
@@ -786,31 +770,8 @@
             return;
         }
         
-        // عنوان
         document.getElementById('jozve-viewer-page-title').textContent = item.title;
-        
-        // تب‌ها
-        const tabsEl = document.getElementById('jozve-viewer-page-tabs');
-        if (currentFiles.length > 1) {
-            tabsEl.style.display = 'flex';
-            let tabsHTML = '';
-            currentFiles.forEach((file, i) => {
-                tabsHTML += `
-                    <button class="jozve-viewer-page-tab ${i === 0 ? 'active' : ''}" 
-                            onclick="switchJozveTab(${i})">
-                        ${file.title}
-                    </button>
-                `;
-            });
-            tabsEl.innerHTML = tabsHTML;
-        } else {
-            tabsEl.style.display = 'none';
-        }
-        
-        // نمایش فایل اول
         showJozveFile(0);
-        
-        // نمایش صفحه
         document.getElementById('jozve-viewer-page').classList.add('active');
     }
 
@@ -835,19 +796,10 @@
                 <img src="${file.url}" alt="${file.title}">
             `;
         }
-        
-        document.querySelectorAll('.jozve-viewer-page-tab').forEach((tab, i) => {
-            tab.classList.toggle('active', i === index);
-        });
-    }
-
-    function switchJozveTab(index) {
-        showJozveFile(index);
-        vibrate(15);
     }
 
     // ============================================================
-    // 🆕 دانلود
+    // دانلود (با روش ساده و مطمئن)
     // ============================================================
     function downloadCurrentFile() {
         if (currentFiles.length === 0) return;
@@ -865,25 +817,30 @@
             downloadFile(item.pdfFile, sanitizeFilename(item.title) + '.pdf');
         } 
         else if (item.imageFiles && item.imageFiles.length > 0) {
-            downloadFile(item.imageFiles[0], sanitizeFilename(item.title) + '_words_1.png');
+            downloadFile(item.imageFiles[0], sanitizeFilename(item.title) + '.png');
         }
         
         vibrate(20);
     }
 
-    // 🆕 پاکسازی نام فایل
     function sanitizeFilename(name) {
         if (!name) return 'jozve';
         return name
-            .replace(/[\\/:*?"<>|]/g, '_')  // حذف کاراکترهای غیرمجاز
-            .replace(/\s+/g, '_')            // جایگزینی فاصله با _
-            .substring(0, 100);              // محدودیت طول
+            .replace(/[\\/:*?"<>|]/g, '_')
+            .replace(/\s+/g, '_')
+            .substring(0, 100);
     }
 
-    // 🆕 دانلود فایل
+    // 🆕 دانلود با روش ساده و مطمئن (بدون fetch)
     function downloadFile(url, filename) {
-        fetch(url)
-            .then(response => response.blob())
+        console.log('📥 دانلود:', url, '→', filename);
+        
+        // روش ۱: تلاش برای fetch
+        fetch(url, { mode: 'cors' })
+            .then(response => {
+                if (!response.ok) throw new Error('Network error');
+                return response.blob();
+            })
             .then(blob => {
                 const blobUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -893,16 +850,20 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(blobUrl);
+                console.log('✅ دانلود با fetch موفق');
             })
             .catch(error => {
-                console.warn('fetch نشد، مستقیم دانلود می‌کنم', error);
+                // روش ۲: باز کردن در تب جدید برای دانلود
+                console.warn('⚠️ fetch نشد، روش مستقیم:', error.message);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = filename;
                 a.target = '_blank';
+                a.rel = 'noopener noreferrer';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+                console.log('✅ دانلود مستقیم اجرا شد');
             });
     }
 
@@ -923,7 +884,7 @@
     }
 
     // ============================================================
-    // دکمه back سیستمی
+    // back سیستمی
     // ============================================================
     window.addEventListener('popstate', function() {
         const viewer = document.getElementById('jozve-viewer-page');
@@ -941,6 +902,7 @@
     // شروع
     // ============================================================
     window.addEventListener('load', () => {
+        console.log('🚀 jozve.html - نسخه ۲.۰.۰ (با دکمه مشاهده)');
         loadJozveList();
     });
 </script>
