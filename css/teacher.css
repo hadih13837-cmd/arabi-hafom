@@ -1,6 +1,6 @@
 /* ============================================================
    teacher.css — پنل معلم عربی هفتم
-   نسخه: ۵.۰.۰ — با تمدید مهلت و پروفایل اختصاصی دانش‌آموز
+   نسخه: ۵.۱.۰ — با طراحی جدید مودال تمدید مهلت
    ============================================================ */
 
 @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
@@ -1148,7 +1148,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════
-   🆕 پروفایل اختصاصی دانش‌آموز
+   پروفایل اختصاصی دانش‌آموز
    ══════════════════════════════════════════════════════════ */
 .profile-header-card {
     background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
@@ -1374,7 +1374,7 @@ body {
     border: 1px solid #fdd835;
 }
 
-/* 🆕 کادر تاریخ مهلت */
+/* کادر تاریخ مهلت */
 .profile-lesson-duedate {
     display: flex; align-items: center;
     justify-content: space-between; gap: 10px;
@@ -1426,7 +1426,7 @@ body {
     box-shadow: 0 4px 15px rgba(25, 118, 210, 0.5);
 }
 
-/* 🆕 سوییچ */
+/* سوییچ */
 .profile-lesson-toggle {
     display: flex; align-items: center;
     justify-content: space-between;
@@ -1482,6 +1482,265 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════
+   🆕 مودال تمدید مهلت — طراحی جدید
+   ══════════════════════════════════════════════════════════ */
+.due-date-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9500;
+    padding: 20px;
+    animation: fadeInOverlay 0.3s ease;
+}
+.due-date-modal-overlay.active { display: flex; }
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.due-date-modal-box {
+    background: #ffffff;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+    animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+}
+@keyframes slideUpModal {
+    from { 
+        transform: translateY(50px) scale(0.9); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateY(0) scale(1); 
+        opacity: 1; 
+    }
+}
+
+.due-date-modal-header {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    padding: 24px 20px 20px 20px;
+    border-radius: 24px 24px 0 0;
+    text-align: center;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+.due-date-modal-header::before {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 150px; height: 150px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.due-date-modal-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+    display: block;
+    animation: iconBounceDue 2s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+}
+@keyframes iconBounceDue {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-6px) scale(1.05); }
+}
+.due-date-modal-title {
+    font-size: 20px;
+    font-weight: 900;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.due-date-modal-subtitle {
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+    line-height: 1.7;
+}
+.due-date-modal-subtitle strong {
+    background: rgba(255,255,255,0.25);
+    padding: 2px 10px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 13px;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.due-date-modal-body {
+    padding: 22px 20px 10px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.due-date-input-label {
+    font-size: 13px;
+    font-weight: 900;
+    color: #37474f;
+    text-align: right;
+    margin-bottom: -4px;
+}
+.due-date-input {
+    width: 100%;
+    padding: 16px 18px;
+    border: 2.5px solid #e3f2fd;
+    border-radius: 16px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    text-align: center;
+    outline: none;
+    background: #f8fbff;
+    color: #1976d2;
+    letter-spacing: 3px;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+    direction: ltr;
+}
+.due-date-input:focus {
+    border-color: #1976d2;
+    background: #ffffff;
+    box-shadow: 0 0 0 5px rgba(25, 118, 210, 0.15);
+    transform: scale(1.02);
+}
+.due-date-input::placeholder {
+    color: #b0bec5;
+    letter-spacing: 3px;
+    font-weight: bold;
+}
+
+.due-date-quick-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+.quick-date-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: #1976d2;
+    border: 1.5px solid #90caf9;
+    border-radius: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.quick-date-btn:active {
+    transform: scale(0.95);
+    background: linear-gradient(135deg, #bbdefb, #90caf9);
+}
+.quick-date-btn:hover {
+    background: linear-gradient(135deg, #bbdefb, #90caf9);
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.2);
+}
+
+.due-date-current-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #fff8e1, #fffde7);
+    border: 1.5px solid #ffc107;
+    border-radius: 12px;
+    margin-top: 4px;
+}
+.hint-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.hint-text {
+    font-size: 12px;
+    font-weight: bold;
+    color: #e65100;
+    text-align: right;
+    line-height: 1.6;
+}
+.hint-text strong {
+    color: #bf360c;
+    font-family: monospace;
+    font-size: 13px;
+    background: #fff;
+    padding: 2px 8px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.due-date-modal-footer {
+    padding: 14px 20px 20px 20px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    border-top: 1.5px dashed #e3f2fd;
+    background: #fafcff;
+    border-radius: 0 0 24px 24px;
+}
+.due-date-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 14px 12px;
+    border-radius: 50px;
+    border: none;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 48px;
+}
+.due-date-btn:active {
+    transform: scale(0.96);
+}
+.due-date-btn-cancel {
+    background: #f5f5f5;
+    color: #546e7a;
+    border: 2px solid #e0e0e0;
+}
+.due-date-btn-cancel:hover {
+    background: #eeeeee;
+}
+.due-date-btn-save {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+.due-date-btn-save:hover {
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+}
+.due-date-btn-remove {
+    background: linear-gradient(135deg, #ef5350, #c62828);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(239, 83, 80, 0.4);
+    flex-basis: 100%;
+    margin-bottom: 4px;
+}
+.due-date-btn-remove:hover {
+    box-shadow: 0 6px 20px rgba(239, 83, 80, 0.6);
+}
+
+/* ══════════════════════════════════════════════════════════
    ریسپانسیو
    ══════════════════════════════════════════════════════════ */
 @media (min-width: 768px) {
@@ -1511,4 +1770,52 @@ body {
     .due-date-info { width: 100%; }
     .edit-date-btn { width: 100%; padding: 9px 14px; font-size: 12px; }
     .due-date-value { font-size: 12px; }
+
+    /* مودال تمدید */
+    .due-date-modal-box { max-width: 100%; border-radius: 20px; }
+    .due-date-modal-header { padding: 20px 16px 16px 16px; border-radius: 20px 20px 0 0; }
+    .due-date-modal-icon { font-size: 40px; }
+    .due-date-modal-title { font-size: 17px; }
+    .due-date-modal-subtitle { font-size: 11px; }
+    .due-date-modal-body { padding: 18px 16px 8px 16px; }
+    .due-date-input { font-size: 19px; padding: 14px 14px; }
+    .due-date-modal-footer { padding: 12px 16px 16px 16px; border-radius: 0 0 20px 20px; }
+    .due-date-btn { min-width: 80px; padding: 12px 10px; font-size: 13px; min-height: 44px; }
+    .quick-date-btn { padding: 8px 6px; font-size: 11px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   حالت شب
+   ══════════════════════════════════════════════════════════ */
+body.dark-mode .due-date-modal-box { background: #1a2332; }
+body.dark-mode .due-date-modal-body { background: #1a2332; }
+body.dark-mode .due-date-input {
+    background: #0f1419;
+    border-color: #2a3444;
+    color: #90caf9;
+}
+body.dark-mode .due-date-input:focus {
+    border-color: #1976d2;
+    background: #0f1419;
+}
+body.dark-mode .due-date-input-label { color: #b0bec5; }
+body.dark-mode .quick-date-btn {
+    background: linear-gradient(135deg, #0f1419, #1a2332);
+    border-color: #2a3444;
+    color: #90caf9;
+}
+body.dark-mode .due-date-current-hint {
+    background: linear-gradient(135deg, #3a2a0a, #4a3a1a);
+    border-color: #ffc107;
+}
+body.dark-mode .hint-text { color: #ffcc80; }
+body.dark-mode .hint-text strong { background: #0f1419; color: #ffb74d; }
+body.dark-mode .due-date-modal-footer {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+body.dark-mode .due-date-btn-cancel {
+    background: #2a3444;
+    color: #b0bec5;
+    border-color: #37474f;
 }
