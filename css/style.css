@@ -9149,3 +9149,977 @@ body.dark-mode .rankings-guide-btn-skip {
         min-height: 35px;
     }
 }
+/* ============================================================
+   🆕 استایل input کد ورود
+   ============================================================ */
+
+#welcome-code {
+    text-transform: uppercase !important;
+    letter-spacing: 4px !important;
+    font-weight: 900 !important;
+    text-align: center !important;
+    direction: ltr !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 18px !important;
+    color: #1976d2 !important;
+    background: #f8fbff !important;
+    border: 2px dashed #90caf9 !important;
+}
+
+#welcome-code:focus {
+    border-color: #1976d2 !important;
+    border-style: solid !important;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.15) !important;
+}
+
+#welcome-code::placeholder {
+    letter-spacing: 2px !important;
+    font-size: 14px !important;
+    color: #90a4ae !important;
+    font-weight: normal !important;
+    text-transform: none !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+    direction: rtl !important;
+}
+/* ============================================================
+   🆕 صفحه ورود و ثبت‌نام (دو حالته)
+   ============================================================ */
+
+/* حالت‌های نمایش */
+.welcome-view {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: 100%;
+    padding: 30px 25px 40px 25px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.welcome-view.active {
+    display: flex;
+}
+
+/* ویدیو بالای صفحه */
+#screen-welcome .welcome-video-wrapper {
+    width: 140px !important;
+    height: 140px !important;
+    min-width: 140px !important;
+    min-height: 140px !important;
+    max-width: 140px !important;
+    max-height: 140px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    margin: 0 auto 20px auto !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    box-shadow: 0 8px 25px rgba(25, 118, 210, 0.2) !important;
+}
+
+#screen-welcome .welcome-video-wrapper video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+    display: block !important;
+    mix-blend-mode: multiply !important;
+}
+
+/* عنوان و زیرعنوان */
+.welcome-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--primary, #1976d2);
+    margin: 0 0 10px 0;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    line-height: 1.4;
+}
+
+.welcome-sub {
+    font-size: 13px;
+    color: #546e7a;
+    margin: 0 0 25px 0;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    line-height: 1.7;
+    font-weight: bold;
+}
+
+/* آیکون بالا */
+.welcome-header-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+    text-align: center;
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+/* دکمه بازگشت */
+.welcome-back-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #f0f7ff;
+    border: 1.5px solid #e3f2fd;
+    border-radius: 50px;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--primary, #1976d2);
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.15s ease;
+}
+
+.welcome-back-btn:active {
+    transform: scale(0.95);
+}
+
+.welcome-back-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* دکمه‌های انتخاب */
+.welcome-choice-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 400px;
+    margin: 10px 0 0 0;
+}
+
+.welcome-choice-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 22px;
+    border-radius: 20px;
+    border: 2px solid;
+    background: #fff;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    transition: all 0.2s ease;
+    text-align: right;
+    width: 100%;
+}
+
+.welcome-choice-btn:active {
+    transform: scale(0.97);
+}
+
+.welcome-choice-btn.register-btn {
+    border-color: #a5d6a7;
+    background: linear-gradient(135deg, #f1f8e9, #e8f5e9);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.15);
+}
+
+.welcome-choice-btn.register-btn:hover {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.25);
+}
+
+.welcome-choice-btn.login-btn {
+    border-color: #90caf9;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.15);
+}
+
+.welcome-choice-btn.login-btn:hover {
+    background: linear-gradient(135deg, #bbdefb, #90caf9);
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.25);
+}
+
+.choice-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.1));
+}
+
+.choice-text {
+    flex: 1;
+    text-align: right;
+}
+
+.choice-title {
+    font-size: 17px;
+    font-weight: 900;
+    margin-bottom: 3px;
+}
+
+.register-btn .choice-title {
+    color: #2e7d32;
+}
+
+.login-btn .choice-title {
+    color: #1565c0;
+}
+
+.choice-desc {
+    font-size: 12px;
+    font-weight: bold;
+    color: #607d8b;
+}
+
+/* input کد */
+.welcome-code-wrapper {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 12px;
+}
+
+.welcome-code-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 900;
+    color: #455a64;
+    text-align: right;
+    margin-bottom: 8px;
+    padding-right: 5px;
+}
+
+.welcome-code-input {
+    text-transform: none !important;
+    letter-spacing: 12px !important;
+    font-weight: 900 !important;
+    text-align: center !important;
+    direction: ltr !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 28px !important;
+    color: #1976d2 !important;
+    background: #f8fbff !important;
+    border: 2.5px dashed #90caf9 !important;
+    padding: 16px 18px !important;
+    border-radius: 18px !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.welcome-code-input:focus {
+    border-color: #1976d2 !important;
+    border-style: solid !important;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.15) !important;
+    background: #fff !important;
+}
+
+.welcome-code-input::placeholder {
+    letter-spacing: 2px !important;
+    font-size: 16px !important;
+    color: #90a4ae !important;
+    font-weight: normal !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+}
+
+.welcome-login-code {
+    font-size: 42px !important;
+    letter-spacing: 20px !important;
+    padding: 22px 18px !important;
+    padding-left: 38px !important; /* برای تعادل با letter-spacing */
+}
+
+.welcome-code-hint {
+    font-size: 11px;
+    color: #e65100;
+    background: #fff8e1;
+    border: 1.5px solid #ffc107;
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-weight: bold;
+    line-height: 1.6;
+    text-align: right;
+}
+
+/* input معمولی */
+.welcome-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 14px 18px;
+    border: 2px solid #e0e0e0;
+    border-radius: 50px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    outline: none;
+    background: #fff;
+    margin: 0 0 12px 0;
+    font-family: 'Vazirmatn', sans-serif;
+    box-sizing: border-box;
+    color: #333;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    direction: rtl;
+}
+
+.welcome-input:focus {
+    border-color: var(--primary, #1976d2);
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.15);
+}
+
+.welcome-input::placeholder {
+    color: #90a4ae;
+    font-weight: normal;
+}
+
+select.welcome-input {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2390a4ae' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: left 18px center;
+    background-size: 18px;
+    padding-left: 45px;
+    cursor: pointer;
+}
+
+/* دکمه ورود/ثبت‌نام */
+.welcome-btn {
+    background: var(--primary-gradient, linear-gradient(135deg, #1976d2 0%, #1565c0 100%));
+    color: #fff;
+    border: none;
+    padding: 16px 30px;
+    border-radius: 50px;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+    font-family: 'Vazirmatn', sans-serif;
+    margin: 15px 0 0 0;
+    box-sizing: border-box;
+    min-height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.15s ease;
+}
+
+.welcome-btn:active {
+    transform: scale(0.97);
+}
+
+.login-submit-btn {
+    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    margin-top: 20px;
+}
+
+/* حالت شب */
+body.dark-mode #screen-welcome {
+    background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%);
+}
+
+body.dark-mode .welcome-view {
+    background: transparent;
+}
+
+body.dark-mode .welcome-input {
+    background: #1a2332;
+    color: #e0e0e0;
+    border-color: #2a3444;
+}
+
+body.dark-mode .welcome-input:focus {
+    border-color: var(--primary, #1976d2);
+}
+
+body.dark-mode .welcome-title {
+    color: #90caf9;
+}
+
+body.dark-mode .welcome-sub {
+    color: #90a4ae;
+}
+
+body.dark-mode .welcome-choice-btn {
+    background: #1a2332;
+}
+
+body.dark-mode .welcome-choice-btn.register-btn {
+    background: linear-gradient(135deg, #1a3a1a, #1e4a1e);
+    border-color: #66bb6a;
+}
+
+body.dark-mode .welcome-choice-btn.login-btn {
+    background: linear-gradient(135deg, #1a2a3a, #1e3a5a);
+    border-color: #64b5f6;
+}
+
+body.dark-mode .welcome-back-btn {
+    background: #1a2332;
+    border-color: #2a3444;
+    color: #90caf9;
+}
+
+body.dark-mode .welcome-code-input {
+    background: #0f1419 !important;
+    border-color: #90caf9 !important;
+    color: #64b5f6 !important;
+}
+
+body.dark-mode .welcome-code-label {
+    color: #b0bec5;
+}
+
+body.dark-mode .welcome-code-hint {
+    background: #2a1f0a;
+    border-color: #ffc107;
+    color: #ffcc80;
+}
+
+/* ریسپانسیو */
+@media (max-width: 400px) {
+    .welcome-view {
+        padding: 25px 18px 30px 18px;
+    }
+    
+    .welcome-title {
+        font-size: 19px;
+    }
+    
+    .welcome-sub {
+        font-size: 12px;
+    }
+    
+    .welcome-choice-btn {
+        padding: 15px 18px;
+    }
+    
+    .choice-icon {
+        font-size: 30px;
+    }
+    
+    .choice-title {
+        font-size: 15px;
+    }
+    
+    .choice-desc {
+        font-size: 11px;
+    }
+    
+    .welcome-code-input {
+        font-size: 24px !important;
+        letter-spacing: 8px !important;
+        padding: 14px 14px !important;
+    }
+    
+    .welcome-login-code {
+        font-size: 36px !important;
+        letter-spacing: 14px !important;
+        padding: 18px 14px !important;
+        padding-left: 28px !important;
+    }
+}
+/* ============================================================
+   🆕 استایل کد ورود در پروفایل
+   ============================================================ */
+
+.profile-code-row {
+    align-items: center;
+}
+
+.profile-code-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-code-value {
+    font-family: 'Courier New', monospace !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    color: #1976d2 !important;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    padding: 6px 16px;
+    border-radius: 10px;
+    border: 2px dashed #90caf9;
+    letter-spacing: 4px;
+    direction: ltr;
+    min-width: 80px;
+    text-align: center;
+}
+
+.profile-code-change-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(245, 124, 0, 0.4);
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+}
+
+.profile-code-change-btn:active {
+    transform: scale(0.9);
+}
+
+.profile-code-change-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #fff;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* حالت شب */
+body.dark-mode .profile-code-value {
+    background: linear-gradient(135deg, #0f1419, #1a2332);
+    border-color: #90caf9;
+    color: #64b5f6 !important;
+}
+/* ============================================================
+   🆕 استایل input کد در مودال تغییر کد
+   ============================================================ */
+
+#new-code-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 20px 18px !important;
+    border: 3px dashed #ff9800 !important;
+    border-radius: 18px !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 42px !important;
+    font-weight: 900 !important;
+    text-align: center !important;
+    direction: ltr !important;
+    letter-spacing: 20px !important;
+    padding-left: 38px !important;
+    color: #e65100 !important;
+    background: #fff8e1 !important;
+    outline: none !important;
+    transition: all 0.25s ease !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+#new-code-input:focus {
+    border-color: #f57c00 !important;
+    border-style: solid !important;
+    background: #fff !important;
+    box-shadow: 0 0 0 5px rgba(255, 152, 0, 0.2) !important;
+}
+
+#new-code-input::placeholder {
+    letter-spacing: 3px !important;
+    font-size: 20px !important;
+    color: #bcaaa4 !important;
+    font-weight: normal !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+    direction: rtl !important;
+}
+
+/* ریسپانسیو */
+@media (max-width: 400px) {
+    #new-code-input {
+        font-size: 34px !important;
+        letter-spacing: 14px !important;
+        padding: 16px 14px !important;
+        padding-left: 28px !important;
+    }
+}
+
+/* حالت شب */
+body.dark-mode #new-code-input {
+    background: #1a2332 !important;
+    color: #ffb74d !important;
+    border-color: #ff9800 !important;
+}
+
+body.dark-mode #new-code-input:focus {
+    background: #0f1419 !important;
+    border-color: #ffb74d !important;
+}
+/* ============================================================
+   🆕 مودال تغییر کد — نسخه ۳.۰.۰
+   ============================================================ */
+
+/* اورلی مودال */
+.change-code-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: fadeInOverlay 0.3s ease;
+}
+
+.change-code-overlay.active {
+    display: flex;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* جعبه مودال */
+.change-code-box {
+    background: #ffffff;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+@keyframes slideUpModal {
+    from { 
+        transform: translateY(50px) scale(0.9); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateY(0) scale(1); 
+        opacity: 1; 
+    }
+}
+
+/* دکمه بستن */
+.change-code-close {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.change-code-close:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* هدر مودال */
+.change-code-header {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    padding: 24px 20px 20px 20px;
+    border-radius: 24px 24px 0 0;
+    text-align: center;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.change-code-header::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.change-code-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+    display: block;
+    animation: iconBounceChange 2s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15));
+}
+
+@keyframes iconBounceChange {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-6px) rotate(5deg); }
+}
+
+.change-code-title {
+    font-size: 20px;
+    font-weight: 900;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.change-code-subtitle {
+    font-size: 13px;
+    font-weight: bold;
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+    line-height: 1.6;
+}
+
+.current-code-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.3);
+    padding: 3px 14px;
+    border-radius: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    border: 2px dashed rgba(255,255,255,0.5);
+    direction: ltr;
+}
+
+/* بدنه مودال */
+.change-code-body {
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.change-code-label {
+    font-size: 13px;
+    font-weight: 900;
+    color: #37474f;
+    text-align: right;
+    margin-bottom: 4px;
+    padding-right: 5px;
+}
+
+.change-code-input {
+    width: 100%;
+    padding: 18px;
+    border: 2.5px dashed #ff9800;
+    border-radius: 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 32px;
+    font-weight: 900;
+    text-align: center;
+    outline: none;
+    background: linear-gradient(135deg, #fff8e1, #fffde7);
+    color: #e65100;
+    letter-spacing: 12px;
+    padding-left: 24px;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+    direction: ltr;
+}
+
+.change-code-input:focus {
+    border-color: #f57c00;
+    border-style: solid;
+    background: #fff;
+    box-shadow: 0 0 0 5px rgba(255, 152, 0, 0.2);
+    transform: scale(1.02);
+}
+
+.change-code-input::placeholder {
+    color: #ffb74d;
+    letter-spacing: 12px;
+    padding-left: 12px;
+    font-weight: bold;
+}
+
+/* هشدار */
+.change-code-warning {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    border: 1.5px solid #ffc107;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-top: 6px;
+    font-size: 11.5px;
+    font-weight: bold;
+    color: #e65100;
+    line-height: 1.7;
+    text-align: right;
+}
+
+/* فوتر مودال */
+.change-code-footer {
+    padding: 16px 20px 20px 20px;
+    display: flex;
+    gap: 10px;
+    border-top: 1.5px dashed #e3f2fd;
+    background: #fafcff;
+    border-radius: 0 0 24px 24px;
+}
+
+.change-code-btn {
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: 50px;
+    border: none;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 48px;
+}
+
+.change-code-btn:active {
+    transform: scale(0.96);
+}
+
+.change-code-btn-cancel {
+    background: #f5f5f5;
+    color: #546e7a;
+    border: 2px solid #e0e0e0;
+}
+
+.change-code-btn-cancel:hover {
+    background: #eeeeee;
+}
+
+.change-code-btn-save {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(245, 124, 0, 0.4);
+}
+
+.change-code-btn-save:hover {
+    box-shadow: 0 6px 20px rgba(245, 124, 0, 0.6);
+}
+
+/* ============================================================
+   ریسپانسیو
+   ============================================================ */
+@media (max-width: 400px) {
+    .change-code-box {
+        max-width: 100%;
+        border-radius: 20px;
+    }
+    
+    .change-code-header {
+        padding: 20px 16px 16px 16px;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .change-code-icon {
+        font-size: 40px;
+    }
+    
+    .change-code-title {
+        font-size: 17px;
+    }
+    
+    .change-code-subtitle {
+        font-size: 12px;
+    }
+    
+    .change-code-body {
+        padding: 20px 16px;
+    }
+    
+    .change-code-input {
+        font-size: 26px;
+        letter-spacing: 8px;
+        padding: 14px;
+        padding-left: 20px;
+    }
+    
+    .change-code-footer {
+        padding: 12px 16px 16px 16px;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .change-code-btn {
+        padding: 12px 12px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+}
+
+/* ============================================================
+   🆕 حالت شب — مودال تغییر کد
+   ============================================================ */
+body.dark-mode .change-code-box {
+    background: #1a2332;
+}
+
+body.dark-mode .change-code-body {
+    background: #1a2332;
+}
+
+body.dark-mode .change-code-label {
+    color: #b0bec5;
+}
+
+body.dark-mode .change-code-input {
+    background: linear-gradient(135deg, #3a2a0a, #4a3a1a);
+    border-color: #ff9800;
+    color: #ffcc80;
+}
+
+body.dark-mode .change-code-input:focus {
+    background: #0f1419;
+    border-color: #ffb74d;
+}
+
+body.dark-mode .change-code-input::placeholder {
+    color: #ffb74d;
+}
+
+body.dark-mode .change-code-warning {
+    background: linear-gradient(135deg, #3a2a0a, #4a3a1a);
+    border-color: #ffc107;
+    color: #ffcc80;
+}
+
+body.dark-mode .change-code-footer {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .change-code-btn-cancel {
+    background: #2a3444;
+    color: #b0bec5;
+    border-color: #37474f;
+}
+
+body.dark-mode .change-code-close {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+body.dark-mode .change-code-close:hover {
+    background: rgba(255, 255, 255, 0.25);
+}

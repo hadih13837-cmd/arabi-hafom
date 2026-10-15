@@ -1,6 +1,6 @@
 /* ============================================================
    teacher.css — پنل معلم عربی هفتم
-   نسخه: ۵.۱.۰ — با طراحی جدید مودال تمدید مهلت
+   نسخه: ۶.۰.۰ — با انتخاب روز ۱ تا ۷ و ویرایش کد
    ============================================================ */
 
 @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
@@ -391,6 +391,7 @@ body {
 .student-stats {
     display: flex; gap: 10px; font-size: 11px;
     color: var(--text-light); font-weight: bold; margin-top: 4px;
+    flex-wrap: wrap;
 }
 .student-points {
     display: flex; align-items: center; gap: 4px;
@@ -1196,6 +1197,14 @@ body {
     padding: 14px; text-align: center;
     box-shadow: 0 3px 12px rgba(25, 118, 210, 0.08);
     border: 1.5px solid #e3f2fd;
+    transition: all 0.2s ease;
+}
+.profile-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(25, 118, 210, 0.15);
+}
+.profile-stat-card:active {
+    transform: scale(0.97);
 }
 .profile-stat-icon { font-size: 26px; margin-bottom: 6px; }
 .profile-stat-value {
@@ -1374,7 +1383,6 @@ body {
     border: 1px solid #fdd835;
 }
 
-/* کادر تاریخ مهلت */
 .profile-lesson-duedate {
     display: flex; align-items: center;
     justify-content: space-between; gap: 10px;
@@ -1426,7 +1434,6 @@ body {
     box-shadow: 0 4px 15px rgba(25, 118, 210, 0.5);
 }
 
-/* سوییچ */
 .profile-lesson-toggle {
     display: flex; align-items: center;
     justify-content: space-between;
@@ -1482,7 +1489,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════
-   🆕 مودال تمدید مهلت — طراحی جدید
+   🆕 مودال تمدید مهلت — با انتخاب روز ۱ تا ۷
    ══════════════════════════════════════════════════════════ */
 .due-date-modal-overlay {
     position: fixed;
@@ -1508,7 +1515,7 @@ body {
     background: #ffffff;
     border-radius: 24px;
     width: 100%;
-    max-width: 420px;
+    max-width: 440px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
@@ -1573,15 +1580,6 @@ body {
     z-index: 1;
     line-height: 1.7;
 }
-.due-date-modal-subtitle strong {
-    background: rgba(255,255,255,0.25);
-    padding: 2px 10px;
-    border-radius: 8px;
-    font-family: monospace;
-    font-size: 13px;
-    display: inline-block;
-    margin-top: 4px;
-}
 
 .due-date-modal-body {
     padding: 22px 20px 10px 20px;
@@ -1625,32 +1623,131 @@ body {
     font-weight: bold;
 }
 
-.due-date-quick-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
+/* ══════════════════════════════════════════════════════════
+   🆕 انتخابگر روز (۱ تا ۷)
+   ══════════════════════════════════════════════════════════ */
+.day-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin: 8px 0 14px 0;
 }
-.quick-date-btn {
-    flex: 1;
-    padding: 10px 8px;
-    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-    color: #1976d2;
-    border: 1.5px solid #90caf9;
-    border-radius: 12px;
+
+.day-picker-btn {
+    background: linear-gradient(135deg, #f8fbff, #e3f2fd);
+    border: 2px solid #bbdefb;
+    border-radius: 14px;
+    padding: 12px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
     font-family: 'Vazirmatn', sans-serif;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    min-height: 60px;
+    position: relative;
+    overflow: hidden;
+}
+
+.day-picker-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--primary-gradient);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+
+.day-picker-btn:hover:not(.selected) {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(25, 118, 210, 0.2);
+    border-color: #64b5f6;
+}
+
+.day-picker-btn:active {
+    transform: scale(0.95);
+}
+
+.day-picker-btn.selected {
+    background: var(--primary-gradient);
+    border-color: #1976d2;
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.5);
+    transform: scale(1.08);
+    animation: dayBtnPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.day-picker-btn.selected::before {
+    opacity: 1;
+}
+
+@keyframes dayBtnPop {
+    0% { transform: scale(0.9); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1.08); }
+}
+
+.day-picker-num {
+    font-size: 18px;
+    font-weight: 900;
+    color: #1976d2;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s ease;
+}
+
+.day-picker-label {
+    font-size: 9px;
+    font-weight: bold;
+    color: #90a4ae;
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s ease;
+}
+
+.day-picker-btn.selected .day-picker-num,
+.day-picker-btn.selected .day-picker-label {
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.due-date-preview-box {
+    background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+    border: 2px solid #a5d6a7;
+    border-radius: 14px;
+    padding: 14px 16px;
+    text-align: center;
+    margin-top: 4px;
+    opacity: 0.6;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.due-date-preview-box:has(.show) {
+    opacity: 1;
+}
+.preview-label {
     font-size: 12px;
     font-weight: 900;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
+    color: #2e7d32;
+    margin-bottom: 6px;
 }
-.quick-date-btn:active {
-    transform: scale(0.95);
-    background: linear-gradient(135deg, #bbdefb, #90caf9);
+.preview-value {
+    font-size: 22px;
+    font-weight: 900;
+    color: #1b5e20;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 3px;
+    direction: ltr;
+    transition: all 0.3s ease;
 }
-.quick-date-btn:hover {
-    background: linear-gradient(135deg, #bbdefb, #90caf9);
-    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.2);
+.preview-value.show {
+    animation: previewPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes previewPop {
+    0% { transform: scale(0.7); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
 
 .due-date-current-hint {
@@ -1684,6 +1781,26 @@ body {
     display: inline-block;
 }
 
+.due-date-warning-box {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    border: 1.5px solid #ffc107;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-top: 6px;
+    font-size: 11.5px;
+    font-weight: bold;
+    color: #e65100;
+    line-height: 1.7;
+    text-align: right;
+}
+
+.quick-count-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+}
+
 .due-date-modal-footer {
     padding: 14px 20px 20px 20px;
     display: flex;
@@ -1713,6 +1830,10 @@ body {
 .due-date-btn:active {
     transform: scale(0.96);
 }
+.due-date-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 .due-date-btn-cancel {
     background: #f5f5f5;
     color: #546e7a;
@@ -1726,7 +1847,7 @@ body {
     color: #ffffff;
     box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
 }
-.due-date-btn-save:hover {
+.due-date-btn-save:hover:not(:disabled) {
     box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
 }
 .due-date-btn-remove {
@@ -1738,6 +1859,29 @@ body {
 }
 .due-date-btn-remove:hover {
     box-shadow: 0 6px 20px rgba(239, 83, 80, 0.6);
+}
+
+/* دکمه‌های سریع برای تغییر تعداد */
+.quick-date-btn {
+    padding: 10px 6px;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: #1976d2;
+    border: 1.5px solid #90caf9;
+    border-radius: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.quick-date-btn:active {
+    transform: scale(0.95);
+    background: linear-gradient(135deg, #bbdefb, #90caf9);
+}
+.quick-date-btn:hover {
+    background: linear-gradient(135deg, #bbdefb, #90caf9);
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.2);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1771,7 +1915,6 @@ body {
     .edit-date-btn { width: 100%; padding: 9px 14px; font-size: 12px; }
     .due-date-value { font-size: 12px; }
 
-    /* مودال تمدید */
     .due-date-modal-box { max-width: 100%; border-radius: 20px; }
     .due-date-modal-header { padding: 20px 16px 16px 16px; border-radius: 20px 20px 0 0; }
     .due-date-modal-icon { font-size: 40px; }
@@ -1781,7 +1924,21 @@ body {
     .due-date-input { font-size: 19px; padding: 14px 14px; }
     .due-date-modal-footer { padding: 12px 16px 16px 16px; border-radius: 0 0 20px 20px; }
     .due-date-btn { min-width: 80px; padding: 12px 10px; font-size: 13px; min-height: 44px; }
-    .quick-date-btn { padding: 8px 6px; font-size: 11px; }
+    
+    /* انتخابگر روز در موبایل کوچک */
+    .day-picker-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+    }
+    .day-picker-btn {
+        min-height: 52px;
+        padding: 8px 2px;
+        border-radius: 12px;
+    }
+    .day-picker-num { font-size: 15px; }
+    .day-picker-label { font-size: 8px; }
+    
+    .preview-value { font-size: 18px; letter-spacing: 2px; }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1818,4 +1975,21 @@ body.dark-mode .due-date-btn-cancel {
     background: #2a3444;
     color: #b0bec5;
     border-color: #37474f;
+}
+body.dark-mode .day-picker-btn {
+    background: linear-gradient(135deg, #0f1419, #1a2332);
+    border-color: #2a3444;
+}
+body.dark-mode .day-picker-num { color: #90caf9; }
+body.dark-mode .day-picker-label { color: #607d8b; }
+body.dark-mode .due-date-preview-box {
+    background: linear-gradient(135deg, #1a3a1a, #1e4a1e);
+    border-color: #66bb6a;
+}
+body.dark-mode .preview-label { color: #a5d6a7; }
+body.dark-mode .preview-value { color: #c8e6c9; }
+body.dark-mode .due-date-warning-box {
+    background: linear-gradient(135deg, #3a2a0a, #4a3a1a);
+    border-color: #ffc107;
+    color: #ffcc80;
 }
