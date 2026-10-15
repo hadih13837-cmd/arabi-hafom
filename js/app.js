@@ -1,18 +1,65 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۹.۰.۰ — با نوتیفیکیشن سریع جزوه
+// نسخه: ۱۵.۰.۰ — با کنترل کامل برای کاربر برگشتی
 // ============================================================
 
 // ============================================================
 // متغیر سراسری
 // ============================================================
-let isPublished = true;
-const UPDATE_VERSION = 'v2.0.0';
+const UPDATE_VERSION = 'v2.2.0';
+
+// ============================================================
+// 🆕 بررسی آیا کاربر برگشتیه
+// ============================================================
+function isReturningUser() {
+    return localStorage.getItem('isReturningUser') === 'true';
+}
+
+// ============================================================
+// 🆕 تعویض بین حالت‌های صفحه Welcome
+// ============================================================
+
+function showChoiceView() {
+    document.querySelectorAll('.welcome-view').forEach(v => v.classList.remove('active'));
+    const choiceView = document.getElementById('welcome-choice-view');
+    if (choiceView) choiceView.classList.add('active');
+    vibrate(15);
+}
+
+function showRegisterView() {
+    document.querySelectorAll('.welcome-view').forEach(v => v.classList.remove('active'));
+    const registerView = document.getElementById('welcome-register-view');
+    if (registerView) registerView.classList.add('active');
+    vibrate(15);
+    
+    setTimeout(() => {
+        const nameInput = document.getElementById('welcome-name');
+        if (nameInput) nameInput.focus();
+    }, 300);
+}
+
+function showLoginView() {
+    document.querySelectorAll('.welcome-view').forEach(v => v.classList.remove('active'));
+    const loginView = document.getElementById('welcome-login-view');
+    if (loginView) loginView.classList.add('active');
+    vibrate(15);
+    
+    setTimeout(() => {
+        const codeInput = document.getElementById('login-code');
+        if (codeInput) codeInput.focus();
+    }, 300);
+}
 
 // ============================================================
 // مودال بروزرسانی
 // ============================================================
 function checkAndShowUpdateModal() {
+    // 🆕 اگه کاربر برگشتیه، نشون نده
+    if (isReturningUser()) {
+        console.log('🔇 کاربر برگشتی - مودال بروزرسانی نشون داده نمیشه');
+        return;
+    }
+    
     const seenVersion = localStorage.getItem('seenUpdateVersion');
     
     if (seenVersion === UPDATE_VERSION) return;
@@ -73,6 +120,12 @@ const RANKINGS_GUIDE_STEPS = [
 ];
 
 function checkAndShowRankingsGuide() {
+    // 🆕 اگه کاربر برگشتیه، نشون نده
+    if (isReturningUser()) {
+        console.log('🔇 کاربر برگشتی - راهنمای رتبه‌بندی نشون داده نمیشه');
+        return false;
+    }
+    
     const hasSeen = localStorage.getItem('hasSeenRankingsGuide') === 'true';
     if (hasSeen) return false;
     
@@ -147,9 +200,15 @@ function closeRankingsGuide() {
 }
 
 // ============================================================
-// نوتیفیکیشن پیام‌های معلم
+// 🆕 نوتیفیکیشن پیام‌های معلم (با بررسی seen و isReturningUser)
 // ============================================================
 function checkAndShowNewMessageNotification() {
+    // 🆕 اگه کاربر برگشتیه، نشون نده
+    if (isReturningUser()) {
+        console.log('🔇 کاربر برگشتی - نوتیفیکیشن پیام نشون داده نمیشه');
+        return;
+    }
+    
     const dismissed = localStorage.getItem('dismissedNewMessageNotif') === 'true';
     if (dismissed) return;
     
@@ -177,33 +236,36 @@ function checkAndShowNewMessageNotification() {
     
     const totalUnread = unreadChat + unreadClass;
     
-    if (totalUnread > 0) {
-        const notif = document.getElementById('new-message-notification');
-        const subText = document.getElementById('new-message-notification-sub');
+    if (totalUnread === 0) {
+        console.log('ℹ️ هیچ پیام خونده‌نشده‌ای نیست');
+        return;
+    }
+    
+    const notif = document.getElementById('new-message-notification');
+    const subText = document.getElementById('new-message-notification-sub');
+    
+    if (notif && subText) {
+        let text = '';
+        if (unreadChat > 0 && unreadClass > 0) {
+            text = `${toPersianNum(unreadChat)} پیام شخصی و ${toPersianNum(unreadClass)} پیام کلاسی جدید`;
+        } else if (unreadChat > 0) {
+            text = unreadChat === 1 ? 'یک پیام شخصی جدید داری' : `${toPersianNum(unreadChat)} پیام شخصی جدید داری`;
+        } else {
+            text = unreadClass === 1 ? 'یک پیام کلاسی جدید داری' : `${toPersianNum(unreadClass)} پیام کلاسی جدید داری`;
+        }
         
-        if (notif && subText) {
-            let text = '';
-            if (unreadChat > 0 && unreadClass > 0) {
-                text = `${toPersianNum(unreadChat)} پیام شخصی و ${toPersianNum(unreadClass)} پیام کلاسی جدید`;
-            } else if (unreadChat > 0) {
-                text = unreadChat === 1 ? 'یک پیام شخصی جدید داری' : `${toPersianNum(unreadChat)} پیام شخصی جدید داری`;
-            } else {
-                text = unreadClass === 1 ? 'یک پیام کلاسی جدید داری' : `${toPersianNum(unreadClass)} پیام کلاسی جدید داری`;
-            }
-            
-            subText.textContent = text;
-            
+        subText.textContent = text;
+        
+        if (typeof repositionNotifications === 'function') {
+            repositionNotifications();
+        }
+        
+        setTimeout(() => {
+            notif.classList.add('show');
             if (typeof repositionNotifications === 'function') {
                 repositionNotifications();
             }
-            
-            setTimeout(() => {
-                notif.classList.add('show');
-                if (typeof repositionNotifications === 'function') {
-                    repositionNotifications();
-                }
-            }, 600);
-        }
+        }, 600);
     }
 }
 
@@ -226,6 +288,9 @@ function dismissNewMessageNotification() {
     }, 300);
     
     localStorage.setItem('dismissedNewMessageNotif', 'true');
+    if (typeof debouncedSaveSeenData === 'function') {
+        debouncedSaveSeenData();
+    }
 }
 
 function goToTeacherMessagesFromNotification() {
@@ -240,9 +305,15 @@ function resetNewMessageNotification() {
 }
 
 // ============================================================
-// 🆕 نوتیفیکیشن جزوه جدید (سریع)
+// نوتیفیکیشن جزوه جدید (با بررسی isReturningUser)
 // ============================================================
 async function checkAndShowNewJozveNotification() {
+    // 🆕 اگه کاربر برگشتیه، نشون نده
+    if (isReturningUser()) {
+        console.log('🔇 کاربر برگشتی - نوتیفیکیشن جزوه نشون داده نمیشه');
+        return;
+    }
+    
     const dismissed = localStorage.getItem('dismissedNewJozveNotif') === 'true';
     if (dismissed) return;
     
@@ -273,7 +344,6 @@ async function checkAndShowNewJozveNotification() {
                     repositionNotifications();
                 }
                 
-                // 🆕 سریع‌تر: ۳۰۰ میلی‌ثانیه
                 setTimeout(() => {
                     notif.classList.add('show');
                     if (typeof repositionNotifications === 'function') {
@@ -308,7 +378,6 @@ function dismissNewJozveNotification() {
     saveJozveSeen();
 }
 
-// 🆕 رفتن به صفحه جزوه (درست شده)
 function goToJozveFromNotification() {
     dismissNewJozveNotification();
     setTimeout(() => {
@@ -327,6 +396,10 @@ async function saveJozveSeen() {
         
         localStorage.setItem('seenJozveIds', JSON.stringify(ids));
         localStorage.setItem('dismissedNewJozveNotif', 'true');
+        
+        if (typeof debouncedSaveSeenData === 'function') {
+            debouncedSaveSeenData();
+        }
     } catch (e) {}
 }
 
@@ -373,10 +446,41 @@ async function checkMaintenanceMode() {
 // ============================================================
 async function startApp() {
     const isRegistered = localStorage.getItem('userRegistered') === 'true';
+    
     if (isRegistered) {
         updateStreak();
         await loadLessonsListForNotification();
         goToScreen('screen-home');
+        
+        // 🆕 اگه کاربر قدیمیه و کد نداره، کد خودکار براش بساز
+        setTimeout(async () => {
+            const existingCode = localStorage.getItem('studentCode');
+            if (!existingCode || !/^[0-9]{3}$/.test(existingCode)) {
+                console.log('🔄 کاربر قدیمی - ساخت کد خودکار...');
+                if (typeof assignCodeToOldUser === 'function') {
+                    const newCode = await assignCodeToOldUser();
+                    if (newCode) {
+                        setTimeout(() => {
+                            if (typeof showCodeModalToOldUser === 'function') {
+                                showCodeModalToOldUser(newCode);
+                            }
+                        }, 3000);
+                    }
+                }
+            }
+        }, 1000);
+        
+        setTimeout(async () => {
+            console.log('🔄 شروع انتقال خودکار داده‌ها به Supabase...');
+            try {
+                if (typeof transferLocalDataToSupabase === 'function') {
+                    await transferLocalDataToSupabase();
+                }
+            } catch (e) {
+                console.error('❌ خطا در انتقال:', e);
+            }
+        }, 2000);
+        
         setTimeout(() => {
             checkAndShowNotification();
             checkDeadlineWarning();
@@ -393,27 +497,34 @@ async function startApp() {
                 setTimeout(() => startRealtimeSubscriptions(), 500);
             }
             
-            checkAndShowUpdateModal();
-            
-            // 🆕 نوتیفیکیشن پیام (سریع‌تر)
-            setTimeout(() => {
-                checkAndShowNewMessageNotification();
-            }, 1500);
-            
-            // 🆕 نوتیفیکیشن جزوه (سریع‌تر)
-            setTimeout(() => {
-                checkAndShowNewJozveNotification();
-            }, 2000);
-            
-            if (localStorage.getItem('guideCompleted') !== 'true') {
-                currentGuideStep = 0;
-                showGuideStep();
+            // 🆕 چک‌های وابسته به isReturningUser
+            if (!isReturningUser()) {
+                checkAndShowUpdateModal();
+                
+                setTimeout(() => {
+                    checkAndShowNewMessageNotification();
+                }, 1500);
+                
+                setTimeout(() => {
+                    checkAndShowNewJozveNotification();
+                }, 2000);
             } else {
-                showStreakMessage();
+                console.log('🔇 کاربر برگشتی - همه اعلان‌ها نادیده گرفته میشن');
+            }
+            
+            // 🆕 راهنما و استریک فقط برای کاربر جدید
+            if (!isReturningUser()) {
+                if (localStorage.getItem('guideCompleted') !== 'true') {
+                    currentGuideStep = 0;
+                    showGuideStep();
+                } else {
+                    showStreakMessage();
+                }
             }
         }, 500);
     } else {
         goToScreen('screen-welcome');
+        setTimeout(() => showChoiceView(), 100);
     }
 }
 
@@ -432,7 +543,7 @@ function generateUUID() {
 }
 
 // ============================================================
-// PWA — Service Worker با بروزرسانی خودکار
+// PWA — Service Worker
 // ============================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -546,20 +657,20 @@ function wasDismissed() {
 }
 
 function dismissInstallBanner() {
-    installBanner.classList.remove('show');
+    if (installBanner) installBanner.classList.remove('show');
     localStorage.setItem('installBannerDismissed', 'true');
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    if (!isAppInstalled() && !wasDismissed()) {
+    if (!isAppInstalled() && !wasDismissed() && installBanner) {
         setTimeout(() => installBanner.classList.add('show'), 3000);
     }
 });
 
 setTimeout(() => {
-    if (!isAppInstalled() && !wasDismissed() && !deferredPrompt) {
+    if (!isAppInstalled() && !wasDismissed() && !deferredPrompt && installBanner) {
         installBanner.classList.add('show');
     }
 }, 3000);
@@ -569,7 +680,7 @@ async function installApp() {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
-            installBanner.classList.remove('show');
+            if (installBanner) installBanner.classList.remove('show');
             localStorage.setItem('installBannerDismissed', 'true');
         }
         deferredPrompt = null;
@@ -582,7 +693,7 @@ async function installApp() {
 }
 
 window.addEventListener('appinstalled', () => {
-    installBanner.classList.remove('show');
+    if (installBanner) installBanner.classList.remove('show');
     localStorage.setItem('installBannerDismissed', 'true');
 });
 
@@ -666,71 +777,6 @@ async function loadHomeLibrary() {
 }
 
 // ============================================================
-// چک پیام جدید از معلم
-// ============================================================
-async function checkTeacherMessages() {
-    try {
-        const studentId = localStorage.getItem('studentUUID');
-        if (typeof getPersonalMessages !== 'function') return;
-        
-        const messages = await getPersonalMessages(studentId);
-        if (!messages || messages.length === 0) return;
-        
-        const seenMessages = JSON.parse(localStorage.getItem('seenTeacherMessages') || '[]');
-        const newMessages = messages.filter(m => m.sender === 'teacher' && !seenMessages.includes(m.message_id));
-        
-        if (newMessages.length > 0) {
-            const badge = document.getElementById('notif-badge-dot');
-            if (badge) badge.classList.add('show');
-            showTeacherMessageNotification(newMessages[0]);
-        }
-        
-        localStorage.setItem('seenTeacherMessages', JSON.stringify(messages.map(m => m.message_id)));
-    } catch (error) {}
-}
-
-function showTeacherMessageNotification(message) {
-    const dismissed = JSON.parse(localStorage.getItem('dismissedTeacherMessages') || '[]');
-    if (dismissed.includes(message.message_id)) return;
-    
-    const notif = document.createElement('div');
-    notif.className = 'teacher-message-notification';
-    notif.innerHTML = `
-        <button class="notification-close" onclick="dismissTeacherNotification('${message.message_id}', this)">✕</button>
-        <div class="notification-icon">👨‍🏫</div>
-        <div class="notification-text">
-            <div class="notification-title">پیام از معلم</div>
-            <div class="notification-sub">${message.text ? message.text.substring(0, 40) : 'پیام جدید'}</div>
-        </div>
-        <button class="notification-btn" onclick="goToTeacherMessage()">مشاهده</button>
-    `;
-    
-    const container = document.getElementById('app-container');
-    if (container) container.appendChild(notif);
-    
-    setTimeout(() => notif.classList.add('show'), 100);
-}
-
-function dismissTeacherNotification(messageId, btn) {
-    const notif = btn.closest('.teacher-message-notification');
-    if (notif) {
-        notif.classList.remove('show');
-        setTimeout(() => notif.remove(), 300);
-    }
-    
-    const dismissed = JSON.parse(localStorage.getItem('dismissedTeacherMessages') || '[]');
-    if (!dismissed.includes(messageId)) {
-        dismissed.push(messageId);
-        localStorage.setItem('dismissedTeacherMessages', JSON.stringify(dismissed));
-    }
-}
-
-function goToTeacherMessage() {
-    document.querySelectorAll('.teacher-message-notification').forEach(n => n.remove());
-    goToScreen('screen-teacher-messages');
-}
-
-// ============================================================
 // مدیریت visibility change
 // ============================================================
 document.addEventListener('visibilitychange', () => {
@@ -744,15 +790,46 @@ document.addEventListener('visibilitychange', () => {
                 setTimeout(() => startRealtimeSubscriptions(), 1000);
             }
             
-            setTimeout(() => {
-                checkAndShowNewMessageNotification();
-            }, 1000);
-            
-            setTimeout(() => {
-                checkAndShowNewJozveNotification();
-            }, 1500);
+            // 🆕 فقط اگه کاربر برگشتی نبود، اعلان‌ها رو چک کن
+            if (!isReturningUser()) {
+                setTimeout(() => {
+                    checkAndShowNewMessageNotification();
+                }, 1000);
+                
+                setTimeout(() => {
+                    checkAndShowNewJozveNotification();
+                }, 1500);
+            }
         }
     }
+});
+
+// ============================================================
+// محدود کردن input کد به عدد
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const codeInputs = ['welcome-code', 'login-code'];
+    
+    codeInputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+        
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (id === 'welcome-code') {
+                    saveUserInfo();
+                } else if (id === 'login-code') {
+                    loginWithCode();
+                }
+            }
+        });
+    });
+    
+    console.log('✅ ورودی‌های کد راه‌اندازی شدند');
 });
 
 // ============================================================
@@ -767,10 +844,36 @@ window.addEventListener('load', async () => {
 
     loadUserInfo();
     loadTheme();
+    
+    // 🆕 اگه کاربر ثبت‌نام کرده ولی کد نداره، کد خودکار براش بساز
+    if (localStorage.getItem('userRegistered') === 'true') {
+        const existingCode = localStorage.getItem('studentCode');
+        if (!existingCode || !/^[0-9]{3}$/.test(existingCode)) {
+            setTimeout(async () => {
+                console.log('🔄 کاربر قدیمی - ساخت کد خودکار...');
+                if (typeof assignCodeToOldUser === 'function') {
+                    const newCode = await assignCodeToOldUser();
+                    if (newCode) {
+                        setTimeout(() => {
+                            if (typeof showCodeModalToOldUser === 'function') {
+                                showCodeModalToOldUser(newCode);
+                            }
+                        }, 2000);
+                    }
+                }
+            }, 2000);
+        }
+    }
 
     if (localStorage.getItem('userRegistered') === 'true' && !localStorage.getItem('studentUUID')) {
-        const newUUID = generateUUID();
-        localStorage.setItem('studentUUID', newUUID);
+        const studentCode = localStorage.getItem('studentCode');
+        if (studentCode && typeof generateUUIDFromCode === 'function') {
+            const newUUID = await generateUUIDFromCode(studentCode);
+            localStorage.setItem('studentUUID', newUUID);
+        } else {
+            const newUUID = generateUUID();
+            localStorage.setItem('studentUUID', newUUID);
+        }
     }
 
     if (localStorage.getItem('soundsEnabled') === 'false') {
@@ -800,6 +903,17 @@ window.addEventListener('load', async () => {
             updateStreak();
             goToScreen('screen-home', false);
             
+            setTimeout(async () => {
+                console.log('🔄 شروع انتقال خودکار داده‌ها به Supabase...');
+                try {
+                    if (typeof transferLocalDataToSupabase === 'function') {
+                        await transferLocalDataToSupabase();
+                    }
+                } catch (e) {
+                    console.error('❌ خطا:', e);
+                }
+            }, 1500);
+            
             setTimeout(() => {
                 if (allLessons.length === 0) {
                     loadLessonsListForNotification().then(() => {
@@ -824,21 +938,26 @@ window.addEventListener('load', async () => {
                     setTimeout(() => startRealtimeSubscriptions(), 1000);
                 }
                 
-                checkAndShowUpdateModal();
-                
-                // 🆕 سریع‌تر
-                setTimeout(() => {
-                    checkAndShowNewMessageNotification();
-                }, 1500);
-                
-                setTimeout(() => {
-                    checkAndShowNewJozveNotification();
-                }, 2000);
-                
-                setTimeout(() => showStreakMessage(), 800);
+                // 🆕 فقط اگه کاربر برگشتی نبود، این‌ها رو نشون بده
+                if (!isReturningUser()) {
+                    checkAndShowUpdateModal();
+                    
+                    setTimeout(() => {
+                        checkAndShowNewMessageNotification();
+                    }, 1500);
+                    
+                    setTimeout(() => {
+                        checkAndShowNewJozveNotification();
+                    }, 2000);
+                    
+                    setTimeout(() => showStreakMessage(), 800);
+                } else {
+                    console.log('🔇 کاربر برگشتی - همه اعلان‌ها نادیده گرفته میشن');
+                }
             }, 300);
         } else {
             goToScreen('screen-welcome', false);
+            setTimeout(() => showChoiceView(), 100);
         }
     } else {
         pushHistory('screen-splash');

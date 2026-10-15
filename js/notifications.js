@@ -1,6 +1,6 @@
 // ============================================================
-// notifications.js — نسخه ۱۶.۰.۰
-// با پشتیبانی از نوتیفیکیشن جزوه + Realtime
+// notifications.js — نسخه ۱۹.۰.۰
+// با پشتیبانی کامل از seen_data و کاربر برگشتی
 // ============================================================
 
 // ============================================================
@@ -11,16 +11,127 @@ const BADGE_CACHE_KEY = 'studentBadgeCache';
 const SEEN_CHAT_KEY = 'seenChatMessages';
 const SEEN_CLASS_KEY = 'seenClassMessages';
 
-// محافظ‌ها
 let isFetchingBadge = false;
 let isFetchingChat = false;
 
-// کانال‌های Realtime
 let personalMessagesChannel = null;
 let classMessagesChannel = null;
-
-// محافظ برای جلوگیری از دوبار شروع
 let isRealtimeStarted = false;
+
+// 🆕 محافظ برای جلوگیری از ذخیره مکرر
+let seenSaveTimeout = null;
+
+// ============================================================
+// 🆕 ذخیره seen_data در Supabase (با debounce)
+// ============================================================
+function debouncedSaveSeenData() {
+    // 🆕 اگه کاربر برگشتیه، نیازی به ذخیره نیست
+    if (localStorage.getItem('isReturningUser') === 'true') {
+        return;
+    }
+    
+    if (seenSaveTimeout) clearTimeout(seenSaveTimeout);
+    seenSaveTimeout = setTimeout(async () => {
+        if (typeof saveSeenDataToSupabase === 'function') {
+            try {
+                await saveSeenDataToSupabase();
+            } catch (e) {
+                console.warn('⚠️ خطا در ذخیره seen_data:', e);
+            }
+        }
+    }, 2000);
+}
+
+// ============================================================
+// 🆕 علامت‌گذاری همه چیز به عنوان دیده‌شده (برای کاربر برگشتی)
+// ============================================================
+async function markAllAsSeenForReturningUser() {
+    try {
+        const studentId = localStorage.getItem('studentUUID');
+        if (!studentId) return;
+        
+        console.log('🔇 علامت‌گذاری همه اعلان‌ها...');
+        
+        const client = getSupabase();
+        if (!client) return;
+        
+        // ۱. پیام‌های شخصی
+        try {
+            const { data: personalMsgs } = await client
+                .from('personal_messages')
+                .select('message_id')
+                .eq('student_id', studentId)
+                .eq('sender', 'teacher');
+            
+            if (personalMsgs && personalMsgs.length > 0) {
+                const seenChat = personalMsgs.map(m => m.message_id);
+                localStorage.setItem('seenChatMessages', JSON.stringify(seenChat));
+                console.log('✅ چت seen شد:', seenChat.length);
+            }
+        } catch (e) { console.warn('خطا در چت:', e); }
+        
+        // ۲. پیام‌های کلاسی
+        try {
+            const userClass = localStorage.getItem('userClass');
+            const classSlug = classNameToSlug(userClass);
+            const { data: classMsgs } = await client
+                .from('class_messages')
+                .select('message_id')
+                .or(`class_name.eq.${classSlug},class_name.eq.all`);
+            
+            if (classMsgs && classMsgs.length > 0) {
+                const seenClass = classMsgs.map(m => m.message_id);
+                localStorage.setItem('seenClassMessages', JSON.stringify(seenClass));
+                console.log('✅ پیام کلاسی seen شد:', seenClass.length);
+            }
+        } catch (e) { console.warn('خطا در کلاسی:', e); }
+        
+        // ۳. تکالیف
+        try {
+            const response = await fetch('./lessons/index.json?t=' + Date.now());
+            const data = await response.json();
+            const lessons = data.lessons || [];
+            const seenLessons = lessons.map(l => l.id);
+            localStorage.setItem('seenLessonsForNotif', JSON.stringify(seenLessons));
+            localStorage.setItem('seenLessons', JSON.stringify(seenLessons));
+            console.log('✅ تکالیف seen شد:', seenLessons.length);
+        } catch (e) { console.warn('خطا در تکالیف:', e); }
+        
+        // ۴. جزوه‌ها
+        try {
+            const response = await fetch('./jozve/index.json?t=' + Date.now());
+            const data = await response.json();
+            const items = data.items || [];
+            const seenJozve = items.map(item => item.id);
+            localStorage.setItem('seenJozveIds', JSON.stringify(seenJozve));
+            console.log('✅ جزوه‌ها seen شد:', seenJozve.length);
+        } catch (e) { console.warn('خطا در جزوه:', e); }
+        
+        // ۵. ویدیوها
+        localStorage.setItem('seenVideos', JSON.stringify(['video_1', 'video_2']));
+        
+        // ۶. سایر flagها
+        localStorage.setItem('dismissedNewMessageNotif', 'true');
+        localStorage.setItem('dismissedNewJozveNotif', 'true');
+        localStorage.setItem('hasSeenRankingsGuide', 'true');
+        localStorage.setItem('guideCompleted', 'true');
+        localStorage.setItem('lessonsGuideShown', 'true');
+        localStorage.setItem('welcomeShown', 'true');
+        
+        const today = getPersianDate();
+        localStorage.setItem('lastStreakMessageShown', today);
+        localStorage.setItem('lastDeadlineNotifDate', today);
+        
+        if (typeof UPDATE_VERSION !== 'undefined') {
+            localStorage.setItem('seenUpdateVersion', UPDATE_VERSION);
+        }
+        
+        console.log('✅ همه اعلان‌ها seen شدن');
+        
+    } catch (error) {
+        console.error('❌ خطا در seen:', error);
+    }
+}
 
 // ============================================================
 // Badge
@@ -64,6 +175,7 @@ function markChatMessageAsSeen(messageId) {
         seen.push(messageId);
         try {
             localStorage.setItem(SEEN_CHAT_KEY, JSON.stringify(seen));
+            debouncedSaveSeenData();
         } catch(e) {}
     }
 }
@@ -75,6 +187,7 @@ function markAllChatMessagesAsSeen(messages) {
         const merged = [...new Set([...seen, ...newIds])];
         try {
             localStorage.setItem(SEEN_CHAT_KEY, JSON.stringify(merged));
+            debouncedSaveSeenData();
         } catch(e) {}
         return true;
     }
@@ -87,6 +200,7 @@ function markClassMessageAsSeen(messageId) {
         seen.push(messageId);
         try {
             localStorage.setItem(SEEN_CLASS_KEY, JSON.stringify(seen));
+            debouncedSaveSeenData();
         } catch(e) {}
     }
 }
@@ -98,6 +212,7 @@ function markAllClassMessagesAsSeen(messages) {
         const merged = [...new Set([...seen, ...newIds])];
         try {
             localStorage.setItem(SEEN_CLASS_KEY, JSON.stringify(merged));
+            debouncedSaveSeenData();
         } catch(e) {}
         return true;
     }
@@ -181,7 +296,7 @@ function setCachedData(key, data) {
 }
 
 // ============================================================
-// 🆕 چیدمان نوتیفیکیشن‌ها (پشت سر هم، بدون تداخل)
+// چیدمان نوتیفیکیشن‌ها
 // ============================================================
 function repositionNotifications() {
     const lessonNotif = document.getElementById('new-lesson-notification');
@@ -191,33 +306,28 @@ function repositionNotifications() {
     const deadlineNotif = document.getElementById('deadline-notification');
     
     let topPos = 15;
-    const gap = 85; // فاصله بین نوتیفیکیشن‌ها
+    const gap = 85;
     
-    // ۱. تکلیف جدید
     if (lessonNotif && lessonNotif.classList.contains('show')) {
         lessonNotif.style.top = topPos + 'px';
         topPos += gap;
     }
     
-    // ۲. ویدیو جدید
     if (videoNotif && videoNotif.classList.contains('show')) {
         videoNotif.style.top = topPos + 'px';
         topPos += gap;
     }
     
-    // ۳. پیام معلم
     if (messageNotif && messageNotif.classList.contains('show')) {
         messageNotif.style.top = topPos + 'px';
         topPos += gap;
     }
     
-    // ۴. جزوه جدید
     if (jozveNotif && jozveNotif.classList.contains('show')) {
         jozveNotif.style.top = topPos + 'px';
         topPos += gap;
     }
     
-    // ۵. مهلت تکلیف
     if (deadlineNotif && deadlineNotif.classList.contains('show')) {
         deadlineNotif.style.top = topPos + 'px';
         topPos += gap;
@@ -225,7 +335,7 @@ function repositionNotifications() {
 }
 
 // ============================================================
-// Realtime — گوش دادن به پیام‌ها
+// Realtime
 // ============================================================
 function startRealtimeSubscriptions() {
     if (isRealtimeStarted) {
@@ -243,30 +353,34 @@ function startRealtimeSubscriptions() {
     
     // ۱. پیام‌های شخصی
     try {
-        personalMessagesChannel = subscribeToPersonalMessages(studentId, async (payload) => {
-            console.log('📨 Realtime: پیام شخصی جدید', payload.eventType);
-            
-            const messages = await getPersonalMessages(studentId);
-            setCachedData('studentChatCache_' + studentId, messages);
-            
-            const activeScreen = document.querySelector('.screen.active');
-            if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
-                const activeTab = document.querySelector('.student-messages-tab.active');
-                if (activeTab && activeTab.dataset.tab === 'chat') {
-                    renderStudentChatMessages(messages);
-                    markAllChatMessagesAsSeen(messages);
-                    markAllMessagesAsSeenSupabase(studentId, 'student').catch(() => {});
+        if (typeof subscribeToPersonalMessages === 'function') {
+            personalMessagesChannel = subscribeToPersonalMessages(studentId, async (payload) => {
+                console.log('📨 Realtime: پیام شخصی جدید', payload.eventType);
+                
+                const messages = await getPersonalMessages(studentId);
+                setCachedData('studentChatCache_' + studentId, messages);
+                
+                const activeScreen = document.querySelector('.screen.active');
+                if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
+                    const activeTab = document.querySelector('.student-messages-tab.active');
+                    if (activeTab && activeTab.dataset.tab === 'chat') {
+                        renderStudentChatMessages(messages);
+                        markAllChatMessagesAsSeen(messages);
+                        if (typeof markAllMessagesAsSeenSupabase === 'function') {
+                            markAllMessagesAsSeenSupabase(studentId, 'student').catch(() => {});
+                        }
+                    }
+                } else {
+                    if (payload.eventType === 'INSERT' && payload.new && payload.new.sender === 'teacher') {
+                        playStudentDingSound();
+                        vibrate([30, 50, 30]);
+                        showStudentInAppNotification('پیام جدید از معلم', payload.new.text || '');
+                    }
                 }
-            } else {
-                if (payload.eventType === 'INSERT' && payload.new && payload.new.sender === 'teacher') {
-                    playStudentDingSound();
-                    vibrate([30, 50, 30]);
-                    showStudentInAppNotification('پیام جدید از معلم', payload.new.text || '');
-                }
-            }
-            
-            updateBadgeImmediately();
-        });
+                
+                updateBadgeImmediately();
+            });
+        }
     } catch(e) {
         console.warn('خطا در Realtime پیام‌های شخصی:', e);
     }
@@ -274,27 +388,29 @@ function startRealtimeSubscriptions() {
     // ۲. پیام‌های کلاسی
     setTimeout(() => {
         try {
-            classMessagesChannel = subscribeToClassMessages(userClass, async (payload) => {
-                console.log('📢 Realtime: پیام کلاسی جدید', payload.eventType);
-                
-                const messages = await getClassMessagesFromSupabase(userClass);
-                setCachedData('studentClassMessagesCache', messages);
-                
-                const activeScreen = document.querySelector('.screen.active');
-                if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
-                    const activeTab = document.querySelector('.student-messages-tab.active');
-                    if (activeTab && activeTab.dataset.tab === 'class') {
-                        renderStudentClassMessages(messages);
-                        markAllClassMessagesAsSeen(messages);
+            if (typeof subscribeToClassMessages === 'function') {
+                classMessagesChannel = subscribeToClassMessages(userClass, async (payload) => {
+                    console.log('📢 Realtime: پیام کلاسی جدید', payload.eventType);
+                    
+                    const messages = await getClassMessagesFromSupabase(userClass);
+                    setCachedData('studentClassMessagesCache', messages);
+                    
+                    const activeScreen = document.querySelector('.screen.active');
+                    if (activeScreen && activeScreen.id === 'screen-teacher-messages') {
+                        const activeTab = document.querySelector('.student-messages-tab.active');
+                        if (activeTab && activeTab.dataset.tab === 'class') {
+                            renderStudentClassMessages(messages);
+                            markAllClassMessagesAsSeen(messages);
+                        }
+                    } else {
+                        playStudentDingSound();
+                        vibrate([30, 50, 30]);
+                        showStudentInAppNotification('📢 پیام جدید کلاسی', payload.new?.title || 'پیام جدید');
                     }
-                } else {
-                    playStudentDingSound();
-                    vibrate([30, 50, 30]);
-                    showStudentInAppNotification('📢 پیام جدید کلاسی', payload.new?.title || 'پیام جدید');
-                }
-                
-                updateBadgeImmediately();
-            });
+                    
+                    updateBadgeImmediately();
+                });
+            }
         } catch(e) {
             console.warn('خطا در Realtime پیام‌های کلاسی:', e);
         }
@@ -489,6 +605,11 @@ async function loadLessonsListForNotification() {
 function checkAndAddLessonNotifications() {
     if (typeof isPublished !== 'undefined' && !isPublished) return;
     
+    // 🆕 اگه کاربر برگشتیه، این‌ها رو نشون نده
+    if (localStorage.getItem('isReturningUser') === 'true') {
+        return;
+    }
+    
     const seenLessonsForNotif = JSON.parse(localStorage.getItem('seenLessonsForNotif') || '[]');
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const completedIds = reports.map(r => r.lessonId);
@@ -505,6 +626,7 @@ function checkAndAddLessonNotifications() {
     if (newLessons.length > 0) {
         const allIds = allLessons.map(l => l.id);
         localStorage.setItem('seenLessonsForNotif', JSON.stringify(allIds));
+        debouncedSaveSeenData();
     }
 }
 
@@ -518,8 +640,13 @@ function checkVideoNotification() {
         return;
     }
     
+    // 🆕 اگه کاربر برگشتیه، نشون نده
+    if (localStorage.getItem('isReturningUser') === 'true') {
+        return;
+    }
+    
     const seenVideos = JSON.parse(localStorage.getItem('seenVideos') || '[]');
-    const currentVideos = ['video_1'];
+    const currentVideos = ['video_1', 'video_2'];
     const newVideos = currentVideos.filter(id => !seenVideos.includes(id));
     const notification = document.getElementById('video-notification');
     const subText = document.getElementById('video-notification-sub-text');
@@ -545,7 +672,8 @@ function dismissVideoNotification() {
         notif.classList.remove('show', 'swiping');
         notif.style.transform = '';
         notif.style.opacity = '';
-        localStorage.setItem('seenVideos', JSON.stringify(['video_1']));
+        localStorage.setItem('seenVideos', JSON.stringify(['video_1', 'video_2']));
+        debouncedSaveSeenData();
         repositionNotifications();
     }, 300);
 }
@@ -559,6 +687,11 @@ function checkAndShowNotification() {
     if (typeof isPublished !== 'undefined' && !isPublished) {
         const notification = document.getElementById('new-lesson-notification');
         if (notification) notification.classList.remove('show');
+        return;
+    }
+    
+    // 🆕 اگه کاربر برگشتیه، نشون نده
+    if (localStorage.getItem('isReturningUser') === 'true') {
         return;
     }
     
@@ -589,6 +722,11 @@ function checkDeadlineWarning() {
         return;
     }
     
+    // 🆕 اگه کاربر برگشتیه، نشون نده
+    if (localStorage.getItem('isReturningUser') === 'true') {
+        return;
+    }
+    
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const completedIds = reports.map(r => r.lessonId);
     const urgentLessons = allLessons.filter(l => {
@@ -613,6 +751,7 @@ function checkDeadlineWarning() {
                 addNotification('warning', '⚠️ هشدار مهلت', `مهلت تکلیف «${lesson.title}» ${timeText} تموم میشه!`);
             });
             localStorage.setItem('lastDeadlineNotifDate', today);
+            debouncedSaveSeenData();
             updateNotificationBadge();
         }
     } else if (deadlineNotif) {
@@ -631,6 +770,8 @@ function dismissDeadlineNotification() {
         notif.classList.remove('show', 'swiping');
         notif.style.transform = '';
         notif.style.opacity = '';
+        localStorage.setItem('dismissedDeadlineNotif', 'true');
+        debouncedSaveSeenData();
         repositionNotifications();
     }, 300);
 }
@@ -753,22 +894,24 @@ function handleNotifTouchEnd() {
             notif.style.transform = '';
             notif.style.opacity = '';
             
-            // علامت‌گذاری بر اساس نوع
             if (id === 'new-lesson-notification') {
                 if (allLessons.length > 0) {
                     localStorage.setItem('seenLessons', JSON.stringify(allLessons.map(l => l.id)));
+                    debouncedSaveSeenData();
                 }
             } else if (id === 'video-notification') {
-                localStorage.setItem('seenVideos', JSON.stringify(['video_1']));
+                localStorage.setItem('seenVideos', JSON.stringify(['video_1', 'video_2']));
+                debouncedSaveSeenData();
             } else if (id === 'new-message-notification') {
-                if (typeof dismissNewMessageNotification === 'function') {
-                    // صدا زده نمیشه چون همین الان بسته شد
-                }
                 localStorage.setItem('dismissedNewMessageNotif', 'true');
+                debouncedSaveSeenData();
             } else if (id === 'new-jozve-notification') {
                 if (typeof saveJozveSeen === 'function') {
                     saveJozveSeen();
                 }
+            } else if (id === 'deadline-notification') {
+                localStorage.setItem('dismissedDeadlineNotif', 'true');
+                debouncedSaveSeenData();
             }
             
             repositionNotifications();
@@ -846,8 +989,11 @@ function switchStudentMessagesTab(tab) {
     document.querySelectorAll('.student-messages-tab').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.student-messages-tab-content').forEach(c => c.classList.remove('active'));
     
-    document.querySelector(`.student-messages-tab[data-tab="${tab}"]`)?.classList.add('active');
-    document.getElementById('student-tab-' + tab)?.classList.add('active');
+    const tabBtn = document.querySelector(`.student-messages-tab[data-tab="${tab}"]`);
+    if (tabBtn) tabBtn.classList.add('active');
+    
+    const tabContent = document.getElementById('student-tab-' + tab);
+    if (tabContent) tabContent.classList.add('active');
     
     if (tab === 'class') {
         loadStudentClassMessages();
@@ -856,9 +1002,6 @@ function switchStudentMessagesTab(tab) {
     }
 }
 
-// ============================================================
-// پیام‌های کلاسی
-// ============================================================
 async function loadStudentClassMessages() {
     const container = document.getElementById('student-class-messages-content');
     if (!container) return;
@@ -927,9 +1070,6 @@ function renderStudentClassMessages(messages) {
     container.innerHTML = html;
 }
 
-// ============================================================
-// چت با معلم
-// ============================================================
 async function loadStudentChat() {
     const container = document.getElementById('student-chat-messages');
     if (!container) return;
@@ -961,7 +1101,9 @@ async function loadStudentChat() {
         renderStudentChatMessages(messages);
         markAllChatMessagesAsSeen(messages);
         
-        markAllMessagesAsSeenSupabase(studentId, 'student').catch(() => {});
+        if (typeof markAllMessagesAsSeenSupabase === 'function') {
+            markAllMessagesAsSeenSupabase(studentId, 'student').catch(() => {});
+        }
         
         updateBadgeImmediately();
         updateChatBadge();
@@ -1015,9 +1157,6 @@ function renderStudentChatMessages(messages) {
     container.scrollTop = container.scrollHeight;
 }
 
-// ============================================================
-// ارسال پیام
-// ============================================================
 async function sendStudentMessage() {
     const input = document.getElementById('student-chat-input');
     const text = input.value.trim();

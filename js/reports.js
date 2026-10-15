@@ -1,6 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۸.۰.۰ — با ذخیره در Supabase برای پنل معلم
+// نسخه: ۹.۰.۰ — با ذخیره در Supabase
 // ============================================================
 
 // ============================================================
@@ -12,12 +12,93 @@ let currentPreviewSource = '';
 let currentPreviewIndex = -1;
 
 // ============================================================
+// 🆕 تبدیل گزارش Supabase به فرمت localStorage
+// ============================================================
+function convertSupabaseReportToLocal(supabaseReport, userName, userClass) {
+    return {
+        studentName: userName || localStorage.getItem('userName') || '',
+        studentClass: userClass || localStorage.getItem('userClass') || '',
+        lessonId: supabaseReport.lesson_id,
+        lessonTitle: supabaseReport.lesson_title,
+        date: new Date(supabaseReport.created_at).toLocaleDateString('fa-IR', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit' 
+        }),
+        timestamp: supabaseReport.created_at,
+        percent: supabaseReport.percent || 0,
+        correct: supabaseReport.correct || 0,
+        wrong: supabaseReport.wrong || 0,
+        score: supabaseReport.score || 0,
+        totalPoints: supabaseReport.total_points || 0,
+        timeTaken: supabaseReport.time_taken || 0,
+        surveyAnswer: ''
+    };
+}
+
+// ============================================================
+// 🆕 همگام‌سازی کارنامه‌ها از Supabase به localStorage
+// ============================================================
+async function syncReportsFromSupabase() {
+    try {
+        const studentId = localStorage.getItem('studentUUID');
+        if (!studentId) return false;
+        
+        const supabaseReports = await getReportsFromSupabase(studentId);
+        if (!supabaseReports || supabaseReports.length === 0) {
+            console.log('ℹ️ کارنامه‌ای در Supabase نیست');
+            return false;
+        }
+        
+        const userName = localStorage.getItem('userName');
+        const userClass = localStorage.getItem('userClass');
+        
+        const localReports = supabaseReports.map(r => 
+            convertSupabaseReportToLocal(r, userName, userClass)
+        );
+        
+        localStorage.setItem('reports', JSON.stringify(localReports));
+        console.log('✅ کارنامه‌ها از Supabase به localStorage منتقل شد:', localReports.length);
+        return true;
+        
+    } catch (error) {
+        console.error('❌ خطا در همگام‌سازی:', error);
+        return false;
+    }
+}
+
+// ============================================================
 // نمایش لیست کارنامه‌ها
 // ============================================================
-function loadReports() {
-    const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+async function loadReports() {
     const container = document.getElementById('reports-list');
+    if (!container) return;
     
+    // اول از localStorage لود کن (سریع)
+    let reports = JSON.parse(localStorage.getItem('reports') || '[]');
+    
+    if (reports.length > 0) {
+        renderReportsList(reports, container);
+    } else {
+        container.innerHTML = '<div class="rankings-loading"><div class="rankings-spinner"></div><div class="rankings-loading-text">در حال بارگذاری...</div></div>';
+    }
+    
+    // در پس‌زمینه از Supabase آپدیت کن
+    setTimeout(async () => {
+        const synced = await syncReportsFromSupabase();
+        if (synced) {
+            reports = JSON.parse(localStorage.getItem('reports') || '[]');
+            renderReportsList(reports, container);
+        } else if (reports.length === 0) {
+            container.innerHTML = `<div class="report-empty"><div class="report-empty-icon">📋</div><div class="report-empty-text">هنوز کارنامه‌ای ندارید</div></div>`;
+        }
+    }, 500);
+}
+
+// ============================================================
+// 🆕 رندر لیست کارنامه‌ها
+// ============================================================
+function renderReportsList(reports, container) {
     if (reports.length === 0) {
         container.innerHTML = `<div class="report-empty"><div class="report-empty-icon">📋</div><div class="report-empty-text">هنوز کارنامه‌ای ندارید</div></div>`;
         return;
@@ -61,52 +142,27 @@ function loadReports() {
 // 🆕 ذخیره کارنامه (localStorage + Supabase)
 // ============================================================
 async function saveReport(report) {
-    // ذخیره در localStorage (مثل قبل)
+    // ۱. ذخیره در localStorage (Cache)
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     reports.push(report);
     localStorage.setItem('reports', JSON.stringify(reports));
     
-    // 🆕 ذخیره در Supabase برای نمایش در پنل معلم
+    // ۲. ذخیره در Supabase
     try {
-        const client = getSupabase();
-        if (!client) {
-            console.warn('⚠️ Supabase Client موجود نیست');
-            return;
-        }
-        
         const studentId = localStorage.getItem('studentUUID');
         if (!studentId) {
-            console.warn('⚠️ studentUUID موجود نیست');
+            console.warn('⚠️ studentUUID نداریم');
             return;
         }
         
-        const payload = {
-            student_id: studentId,
-            lesson_id: report.lessonId,
-            lesson_title: report.lessonTitle,
-            percent: report.percent || 0,
-            score: report.score || 0,
-            total_points: report.totalPoints || 0,
-            correct: report.correct || 0,
-            wrong: report.wrong || 0,
-            time_taken: report.timeTaken || 0,
-            created_at: new Date().toISOString()
-        };
-        
-        console.log('📤 ذخیره کارنامه در Supabase:', payload);
-        
-        const { data, error } = await client
-            .from('reports')
-            .insert(payload)
-            .select();
-        
-        if (error) {
-            console.error('❌ خطا در ذخیره کارنامه در Supabase:', error.message);
+        const success = await saveReportToSupabase(report, studentId);
+        if (success) {
+            console.log('✅ کارنامه در هر دو جا ذخیره شد');
         } else {
-            console.log('✅ کارنامه در Supabase ذخیره شد:', data);
+            console.warn('⚠️ فقط در localStorage ذخیره شد');
         }
-    } catch (e) {
-        console.error('❌ خطا:', e);
+    } catch (error) {
+        console.error('❌ خطا:', error);
     }
 }
 
@@ -239,10 +295,7 @@ function openPdfPreview(report, filename, source, index = -1) {
     currentPreviewIndex = index;
     
     const container = document.getElementById('pdf-preview-content');
-    if (!container) {
-        console.error('❌ کانتینر پیش‌نمایش پیدا نشد');
-        return;
-    }
+    if (!container) return;
     
     container.innerHTML = generateGraphicReport(report);
     goToScreen('screen-pdf-preview');
@@ -297,10 +350,9 @@ async function downloadPdfFromPreview() {
         if (success) {
             showModal('✅ دانلود موفق', 'کارنامه با موفقیت دانلود شد.', '✅');
         } else {
-            showModal('❌ خطا', 'مشکلی در دانلود پیش آمد.\nلطفاً دوباره تلاش کنید.', '❌');
+            showModal('❌ خطا', 'مشکلی در دانلود پیش آمد.', '❌');
         }
     } catch (error) {
-        console.error('❌ خطا:', error);
         showModal('❌ خطا', 'مشکلی در دانلود پیش آمد.', '❌');
     } finally {
         if (downloadBtn) {
@@ -318,7 +370,7 @@ async function downloadPdfFromPreview() {
 }
 
 // ============================================================
-// دانلود PDF — با html2canvas + jsPDF مستقیم
+// دانلود PDF
 // ============================================================
 async function downloadReportFast(report, filename) {
     let container = null;
@@ -334,8 +386,6 @@ async function downloadReportFast(report, filename) {
         container.style.fontFamily = 'Vazirmatn, sans-serif';
         container.style.padding = '30px';
         container.style.boxSizing = 'border-box';
-        container.style.zIndex = '1';
-        container.style.overflow = 'visible';
         
         container.innerHTML = generateGraphicReport(report);
         document.body.appendChild(container);
@@ -354,8 +404,6 @@ async function downloadReportFast(report, filename) {
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        console.log('🎨 شروع رندر با html2canvas...');
-        
         container.style.left = '0';
         await new Promise(resolve => setTimeout(resolve, 100));
         
@@ -366,23 +414,13 @@ async function downloadReportFast(report, filename) {
             backgroundColor: '#ffffff',
             logging: false,
             imageTimeout: 10000,
-            removeContainer: false,
-            scrollX: 0,
-            scrollY: 0,
             windowWidth: 794,
-            windowHeight: container.scrollHeight,
-            width: 794,
-            height: container.scrollHeight,
-            x: 0,
-            y: 0
+            windowHeight: container.scrollHeight
         });
-        
-        console.log('✅ canvas ساخته شد:', canvas.width, 'x', canvas.height);
         
         container.style.left = '-9999px';
         
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        
         const { jsPDF } = window.jspdf;
         
         const pdfWidth = 595.28;
@@ -398,15 +436,12 @@ async function downloadReportFast(report, filename) {
         pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
         pdf.save(filename);
         
-        console.log('✅ PDF با موفقیت ساخته شد');
-        
         if (container && container.parentNode) {
             container.parentNode.removeChild(container);
         }
         
         return true;
     } catch (error) {
-        console.error('❌ خطا در دانلود:', error);
         if (container && container.parentNode) {
             container.parentNode.removeChild(container);
         }
@@ -427,15 +462,12 @@ async function downloadReportById(index) {
     openPdfPreview(report, filename, 'list', index);
 }
 
-// ============================================================
-// دانلود از توی صفحه‌ی مشاهده
-// ============================================================
 async function downloadReportByData(index) {
     await downloadReportById(index);
 }
 
 // ============================================================
-// نمایش کارنامه بعد از تکلیف + ثبت امتیاز
+// نمایش کارنامه بعد از تکلیف
 // ============================================================
 function showReportCard() {
     if (isPracticeMode) {

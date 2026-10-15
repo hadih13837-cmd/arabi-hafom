@@ -1,6 +1,6 @@
 // ============================================================
 // lessons.js — سیستم تکالیف (لیست، فیلتر، جزئیات، شروع)
-// نسخه: ۴.۰.۰ — با پشتیبانی از مهلت سفارشی معلم
+// نسخه: ۶.۰.۰ — با ذخیره progress در Supabase
 // ============================================================
 
 let allLessons = [];
@@ -21,20 +21,20 @@ async function loadCustomLessonStatus() {
             customLessonStatus = {};
             return;
         }
+        
         if (typeof getStudentLessonStatus === 'function') {
             customLessonStatus = await getStudentLessonStatus(studentId);
-            console.log('📋 وضعیت تکالیف از Supabase:', customLessonStatus);
+            console.log('📋 وضعیت تکالیف:', customLessonStatus);
         } else {
             customLessonStatus = {};
         }
     } catch (error) {
-        console.error('خطا در بارگذاری وضعیت تکالیف:', error);
         customLessonStatus = {};
     }
 }
 
 // ============================================================
-// گرفتن مهلت واقعی تکلیف (سفارشی یا پیش‌فرض)
+// مهلت واقعی تکلیف
 // ============================================================
 function getEffectiveDueDate(lesson) {
     const custom = customLessonStatus[lesson.id];
@@ -45,7 +45,7 @@ function getEffectiveDueDate(lesson) {
 }
 
 // ============================================================
-// چک کردن فعال/غیرفعال بودن تکلیف
+// فعال/غیرفعال بودن تکلیف
 // ============================================================
 function isLessonEnabled(lesson) {
     const custom = customLessonStatus[lesson.id];
@@ -67,7 +67,6 @@ async function loadLessonsList() {
         renderLessonsList();
         checkNewLessons();
     } catch (error) {
-        console.error('خطا:', error);
         document.getElementById('lessons-list').innerHTML = `
             <div class="report-empty">
                 <div class="report-empty-icon">📭</div>
@@ -78,7 +77,7 @@ async function loadLessonsList() {
 }
 
 // ============================================================
-// فیلتر تکالیف
+// فیلتر
 // ============================================================
 function filterLessons(filter, btn) {
     currentFilter = filter;
@@ -88,7 +87,7 @@ function filterLessons(filter, btn) {
 }
 
 // ============================================================
-// جستجو در تکالیف
+// جستجو
 // ============================================================
 function searchLessons(query) {
     searchQuery = query.toLowerCase().trim();
@@ -104,9 +103,11 @@ function renderLessonsList() {
         container.innerHTML = `<div class="report-empty"><div class="report-empty-icon">📭</div><div class="report-empty-text">هنوز تکلیفی وجود ندارد</div></div>`;
         return;
     }
+    
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const completedLessonIds = reports.map(r => r.lessonId);
     const currentProgress = getCurrentProgress();
+    
     let lessonsToShow = allLessons.map((lesson, index) => {
         const isCompleted = completedLessonIds.includes(lesson.id);
         const isPaused = currentProgress && currentProgress.lessonId === lesson.id;
@@ -114,6 +115,7 @@ function renderLessonsList() {
         const expired = isExpired(lessonDueDate);
         const isNearDeadline = !expired && !isCompleted && isDeadlineNear(lessonDueDate);
         const isEnabled = isLessonEnabled(lesson);
+        
         return {
             ...lesson, isCompleted, isPaused, isExpired: expired, isNearDeadline,
             isEnabled,
@@ -127,20 +129,24 @@ function renderLessonsList() {
     
     if (currentFilter === 'completed') lessonsToShow = lessonsToShow.filter(l => l.isCompleted);
     else if (currentFilter === 'in-progress') lessonsToShow = lessonsToShow.filter(l => !l.isCompleted);
+    
     if (searchQuery) {
         lessonsToShow = lessonsToShow.filter(l =>
             l.taskTitle.toLowerCase().includes(searchQuery) ||
             (l.subtitle && l.subtitle.toLowerCase().includes(searchQuery))
         );
     }
+    
     if (lessonsToShow.length === 0) {
         container.innerHTML = `<div class="report-empty"><div class="report-empty-icon">🔍</div><div class="report-empty-text">موردی یافت نشد</div></div>`;
         return;
     }
+    
     container.innerHTML = lessonsToShow.map((lesson) => {
         let progressPercent = 0;
         let btnClass = '';
         let btnText = 'مشاهده';
+        
         if (lesson.isCompleted) {
             progressPercent = 100; btnClass = 'completed'; btnText = 'مشاهده';
         } else if (lesson.isPaused && currentProgress) {
@@ -153,9 +159,11 @@ function renderLessonsList() {
         } else {
             progressPercent = 0; btnText = 'مشاهده';
         }
+        
         const circumference = 2 * Math.PI * 20;
         const dashOffset = circumference * (1 - progressPercent / 100);
         const bookData = BOOK_VECTORS[lesson.colorIndex];
+        
         let badgeHTML = '';
         if (lesson.isCompleted) {
             badgeHTML = `<div class="lesson-completed-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
@@ -164,10 +172,12 @@ function renderLessonsList() {
         } else if (lesson.isNearDeadline) {
             badgeHTML = `<div class="lesson-warning-badge"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>`;
         }
+        
         const borderColor = bookData.color + '44';
         const bgColor = bookData.colorLight;
         const progressTextColor = progressPercent === 100 ? '#2e7d32' : bookData.color;
         const progressTextClass = progressPercent === 100 ? 'full-progress' : '';
+        
         let deadlineClass = '';
         let deadlineText = `مهلت: ${lesson.dueDate}`;
         if (lesson.isExpired && !lesson.isCompleted) {
@@ -178,6 +188,7 @@ function renderLessonsList() {
             const daysLeft = getDaysDiff(lesson.dueDate);
             deadlineText = daysLeft === 0 ? `⏰ مهلت امروز!` : `⏰ فقط ${toPersianNum(daysLeft)} روز مونده!`;
         }
+        
         return `
             <div class="lesson-card" style="border-color: ${borderColor};">
                 <div class="lesson-card-book" style="background: ${bgColor}; border: 1.5px solid ${borderColor};">
@@ -221,12 +232,15 @@ function openLessonDetail(lessonId) {
     const isCompleted = reports.some(r => r.lessonId === lessonId);
     const currentProgress = getCurrentProgress();
     const isPaused = currentProgress && currentProgress.lessonId === lessonId;
+    
     const dueDate = getEffectiveDueDate(lesson);
     const expired = isExpired(dueDate);
     const isNearDeadline = !expired && !isCompleted && isDeadlineNear(dueDate);
+    
     const activityCount = lesson.activityCount || 10;
     const estimatedTime = lesson.estimatedTime || 10;
     const description = lesson.description || 'در این تکلیف، با واژگان جدید، ترجمه و عبارات مهم درس آشنا می‌شوید. موفق باشید!';
+    
     let expiredWarningHTML = '';
     if (expired && !isCompleted) {
         expiredWarningHTML = `
@@ -251,6 +265,7 @@ function openLessonDetail(lessonId) {
             </div>
         `;
     }
+    
     let startBtnHTML = '';
     if (isCompleted) {
         startBtnHTML = `<button class="lesson-start-btn" style="background: linear-gradient(135deg, ${bookData.color}, ${bookData.color}dd); box-shadow: 0 6px 20px ${bookData.color}66;" onclick="startLesson('${lessonId}')"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>مشاهده دوباره (تمرین)</span></button>`;
@@ -261,6 +276,7 @@ function openLessonDetail(lessonId) {
     } else {
         startBtnHTML = `<button class="lesson-start-btn" style="background: linear-gradient(135deg, ${bookData.color}, ${bookData.color}dd); box-shadow: 0 6px 20px ${bookData.color}66;" onclick="startLesson('${lessonId}')"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>شروع تکلیف</span></button>`;
     }
+    
     const content = document.getElementById('lesson-detail-content');
     content.innerHTML = `
         <div class="lesson-detail-banner" style="background: ${bookData.colorLight}; border: 2px solid ${bookData.color}44;">
@@ -301,12 +317,13 @@ function openLessonDetail(lessonId) {
 }
 
 // ============================================================
-// ذخیره پیشرفت تکلیف
+// ذخیره پیشرفت (localStorage + Supabase)
 // ============================================================
-function saveCurrentProgress() {
+async function saveCurrentProgress() {
     if (!currentLesson) return;
     const totalQuestions = currentLesson.questions.length;
     if (currentQuestionIndex >= totalQuestions) return;
+    
     const progress = {
         lessonId: currentLesson.lessonId,
         questionIndex: currentQuestionIndex,
@@ -318,17 +335,44 @@ function saveCurrentProgress() {
         totalQuestions: totalQuestions,
         lessonTitle: currentLesson.title
     };
+    
     localStorage.setItem('currentLessonProgress', JSON.stringify(progress));
+    
+    try {
+        const studentId = localStorage.getItem('studentUUID');
+        if (studentId && typeof saveProgressToSupabase === 'function') {
+            await saveProgressToSupabase(progress, studentId);
+        }
+    } catch (e) {
+        console.warn('⚠️ خطا در ذخیره پیشرفت:', e);
+    }
 }
 
+// ============================================================
+// گرفتن پیشرفت
+// ============================================================
 function getCurrentProgress() {
     const data = localStorage.getItem('currentLessonProgress');
     if (!data) return null;
     try { return JSON.parse(data); } catch(e) { return null; }
 }
 
-function clearCurrentProgress() {
+// ============================================================
+// پاک کردن پیشرفت
+// ============================================================
+async function clearCurrentProgress() {
+    const progress = getCurrentProgress();
+    
     localStorage.removeItem('currentLessonProgress');
+    
+    if (progress) {
+        try {
+            const studentId = localStorage.getItem('studentUUID');
+            if (studentId && typeof clearProgressFromSupabase === 'function') {
+                await clearProgressFromSupabase(studentId, progress.lessonId);
+            }
+        } catch (e) {}
+    }
 }
 
 // ============================================================
@@ -351,20 +395,26 @@ async function startLesson(lessonId) {
         document.getElementById('repeat-modal').classList.add('active');
         return;
     }
+    
     const progress = getCurrentProgress();
     if (progress && progress.lessonId === lessonId) {
         showResumeModal(lessonId, progress);
         return;
     }
+    
     clearCurrentProgress();
     await runLesson(lessonId, false, 0);
 }
 
+// ============================================================
+// مودال ادامه/شروع مجدد
+// ============================================================
 function showResumeModal(lessonId, progress) {
     const answeredCount = progress.questionIndex;
     const totalQuestions = progress.totalQuestions || 12;
     const existing = document.getElementById('resume-modal');
     if (existing) existing.remove();
+    
     const modal = document.createElement('div');
     modal.id = 'resume-modal';
     modal.className = 'exit-modal-overlay active';
@@ -410,5 +460,27 @@ function continueLesson(lessonId) {
         runLesson(lessonId, progress.isPracticeMode, progress.questionIndex);
     } else {
         runLesson(lessonId, false, 0);
+    }
+}
+
+// ============================================================
+// بازیابی پیشرفت از Supabase
+// ============================================================
+async function recoverProgressFromSupabase() {
+    try {
+        const studentId = localStorage.getItem('studentUUID');
+        if (!studentId) return false;
+        
+        if (typeof getProgressFromSupabase !== 'function') return false;
+        
+        const progress = await getProgressFromSupabase(studentId);
+        if (progress) {
+            localStorage.setItem('currentLessonProgress', JSON.stringify(progress));
+            console.log('✅ پیشرفت از Supabase بازیابی شد');
+            return true;
+        }
+        return false;
+    } catch (error) {
+        return false;
     }
 }

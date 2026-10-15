@@ -1,41 +1,107 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۹.۰.۰ — با پشتیبانی از مهلت سفارشی و وضعیت تکالیف
+// نسخه: ۱۵.۰.۰ — با تغییر کد و تعداد تکالیف
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
 const API_URL = TEACHER_API_URL;
 
 // ============================================================
-// ذخیره/آپدیت امتیاز کاربر
+// 🆕 تغییر کد ورود دانش‌آموز
+// ============================================================
+async function updateStudentCode(studentId, newCode) {
+    try {
+        const client = getSupabase();
+        if (!client) return { success: false, error: 'no_client' };
+        
+        // چک کن کد تکراری نباشه
+        const { data: existing, error: checkError } = await client
+            .from('rankings')
+            .select('student_id')
+            .eq('student_code', newCode)
+            .maybeSingle();
+        
+        if (checkError && checkError.code !== 'PGRST116') {
+            return { success: false, error: checkError.message };
+        }
+        
+        if (existing && existing.student_id !== studentId) {
+            return { success: false, error: 'code_taken' };
+        }
+        
+        const { error } = await client
+            .from('rankings')
+            .update({ student_code: newCode })
+            .eq('student_id', studentId);
+        
+        if (error) {
+            console.error('❌ خطا در تغییر کد:', error);
+            return { success: false, error: error.message };
+        }
+        
+        console.log('✅ کد دانش‌آموز تغییر کرد:', newCode);
+        return { success: true };
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ============================================================
+// 🆕 تغییر تعداد تکالیف انجام‌شده
+// ============================================================
+async function updateCompletedLessons(studentId, count) {
+    try {
+        const client = getSupabase();
+        if (!client) return { success: false, error: 'no_client' };
+        
+        const safeCount = Math.max(0, parseInt(count) || 0);
+        
+        const { error } = await client
+            .from('rankings')
+            .update({ completed_lessons: safeCount })
+            .eq('student_id', studentId);
+        
+        if (error) {
+            console.error('❌ خطا:', error);
+            return { success: false, error: error.message };
+        }
+        
+        console.log('✅ تعداد تکالیف تغییر کرد:', safeCount);
+        return { success: true };
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ============================================================
+// ذخیره/آپدیت امتیاز کاربر (با کد)
 // ============================================================
 async function saveRankingToSupabase() {
     try {
         const client = getSupabase();
-        if (!client) {
-            console.warn('⚠️ Supabase Client موجود نیست');
-            return false;
-        }
+        if (!client) return false;
         
         let studentId = localStorage.getItem('studentUUID');
         if (!studentId) {
-            studentId = (typeof crypto !== 'undefined' && crypto.randomUUID) 
-                ? crypto.randomUUID() 
-                : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                    const r = Math.random() * 16 | 0;
-                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-                    return v.toString(16);
-                });
-            localStorage.setItem('studentUUID', studentId);
+            const studentCode = localStorage.getItem('studentCode');
+            if (studentCode && typeof generateUUIDFromCode === 'function') {
+                studentId = await generateUUIDFromCode(studentCode);
+                localStorage.setItem('studentUUID', studentId);
+            } else {
+                console.log('⚠️ studentUUID و studentCode نداریم');
+                return false;
+            }
         }
         
         const userName = localStorage.getItem('userName');
         const userClass = localStorage.getItem('userClass');
+        const studentCode = localStorage.getItem('studentCode') || null;
         
-        if (!userName || !userClass) {
-            console.log('⚠️ اطلاعات کاربر ناقص');
-            return false;
-        }
+        if (!userName || !userClass) return false;
         
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
@@ -52,14 +118,22 @@ async function saveRankingToSupabase() {
         const avatarEmoji = localStorage.getItem('userAvatarEmoji');
         
         if (avatarImg) {
-            if (avatarImg.length > 100000) {
-                avatarUrl = 'emoji:👤';
-            } else {
-                avatarUrl = avatarImg;
-            }
+            avatarUrl = avatarImg.length > 100000 ? 'emoji:👤' : avatarImg;
         } else if (avatarEmoji) {
             avatarUrl = 'emoji:' + avatarEmoji;
         }
+        
+        // 🆕 قبل از آپدیت، چک کن که آیا کد رو تغییر داده یا نه
+        const { data: existingData } = await client
+            .from('rankings')
+            .select('student_code, completed_lessons')
+            .eq('student_id', studentId)
+            .maybeSingle();
+        
+        // اگه معلم کد یا تعداد تکالیف رو تغییر داده، از اون استفاده کن
+        const finalCode = (existingData && existingData.student_code) 
+            ? existingData.student_code 
+            : studentCode;
         
         const payload = {
             student_id: studentId,
@@ -70,14 +144,9 @@ async function saveRankingToSupabase() {
             avg_percent: avgPercent,
             streak_days: streakDays,
             avatar_url: String(avatarUrl),
+            student_code: finalCode,
             last_update: new Date().toISOString()
         };
-        
-        console.log('📤 ذخیره در Supabase:', {
-            name: payload.name,
-            total_points: totalPoints,
-            avg_percent: avgPercent
-        });
         
         const { data, error } = await client
             .from('rankings')
@@ -92,6 +161,11 @@ async function saveRankingToSupabase() {
             return false;
         }
         
+        // اگه کد از سمت معلم تغییر کرده بود، توی localStorage هم به‌روز کن
+        if (existingData && existingData.student_code && existingData.student_code !== studentCode) {
+            localStorage.setItem('studentCode', existingData.student_code);
+        }
+        
         console.log('✅ امتیاز ذخیره شد:', totalPoints);
         return true;
         
@@ -102,7 +176,7 @@ async function saveRankingToSupabase() {
 }
 
 // ============================================================
-// 🆕 گرفتن وضعیت تکالیف از Supabase (مهلت سفارشی + فعال/غیرفعال)
+// وضعیت تکالیف
 // ============================================================
 async function getStudentLessonStatus(studentId) {
     try {
@@ -114,10 +188,7 @@ async function getStudentLessonStatus(studentId) {
             .select('*')
             .eq('student_id', studentId);
         
-        if (error) {
-            console.error('خطا در گرفتن وضعیت تکالیف:', error.message);
-            return {};
-        }
+        if (error) return {};
         
         const statusMap = {};
         (data || []).forEach(item => {
@@ -128,17 +199,178 @@ async function getStudentLessonStatus(studentId) {
             };
         });
         
-        console.log('📋 وضعیت تکالیف:', statusMap);
         return statusMap;
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return {};
     }
 }
 
 // ============================================================
-// گرفتن رتبه‌بندی یک کلاس
+// کارنامه‌ها
+// ============================================================
+async function saveReportToSupabase(report, studentId) {
+    try {
+        const client = getSupabase();
+        if (!client) return false;
+        
+        const payload = {
+            student_id: studentId,
+            lesson_id: report.lessonId,
+            lesson_title: report.lessonTitle,
+            percent: report.percent || 0,
+            score: report.score || 0,
+            total_points: report.totalPoints || 0,
+            correct: report.correct || 0,
+            wrong: report.wrong || 0,
+            time_taken: report.timeTaken || 0,
+            created_at: report.timestamp || new Date().toISOString()
+        };
+        
+        const { data, error } = await client
+            .from('reports')
+            .insert(payload)
+            .select();
+        
+        if (error) {
+            console.error('❌ خطا:', error.message);
+            return false;
+        }
+        
+        console.log('✅ کارنامه ذخیره شد');
+        return true;
+        
+    } catch (error) {
+        return false;
+    }
+}
+
+async function getReportsFromSupabase(studentId) {
+    try {
+        const client = getSupabase();
+        if (!client) return [];
+        
+        const { data, error } = await client
+            .from('reports')
+            .select('*')
+            .eq('student_id', studentId)
+            .order('created_at', { ascending: false });
+        
+        if (error) return [];
+        return data || [];
+        
+    } catch (error) {
+        return [];
+    }
+}
+
+// ============================================================
+// پیشرفت
+// ============================================================
+async function saveProgressToSupabase(progress, studentId) {
+    try {
+        const client = getSupabase();
+        if (!client) return false;
+        
+        const payload = {
+            student_id: studentId,
+            lesson_id: progress.lessonId,
+            question_index: progress.questionIndex || 0,
+            score: progress.score || 0,
+            correct_count: progress.correctCount || 0,
+            wrong_count: progress.wrongCount || 0,
+            is_practice_mode: progress.isPracticeMode || false,
+            start_time: progress.startTime ? 
+                (typeof progress.startTime === 'number' ? progress.startTime : new Date(progress.startTime).getTime()) 
+                : Date.now(),
+            total_questions: progress.totalQuestions || 12,
+            lesson_title: progress.lessonTitle || '',
+            last_update: new Date().toISOString()
+        };
+        
+        const { data: existing } = await client
+            .from('current_progress')
+            .select('id')
+            .eq('student_id', studentId)
+            .eq('lesson_id', progress.lessonId)
+            .maybeSingle();
+        
+        if (existing) {
+            const { error } = await client
+                .from('current_progress')
+                .update(payload)
+                .eq('id', existing.id);
+            if (error) throw error;
+        } else {
+            const { error } = await client
+                .from('current_progress')
+                .insert(payload);
+            if (error) throw error;
+        }
+        
+        return true;
+        
+    } catch (error) {
+        return false;
+    }
+}
+
+async function getProgressFromSupabase(studentId, lessonId) {
+    try {
+        const client = getSupabase();
+        if (!client) return null;
+        
+        let query = client
+            .from('current_progress')
+            .select('*')
+            .eq('student_id', studentId);
+        
+        if (lessonId) {
+            query = query.eq('lesson_id', lessonId);
+        }
+        
+        const { data, error } = await query.maybeSingle();
+        
+        if (error || !data) return null;
+        
+        return {
+            lessonId: data.lesson_id,
+            questionIndex: data.question_index,
+            score: data.score,
+            correctCount: data.correct_count,
+            wrongCount: data.wrong_count,
+            isPracticeMode: data.is_practice_mode,
+            startTime: data.start_time,
+            totalQuestions: data.total_questions,
+            lessonTitle: data.lesson_title
+        };
+        
+    } catch (error) {
+        return null;
+    }
+}
+
+async function clearProgressFromSupabase(studentId, lessonId) {
+    try {
+        const client = getSupabase();
+        if (!client) return false;
+        
+        const { error } = await client
+            .from('current_progress')
+            .delete()
+            .eq('student_id', studentId)
+            .eq('lesson_id', lessonId);
+        
+        if (error) return false;
+        return true;
+        
+    } catch (error) {
+        return false;
+    }
+}
+
+// ============================================================
+// رتبه‌بندی
 // ============================================================
 async function getRankingsByClass(className) {
     try {
@@ -155,22 +387,14 @@ async function getRankingsByClass(className) {
             .order('avg_percent', { ascending: false })
             .order('completed_lessons', { ascending: false });
         
-        if (error) {
-            console.error('❌ خطا در گرفتن رتبه‌بندی:', error.message);
-            return [];
-        }
-        
+        if (error) return [];
         return data || [];
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return [];
     }
 }
 
-// ============================================================
-// گرفتن همه دانش‌آموزان (پنل معلم)
-// ============================================================
 async function getAllStudents() {
     try {
         const client = getSupabase();
@@ -181,22 +405,14 @@ async function getAllStudents() {
             .select('*')
             .order('total_points', { ascending: false });
         
-        if (error) {
-            console.error('❌ خطا:', error.message);
-            return [];
-        }
-        
+        if (error) return [];
         return data || [];
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return [];
     }
 }
 
-// ============================================================
-// گرفتن رتبه‌ی خودم
-// ============================================================
 async function getMyRank() {
     try {
         const studentId = localStorage.getItem('studentUUID');
@@ -240,11 +456,7 @@ async function sendClassMessageToSupabase(data) {
             .insert(payload)
             .select();
         
-        if (error) {
-            console.error('❌ خطا:', error.message);
-            return { success: false, error: error.message };
-        }
-        
+        if (error) return { success: false, error: error.message };
         return { success: true, data: result };
         
     } catch (error) {
@@ -269,7 +481,6 @@ async function getClassMessagesFromSupabase(className) {
         }
         
         const { data, error } = await query;
-        
         if (error) return [];
         return data || [];
         
@@ -279,7 +490,7 @@ async function getClassMessagesFromSupabase(className) {
 }
 
 // ============================================================
-// پیام‌های شخصی (چت)
+// پیام‌های شخصی
 // ============================================================
 async function sendPersonalMessageToSupabase(data) {
     try {
@@ -407,9 +618,6 @@ async function getStudentConversationsFromSupabase() {
     }
 }
 
-// ============================================================
-// علامت‌گذاری پیام‌ها
-// ============================================================
 async function markAllMessagesAsSeenSupabase(studentId, reader) {
     try {
         const client = getSupabase();
@@ -439,7 +647,6 @@ async function addEventToSupabase(data) {
     try {
         const client = getSupabase();
         if (!client) return { success: false };
-        
         const payload = {
             event_id: data.event_id || 'evt_' + Date.now(),
             title: data.title || '',
@@ -448,32 +655,23 @@ async function addEventToSupabase(data) {
             type: data.type || 'event',
             description: data.description || ''
         };
-        
         const { error } = await client.from('events').insert(payload);
         if (error) return { success: false, error: error.message };
         return { success: true };
-        
-    } catch (error) {
-        return { success: false };
-    }
+    } catch (error) { return { success: false }; }
 }
 
 async function getEventsFromSupabase() {
     try {
         const client = getSupabase();
         if (!client) return [];
-        
         const { data, error } = await client
             .from('events')
             .select('*')
             .order('date', { ascending: false });
-        
         if (error) return [];
         return data || [];
-        
-    } catch (error) {
-        return [];
-    }
+    } catch (error) { return []; }
 }
 
 // ============================================================
@@ -483,7 +681,6 @@ async function addContestToSupabase(data) {
     try {
         const client = getSupabase();
         if (!client) return { success: false };
-        
         const payload = {
             contest_id: data.contest_id || 'cnt_' + Date.now(),
             title: data.title || '',
@@ -492,32 +689,23 @@ async function addContestToSupabase(data) {
             end_date: data.end_date || '',
             description: data.description || ''
         };
-        
         const { error } = await client.from('contests').insert(payload);
         if (error) return { success: false, error: error.message };
         return { success: true };
-        
-    } catch (error) {
-        return { success: false };
-    }
+    } catch (error) { return { success: false }; }
 }
 
 async function getContestsFromSupabase() {
     try {
         const client = getSupabase();
         if (!client) return [];
-        
         const { data, error } = await client
             .from('contests')
             .select('*')
             .order('created_at', { ascending: false });
-        
         if (error) return [];
         return data || [];
-        
-    } catch (error) {
-        return [];
-    }
+    } catch (error) { return []; }
 }
 
 // ============================================================
@@ -527,7 +715,6 @@ async function addLibraryToSupabase(data) {
     try {
         const client = getSupabase();
         if (!client) return { success: false };
-        
         const payload = {
             item_id: data.item_id || 'lib_' + Date.now(),
             title: data.title || '',
@@ -535,31 +722,139 @@ async function addLibraryToSupabase(data) {
             url: data.url || '',
             description: data.description || ''
         };
-        
         const { error } = await client.from('library').insert(payload);
         if (error) return { success: false, error: error.message };
         return { success: true };
-        
-    } catch (error) {
-        return { success: false };
-    }
+    } catch (error) { return { success: false }; }
 }
 
 async function getLibraryFromSupabase() {
     try {
         const client = getSupabase();
         if (!client) return [];
-        
         const { data, error } = await client
             .from('library')
             .select('*')
             .order('created_at', { ascending: false });
-        
         if (error) return [];
         return data || [];
+    } catch (error) { return []; }
+}
+
+// ============================================================
+// 🆕 seen_data — جلوگیری از نمایش دوباره اعلان‌ها
+// ============================================================
+async function recoverSeenDataFromSupabase(studentId) {
+    try {
+        const client = getSupabase();
+        if (!client) return false;
+        
+        const { data: seenData, error } = await client
+            .from('seen_data')
+            .select('*')
+            .eq('student_id', studentId)
+            .maybeSingle();
+        
+        if (error) {
+            console.warn('⚠️ جدول seen_data پیدا نشد یا خطا:', error.message);
+            return false;
+        }
+        
+        if (seenData) {
+            if (seenData.seen_chat_messages && Array.isArray(seenData.seen_chat_messages)) {
+                localStorage.setItem('seenChatMessages', JSON.stringify(seenData.seen_chat_messages));
+            }
+            if (seenData.seen_class_messages && Array.isArray(seenData.seen_class_messages)) {
+                localStorage.setItem('seenClassMessages', JSON.stringify(seenData.seen_class_messages));
+            }
+            if (seenData.seen_lessons && Array.isArray(seenData.seen_lessons)) {
+                localStorage.setItem('seenLessonsForNotif', JSON.stringify(seenData.seen_lessons));
+                localStorage.setItem('seenLessons', JSON.stringify(seenData.seen_lessons));
+            }
+            if (seenData.seen_videos && Array.isArray(seenData.seen_videos)) {
+                localStorage.setItem('seenVideos', JSON.stringify(seenData.seen_videos));
+            }
+            if (seenData.seen_jozve_ids && Array.isArray(seenData.seen_jozve_ids)) {
+                localStorage.setItem('seenJozveIds', JSON.stringify(seenData.seen_jozve_ids));
+            }
+            if (seenData.last_streak_message_shown) {
+                localStorage.setItem('lastStreakMessageShown', seenData.last_streak_message_shown);
+            }
+            if (seenData.dismissed_new_message_notif) {
+                localStorage.setItem('dismissedNewMessageNotif', 'true');
+            }
+            if (seenData.dismissed_new_jozve_notif) {
+                localStorage.setItem('dismissedNewJozveNotif', 'true');
+            }
+            if (seenData.dismissed_deadline_notif) {
+                localStorage.setItem('dismissedDeadlineNotif', 'true');
+            }
+            
+            console.log('✅ seen_data بازیابی شد');
+            return true;
+        }
+        
+        return false;
         
     } catch (error) {
-        return [];
+        console.error('❌ خطا:', error);
+        return false;
+    }
+}
+
+async function saveSeenDataToSupabase() {
+    try {
+        const studentId = localStorage.getItem('studentUUID');
+        if (!studentId) return false;
+        
+        const client = getSupabase();
+        if (!client) return false;
+        
+        const seenChatMessages = JSON.parse(localStorage.getItem('seenChatMessages') || '[]');
+        const seenClassMessages = JSON.parse(localStorage.getItem('seenClassMessages') || '[]');
+        const seenLessons = JSON.parse(localStorage.getItem('seenLessonsForNotif') || '[]');
+        const seenVideos = JSON.parse(localStorage.getItem('seenVideos') || '[]');
+        const seenJozveIds = JSON.parse(localStorage.getItem('seenJozveIds') || '[]');
+        const lastStreakMessageShown = localStorage.getItem('lastStreakMessageShown') || null;
+        
+        const payload = {
+            student_id: studentId,
+            seen_chat_messages: seenChatMessages.slice(-500),
+            seen_class_messages: seenClassMessages.slice(-500),
+            seen_lessons: seenLessons,
+            seen_videos: seenVideos,
+            seen_jozve_ids: seenJozveIds,
+            last_streak_message_shown: lastStreakMessageShown,
+            dismissed_new_message_notif: localStorage.getItem('dismissedNewMessageNotif') === 'true',
+            dismissed_new_jozve_notif: localStorage.getItem('dismissedNewJozveNotif') === 'true',
+            dismissed_deadline_notif: localStorage.getItem('dismissedDeadlineNotif') === 'true',
+            last_update: new Date().toISOString()
+        };
+        
+        const { data: existing } = await client
+            .from('seen_data')
+            .select('id')
+            .eq('student_id', studentId)
+            .maybeSingle();
+        
+        if (existing) {
+            const { error } = await client
+                .from('seen_data')
+                .update(payload)
+                .eq('id', existing.id);
+            if (error) throw error;
+        } else {
+            const { error } = await client
+                .from('seen_data')
+                .insert(payload);
+            if (error) throw error;
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ خطا:', error);
+        return false;
     }
 }
 
@@ -574,14 +869,11 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
     try {
         const client = getSupabase();
         if (!client) return null;
-        
         if (personalRealtimeChannel) {
             try { client.removeChannel(personalRealtimeChannel); } catch(e) {}
             personalRealtimeChannel = null;
         }
-        
         const channelName = 'personal_rt_' + studentId + '_' + Date.now();
-        
         personalRealtimeChannel = client
             .channel(channelName)
             .on('postgres_changes', {
@@ -592,30 +884,21 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
             }, (payload) => {
                 if (typeof onNewMessage === 'function') onNewMessage(payload);
             })
-            .subscribe((status) => {
-                console.log('📡 Personal Realtime:', status);
-            });
-        
+            .subscribe();
         return personalRealtimeChannel;
-        
-    } catch (error) {
-        return null;
-    }
+    } catch (error) { return null; }
 }
 
 function subscribeToClassMessages(className, onNewMessage) {
     try {
         const client = getSupabase();
         if (!client) return null;
-        
         if (classRealtimeChannel) {
             try { client.removeChannel(classRealtimeChannel); } catch(e) {}
             classRealtimeChannel = null;
         }
-        
         const classSlug = classNameToSlug(className);
         const channelName = 'class_rt_' + classSlug + '_' + Date.now();
-        
         classRealtimeChannel = client
             .channel(channelName)
             .on('postgres_changes', {
@@ -625,29 +908,20 @@ function subscribeToClassMessages(className, onNewMessage) {
             }, (payload) => {
                 if (typeof onNewMessage === 'function') onNewMessage(payload);
             })
-            .subscribe((status) => {
-                console.log('📡 Class Realtime:', status);
-            });
-        
+            .subscribe();
         return classRealtimeChannel;
-        
-    } catch (error) {
-        return null;
-    }
+    } catch (error) { return null; }
 }
 
 function subscribeToConversations(onChange) {
     try {
         const client = getSupabase();
         if (!client) return null;
-        
         if (conversationsRealtimeChannel) {
             try { client.removeChannel(conversationsRealtimeChannel); } catch(e) {}
             conversationsRealtimeChannel = null;
         }
-        
         const channelName = 'conversations_rt_' + Date.now();
-        
         conversationsRealtimeChannel = client
             .channel(channelName)
             .on('postgres_changes', {
@@ -657,55 +931,18 @@ function subscribeToConversations(onChange) {
             }, (payload) => {
                 if (typeof onChange === 'function') onChange(payload);
             })
-            .subscribe((status) => {
-                console.log('📡 Conversations Realtime:', status);
-            });
-        
+            .subscribe();
         return conversationsRealtimeChannel;
-        
-    } catch (error) {
-        return null;
-    }
+    } catch (error) { return null; }
 }
 
 function unsubscribeAll() {
     try {
         const client = getSupabase();
         if (!client) return;
-        
         client.removeAllChannels();
-        
         personalRealtimeChannel = null;
         classRealtimeChannel = null;
         conversationsRealtimeChannel = null;
-        
     } catch (error) {}
-}
-
-// ============================================================
-// تست اتصال
-// ============================================================
-async function testConnection() {
-    try {
-        const client = getSupabase();
-        if (!client) {
-            return { success: false, error: 'Client not initialized' };
-        }
-        
-        const { data, error } = await client
-            .from('rankings')
-            .select('count')
-            .limit(1);
-        
-        if (error) return { success: false, error: error.message };
-        
-        return { 
-            success: true, 
-            message: 'Supabase connection working',
-            timestamp: new Date().toISOString()
-        };
-        
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
 }

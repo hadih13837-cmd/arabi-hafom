@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۱۷.۱.۰ — با تمدید مهلت بهبود یافته
+// نسخه: ۱۸.۰.۰ — با تغییر کد دانش‌آموز، تعداد تکالیف و مهلت هوشمند
 // ============================================================
 
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
@@ -769,6 +769,7 @@ function renderStudents(students) {
     }
     let html = '';
     students.forEach(student => {
+        const studentCode = student.student_code || '---';
         html += `
             <div class="student-card" onclick="openStudentProfile('${student.student_id}')">
                 <div class="student-avatar">${renderAvatarHTML(student)}</div>
@@ -776,8 +777,8 @@ function renderStudents(students) {
                     <div class="student-name">${student.name || 'بدون نام'}</div>
                     <span class="student-class">${getClassPersianName(student.class_name)}</span>
                     <div class="student-stats">
+                        <span>🔑 ${studentCode}</span>
                         <span>📚 ${toPersianNum(student.completed_lessons || 0)} تکلیف</span>
-                        <span>📊 ${toPersianNum(student.avg_percent || 0)}%</span>
                     </div>
                 </div>
                 <div class="student-points">
@@ -794,7 +795,10 @@ function filterStudents() {
     const classFilter = document.getElementById('student-class-filter').value;
     let filtered = allStudents;
     if (classFilter !== 'all') filtered = filtered.filter(s => s.class_name === classFilter);
-    if (query) filtered = filtered.filter(s => (s.name || '').toLowerCase().includes(query));
+    if (query) filtered = filtered.filter(s => 
+        (s.name || '').toLowerCase().includes(query) ||
+        (s.student_code || '').includes(query)
+    );
     renderStudents(filtered);
 }
 
@@ -835,6 +839,8 @@ function renderStudentProfile() {
     const student = currentProfileStudent;
     const totalPoints = calculateTotalPoints(student);
     const classPersian = getClassPersianName(student.class_name);
+    const studentCode = student.student_code || '---';
+    const completedLessons = student.completed_lessons || 0;
 
     const reportMap = {};
     currentProfileReports.forEach(r => {
@@ -863,10 +869,6 @@ function renderStudentProfile() {
                     <div class="report-row">
                         <span class="report-label">امتیاز کسب‌شده:</span>
                         <span class="report-value-points">${toPersianNum(report.score || 0)} از ${toPersianNum(report.total_points || 0)}</span>
-                    </div>
-                    <div class="report-row">
-                        <span class="report-label">پاسخ صحیح:</span>
-                        <span class="report-value">${toPersianNum(report.correct || 0)}</span>
                     </div>
                 </div>
             `;
@@ -932,15 +934,15 @@ function renderStudentProfile() {
         </div>
 
         <div class="profile-stats-grid">
-            <div class="profile-stat-card">
-                <div class="profile-stat-icon">⭐</div>
-                <div class="profile-stat-value">${toPersianNum(totalPoints)}</div>
-                <div class="profile-stat-label">امتیاز کل</div>
+            <div class="profile-stat-card" onclick="openEditStudentCode()" style="cursor:pointer;">
+                <div class="profile-stat-icon">🔑</div>
+                <div class="profile-stat-value">${studentCode}</div>
+                <div class="profile-stat-label">کد ورود (کلیک کن)</div>
             </div>
-            <div class="profile-stat-card">
+            <div class="profile-stat-card" onclick="openEditCompletedLessons()" style="cursor:pointer;">
                 <div class="profile-stat-icon">📚</div>
-                <div class="profile-stat-value">${toPersianNum(student.completed_lessons || 0)}</div>
-                <div class="profile-stat-label">تکالیف انجام‌شده</div>
+                <div class="profile-stat-value">${toPersianNum(completedLessons)}</div>
+                <div class="profile-stat-label">تکالیف انجام‌شده (کلیک کن)</div>
             </div>
             <div class="profile-stat-card">
                 <div class="profile-stat-icon">📊</div>
@@ -977,7 +979,279 @@ function renderStudentProfile() {
 }
 
 // ============================================================
-// باز کردن ویرایشگر مهلت — نسخه بهبود یافته
+// 🆕 ویرایشگر کد دانش‌آموز
+// ============================================================
+function openEditStudentCode() {
+    if (!currentProfileStudent) return;
+    vibrate(15);
+    
+    const currentCode = currentProfileStudent.student_code || '';
+    
+    const existing = document.getElementById('edit-code-modal');
+    if (existing) existing.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'edit-code-modal';
+    modal.className = 'due-date-modal-overlay active';
+    modal.innerHTML = `
+        <div class="due-date-modal-box">
+            <div class="due-date-modal-header" style="background: linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%);">
+                <div class="due-date-modal-icon">🔑</div>
+                <div class="due-date-modal-title">تغییر کد ورود</div>
+                <div class="due-date-modal-subtitle">
+                    کد جدید را وارد کنید (۳ رقم)
+                </div>
+            </div>
+
+            <div class="due-date-modal-body">
+                <label class="due-date-input-label">کد جدید:</label>
+                <input 
+                    type="text" 
+                    id="new-student-code-input" 
+                    class="due-date-input" 
+                    value="${currentCode}" 
+                    placeholder="123"
+                    inputmode="numeric"
+                    dir="ltr"
+                    maxlength="3">
+                
+                <div class="due-date-current-hint">
+                    <span class="hint-icon">ℹ️</span>
+                    <span class="hint-text">کد فعلی: <strong>${currentCode || 'ندارد'}</strong></span>
+                </div>
+
+                <div class="due-date-warning-box">
+                    ⚠️ اگر کد را تغییر دهید، دانش‌آموز باید از این به بعد با کد جدید وارد شود.
+                </div>
+            </div>
+
+            <div class="due-date-modal-footer">
+                <button class="due-date-btn due-date-btn-cancel" onclick="closeEditCodeModal()">
+                    انصراف
+                </button>
+                <button class="due-date-btn due-date-btn-save" onclick="saveStudentCode()" style="background: linear-gradient(135deg, #7b1fa2, #6a1b9a);">
+                    ✅ ذخیره
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        const input = document.getElementById('new-student-code-input');
+        if (input) {
+            input.focus();
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            });
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') saveStudentCode();
+            });
+        }
+    }, 300);
+}
+
+function closeEditCodeModal() {
+    const modal = document.getElementById('edit-code-modal');
+    if (modal) modal.remove();
+}
+
+async function saveStudentCode() {
+    if (!currentProfileStudent) return;
+    
+    const input = document.getElementById('new-student-code-input');
+    const newCode = input ? input.value.trim() : '';
+    
+    if (!newCode || !/^[0-9]{3}$/.test(newCode)) {
+        showToast('کد باید ۳ رقم باشه', 'error');
+        return;
+    }
+    
+    const oldCode = currentProfileStudent.student_code || '';
+    if (newCode === oldCode) {
+        showToast('کد جدید با کد فعلی یکیه', 'warning');
+        return;
+    }
+    
+    vibrate(15);
+    
+    try {
+        // چک کن کد تکراری نباشه
+        const client = getSupabase();
+        if (client) {
+            const { data: existing } = await client
+                .from('rankings')
+                .select('student_id')
+                .eq('student_code', newCode)
+                .maybeSingle();
+            
+            if (existing && existing.student_id !== currentProfileStudent.student_id) {
+                showToast('این کد قبلاً استفاده شده', 'error');
+                return;
+            }
+            
+            const { error } = await client
+                .from('rankings')
+                .update({ student_code: newCode })
+                .eq('student_id', currentProfileStudent.student_id);
+            
+            if (error) throw error;
+        }
+        
+        currentProfileStudent.student_code = newCode;
+        
+        // آپدیت در لیست کش
+        const studentIndex = allStudents.findIndex(s => s.student_id === currentProfileStudent.student_id);
+        if (studentIndex >= 0) {
+            allStudents[studentIndex].student_code = newCode;
+        }
+        setCachedData(STUDENTS_CACHE_KEY, allStudents);
+        
+        closeEditCodeModal();
+        renderStudentProfile();
+        showToast('✅ کد ورود تغییر کرد', 'success');
+        
+    } catch (error) {
+        console.error('خطا:', error);
+        showToast('خطا در ذخیره کد', 'error');
+    }
+}
+
+// ============================================================
+// 🆕 ویرایشگر تعداد تکالیف انجام‌شده
+// ============================================================
+function openEditCompletedLessons() {
+    if (!currentProfileStudent) return;
+    vibrate(15);
+    
+    const currentCount = currentProfileStudent.completed_lessons || 0;
+    
+    const existing = document.getElementById('edit-lessons-modal');
+    if (existing) existing.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'edit-lessons-modal';
+    modal.className = 'due-date-modal-overlay active';
+    modal.innerHTML = `
+        <div class="due-date-modal-box">
+            <div class="due-date-modal-header" style="background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);">
+                <div class="due-date-modal-icon">📚</div>
+                <div class="due-date-modal-title">تغییر تعداد تکالیف</div>
+                <div class="due-date-modal-subtitle">
+                    تعداد تکالیف انجام‌شده را تغییر دهید
+                </div>
+            </div>
+
+            <div class="due-date-modal-body">
+                <label class="due-date-input-label">تعداد جدید:</label>
+                <input 
+                    type="text" 
+                    id="new-completed-lessons-input" 
+                    class="due-date-input" 
+                    value="${currentCount}" 
+                    placeholder="0"
+                    inputmode="numeric"
+                    dir="ltr"
+                    maxlength="3"
+                    style="color:#2e7d32;border-color:#a5d6a7;">
+                
+                <div class="due-date-current-hint">
+                    <span class="hint-icon">ℹ️</span>
+                    <span class="hint-text">تعداد فعلی: <strong>${toPersianNum(currentCount)}</strong> تکلیف</span>
+                </div>
+
+                <div class="quick-count-actions">
+                    <button type="button" class="quick-date-btn" onclick="setCompletedLessonsDelta(1)">+۱</button>
+                    <button type="button" class="quick-date-btn" onclick="setCompletedLessonsDelta(-1)">−۱</button>
+                    <button type="button" class="quick-date-btn" onclick="setCompletedLessonsDelta(5)">+۵</button>
+                    <button type="button" class="quick-date-btn" onclick="setCompletedLessonsDelta(-5)">−۵</button>
+                </div>
+            </div>
+
+            <div class="due-date-modal-footer">
+                <button class="due-date-btn due-date-btn-cancel" onclick="closeEditLessonsModal()">
+                    انصراف
+                </button>
+                <button class="due-date-btn due-date-btn-save" onclick="saveCompletedLessons()" style="background: linear-gradient(135deg, #2e7d32, #1b5e20);">
+                    ✅ ذخیره
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        const input = document.getElementById('new-completed-lessons-input');
+        if (input) {
+            input.focus();
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            });
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') saveCompletedLessons();
+            });
+        }
+    }, 300);
+}
+
+function setCompletedLessonsDelta(delta) {
+    const input = document.getElementById('new-completed-lessons-input');
+    if (!input) return;
+    let val = parseInt(input.value) || 0;
+    val = Math.max(0, val + delta);
+    input.value = val;
+    vibrate(10);
+}
+
+function closeEditLessonsModal() {
+    const modal = document.getElementById('edit-lessons-modal');
+    if (modal) modal.remove();
+}
+
+async function saveCompletedLessons() {
+    if (!currentProfileStudent) return;
+    
+    const input = document.getElementById('new-completed-lessons-input');
+    const newCount = parseInt(input ? input.value : 0) || 0;
+    
+    if (newCount < 0) {
+        showToast('تعداد نمی‌تواند منفی باشد', 'error');
+        return;
+    }
+    
+    vibrate(15);
+    
+    try {
+        const client = getSupabase();
+        if (client) {
+            const { error } = await client
+                .from('rankings')
+                .update({ completed_lessons: newCount })
+                .eq('student_id', currentProfileStudent.student_id);
+            
+            if (error) throw error;
+        }
+        
+        currentProfileStudent.completed_lessons = newCount;
+        
+        const studentIndex = allStudents.findIndex(s => s.student_id === currentProfileStudent.student_id);
+        if (studentIndex >= 0) {
+            allStudents[studentIndex].completed_lessons = newCount;
+        }
+        setCachedData(STUDENTS_CACHE_KEY, allStudents);
+        
+        closeEditLessonsModal();
+        renderStudentProfile();
+        showToast('✅ تعداد تکالیف تغییر کرد', 'success');
+        
+    } catch (error) {
+        console.error('خطا:', error);
+        showToast('خطا در ذخیره', 'error');
+    }
+}
+
+// ============================================================
+// باز کردن ویرایشگر مهلت (با انتخاب روز ۱ تا ۷)
 // ============================================================
 function openDueDateEditor(lessonId, currentDate, isCustom) {
     if (!currentProfileStudent) return;
@@ -994,27 +1268,28 @@ function openDueDateEditor(lessonId, currentDate, isCustom) {
             <div class="due-date-modal-header">
                 <div class="due-date-modal-icon">📅</div>
                 <div class="due-date-modal-title">تغییر مهلت تکلیف</div>
-                <div class="due-date-modal-subtitle">تاریخ جدید را به فرمت <strong>۱۴۰۵/۱۰/۲۰</strong> وارد کنید</div>
+                <div class="due-date-modal-subtitle">یکی از روزهای زیر را انتخاب کنید</div>
             </div>
 
             <div class="due-date-modal-body">
-                <label class="due-date-input-label">تاریخ مهلت جدید:</label>
-                <input 
-                    type="text" 
-                    id="new-due-date-input" 
-                    class="due-date-input" 
-                    value="${isCustom && currentDate ? currentDate : ''}" 
-                    placeholder="۱۴۰۵/۱۰/۲۰"
-                    inputmode="numeric"
-                    dir="ltr"
-                    maxlength="10">
+                <label class="due-date-input-label">افزودن به امروز (۱ تا ۷ روز):</label>
                 
-                <div class="due-date-quick-actions">
-                    <button type="button" class="quick-date-btn" onclick="setQuickDate(7)">+ ۷ روز</button>
-                    <button type="button" class="quick-date-btn" onclick="setQuickDate(14)">+ ۱۴ روز</button>
-                    <button type="button" class="quick-date-btn" onclick="setQuickDate(30)">+ ۳۰ روز</button>
+                <div class="day-picker-grid" id="day-picker-grid">
+                    ${[1,2,3,4,5,6,7].map(day => `
+                        <button type="button" class="day-picker-btn" 
+                                data-days="${day}"
+                                onclick="selectDueDateDay(${day}, this)">
+                            <span class="day-picker-num">${toPersianNum(day)}</span>
+                            <span class="day-picker-label">روز</span>
+                        </button>
+                    `).join('')}
                 </div>
-
+                
+                <div class="due-date-preview-box" id="due-date-preview">
+                    <div class="preview-label">📅 تاریخ مهلت جدید:</div>
+                    <div class="preview-value" id="preview-date-value">---</div>
+                </div>
+                
                 ${isCustom ? `
                     <div class="due-date-current-hint">
                         <span class="hint-icon">ℹ️</span>
@@ -1032,7 +1307,7 @@ function openDueDateEditor(lessonId, currentDate, isCustom) {
                 <button class="due-date-btn due-date-btn-cancel" onclick="closeDueDateModal()">
                     انصراف
                 </button>
-                <button class="due-date-btn due-date-btn-save" onclick="saveDueDate('${lessonId}')">
+                <button class="due-date-btn due-date-btn-save" id="save-due-date-btn" onclick="saveDueDate('${lessonId}')" disabled>
                     ✅ ذخیره
                 </button>
             </div>
@@ -1040,24 +1315,44 @@ function openDueDateEditor(lessonId, currentDate, isCustom) {
     `;
     document.body.appendChild(modal);
     
+    // 🆕 انتخاب پیش‌فرض: ۱ روز
     setTimeout(() => {
-        const input = document.getElementById('new-due-date-input');
-        if (input) {
-            input.focus();
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') saveDueDate(lessonId);
-            });
-        }
-    }, 300);
+        const firstBtn = modal.querySelector('.day-picker-btn');
+        if (firstBtn) selectDueDateDay(1, firstBtn);
+    }, 200);
 }
 
 // ============================================================
-// تنظیم تاریخ سریع (افزودن روز)
+// 🆕 انتخاب روز (۱ تا ۷)
 // ============================================================
-function setQuickDate(daysToAdd) {
-    const input = document.getElementById('new-due-date-input');
-    if (!input) return;
+let selectedDueDateDays = null;
+
+function selectDueDateDay(days, btnElement) {
+    selectedDueDateDays = days;
     
+    // حذف selected از همه
+    document.querySelectorAll('.day-picker-btn').forEach(b => b.classList.remove('selected'));
+    if (btnElement) btnElement.classList.add('selected');
+    
+    // محاسبه تاریخ
+    const newDate = calculatePersianDatePlusDays(days);
+    
+    const previewEl = document.getElementById('preview-date-value');
+    if (previewEl) {
+        previewEl.textContent = newDate;
+        previewEl.classList.add('show');
+    }
+    
+    const saveBtn = document.getElementById('save-due-date-btn');
+    if (saveBtn) saveBtn.disabled = false;
+    
+    vibrate(10);
+}
+
+// ============================================================
+// 🆕 محاسبه تاریخ شمسی + n روز
+// ============================================================
+function calculatePersianDatePlusDays(daysToAdd) {
     const today = new Date();
     const persianDate = new Intl.DateTimeFormat('fa-IR', { 
         year: 'numeric', 
@@ -1070,10 +1365,13 @@ function setQuickDate(daysToAdd) {
     let month = parts[1];
     let day = parts[2];
     
+    // تعداد روزهای هر ماه
+    const monthDays = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+    
     day += daysToAdd;
     
-    while (day > 30) {
-        day -= 30;
+    while (day > monthDays[month - 1]) {
+        day -= monthDays[month - 1];
         month += 1;
         if (month > 12) {
             month = 1;
@@ -1081,49 +1379,50 @@ function setQuickDate(daysToAdd) {
         }
     }
     
-    const newDate = `${toPersianNum(year)}/${toPersianNum(String(month).padStart(2, '0'))}/${toPersianNum(String(day).padStart(2, '0'))}`;
-    input.value = newDate;
-    vibrate(15);
+    const dayStr = String(day).padStart(2, '0');
+    const monthStr = String(month).padStart(2, '0');
+    
+    return `${toPersianNum(year)}/${toPersianNum(monthStr)}/${toPersianNum(dayStr)}`;
 }
 
 function closeDueDateModal() {
     const modal = document.getElementById('due-date-modal');
     if (modal) modal.remove();
+    selectedDueDateDays = null;
 }
 
 // ============================================================
-// ذخیره تاریخ مهلت
+// 🆕 ذخیره تاریخ مهلت (و فعال کردن مجدد تکلیف)
 // ============================================================
 async function saveDueDate(lessonId) {
     if (!currentProfileStudent) return;
     
-    const input = document.getElementById('new-due-date-input');
-    const newDate = input ? input.value.trim() : '';
-    
-    if (!newDate) {
-        showToast('تاریخ را وارد کنید', 'warning');
+    if (!selectedDueDateDays) {
+        showToast('یک روز انتخاب کنید', 'warning');
         return;
     }
     
-    const dateRegex = /^[\u06F0-\u06F9]{4}\/[\u06F0-\u06F9]{1,2}\/[\u06F0-\u06F9]{1,2}$/;
-    if (!dateRegex.test(newDate)) {
-        showToast('فرمت تاریخ اشتباه است. مثال: ۱۴۰۵/۱۰/۲۰', 'error');
-        return;
-    }
+    const newDate = calculatePersianDatePlusDays(selectedDueDateDays);
     
     vibrate(15);
     
     const status = currentProfileStatus[lessonId] || { is_enabled: true };
     
+    // 🆕 هم مهلت و هم is_enabled رو true می‌کنیم
     const result = await updateLessonStatus(currentProfileStudent.student_id, lessonId, {
-        custom_due_date: newDate
+        custom_due_date: newDate,
+        is_enabled: true
     });
     
     if (result.success) {
-        currentProfileStatus[lessonId] = { ...status, custom_due_date: newDate };
+        currentProfileStatus[lessonId] = { 
+            ...status, 
+            custom_due_date: newDate,
+            is_enabled: true
+        };
         closeDueDateModal();
         renderStudentProfile();
-        showToast('✅ مهلت تکلیف تغییر کرد', 'success');
+        showToast(`✅ مهلت تا ${newDate} تمدید شد و تکلیف فعال شد`, 'success');
     } else {
         showToast('خطا در ذخیره', 'error');
     }
@@ -1502,9 +1801,9 @@ function renderLibrary(items) {
 function downloadAllStudents() {
     if (allStudents.length === 0) { showToast('داده‌ای نیست', 'warning'); return; }
     let csv = '\uFEFF';
-    csv += 'نام,کلاس,امتیاز,تکالیف,درصد,روز متوالی\n';
+    csv += 'نام,کد ورود,کلاس,امتیاز,تکالیف,درصد,روز متوالی\n';
     allStudents.forEach(s => {
-        csv += `"${s.name}","${getClassPersianName(s.class_name)}",${calculateTotalPoints(s)},${s.completed_lessons},${s.avg_percent},${s.streak_days || 0}\n`;
+        csv += `"${s.name}","${s.student_code || ''}","${getClassPersianName(s.class_name)}",${calculateTotalPoints(s)},${s.completed_lessons},${s.avg_percent},${s.streak_days || 0}\n`;
     });
     downloadFile(csv, 'دانش‌آموزان.csv', 'text/csv');
     showToast('فایل دانلود شد', 'success');
@@ -1515,8 +1814,8 @@ function downloadClassReport() {
     const filtered = cls === 'all' ? allStudents : allStudents.filter(s => s.class_name === cls);
     if (filtered.length === 0) { showToast('داده‌ای نیست', 'warning'); return; }
     let csv = '\uFEFF';
-    csv += 'نام,امتیاز,تکالیف,درصد\n';
-    filtered.forEach(s => { csv += `"${s.name}",${calculateTotalPoints(s)},${s.completed_lessons},${s.avg_percent}\n`; });
+    csv += 'نام,کد ورود,امتیاز,تکالیف,درصد\n';
+    filtered.forEach(s => { csv += `"${s.name}","${s.student_code || ''}",${calculateTotalPoints(s)},${s.completed_lessons},${s.avg_percent}\n`; });
     const filename = cls === 'all' ? 'همه_کلاس‌ها.csv' : getClassPersianName(cls) + '.csv';
     downloadFile(csv, filename, 'text/csv');
     showToast('فایل دانلود شد', 'success');
@@ -1603,5 +1902,5 @@ function clearCache() {
     }
 }
 
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۷.۱.۰');
-console.log('✅ تمدید مهلت با طراحی جدید');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۱۸.۰.۰');
+console.log('✅ تغییر کد، تعداد تکالیف و مهلت هوشمند');
