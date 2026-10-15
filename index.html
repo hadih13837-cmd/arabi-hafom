@@ -17,7 +17,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
     
-    <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link rel="stylesheet" href="./css/style.css">
@@ -119,7 +118,14 @@
             </svg>
         </div>
         <div class="exit-title">حذف حساب کاربری</div>
-        <div class="exit-text">آیا مطمئن هستید؟ تمام اطلاعات شما حذف می‌شود و برنامه از ابتدا باز می‌شود.</div>
+        <div class="exit-text">
+            ⚠️ <strong>هشدار مهم:</strong><br><br>
+            اگه حساب کاربری رو حذف کنی:<br>
+            • کارنامه‌هات از روی این دستگاه پاک میشن<br>
+            • برای بازیابی، باید <strong>کد ورودت</strong> رو داشته باشی<br>
+            • اگه کد ورودت رو نداری، <strong>داده‌هات قابل بازیابی نیستن!</strong><br><br>
+            آیا مطمئن هستی؟
+        </div>
         <div class="exit-buttons">
             <button class="exit-btn-cancel" onclick="closeDeleteAccountModal()">انصراف</button>
             <button class="exit-btn-confirm" onclick="confirmDeleteAccount()">حذف کن</button>
@@ -157,8 +163,8 @@
         </div>
         <div class="exit-title">بروزرسانی اطلاعات</div>
         <div class="exit-text">
-            این کار باعث می‌شه آخرین تغییرات برنامه دریافت بشه.<br><br>
-            ✅ <strong>اطلاعات شما حفظ می‌شه:</strong><br>
+            این کار باعث میشه آخرین تغییرات برنامه دریافت بشه.<br><br>
+            ✅ <strong>اطلاعات شما حفظ میشه:</strong><br>
             نام، کلاس، مدرسه، آواتار، کارنامه‌ها، امتیازها و مدال‌ها<br><br>
             🔄 <strong>موارد بروزرسانی:</strong><br>
             کش برنامه، اعلان‌ها و تکالیف جدید
@@ -362,6 +368,7 @@
         </div>
     </div>
 </div>
+
 <!-- منوی کناری -->
 <div class="side-menu-overlay" id="side-menu-overlay" onclick="closeSideMenu()"></div>
 <div class="side-menu" id="side-menu">
@@ -573,14 +580,75 @@
         </div>
     </div>
 
-    <!-- ============ صفحه خوش‌آمد ============ -->
-    <div id="screen-welcome" class="screen">
+    <!-- ============ صفحه ورود و ثبت‌نام (دو حالته) ============ -->
+<div id="screen-welcome" class="screen">
+    
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- حالت ۱: انتخاب (ورود یا ثبت‌نام)                        -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="welcome-choice-view" class="welcome-view active">
         <div class="welcome-video-wrapper">
             <video src="https://cdn.imgurl.ir/uploads/j02258_InShot_20260921_091848739.mp4" autoplay loop muted playsinline preload="auto"></video>
         </div>
         <h1 class="welcome-title">سلام! خوش آمدی 👋</h1>
-        <p class="welcome-sub">برای شروع، لطفاً نام و کلاس خودت را وارد کن:</p>
+        <p class="welcome-sub">برای شروع، یکی از گزینه‌های زیر را انتخاب کن:</p>
+        
+        <div class="welcome-choice-buttons">
+            <button class="welcome-choice-btn register-btn" onclick="showRegisterView()">
+                <div class="choice-icon">📝</div>
+                <div class="choice-text">
+                    <div class="choice-title">ثبت‌نام</div>
+                    <div class="choice-desc">کاربر جدید هستم</div>
+                </div>
+            </button>
+            
+            <button class="welcome-choice-btn login-btn" onclick="showLoginView()">
+                <div class="choice-icon">🔑</div>
+                <div class="choice-text">
+                    <div class="choice-title">ورود</div>
+                    <div class="choice-desc">قبلاً ثبت‌نام کرده‌ام</div>
+                </div>
+            </button>
+        </div>
+        
+        <p style="font-size: 12px; color: #90a4ae; text-align: center; margin-top: 25px; padding: 0 20px; line-height: 1.7;">
+            💡 اگه قبلاً ثبت‌نام کرده‌ای و کدت رو داری،<br>
+            از گزینه <strong>«ورود»</strong> استفاده کن.
+        </p>
+    </div>
+    
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- حالت ۲: ثبت‌نام (کاربر جدید)                             -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="welcome-register-view" class="welcome-view">
+        <button class="welcome-back-btn" onclick="showChoiceView()">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            بازگشت
+        </button>
+        
+        <div class="welcome-header-icon">📝</div>
+        <h1 class="welcome-title">ثبت‌نام کاربر جدید</h1>
+        <p class="welcome-sub">اطلاعات خودت رو وارد کن:</p>
+        
+        <!-- نام و نام خانوادگی -->
         <input type="text" class="welcome-input" id="welcome-name" placeholder="نام و نام خانوادگی">
+        
+        <!-- کد ورود سه رقمی -->
+        <div class="welcome-code-wrapper">
+            <label class="welcome-code-label">🔑 یه کد سه رقمی برای خودت انتخاب کن:</label>
+            <input type="text" class="welcome-input welcome-code-input" id="welcome-code" 
+                   placeholder="مثال: 123" 
+                   inputmode="numeric"
+                   maxlength="3"
+                   dir="ltr">
+            <div class="welcome-code-hint">
+                ⚠️ این کد رو یه جای امن نگه دار. با این کد می‌تونی از هر دستگاهی وارد بشی.
+            </div>
+        </div>
+        
+        <!-- کلاس -->
         <select class="welcome-input" id="welcome-class">
             <option value="" disabled selected>انتخاب کلاس</option>
             <option value="هفتم یک">هفتم یک</option>
@@ -589,13 +657,56 @@
             <option value="هفتم چهار">هفتم چهار</option>
             <option value="هفتم پنج">هفتم پنج</option>
         </select>
+        
+        <!-- مدرسه -->
         <input type="text" class="welcome-input" id="welcome-school" list="schools-list-welcome" placeholder="نام مدرسه">
         <datalist id="schools-list-welcome">
             <option value="دبیرستان دارالقرآن الکریم"></option>
         </datalist>
+        
+        <!-- سال تحصیلی -->
         <input type="text" class="welcome-input" id="welcome-year" value="۱۴۰۵-۱۴۰۶" readonly style="background:#f0f4f8;cursor:not-allowed;">
-        <button class="welcome-btn" onclick="saveUserInfo()">ورود به برنامه 🚀</button>
+        
+        <!-- دکمه ثبت‌نام -->
+        <button class="welcome-btn" onclick="saveUserInfo()">ثبت‌نام 🚀</button>
     </div>
+    
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- حالت ۳: ورود (کاربر قبلی)                                -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="welcome-login-view" class="welcome-view">
+        <button class="welcome-back-btn" onclick="showChoiceView()">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            بازگشت
+        </button>
+        
+        <div class="welcome-header-icon">🔑</div>
+        <h1 class="welcome-title">ورود به حساب</h1>
+        <p class="welcome-sub">کد سه رقمی خودت رو وارد کن:</p>
+        
+        <!-- کد ورود -->
+        <div class="welcome-code-wrapper">
+            <input type="text" class="welcome-input welcome-code-input welcome-login-code" id="login-code" 
+                   placeholder="مثال: 123" 
+                   inputmode="numeric"
+                   maxlength="3"
+                   dir="ltr">
+        </div>
+        
+        <!-- دکمه ورود -->
+        <button class="welcome-btn login-submit-btn" onclick="loginWithCode()">ورود 🚀</button>
+        
+        <!-- راهنما -->
+        <p style="font-size: 12px; color: #90a4ae; text-align: center; margin-top: 20px; padding: 0 20px; line-height: 1.7;">
+            💡 کدت رو یادت نیست؟<br>
+            از معلمت بخواه.<br>
+            اگه هم کدت رو گم کردی، باید دوباره <strong>ثبت‌نام</strong> کنی.
+        </p>
+    </div>
+    
+</div>
 
     <!-- ============ صفحه خانه ============ -->
     <div id="screen-home" class="screen">
@@ -693,7 +804,6 @@
                 </div>
             </div>
 
-            <!-- دکمه‌های تکالیف و کارنامه -->
             <div class="home-menu-grid">
                 <div class="menu-button" id="guide-lessons-btn" onclick="goToScreen('screen-lessons')">
                     <span id="new-lesson-badge" class="badge-new" style="display: none;">جدید</span>
@@ -705,14 +815,12 @@
                 </div>
             </div>
 
-            <!-- دکمه کلیپ‌های آموزشی -->
             <div class="home-clips-row">
                 <button class="clip-button" id="guide-clips-btn" onclick="openClipsPage()">
                     <img src="https://cdn.imgurl.ir/uploads/b632041_IMG__.png" alt="کلیپ‌های آموزشی" class="clip-button-image">
                 </button>
             </div>
 
-            <!-- دکمه جزوه و کلمات -->
             <div class="home-clips-row">
                 <button class="clip-button" id="guide-jozve-btn" onclick="openJozvePage()">
                     <img src="https://cdn.imgurl.ir/uploads/769875_file_00000000b5a88243a4bc0c8e7e4081bf.png" alt="جزوه و کلمات" class="clip-button-image">
@@ -720,7 +828,6 @@
             </div>
         </div>
         
-        <!-- آیکون شناور پیام‌های معلم -->
         <button class="home-messages-fab" id="home-messages-fab" onclick="goToTeacherMessages()" style="display: none;">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -728,7 +835,6 @@
             <span class="home-messages-fab-badge" id="home-messages-fab-badge">0</span>
         </button>
         
-        <!-- نوار پایین -->
         <div class="bottom-nav">
             <button class="bottom-nav-item medals-item" id="guide-medals-btn" onclick="goToScreen('screen-medals')">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1101,6 +1207,7 @@
             </button>
         </div>
     </div>
+
     <!-- ============ صفحه تنظیمات ============ -->
     <div id="screen-settings" class="screen">
         <div class="page-header">
@@ -1300,11 +1407,23 @@
             </div>
             
             <div class="profile-info-table">
-                <div class="profile-info-row"><span class="label">نام و نام خانوادگی</span><span class="value" id="profile-fullname">-</span></div>
-                <div class="profile-info-row"><span class="label">کلاس</span><span class="value" id="profile-class">-</span></div>
-                <div class="profile-info-row"><span class="label">مدرسه</span><span class="value" id="profile-school">-</span></div>
-                <div class="profile-info-row"><span class="label">سال تحصیلی</span><span class="value" id="profile-year">۱۴۰۵-۱۴۰۶</span></div>
-            </div>
+    <div class="profile-info-row"><span class="label">نام و نام خانوادگی</span><span class="value" id="profile-fullname">-</span></div>
+    <div class="profile-info-row"><span class="label">کلاس</span><span class="value" id="profile-class">-</span></div>
+    <div class="profile-info-row"><span class="label">مدرسه</span><span class="value" id="profile-school">-</span></div>
+    <div class="profile-info-row"><span class="label">سال تحصیلی</span><span class="value" id="profile-year">۱۴۰۵-۱۴۰۶</span></div>
+    <div class="profile-info-row profile-code-row">
+        <span class="label">🔑 کد ورود</span>
+        <div class="profile-code-actions">
+            <span class="value profile-code-value" id="profile-code">---</span>
+            <button class="profile-code-change-btn" onclick="openChangeCodeModal()" title="تغییر کد">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 20H21"/>
+                    <path d="M16.5 3.5C16.8978 3.10217 17.4374 2.87868 18 2.87868C18.2786 2.87868 18.5544 2.93355 18.8118 3.04015C19.0692 3.14676 19.303 3.30301 19.5 3.5C19.697 3.697 19.8532 3.93084 19.9598 4.18821C20.0665 4.44557 20.1213 4.72142 20.1213 5C20.1213 5.27858 20.0665 5.55443 19.9598 5.81179C19.8532 6.06915 19.697 6.303 19.5 6.5L7 19L3 20L4 16L16.5 3.5Z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
             
             <div class="profile-stats-title">آمار کلی</div>
             

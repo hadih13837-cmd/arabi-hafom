@@ -44,9 +44,7 @@
      ═══════════════════════════════════════════════════════════ -->
 <div id="main-panel" class="main-panel">
 
-    <!-- ═══════════════════════════════════════════════════════
-         هدر
-         ═══════════════════════════════════════════════════════ -->
+    <!-- هدر -->
     <header class="panel-header" id="panel-header">
         <button class="panel-back-btn" id="header-back-btn" onclick="goBack()" style="display: none;">
             <svg viewBox="0 0 24 24" fill="none">
@@ -66,14 +64,10 @@
         </button>
     </header>
 
-    <!-- ═══════════════════════════════════════════════════════
-         محتوای اصلی
-         ═══════════════════════════════════════════════════════ -->
+    <!-- محتوای اصلی -->
     <main class="panel-content" id="panel-content">
 
-        <!-- ═══════════════════════════════════════════════════
-             صفحه ۱: خانه (گرافیکی)
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۱: خانه ═══ -->
         <section class="page active" id="page-home">
             
             <div class="home-welcome-card">
@@ -100,7 +94,6 @@
             </div>
 
             <div class="home-menu-grid">
-                
                 <div class="home-menu-card card-blue" onclick="showPage('students')">
                     <div class="home-menu-icon">👥</div>
                     <div class="home-menu-title">دانش‌آموزان</div>
@@ -155,7 +148,6 @@
                     <div class="home-menu-title">تنظیمات</div>
                     <div class="home-menu-desc">تنظیمات پنل</div>
                 </div>
-                
             </div>
             
             <div class="home-top-card">
@@ -165,12 +157,9 @@
                 </div>
                 <div class="home-top-list" id="home-top-students"></div>
             </div>
-            
         </section>
 
-        <!-- ═══════════════════════════════════════════════════
-             صفحه ۲: دانش‌آموزان
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۲: دانش‌آموزان ═══ -->
         <section class="page" id="page-students">
             
             <div class="page-toolbar">
@@ -179,7 +168,7 @@
                         <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
                         <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    <input type="text" id="student-search" placeholder="جستجوی دانش‌آموز..." oninput="filterStudents()">
+                    <input type="text" id="student-search" placeholder="جستجو (نام یا کد)..." oninput="filterStudents()">
                 </div>
                 <select class="page-toolbar-select" id="student-class-filter" onchange="filterStudents()">
                     <option value="all">همه‌ی کلاس‌ها</option>
@@ -192,12 +181,9 @@
             </div>
             
             <div class="students-grid" id="students-grid"></div>
-            
         </section>
 
-        <!-- ═══════════════════════════════════════════════════
-             صفحه ۳: رتبه‌بندی (تک‌کلاسی)
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۳: رتبه‌بندی ═══ -->
         <section class="page" id="page-rankings">
             
             <div class="rankings-class-tabs" id="rankings-class-tabs">
@@ -226,12 +212,9 @@
             </div>
             
             <div class="rankings-list" id="rankings-list"></div>
-            
         </section>
 
-        <!-- ═══════════════════════════════════════════════════
-             صفحه ۴: پیام‌رسانی
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۴: پیام‌رسانی ═══ -->
         <section class="page" id="page-messages">
             
             <div class="messages-tabs">
@@ -246,7 +229,7 @@
                 </button>
             </div>
 
-            <!-- ═══ تب ۱: پیام کلاسی ═══ -->
+            <!-- تب ۱: پیام کلاسی -->
             <div class="messages-tab-content active" id="tab-class">
                 <div class="class-message-form-card">
                     <div class="class-message-form-title">📢 ارسال پیام جدید به کلاس</div>
@@ -294,7 +277,7 @@
                 </div>
             </div>
 
-            <!-- ═══ تب ۲: چت شخصی ═══ -->
+            <!-- تب ۲: چت شخصی -->
             <div class="messages-tab-content" id="tab-personal">
                 <div class="messenger-wrapper" id="messenger-wrapper">
                     
@@ -341,15 +324,11 @@
                         <div class="messenger-empty-title">یک دانش‌آموز رو انتخاب کن</div>
                         <div class="messenger-empty-text">برای شروع چت، از لیست سمت راست انتخاب کن</div>
                     </div>
-                    
                 </div>
             </div>
-            
         </section>
 
-        <!-- ═══════════════════════════════════════════════════
-             صفحه ۵: مدیریت تکالیف
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۵: مدیریت تکالیف ═══ -->
         <section class="page" id="page-lessons">
             <div class="info-banner">
                 <div class="info-banner-icon">ℹ️</div>
@@ -360,9 +339,7 @@
             <div class="lessons-list" id="lessons-list"></div>
         </section>
 
-        <!-- ═══════════════════════════════════════════════════
-             صفحه ۶: تقویم
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۶: تقویم ═══ -->
         <section class="page" id="page-calendar">
             <div class="calendar-form-card">
                 <div class="calendar-form-title">📅 افزودن رویداد جدید</div>
@@ -408,9 +385,7 @@
             </div>
         </section>
 
-        <!-- ═══════════════════════════════════════════════════
-             صفحه ۷: مسابقات
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۷: مسابقات ═══ -->
         <section class="page" id="page-contests">
             <div class="contest-form-card">
                 <div class="contest-form-title">🏆 ایجاد مسابقه جدید</div>
@@ -444,9 +419,7 @@
             </div>
         </section>
 
-        <!-- ═══════════════════════════════════════════════════
-             صفحه ۸: کتابخانه
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۸: کتابخانه ═══ -->
         <section class="page" id="page-library">
             <div class="library-form-card">
                 <div class="library-form-title">📖 افزودن منبع جدید</div>
@@ -482,9 +455,7 @@
             </div>
         </section>
 
-        <!-- ═══════════════════════════════════════════════════
-             صفحه ۹: گزارش‌ها
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۹: گزارش‌ها ═══ -->
         <section class="page" id="page-reports">
             <div class="reports-grid">
                 <div class="report-card" onclick="downloadAllStudents()">
@@ -525,9 +496,7 @@
             </div>
         </section>
 
-        <!-- ═══════════════════════════════════════════════════
-             صفحه ۱۰: تنظیمات
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۱۰: تنظیمات ═══ -->
         <section class="page" id="page-settings">
             <div class="settings-card">
                 <div class="settings-card-title">🔧 تنظیمات پنل</div>
@@ -555,9 +524,7 @@
             </div>
         </section>
 
-        <!-- ═══════════════════════════════════════════════════
-             🆕 صفحه ۱۱: پروفایل اختصاصی دانش‌آموز
-             ═══════════════════════════════════════════════════ -->
+        <!-- ═══ صفحه ۱۱: پروفایل اختصاصی دانش‌آموز ═══ -->
         <section class="page" id="page-student-profile">
             <div id="student-profile-content"></div>
         </section>
@@ -566,7 +533,7 @@
 
 </div>
 
-<!-- مودال جزئیات دانش‌آموز (قدیمی — هنوز استفاده می‌شه برای جایگزین) -->
+<!-- مودال جزئیات دانش‌آموز (قدیمی) -->
 <div class="modal-overlay" id="student-modal">
     <div class="modal-card">
         <button class="modal-close-btn" onclick="closeStudentModal()">✕</button>
@@ -580,9 +547,7 @@
     <div class="toast-text" id="toast-text">پیام</div>
 </div>
 
-<!-- ============================================================ -->
-<!-- بارگذاری فایل‌های JavaScript                                 -->
-<!-- ============================================================ -->
+<!-- بارگذاری فایل‌های JavaScript -->
 <script src="./js/supabase-config.js"></script>
 <script src="./js/api.js"></script>
 <script src="./js/teacher.js"></script>

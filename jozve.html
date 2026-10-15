@@ -590,6 +590,11 @@
 
 <script>
     // ============================================================
+    // 🆕 تنظیم flag برای بازگشت به خانه
+    // ============================================================
+    sessionStorage.setItem('cameFromClips', 'true');
+    
+    // ============================================================
     // متغیرها
     // ============================================================
     let jozveItems = [];
@@ -799,7 +804,7 @@
     }
 
     // ============================================================
-    // دانلود (با روش ساده و مطمئن)
+    // دانلود
     // ============================================================
     function downloadCurrentFile() {
         if (currentFiles.length === 0) return;
@@ -831,11 +836,9 @@
             .substring(0, 100);
     }
 
-    // 🆕 دانلود با روش ساده و مطمئن (بدون fetch)
     function downloadFile(url, filename) {
         console.log('📥 دانلود:', url, '→', filename);
         
-        // روش ۱: تلاش برای fetch
         fetch(url, { mode: 'cors' })
             .then(response => {
                 if (!response.ok) throw new Error('Network error');
@@ -853,7 +856,6 @@
                 console.log('✅ دانلود با fetch موفق');
             })
             .catch(error => {
-                // روش ۲: باز کردن در تب جدید برای دانلود
                 console.warn('⚠️ fetch نشد، روش مستقیم:', error.message);
                 const a = document.createElement('a');
                 a.href = url;
@@ -884,15 +886,17 @@
     }
 
     // ============================================================
-    // back سیستمی
+    // 🆕 مدیریت back سیستمی — بازگشت به خانه (نه صفحه ورود)
     // ============================================================
-    window.addEventListener('popstate', function() {
+    window.addEventListener('popstate', function(event) {
         const viewer = document.getElementById('jozve-viewer-page');
         if (viewer && viewer.classList.contains('active')) {
+            // اگه توی صفحه مشاهده هستیم، فقط اون رو ببند
             closeJozveViewer();
             history.pushState(null, null, location.href);
         } else {
-            window.location.href = './index.html';
+            // 🆕 بازگشت به صفحه خانه (نه ورود)
+            window.location.href = './index.html#home';
         }
     });
 
@@ -902,7 +906,7 @@
     // شروع
     // ============================================================
     window.addEventListener('load', () => {
-        console.log('🚀 jozve.html - نسخه ۲.۰.۰ (با دکمه مشاهده)');
+        console.log('🚀 jozve.html - نسخه ۳.۰.۰ (با بازگشت به خانه)');
         loadJozveList();
     });
 </script>
