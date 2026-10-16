@@ -1,6 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۹.۰.۰ — با ذخیره در Supabase
+// نسخه: ۱۰.۰.۰ — با پشتیبانی از مهلت سفارشی معلم
 // ============================================================
 
 // ============================================================
@@ -12,7 +12,23 @@ let currentPreviewSource = '';
 let currentPreviewIndex = -1;
 
 // ============================================================
-// 🆕 تبدیل گزارش Supabase به فرمت localStorage
+// 🆕 گرفتن مهلت واقعی تکلیف (با احتساب مهلت سفارشی)
+// ============================================================
+function getEffectiveDueDateFromCache(lesson) {
+    if (!lesson) return null;
+    
+    // از customLessonStatus که توی lessons.js لود شده استفاده کن
+    if (typeof customLessonStatus !== 'undefined' && customLessonStatus[lesson.id]) {
+        const custom = customLessonStatus[lesson.id];
+        if (custom.custom_due_date) {
+            return custom.custom_due_date;
+        }
+    }
+    return lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+}
+
+// ============================================================
+// تبدیل گزارش Supabase به فرمت localStorage
 // ============================================================
 function convertSupabaseReportToLocal(supabaseReport, userName, userClass) {
     return {
@@ -21,9 +37,7 @@ function convertSupabaseReportToLocal(supabaseReport, userName, userClass) {
         lessonId: supabaseReport.lesson_id,
         lessonTitle: supabaseReport.lesson_title,
         date: new Date(supabaseReport.created_at).toLocaleDateString('fa-IR', { 
-            year: 'numeric', 
-            month: '2-digit', 
-            day: '2-digit' 
+            year: 'numeric', month: '2-digit', day: '2-digit' 
         }),
         timestamp: supabaseReport.created_at,
         percent: supabaseReport.percent || 0,
@@ -37,7 +51,7 @@ function convertSupabaseReportToLocal(supabaseReport, userName, userClass) {
 }
 
 // ============================================================
-// 🆕 همگام‌سازی کارنامه‌ها از Supabase به localStorage
+// همگام‌سازی کارنامه‌ها از Supabase به localStorage
 // ============================================================
 async function syncReportsFromSupabase() {
     try {
@@ -46,7 +60,6 @@ async function syncReportsFromSupabase() {
         
         const supabaseReports = await getReportsFromSupabase(studentId);
         if (!supabaseReports || supabaseReports.length === 0) {
-            console.log('ℹ️ کارنامه‌ای در Supabase نیست');
             return false;
         }
         
@@ -58,11 +71,9 @@ async function syncReportsFromSupabase() {
         );
         
         localStorage.setItem('reports', JSON.stringify(localReports));
-        console.log('✅ کارنامه‌ها از Supabase به localStorage منتقل شد:', localReports.length);
         return true;
         
     } catch (error) {
-        console.error('❌ خطا در همگام‌سازی:', error);
         return false;
     }
 }
@@ -74,7 +85,6 @@ async function loadReports() {
     const container = document.getElementById('reports-list');
     if (!container) return;
     
-    // اول از localStorage لود کن (سریع)
     let reports = JSON.parse(localStorage.getItem('reports') || '[]');
     
     if (reports.length > 0) {
@@ -83,7 +93,6 @@ async function loadReports() {
         container.innerHTML = '<div class="rankings-loading"><div class="rankings-spinner"></div><div class="rankings-loading-text">در حال بارگذاری...</div></div>';
     }
     
-    // در پس‌زمینه از Supabase آپدیت کن
     setTimeout(async () => {
         const synced = await syncReportsFromSupabase();
         if (synced) {
@@ -95,9 +104,6 @@ async function loadReports() {
     }, 500);
 }
 
-// ============================================================
-// 🆕 رندر لیست کارنامه‌ها
-// ============================================================
 function renderReportsList(reports, container) {
     if (reports.length === 0) {
         container.innerHTML = `<div class="report-empty"><div class="report-empty-icon">📋</div><div class="report-empty-text">هنوز کارنامه‌ای ندارید</div></div>`;
@@ -139,27 +145,39 @@ function renderReportsList(reports, container) {
 }
 
 // ============================================================
-// 🆕 ذخیره کارنامه (localStorage + Supabase)
+// ذخیره کارنامه (localStorage + Supabase)
 // ============================================================
 async function saveReport(report) {
-    // ۱. ذخیره در localStorage (Cache)
+    // ۱. ذخیره در localStorage
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
-    reports.push(report);
+    
+    // 🆕 چک کن که کارنامه تکراری نباشه
+    const existingIndex = reports.findIndex(r => r.lessonId === report.lessonId);
+    if (existingIndex >= 0) {
+        reports[existingIndex] = report;
+    } else {
+        reports.push(report);
+    }
+    
     localStorage.setItem('reports', JSON.stringify(reports));
     
     // ۲. ذخیره در Supabase
     try {
         const studentId = localStorage.getItem('studentUUID');
-        if (!studentId) {
-            console.warn('⚠️ studentUUID نداریم');
+        if (!studentId) return;
+        
+        // 🆕 چک کن که قبلاً توی Supabase نباشه
+        const existingReports = await getReportsFromSupabase(studentId);
+        const existingLessonIds = (existingReports || []).map(r => r.lesson_id);
+        
+        if (existingLessonIds.includes(report.lessonId)) {
+            console.log('ℹ️ این کارنامه قبلاً در Supabase ثبت شده');
             return;
         }
         
         const success = await saveReportToSupabase(report, studentId);
         if (success) {
-            console.log('✅ کارنامه در هر دو جا ذخیره شد');
-        } else {
-            console.warn('⚠️ فقط در localStorage ذخیره شد');
+            console.log('✅ کارنامه در Supabase ذخیره شد');
         }
     } catch (error) {
         console.error('❌ خطا:', error);
@@ -325,7 +343,7 @@ function closePdfPreview() {
 }
 
 // ============================================================
-// دانلود PDF از صفحه پیش‌نمایش
+// دانلود PDF
 // ============================================================
 async function downloadPdfFromPreview() {
     if (!currentPreviewReport) {
@@ -369,9 +387,6 @@ async function downloadPdfFromPreview() {
     }
 }
 
-// ============================================================
-// دانلود PDF
-// ============================================================
 async function downloadReportFast(report, filename) {
     let container = null;
     try {
@@ -449,9 +464,6 @@ async function downloadReportFast(report, filename) {
     }
 }
 
-// ============================================================
-// دانلود کارنامه با index
-// ============================================================
 async function downloadReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -467,7 +479,7 @@ async function downloadReportByData(index) {
 }
 
 // ============================================================
-// نمایش کارنامه بعد از تکلیف
+// 🆕 نمایش کارنامه بعد از تکلیف — با پشتیبانی از مهلت سفارشی
 // ============================================================
 function showReportCard() {
     if (isPracticeMode) {
@@ -483,8 +495,27 @@ function showReportCard() {
     const taskTitle = allLessons[lessonIndex] ? allLessons[lessonIndex].title : currentLesson.title;
     
     const lesson = allLessons[lessonIndex];
-    const dueDate = lesson ? (lesson.dueDate || '۱۴۰۵/۰۹/۱۵') : null;
+    
+    // 🆕🔥 مهم: استفاده از مهلت سفارشی (custom_due_date) نه مهلت اصلی
+    let dueDate = '۱۴۰۵/۰۹/۱۵';
+    if (lesson) {
+        // از تابع getEffectiveDueDate که توی lessons.js هست استفاده کن
+        if (typeof getEffectiveDueDate === 'function') {
+            dueDate = getEffectiveDueDate(lesson);
+        } else {
+            dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+        }
+    }
+    
     const expired = isExpired(dueDate);
+    
+    console.log('📊 بررسی کارنامه:', {
+        lessonId: currentLesson.lessonId,
+        originalDueDate: lesson ? lesson.dueDate : 'N/A',
+        effectiveDueDate: dueDate,
+        isExpired: expired,
+        isPracticeMode: isPracticeMode
+    });
     
     if (expired) {
         showModal('توجه', 'مهلت این تکلیف گذشته و کارنامه‌ای صادر نمی‌شود.', '⚠️');
@@ -503,7 +534,7 @@ function showReportCard() {
         surveyAnswer: surveyAnswerText
     };
     
-    // 🆕 ذخیره در localStorage + Supabase
+    // ذخیره در localStorage + Supabase
     saveReport(report);
     
     const container = document.getElementById('report-view-content');
@@ -526,6 +557,7 @@ function showReportCard() {
     
     setTimeout(() => checkForNewMedals(), 1500);
     
+    // همگام‌سازی خودکار
     if (typeof autoSyncRanking === 'function') {
         autoSyncRanking('ثبت کارنامه جدید');
     } else if (typeof saveRankingToSupabase === 'function') {
