@@ -1,6 +1,6 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۱۹.۰.۰ — با ذخیره‌سازی local + مهلت هوشمند
+// نسخه: ۲۰.۰.۰ — رفع باگ امتیاز تکراری (کارنامه‌های یکتا)
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
@@ -36,53 +36,40 @@ async function updateStudentCode(studentId, newCode) {
 }
 
 // ============================================================
-// 🆕 تغییر تعداد تکالیف انجام‌شده (توسط معلم)
-// مثل امتیاز کار می‌کنه: یه delta اضافه/کم می‌کنه
+// تغییر تعداد تکالیف انجام‌شده (توسط معلم)
 // ============================================================
 async function updateCompletedLessonsDelta(studentId, delta) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
         
-        // اول مقدار فعلی رو بگیر
         const { data: current } = await client
-            .from('rankings')
-            .select('completed_lessons')
-            .eq('student_id', studentId)
-            .maybeSingle();
+            .from('rankings').select('completed_lessons').eq('student_id', studentId).maybeSingle();
         
         if (!current) return { success: false, error: 'not_found' };
         
         const currentLessons = parseInt(current.completed_lessons) || 0;
-        const newLessons = currentLessons + delta; // می‌تونه منفی هم بشه
+        const newLessons = currentLessons + delta;
         
         const { error } = await client
-            .from('rankings')
-            .update({ completed_lessons: newLessons })
-            .eq('student_id', studentId);
+            .from('rankings').update({ completed_lessons: newLessons }).eq('student_id', studentId);
         
         if (error) return { success: false, error: error.message };
-        
         return { success: true, newValue: newLessons };
     } catch (error) {
         return { success: false, error: error.message };
     }
 }
 
-// ============================================================
-// 🆕 تنظیم مستقیم تعداد تکالیف
-// ============================================================
 async function updateCompletedLessons(studentId, count) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
         
-        const safeCount = parseInt(count) || 0; // می‌تونه منفی هم باشه
+        const safeCount = parseInt(count) || 0;
         
         const { error } = await client
-            .from('rankings')
-            .update({ completed_lessons: safeCount })
-            .eq('student_id', studentId);
+            .from('rankings').update({ completed_lessons: safeCount }).eq('student_id', studentId);
         
         if (error) return { success: false, error: error.message };
         return { success: true };
@@ -91,17 +78,13 @@ async function updateCompletedLessons(studentId, count) {
     }
 }
 
-// ============================================================
-// 🆕 محاسبه تعداد تکالیف کل (دیگه custom نداریم)
-// ============================================================
 function calculateCompletedLessons(ranking) {
     if (!ranking) return 0;
     return parseInt(ranking.completed_lessons) || 0;
 }
 
 // ============================================================
-// ذخیره/آپدیت امتیاز کاربر
-// ⚠️ نکته: برنامه دانش‌آموز هیچ‌وقت completed_lessons رو تغییر نمیده
+// 🆕 ذخیره/آپدیت امتیاز کاربر — با محاسبه امتیاز یکتا
 // ============================================================
 async function saveRankingToSupabase() {
     try {
@@ -125,12 +108,33 @@ async function saveRankingToSupabase() {
         
         if (!userName || !userClass) return false;
         
-        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const rawReports = JSON.parse(localStorage.getItem('reports') || '[]');
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         
-        const totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
-        const avgPercent = reports.length > 0
-            ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length)
+        // 🆕🔥 مهم: کارنامه‌های تکراری رو حذف کن (بر اساس lessonId)
+        const uniqueReportsMap = {};
+        rawReports.forEach(r => {
+            if (!r.lessonId) return;
+            if (!uniqueReportsMap[r.lessonId] || 
+                new Date(r.timestamp) > new Date(uniqueReportsMap[r.lessonId].timestamp)) {
+                uniqueReportsMap[r.lessonId] = r;
+            }
+        });
+        
+        const uniqueReports = Object.values(uniqueReportsMap);
+        
+        // اگه تعداد کارنامه‌های یکتا کمتر از کل بود، localStorage رو آپدیت کن
+        if (uniqueReports.length < rawReports.length) {
+            console.log('🧹 کارنامه‌های تکراری پاک شدند:', 
+                rawReports.length, '→', uniqueReports.length);
+            localStorage.setItem('reports', JSON.stringify(uniqueReports));
+        }
+        
+        // 🆕 امتیاز از کارنامه‌های یکتا
+        const totalPoints = uniqueReports.reduce((sum, r) => sum + (r.score || 0), 0);
+        const completedLessons = uniqueReports.length;
+        const avgPercent = uniqueReports.length > 0
+            ? Math.round(uniqueReports.reduce((sum, r) => sum + (r.percent || 0), 0) / uniqueReports.length)
             : 0;
         const streakDays = streakData.count || 0;
         
@@ -147,7 +151,7 @@ async function saveRankingToSupabase() {
         // چک کن آیا رکورد وجود داره
         const { data: existingData } = await client
             .from('rankings')
-            .select('student_code, completed_lessons')
+            .select('student_code, completed_lessons, total_points, custom_points_added, custom_total_points')
             .eq('student_id', studentId)
             .maybeSingle();
         
@@ -155,8 +159,13 @@ async function saveRankingToSupabase() {
             ? existingData.student_code 
             : studentCode;
         
-        // 🆕⚠️ مهم: completed_lessons رو دست نمی‌زنیم (چون مال معلمه)
-        // فقط اگه رکورد جدیده، از reports.length استفاده می‌کنیم
+        console.log('📊 محاسبه امتیاز:', {
+            rawReportsCount: rawReports.length,
+            uniqueReportsCount: uniqueReports.length,
+            totalPoints: totalPoints,
+            completedLessons: completedLessons
+        });
+        
         const payload = {
             student_id: studentId,
             name: userName,
@@ -169,33 +178,39 @@ async function saveRankingToSupabase() {
             last_update: new Date().toISOString()
         };
         
+        // completed_lessons فقط اگه رکورد جدید باشه ست میشه
         if (!existingData) {
-            // رکورد جدید: completed_lessons = تعداد کارنامه‌ها
-            payload.completed_lessons = reports.length;
+            payload.completed_lessons = completedLessons;
             payload.custom_points_added = 0;
             payload.custom_total_points = 0;
         } else {
-            // رکورد قدیمی: completed_lessons رو دست نزن
-            // اما اگه قبلاً ذخیره نشده بود، از کارنامه‌ها پر کن
-            if (existingData.completed_lessons === null || existingData.completed_lessons === undefined) {
-                payload.completed_lessons = reports.length;
+            // اگه قدیمیه، completed_lessons رو دست نزن (مال معلمه)
+            if (existingData.completed_lessons === null || 
+                existingData.completed_lessons === undefined) {
+                payload.completed_lessons = completedLessons;
             }
         }
         
         const { error } = await client
             .from('rankings')
-            .upsert(payload, { onConflict: 'student_id', ignoreDuplicates: false });
+            .upsert(payload, { 
+                onConflict: 'student_id',
+                ignoreDuplicates: false 
+            });
         
         if (error) {
-            console.error('❌ خطا در ذخیره:', error.message);
+            console.error('❌ خطا در ذخیره امتیاز:', error.message);
             return false;
         }
         
-        if (existingData && existingData.student_code && existingData.student_code !== studentCode) {
+        if (existingData && existingData.student_code && 
+            existingData.student_code !== studentCode) {
             localStorage.setItem('studentCode', existingData.student_code);
         }
         
+        console.log('✅ امتیاز ذخیره شد:', totalPoints, '/', completedLessons, 'تکلیف');
         return true;
+        
     } catch (error) {
         console.error('❌ خطا:', error);
         return false;
@@ -407,7 +422,7 @@ async function getMyRank() {
 }
 
 // ============================================================
-// پیام‌ها
+// پیام‌های کلاسی و شخصی
 // ============================================================
 async function sendClassMessageToSupabase(data) {
     try {
