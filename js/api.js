@@ -1,13 +1,13 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۱۶.۰.۰ — رفع باگ امتیاز تکراری
+// نسخه: ۱۸.۰.۰ — با پشتیبانی از custom_completed_lessons
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
 const API_URL = TEACHER_API_URL;
 
 // ============================================================
-// 🆕 تغییر کد ورود دانش‌آموز
+// تغییر کد ورود دانش‌آموز
 // ============================================================
 async function updateStudentCode(studentId, newCode) {
     try {
@@ -33,10 +33,7 @@ async function updateStudentCode(studentId, newCode) {
             .update({ student_code: newCode })
             .eq('student_id', studentId);
         
-        if (error) {
-            return { success: false, error: error.message };
-        }
-        
+        if (error) return { success: false, error: error.message };
         return { success: true };
         
     } catch (error) {
@@ -45,7 +42,8 @@ async function updateStudentCode(studentId, newCode) {
 }
 
 // ============================================================
-// 🆕 تغییر تعداد تکالیف انجام‌شده
+// 🆕 تغییر تعداد تکالیف انجام‌شده (توسط معلم)
+// ⚠️ این تابع custom_completed_lessons رو تغییر میده، نه completed_lessons
 // ============================================================
 async function updateCompletedLessons(studentId, count) {
     try {
@@ -56,13 +54,10 @@ async function updateCompletedLessons(studentId, count) {
         
         const { error } = await client
             .from('rankings')
-            .update({ completed_lessons: safeCount })
+            .update({ custom_completed_lessons: safeCount })
             .eq('student_id', studentId);
         
-        if (error) {
-            return { success: false, error: error.message };
-        }
-        
+        if (error) return { success: false, error: error.message };
         return { success: true };
         
     } catch (error) {
@@ -71,9 +66,19 @@ async function updateCompletedLessons(studentId, count) {
 }
 
 // ============================================================
-// 🆕 ذخیره/آپدیت امتیاز کاربر — نسخه اصلاح‌شده
-// فقط total_points رو از کارنامه‌ها می‌گیریم
-// custom_* رو دست نمی‌زنیم
+// 🆕 محاسبه تعداد تکالیف واقعی (با احتساب custom_completed_lessons)
+// ============================================================
+function calculateCompletedLessons(ranking) {
+    if (!ranking) return 0;
+    const base = parseInt(ranking.completed_lessons) || 0;
+    const custom = parseInt(ranking.custom_completed_lessons) || 0;
+    return base + custom;
+}
+
+// ============================================================
+// ذخیره/آپدیت امتیاز کاربر
+// ⚠️ نکته مهم: برنامه دانش‌آموز نباید completed_lessons 
+// و custom_completed_lessons رو آپدیت کنه
 // ============================================================
 async function saveRankingToSupabase() {
     try {
@@ -87,7 +92,6 @@ async function saveRankingToSupabase() {
                 studentId = await generateUUIDFromCode(studentCode);
                 localStorage.setItem('studentUUID', studentId);
             } else {
-                console.log('⚠️ studentUUID و studentCode نداریم');
                 return false;
             }
         }
@@ -101,7 +105,7 @@ async function saveRankingToSupabase() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         
-        // 🆕 امتیاز پایه فقط از کارنامه‌ها
+        // امتیاز پایه از کارنامه‌ها
         const totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
         const completedLessons = reports.length;
         const avgPercent = reports.length > 0
@@ -119,20 +123,18 @@ async function saveRankingToSupabase() {
             avatarUrl = 'emoji:' + avatarEmoji;
         }
         
-        // 🆕 چک کن آیا رکورد وجود داره
+        // چک کن آیا رکورد وجود داره
         const { data: existingData } = await client
             .from('rankings')
-            .select('student_code, custom_points_added, custom_total_points')
+            .select('student_code, custom_completed_lessons, custom_points_added, custom_total_points')
             .eq('student_id', studentId)
             .maybeSingle();
         
-        // 🆕 اگه معلم کد رو تغییر داده، از اون استفاده کن
         const finalCode = (existingData && existingData.student_code) 
             ? existingData.student_code 
             : studentCode;
         
-        // 🆕 payload — فقط فیلدهایی که برنامه مسئولشه
-        // custom_points_added و custom_total_points رو دست نمی‌زنیم (اون‌ها مال معلمن)
+        // 🆕 فقط فیلدهایی که برنامه مسئولشه رو آپدیت کن
         const payload = {
             student_id: studentId,
             name: userName,
@@ -150,27 +152,26 @@ async function saveRankingToSupabase() {
         if (!existingData) {
             payload.custom_points_added = 0;
             payload.custom_total_points = 0;
+            payload.custom_completed_lessons = 0;
         }
         
-        const { data, error } = await client
+        const { error } = await client
             .from('rankings')
             .upsert(payload, { 
                 onConflict: 'student_id',
                 ignoreDuplicates: false 
-            })
-            .select();
+            });
         
         if (error) {
             console.error('❌ خطا در ذخیره امتیاز:', error.message);
             return false;
         }
         
-        // اگه کد از سمت معلم تغییر کرده بود، توی localStorage هم به‌روز کن
         if (existingData && existingData.student_code && existingData.student_code !== studentCode) {
             localStorage.setItem('studentCode', existingData.student_code);
         }
         
-        console.log('✅ امتیاز ذخیره شد:', totalPoints);
+        console.log('✅ امتیاز و تکالیف ذخیره شد:', totalPoints, '/', completedLessons);
         return true;
         
     } catch (error) {
@@ -231,17 +232,8 @@ async function saveReportToSupabase(report, studentId) {
             created_at: report.timestamp || new Date().toISOString()
         };
         
-        const { data, error } = await client
-            .from('reports')
-            .insert(payload)
-            .select();
-        
-        if (error) {
-            console.error('❌ خطا:', error.message);
-            return false;
-        }
-        
-        console.log('✅ کارنامه ذخیره شد');
+        const { error } = await client.from('reports').insert(payload);
+        if (error) return false;
         return true;
         
     } catch (error) {
@@ -329,9 +321,7 @@ async function getProgressFromSupabase(studentId, lessonId) {
             .select('*')
             .eq('student_id', studentId);
         
-        if (lessonId) {
-            query = query.eq('lesson_id', lessonId);
-        }
+        if (lessonId) query = query.eq('lesson_id', lessonId);
         
         const { data, error } = await query.maybeSingle();
         
@@ -645,7 +635,7 @@ async function markAllMessagesAsSeenSupabase(studentId, reader) {
 }
 
 // ============================================================
-// رویدادها
+// رویدادها، مسابقات، کتابخانه
 // ============================================================
 async function addEventToSupabase(data) {
     try {
@@ -669,28 +659,20 @@ async function getEventsFromSupabase() {
     try {
         const client = getSupabase();
         if (!client) return [];
-        const { data, error } = await client
-            .from('events')
-            .select('*')
-            .order('date', { ascending: false });
+        const { data, error } = await client.from('events').select('*').order('date', { ascending: false });
         if (error) return [];
         return data || [];
     } catch (error) { return []; }
 }
 
-// ============================================================
-// مسابقات
-// ============================================================
 async function addContestToSupabase(data) {
     try {
         const client = getSupabase();
         if (!client) return { success: false };
         const payload = {
             contest_id: data.contest_id || 'cnt_' + Date.now(),
-            title: data.title || '',
-            prize: data.prize || '',
-            start_date: data.start_date || '',
-            end_date: data.end_date || '',
+            title: data.title || '', prize: data.prize || '',
+            start_date: data.start_date || '', end_date: data.end_date || '',
             description: data.description || ''
         };
         const { error } = await client.from('contests').insert(payload);
@@ -703,28 +685,20 @@ async function getContestsFromSupabase() {
     try {
         const client = getSupabase();
         if (!client) return [];
-        const { data, error } = await client
-            .from('contests')
-            .select('*')
-            .order('created_at', { ascending: false });
+        const { data, error } = await client.from('contests').select('*').order('created_at', { ascending: false });
         if (error) return [];
         return data || [];
     } catch (error) { return []; }
 }
 
-// ============================================================
-// کتابخانه
-// ============================================================
 async function addLibraryToSupabase(data) {
     try {
         const client = getSupabase();
         if (!client) return { success: false };
         const payload = {
             item_id: data.item_id || 'lib_' + Date.now(),
-            title: data.title || '',
-            type: data.type || 'video',
-            url: data.url || '',
-            description: data.description || ''
+            title: data.title || '', type: data.type || 'video',
+            url: data.url || '', description: data.description || ''
         };
         const { error } = await client.from('library').insert(payload);
         if (error) return { success: false, error: error.message };
@@ -736,10 +710,7 @@ async function getLibraryFromSupabase() {
     try {
         const client = getSupabase();
         if (!client) return [];
-        const { data, error } = await client
-            .from('library')
-            .select('*')
-            .order('created_at', { ascending: false });
+        const { data, error } = await client.from('library').select('*').order('created_at', { ascending: false });
         if (error) return [];
         return data || [];
     } catch (error) { return []; }
@@ -754,109 +725,61 @@ async function recoverSeenDataFromSupabase(studentId) {
         if (!client) return false;
         
         const { data: seenData, error } = await client
-            .from('seen_data')
-            .select('*')
-            .eq('student_id', studentId)
-            .maybeSingle();
+            .from('seen_data').select('*').eq('student_id', studentId).maybeSingle();
         
-        if (error) {
-            console.warn('⚠️ جدول seen_data پیدا نشد یا خطا:', error.message);
-            return false;
-        }
+        if (error) return false;
         
         if (seenData) {
-            if (seenData.seen_chat_messages && Array.isArray(seenData.seen_chat_messages)) {
-                localStorage.setItem('seenChatMessages', JSON.stringify(seenData.seen_chat_messages));
-            }
-            if (seenData.seen_class_messages && Array.isArray(seenData.seen_class_messages)) {
-                localStorage.setItem('seenClassMessages', JSON.stringify(seenData.seen_class_messages));
-            }
-            if (seenData.seen_lessons && Array.isArray(seenData.seen_lessons)) {
+            if (seenData.seen_chat_messages) localStorage.setItem('seenChatMessages', JSON.stringify(seenData.seen_chat_messages));
+            if (seenData.seen_class_messages) localStorage.setItem('seenClassMessages', JSON.stringify(seenData.seen_class_messages));
+            if (seenData.seen_lessons) {
                 localStorage.setItem('seenLessonsForNotif', JSON.stringify(seenData.seen_lessons));
                 localStorage.setItem('seenLessons', JSON.stringify(seenData.seen_lessons));
             }
-            if (seenData.seen_videos && Array.isArray(seenData.seen_videos)) {
-                localStorage.setItem('seenVideos', JSON.stringify(seenData.seen_videos));
-            }
-            if (seenData.seen_jozve_ids && Array.isArray(seenData.seen_jozve_ids)) {
-                localStorage.setItem('seenJozveIds', JSON.stringify(seenData.seen_jozve_ids));
-            }
-            if (seenData.last_streak_message_shown) {
-                localStorage.setItem('lastStreakMessageShown', seenData.last_streak_message_shown);
-            }
-            if (seenData.dismissed_new_message_notif) {
-                localStorage.setItem('dismissedNewMessageNotif', 'true');
-            }
-            if (seenData.dismissed_new_jozve_notif) {
-                localStorage.setItem('dismissedNewJozveNotif', 'true');
-            }
-            if (seenData.dismissed_deadline_notif) {
-                localStorage.setItem('dismissedDeadlineNotif', 'true');
-            }
-            
+            if (seenData.seen_videos) localStorage.setItem('seenVideos', JSON.stringify(seenData.seen_videos));
+            if (seenData.seen_jozve_ids) localStorage.setItem('seenJozveIds', JSON.stringify(seenData.seen_jozve_ids));
+            if (seenData.last_streak_message_shown) localStorage.setItem('lastStreakMessageShown', seenData.last_streak_message_shown);
+            if (seenData.dismissed_new_message_notif) localStorage.setItem('dismissedNewMessageNotif', 'true');
+            if (seenData.dismissed_new_jozve_notif) localStorage.setItem('dismissedNewJozveNotif', 'true');
+            if (seenData.dismissed_deadline_notif) localStorage.setItem('dismissedDeadlineNotif', 'true');
             return true;
         }
-        
         return false;
-        
-    } catch (error) {
-        return false;
-    }
+    } catch (error) { return false; }
 }
 
 async function saveSeenDataToSupabase() {
     try {
         const studentId = localStorage.getItem('studentUUID');
         if (!studentId) return false;
-        
         const client = getSupabase();
         if (!client) return false;
         
-        const seenChatMessages = JSON.parse(localStorage.getItem('seenChatMessages') || '[]');
-        const seenClassMessages = JSON.parse(localStorage.getItem('seenClassMessages') || '[]');
-        const seenLessons = JSON.parse(localStorage.getItem('seenLessonsForNotif') || '[]');
-        const seenVideos = JSON.parse(localStorage.getItem('seenVideos') || '[]');
-        const seenJozveIds = JSON.parse(localStorage.getItem('seenJozveIds') || '[]');
-        const lastStreakMessageShown = localStorage.getItem('lastStreakMessageShown') || null;
-        
         const payload = {
             student_id: studentId,
-            seen_chat_messages: seenChatMessages.slice(-500),
-            seen_class_messages: seenClassMessages.slice(-500),
-            seen_lessons: seenLessons,
-            seen_videos: seenVideos,
-            seen_jozve_ids: seenJozveIds,
-            last_streak_message_shown: lastStreakMessageShown,
+            seen_chat_messages: JSON.parse(localStorage.getItem('seenChatMessages') || '[]').slice(-500),
+            seen_class_messages: JSON.parse(localStorage.getItem('seenClassMessages') || '[]').slice(-500),
+            seen_lessons: JSON.parse(localStorage.getItem('seenLessonsForNotif') || '[]'),
+            seen_videos: JSON.parse(localStorage.getItem('seenVideos') || '[]'),
+            seen_jozve_ids: JSON.parse(localStorage.getItem('seenJozveIds') || '[]'),
+            last_streak_message_shown: localStorage.getItem('lastStreakMessageShown') || null,
             dismissed_new_message_notif: localStorage.getItem('dismissedNewMessageNotif') === 'true',
             dismissed_new_jozve_notif: localStorage.getItem('dismissedNewJozveNotif') === 'true',
             dismissed_deadline_notif: localStorage.getItem('dismissedDeadlineNotif') === 'true',
             last_update: new Date().toISOString()
         };
         
-        const { data: existing } = await client
-            .from('seen_data')
-            .select('id')
-            .eq('student_id', studentId)
-            .maybeSingle();
+        const { data: existing } = await client.from('seen_data').select('id').eq('student_id', studentId).maybeSingle();
         
         if (existing) {
-            const { error } = await client
-                .from('seen_data')
-                .update(payload)
-                .eq('id', existing.id);
+            const { error } = await client.from('seen_data').update(payload).eq('id', existing.id);
             if (error) throw error;
         } else {
-            const { error } = await client
-                .from('seen_data')
-                .insert(payload);
+            const { error } = await client.from('seen_data').insert(payload);
             if (error) throw error;
         }
-        
         return true;
-        
-    } catch (error) {
-        return false;
-    }
+    } catch (error) { return false; }
 }
 
 // ============================================================
@@ -874,17 +797,10 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
             try { client.removeChannel(personalRealtimeChannel); } catch(e) {}
             personalRealtimeChannel = null;
         }
-        const channelName = 'personal_rt_' + studentId + '_' + Date.now();
         personalRealtimeChannel = client
-            .channel(channelName)
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'personal_messages',
-                filter: `student_id=eq.${studentId}`
-            }, (payload) => {
-                if (typeof onNewMessage === 'function') onNewMessage(payload);
-            })
+            .channel('personal_rt_' + studentId + '_' + Date.now())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'personal_messages', filter: `student_id=eq.${studentId}` },
+                (payload) => { if (typeof onNewMessage === 'function') onNewMessage(payload); })
             .subscribe();
         return personalRealtimeChannel;
     } catch (error) { return null; }
@@ -899,16 +815,10 @@ function subscribeToClassMessages(className, onNewMessage) {
             classRealtimeChannel = null;
         }
         const classSlug = classNameToSlug(className);
-        const channelName = 'class_rt_' + classSlug + '_' + Date.now();
         classRealtimeChannel = client
-            .channel(channelName)
-            .on('postgres_changes', {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'class_messages'
-            }, (payload) => {
-                if (typeof onNewMessage === 'function') onNewMessage(payload);
-            })
+            .channel('class_rt_' + classSlug + '_' + Date.now())
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'class_messages' },
+                (payload) => { if (typeof onNewMessage === 'function') onNewMessage(payload); })
             .subscribe();
         return classRealtimeChannel;
     } catch (error) { return null; }
@@ -922,16 +832,10 @@ function subscribeToConversations(onChange) {
             try { client.removeChannel(conversationsRealtimeChannel); } catch(e) {}
             conversationsRealtimeChannel = null;
         }
-        const channelName = 'conversations_rt_' + Date.now();
         conversationsRealtimeChannel = client
-            .channel(channelName)
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'personal_messages'
-            }, (payload) => {
-                if (typeof onChange === 'function') onChange(payload);
-            })
+            .channel('conversations_rt_' + Date.now())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'personal_messages' },
+                (payload) => { if (typeof onChange === 'function') onChange(payload); })
             .subscribe();
         return conversationsRealtimeChannel;
     } catch (error) { return null; }

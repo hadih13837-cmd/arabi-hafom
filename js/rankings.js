@@ -1,6 +1,6 @@
 // ============================================================
-// rankings.js — سیستم رتبه‌بندی
-// نسخه: ۲۱.۰.۰ — با پشتیبانی از امتیازهای دستی معلم
+// rankings.js — سیستم رتبه‌بندی (برنامه دانش‌آموز)
+// نسخه: ۲۲.۰.۰ — با custom_completed_lessons
 // ============================================================
 
 let currentRankings = [];
@@ -10,14 +10,24 @@ let lastRankingsHash = '';
 let isLoadingRankings = false;
 
 // ============================================================
-// 🆕 محاسبه امتیاز کل با احتساب امتیازهای دستی معلم
+// محاسبه امتیاز کل با احتساب امتیازهای دستی معلم
 // ============================================================
 function calculateTotalPointsFromRanking(ranking) {
     if (!ranking) return 0;
-    const basePoints = ranking.total_points || 0;
-    const customTotal = ranking.custom_total_points || 0;
-    const customAdded = ranking.custom_points_added || 0;
+    const basePoints = parseInt(ranking.total_points) || 0;
+    const customTotal = parseInt(ranking.custom_total_points) || 0;
+    const customAdded = parseInt(ranking.custom_points_added) || 0;
     return basePoints + customTotal + customAdded;
+}
+
+// ============================================================
+// 🆕 محاسبه تعداد تکالیف کل با احتساب دستی معلم
+// ============================================================
+function calculateCompletedLessons(ranking) {
+    if (!ranking) return 0;
+    const base = parseInt(ranking.completed_lessons) || 0;
+    const custom = parseInt(ranking.custom_completed_lessons) || 0;
+    return base + custom;
 }
 
 // ============================================================
@@ -67,7 +77,7 @@ async function loadRankingsPage() {
             const rankings = await getRankingsByClass(userClass);
             
             if (rankings && rankings.length > 0) {
-                // 🆕 مرتب‌سازی بر اساس امتیاز کل با احتساب امتیازهای دستی
+                // مرتب‌سازی بر اساس امتیاز کل با احتساب امتیازهای دستی
                 rankings.sort((a, b) => calculateTotalPointsFromRanking(b) - calculateTotalPointsFromRanking(a));
                 
                 const newHash = getRankingsHash(rankings);
@@ -109,12 +119,12 @@ async function loadRankingsPage() {
 }
 
 // ============================================================
-// hash رتبه‌بندی
+// hash رتبه‌بندی (برای تشخیص تغییر)
 // ============================================================
 function getRankingsHash(rankings) {
     if (!rankings || rankings.length === 0) return '';
     return rankings.map(r => 
-        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.avg_percent}_${r.avatar_url || ''}_${r.custom_total_points || 0}_${r.custom_points_added || 0}`
+        `${r.student_id}_${r.total_points}_${r.completed_lessons}_${r.custom_completed_lessons || 0}_${r.avg_percent}_${r.avatar_url || ''}_${r.custom_total_points || 0}_${r.custom_points_added || 0}`
     ).join('|');
 }
 
@@ -146,7 +156,6 @@ function startAutoRefresh() {
                 return;
             }
             
-            // 🆕 مرتب‌سازی بر اساس امتیاز کل
             rankings.sort((a, b) => calculateTotalPointsFromRanking(b) - calculateTotalPointsFromRanking(a));
             
             const newHash = getRankingsHash(rankings);
@@ -197,7 +206,7 @@ function renderRankingsList(rankings, userClass, studentId) {
         const isSecondMe = second.student_id === studentId;
         const isThirdMe = third.student_id === studentId;
         
-        // 🆕 استفاده از امتیاز کل محاسبه‌شده
+        // امتیاز کل با احتساب امتیازهای دستی
         const firstPoints = calculateTotalPointsFromRanking(first);
         const secondPoints = calculateTotalPointsFromRanking(second);
         const thirdPoints = calculateTotalPointsFromRanking(third);
@@ -262,8 +271,11 @@ function renderRankingsList(rankings, userClass, studentId) {
         const rank = index + 1;
         const isMe = ranking.student_id === studentId;
         
-        // 🆕 امتیاز کل با احتساب امتیازهای دستی
+        // امتیاز کل با احتساب امتیازهای دستی
         const totalPoints = calculateTotalPointsFromRanking(ranking);
+        
+        // 🆕 تعداد تکالیف کل با احتساب دستی
+        const totalLessons = calculateCompletedLessons(ranking);
         
         let medalEmoji = '';
         if (rank === 1) medalEmoji = '🥇';
@@ -286,7 +298,7 @@ function renderRankingsList(rankings, userClass, studentId) {
                         ${ranking.name}
                         ${isMe ? '<span class="lb-row-you">شما</span>' : ''}
                     </div>
-                    <div class="lb-row-class">${classPersian}</div>
+                    <div class="lb-row-class">${classPersian} • ${toPersianNum(totalLessons)} تکلیف</div>
                 </div>
                 
                 <div class="lb-row-points">
@@ -416,7 +428,6 @@ async function refreshRankings() {
         const rankings = await getRankingsByClass(userClass);
         
         if (rankings && rankings.length > 0) {
-            // 🆕 مرتب‌سازی
             rankings.sort((a, b) => calculateTotalPointsFromRanking(b) - calculateTotalPointsFromRanking(a));
             
             currentRankings = rankings;
@@ -466,8 +477,11 @@ function openProfileCard(studentId) {
     const isMe = studentId === localStorage.getItem('studentUUID');
     const medalCount = getUserEarnedMedals(ranking).length;
     
-    // 🆕 امتیاز کل با احتساب امتیازهای دستی
+    // امتیاز کل با احتساب امتیازهای دستی
     const totalPoints = calculateTotalPointsFromRanking(ranking);
+    
+    // 🆕 تعداد تکالیف کل با احتساب دستی
+    const totalLessons = calculateCompletedLessons(ranking);
     
     const avatarUrl = (ranking && ranking.avatar_url) ? String(ranking.avatar_url).trim() : '';
     const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
@@ -591,7 +605,7 @@ function openProfileCard(studentId) {
                         </div>
                         <div class="pc-modal-stat-content-v2">
                             <div class="pc-modal-stat-label-v2">تکالیف انجام شده</div>
-                            <div class="pc-modal-stat-value-v2">${toPersianNum(ranking.completed_lessons)}</div>
+                            <div class="pc-modal-stat-value-v2">${toPersianNum(totalLessons)}</div>
                         </div>
                     </div>
                     
@@ -672,7 +686,7 @@ function openMedalsPage(studentId) {
 
 function getUserEarnedMedals(ranking) {
     const points = calculateTotalPointsFromRanking(ranking);
-    const lessons = ranking.completed_lessons || 0;
+    const lessons = calculateCompletedLessons(ranking);
     const avg = ranking.avg_percent || 0;
     const streak = ranking.streak_days || 0;
     
