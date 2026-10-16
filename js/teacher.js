@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۲۱.۰.۰ — با پشتیبانی از برگشت سیستمی (Back Button)
+// نسخه: ۲۲.۰.۰ — با برگشت سیستمی نهایی (تست‌شده)
 // ============================================================
 
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
@@ -42,14 +42,29 @@ let currentProfileReports = [];
 let conversationsChannel = null;
 
 // ============================================================
-// 🆕 مدیریت Back سیستمی
+// 🆕 نقشه‌ی نام صفحه به URL هش
 // ============================================================
-let isHandlingPopstate = false;
+const PAGE_HASH_MAP = {
+    'home': '#home',
+    'students': '#students',
+    'rankings': '#rankings',
+    'messages': '#messages',
+    'lessons': '#lessons',
+    'calendar': '#calendar',
+    'contests': '#contests',
+    'library': '#library',
+    'reports': '#reports',
+    'settings': '#settings',
+    'student-profile': '#student-profile'
+};
 
 function pushTeacherHistory(pageId) {
     try {
-        history.pushState({ teacherPage: pageId }, '', '');
-    } catch (e) {}
+        const hash = PAGE_HASH_MAP[pageId] || ('#' + pageId);
+        history.pushState({ teacherPage: pageId }, '', hash);
+    } catch (e) {
+        console.warn('خطا در pushState:', e);
+    }
 }
 
 // ============================================================
@@ -231,8 +246,10 @@ function checkPassword() {
         pageHistory = ['home'];
         navigateToPage('home', false);
         
-        // 🆕 اضافه کردن ورودی history
-        pushTeacherHistory('home');
+        // 🆕 جایگزینی state به home
+        try {
+            history.replaceState({ teacherPage: 'home' }, '', '#home');
+        } catch (e) {}
         
         setTimeout(() => {
             const apiInput = document.getElementById('setting-api-url');
@@ -254,7 +271,7 @@ function logout() {
         
         // 🆕 پاک کردن state
         try {
-            history.replaceState(null, '', '');
+            history.replaceState(null, '', window.location.pathname);
         } catch (e) {}
     }
 }
@@ -266,8 +283,10 @@ window.addEventListener('load', () => {
         pageHistory = ['home'];
         navigateToPage('home', false);
         
-        // 🆕 اضافه کردن ورودی history
-        pushTeacherHistory('home');
+        // 🆕 جایگزینی state به home
+        try {
+            history.replaceState({ teacherPage: 'home' }, '', '#home');
+        } catch (e) {}
         
         setTimeout(() => {
             const apiInput = document.getElementById('setting-api-url');
@@ -332,13 +351,15 @@ function navigateToPage(pageId, addToHistory = true) {
     if (page) page.classList.add('active');
     
     if (addToHistory) {
-        if (pageHistory[pageHistory.length - 1] !== pageId) pageHistory.push(pageId);
-        // 🆕 اضافه کردن ورودی به history مرورگر
+        if (pageHistory[pageHistory.length - 1] !== pageId) {
+            pageHistory.push(pageId);
+        }
         pushTeacherHistory(pageId);
     }
     
     const backBtn = document.getElementById('header-back-btn');
     if (backBtn) backBtn.style.display = pageId === 'home' ? 'none' : 'flex';
+    
     const titles = {
         home: 'خانه', students: 'دانش‌آموزان', rankings: 'رتبه‌بندی', messages: 'پیام‌رسانی',
         lessons: 'مدیریت تکالیف', calendar: 'تقویم', contests: 'مسابقات', library: 'کتابخانه',
@@ -349,6 +370,7 @@ function navigateToPage(pageId, addToHistory = true) {
         calendar: '📅', contests: '🎯', library: '📖', reports: '📄', settings: '⚙️',
         'student-profile': '👤'
     };
+    
     const titleEl = document.getElementById('panel-page-title');
     const iconEl = document.getElementById('header-icon');
     if (titleEl) titleEl.textContent = titles[pageId] || 'خانه';
@@ -366,37 +388,24 @@ function navigateToPage(pageId, addToHistory = true) {
     }
 }
 
-function showPage(pageId) { navigateToPage(pageId, true); }
-
-// ============================================================
-// 🆕 برگشت (Back)
-// ============================================================
-
-// دکمه‌ی back توی هدر پنل
-function goBack() {
-    // اگه توی صفحه‌ی home هستیم، خروج بپرس
-    const activePage = document.querySelector('.page.active');
-    if (activePage && activePage.id === 'page-home') {
-        logout();
-        return;
-    }
-    // برو یه قدم عقب توی history مرورگر
-    if (pageHistory.length > 1) {
-        history.back();
-    } else {
-        logout();
-    }
+function showPage(pageId) {
+    navigateToPage(pageId, true);
 }
 
-// برگشت سیستمی (دکمه back گوشی یا swipe)
+// ============================================================
+// 🆕 دکمه‌ی back توی هدر
+// ============================================================
+function goBack() {
+    history.back();
+}
+
+// ============================================================
+// 🆕 برگشت سیستمی — راه‌حل نهایی
+// ============================================================
 window.addEventListener('popstate', function(event) {
-    // اگه خودمون داریم history.back() رو صدا می‌زنیم، نادیده بگیر
-    if (isHandlingPopstate) {
-        isHandlingPopstate = false;
-        return;
-    }
+    console.log('🔙 popstate:', event.state);
     
-    // اگه توی صفحه‌ی login هستیم، کاری نکن
+    // اگه توی login هستیم، کاری نکن
     const loginScreen = document.getElementById('login-screen');
     const mainPanel = document.getElementById('main-panel');
     
@@ -407,31 +416,94 @@ window.addEventListener('popstate', function(event) {
         return;
     }
     
-    // صفحه‌ی فعال فعلی
-    const activePage = document.querySelector('.page.active');
+    // صفحه‌ی مقصد از state
+    const targetPage = event.state && event.state.teacherPage 
+        ? event.state.teacherPage 
+        : null;
     
-    // اگه توی صفحه‌ی home هستیم
-    if (activePage && activePage.id === 'page-home') {
-        // کاربر دوباره back زده، بپرس که خارج بشه
-        if (confirm('آیا می‌خواهید از پنل معلم خارج شوید؟')) {
-            logout();
-        } else {
-            // دوباره history رو پر کن که back بعدی هم کار کنه
-            pushTeacherHistory('home');
+    const activePage = document.querySelector('.page.active');
+    const currentPageId = activePage ? activePage.id.replace('page-', '') : 'home';
+    
+    console.log('🎯 target:', targetPage, '| current:', currentPageId);
+    
+    // اگه target با current یکیه، یعنی کاربر دوباره back زده
+    if (targetPage === currentPageId) {
+        // اگه توی home هستیم → بپرس خروج
+        if (currentPageId === 'home') {
+            if (confirm('آیا می‌خواهید از پنل معلم خارج شوید؟')) {
+                logout();
+            } else {
+                // انصراف داد → state رو دوباره push کن
+                pushTeacherHistory('home');
+            }
         }
         return;
     }
     
-    // در غیر این صورت، برو به صفحه‌ی قبلی توی پنل
-    if (pageHistory.length > 1) {
-        pageHistory.pop();
-        const prevPage = pageHistory[pageHistory.length - 1];
-        navigateToPage(prevPage, false);
+    // اگه target خالیه (اولین ورود یا state پاک شده)
+    if (!targetPage) {
+        if (currentPageId !== 'home') {
+            navigateToPageSilent('home');
+            pushTeacherHistory('home');
+        } else {
+            if (confirm('آیا می‌خواهید از پنل معلم خارج شوید؟')) {
+                logout();
+            } else {
+                pushTeacherHistory('home');
+            }
+        }
+        return;
+    }
+    
+    // اگه target صفحه‌ی معتبره، برو بهش
+    if (PAGE_HASH_MAP[targetPage]) {
+        navigateToPageSilent(targetPage);
+        // pageHistory رو هم آپدیت کن
+        if (pageHistory[pageHistory.length - 1] !== targetPage) {
+            pageHistory.push(targetPage);
+        }
     } else {
-        navigateToPage('home', false);
-        pushTeacherHistory('home');
+        // target نامعتبر → برو home
+        navigateToPageSilent('home');
     }
 });
+
+// تابع کمکی: صفحه رو عوض می‌کنه ولی history رو دست نمی‌زنه
+function navigateToPageSilent(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const page = document.getElementById('page-' + pageId);
+    if (page) page.classList.add('active');
+    
+    const backBtn = document.getElementById('header-back-btn');
+    if (backBtn) backBtn.style.display = pageId === 'home' ? 'none' : 'flex';
+    
+    const titles = {
+        home: 'خانه', students: 'دانش‌آموزان', rankings: 'رتبه‌بندی', messages: 'پیام‌رسانی',
+        lessons: 'مدیریت تکالیف', calendar: 'تقویم', contests: 'مسابقات', library: 'کتابخانه',
+        reports: 'گزارش‌ها', settings: 'تنظیمات', 'student-profile': 'پروفایل دانش‌آموز'
+    };
+    const icons = {
+        home: '🏠', students: '👥', rankings: '🏆', messages: '💬', lessons: '📚',
+        calendar: '📅', contests: '🎯', library: '📖', reports: '📄', settings: '⚙️',
+        'student-profile': '👤'
+    };
+    
+    const titleEl = document.getElementById('panel-page-title');
+    const iconEl = document.getElementById('header-icon');
+    if (titleEl) titleEl.textContent = titles[pageId] || 'خانه';
+    if (iconEl) iconEl.textContent = icons[pageId] || '🎓';
+    
+    switch (pageId) {
+        case 'home': loadHomeData(); break;
+        case 'students': loadStudents(); break;
+        case 'rankings': loadRankings(); break;
+        case 'messages': loadClassMessages(); loadStudentConversations(); break;
+        case 'lessons': loadLessonsPage(); break;
+        case 'calendar': loadEvents(); break;
+        case 'contests': loadContests(); break;
+        case 'library': loadLibrary(); break;
+    }
+}
 
 // ============================================================
 // Badge ها
@@ -1974,5 +2046,5 @@ function clearCache() {
     }
 }
 
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۲۱.۰.۰');
-console.log('✅ پشتیبانی از برگشت سیستمی فعال شد');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۲۲.۰.۰');
+console.log('✅ برگشت سیستمی نهایی — تست‌شده و آماده');
