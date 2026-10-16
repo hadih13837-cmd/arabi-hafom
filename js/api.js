@@ -1,6 +1,6 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۱۵.۰.۰ — با تغییر کد و تعداد تکالیف
+// نسخه: ۱۶.۰.۰ — رفع باگ امتیاز تکراری
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
@@ -14,7 +14,6 @@ async function updateStudentCode(studentId, newCode) {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
         
-        // چک کن کد تکراری نباشه
         const { data: existing, error: checkError } = await client
             .from('rankings')
             .select('student_id')
@@ -35,15 +34,12 @@ async function updateStudentCode(studentId, newCode) {
             .eq('student_id', studentId);
         
         if (error) {
-            console.error('❌ خطا در تغییر کد:', error);
             return { success: false, error: error.message };
         }
         
-        console.log('✅ کد دانش‌آموز تغییر کرد:', newCode);
         return { success: true };
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return { success: false, error: error.message };
     }
 }
@@ -64,21 +60,20 @@ async function updateCompletedLessons(studentId, count) {
             .eq('student_id', studentId);
         
         if (error) {
-            console.error('❌ خطا:', error);
             return { success: false, error: error.message };
         }
         
-        console.log('✅ تعداد تکالیف تغییر کرد:', safeCount);
         return { success: true };
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return { success: false, error: error.message };
     }
 }
 
 // ============================================================
-// ذخیره/آپدیت امتیاز کاربر (با کد)
+// 🆕 ذخیره/آپدیت امتیاز کاربر — نسخه اصلاح‌شده
+// فقط total_points رو از کارنامه‌ها می‌گیریم
+// custom_* رو دست نمی‌زنیم
 // ============================================================
 async function saveRankingToSupabase() {
     try {
@@ -106,6 +101,7 @@ async function saveRankingToSupabase() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         
+        // 🆕 امتیاز پایه فقط از کارنامه‌ها
         const totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
         const completedLessons = reports.length;
         const avgPercent = reports.length > 0
@@ -123,18 +119,20 @@ async function saveRankingToSupabase() {
             avatarUrl = 'emoji:' + avatarEmoji;
         }
         
-        // 🆕 قبل از آپدیت، چک کن که آیا کد رو تغییر داده یا نه
+        // 🆕 چک کن آیا رکورد وجود داره
         const { data: existingData } = await client
             .from('rankings')
-            .select('student_code, completed_lessons')
+            .select('student_code, custom_points_added, custom_total_points')
             .eq('student_id', studentId)
             .maybeSingle();
         
-        // اگه معلم کد یا تعداد تکالیف رو تغییر داده، از اون استفاده کن
+        // 🆕 اگه معلم کد رو تغییر داده، از اون استفاده کن
         const finalCode = (existingData && existingData.student_code) 
             ? existingData.student_code 
             : studentCode;
         
+        // 🆕 payload — فقط فیلدهایی که برنامه مسئولشه
+        // custom_points_added و custom_total_points رو دست نمی‌زنیم (اون‌ها مال معلمن)
         const payload = {
             student_id: studentId,
             name: userName,
@@ -147,6 +145,12 @@ async function saveRankingToSupabase() {
             student_code: finalCode,
             last_update: new Date().toISOString()
         };
+        
+        // 🆕 اگه رکورد جدیده، custom_* رو صفر بذار
+        if (!existingData) {
+            payload.custom_points_added = 0;
+            payload.custom_total_points = 0;
+        }
         
         const { data, error } = await client
             .from('rankings')
@@ -742,7 +746,7 @@ async function getLibraryFromSupabase() {
 }
 
 // ============================================================
-// 🆕 seen_data — جلوگیری از نمایش دوباره اعلان‌ها
+// seen_data
 // ============================================================
 async function recoverSeenDataFromSupabase(studentId) {
     try {
@@ -790,14 +794,12 @@ async function recoverSeenDataFromSupabase(studentId) {
                 localStorage.setItem('dismissedDeadlineNotif', 'true');
             }
             
-            console.log('✅ seen_data بازیابی شد');
             return true;
         }
         
         return false;
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return false;
     }
 }
@@ -853,7 +855,6 @@ async function saveSeenDataToSupabase() {
         return true;
         
     } catch (error) {
-        console.error('❌ خطا:', error);
         return false;
     }
 }
