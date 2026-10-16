@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۲۰.۰.۰ — با delta برای تعداد تکالیف + تمدید مهلت هوشمند
+// نسخه: ۲۱.۰.۰ — با پشتیبانی از برگشت سیستمی (Back Button)
 // ============================================================
 
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
@@ -40,6 +40,17 @@ let currentProfileStatus = {};
 let currentProfileReports = [];
 
 let conversationsChannel = null;
+
+// ============================================================
+// 🆕 مدیریت Back سیستمی
+// ============================================================
+let isHandlingPopstate = false;
+
+function pushTeacherHistory(pageId) {
+    try {
+        history.pushState({ teacherPage: pageId }, '', '');
+    } catch (e) {}
+}
 
 // ============================================================
 // توابع کمکی
@@ -219,6 +230,10 @@ function checkPassword() {
         localStorage.setItem('teacherLoggedIn', 'true');
         pageHistory = ['home'];
         navigateToPage('home', false);
+        
+        // 🆕 اضافه کردن ورودی history
+        pushTeacherHistory('home');
+        
         setTimeout(() => {
             const apiInput = document.getElementById('setting-api-url');
             if (apiInput && typeof SUPABASE_URL !== 'undefined') apiInput.value = SUPABASE_URL;
@@ -236,6 +251,11 @@ function logout() {
         document.getElementById('main-panel').classList.remove('active');
         stopAllRealtime();
         pageHistory = ['home'];
+        
+        // 🆕 پاک کردن state
+        try {
+            history.replaceState(null, '', '');
+        } catch (e) {}
     }
 }
 
@@ -245,6 +265,10 @@ window.addEventListener('load', () => {
         document.getElementById('main-panel').classList.add('active');
         pageHistory = ['home'];
         navigateToPage('home', false);
+        
+        // 🆕 اضافه کردن ورودی history
+        pushTeacherHistory('home');
+        
         setTimeout(() => {
             const apiInput = document.getElementById('setting-api-url');
             if (apiInput && typeof SUPABASE_URL !== 'undefined') apiInput.value = SUPABASE_URL;
@@ -306,9 +330,13 @@ function navigateToPage(pageId, addToHistory = true) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const page = document.getElementById('page-' + pageId);
     if (page) page.classList.add('active');
+    
     if (addToHistory) {
         if (pageHistory[pageHistory.length - 1] !== pageId) pageHistory.push(pageId);
+        // 🆕 اضافه کردن ورودی به history مرورگر
+        pushTeacherHistory(pageId);
     }
+    
     const backBtn = document.getElementById('header-back-btn');
     if (backBtn) backBtn.style.display = pageId === 'home' ? 'none' : 'flex';
     const titles = {
@@ -325,6 +353,7 @@ function navigateToPage(pageId, addToHistory = true) {
     const iconEl = document.getElementById('header-icon');
     if (titleEl) titleEl.textContent = titles[pageId] || 'خانه';
     if (iconEl) iconEl.textContent = icons[pageId] || '🎓';
+    
     switch (pageId) {
         case 'home': loadHomeData(); break;
         case 'students': loadStudents(); break;
@@ -336,15 +365,77 @@ function navigateToPage(pageId, addToHistory = true) {
         case 'library': loadLibrary(); break;
     }
 }
+
 function showPage(pageId) { navigateToPage(pageId, true); }
+
+// ============================================================
+// 🆕 برگشت (Back)
+// ============================================================
+
+// دکمه‌ی back توی هدر پنل
 function goBack() {
+    // اگه توی صفحه‌ی home هستیم، خروج بپرس
+    const activePage = document.querySelector('.page.active');
+    if (activePage && activePage.id === 'page-home') {
+        logout();
+        return;
+    }
+    // برو یه قدم عقب توی history مرورگر
+    if (pageHistory.length > 1) {
+        history.back();
+    } else {
+        logout();
+    }
+}
+
+// برگشت سیستمی (دکمه back گوشی یا swipe)
+window.addEventListener('popstate', function(event) {
+    // اگه خودمون داریم history.back() رو صدا می‌زنیم، نادیده بگیر
+    if (isHandlingPopstate) {
+        isHandlingPopstate = false;
+        return;
+    }
+    
+    // اگه توی صفحه‌ی login هستیم، کاری نکن
+    const loginScreen = document.getElementById('login-screen');
+    const mainPanel = document.getElementById('main-panel');
+    
+    if (loginScreen && loginScreen.classList.contains('active')) {
+        return;
+    }
+    if (!mainPanel || !mainPanel.classList.contains('active')) {
+        return;
+    }
+    
+    // صفحه‌ی فعال فعلی
+    const activePage = document.querySelector('.page.active');
+    
+    // اگه توی صفحه‌ی home هستیم
+    if (activePage && activePage.id === 'page-home') {
+        // کاربر دوباره back زده، بپرس که خارج بشه
+        if (confirm('آیا می‌خواهید از پنل معلم خارج شوید؟')) {
+            logout();
+        } else {
+            // دوباره history رو پر کن که back بعدی هم کار کنه
+            pushTeacherHistory('home');
+        }
+        return;
+    }
+    
+    // در غیر این صورت، برو به صفحه‌ی قبلی توی پنل
     if (pageHistory.length > 1) {
         pageHistory.pop();
         const prevPage = pageHistory[pageHistory.length - 1];
         navigateToPage(prevPage, false);
-    } else { logout(); }
-}
+    } else {
+        navigateToPage('home', false);
+        pushTeacherHistory('home');
+    }
+});
 
+// ============================================================
+// Badge ها
+// ============================================================
 function computeTotalUnread() {
     if (!currentConversations || currentConversations.length === 0) return 0;
     let total = 0;
@@ -811,7 +902,6 @@ async function openStudentProfile(studentId) {
     navigateToPage('student-profile', true);
 
     try {
-        // داده تازه از Supabase
         const client = getSupabase();
         if (client) {
             const { data: freshData } = await client
@@ -837,14 +927,10 @@ async function openStudentProfile(studentId) {
     }
 }
 
-// ============================================================
-// 🆕 چک کردن آیا تکلیف منقضی شده (با احتساب مهلت سفارشی)
-// ============================================================
 function isLessonExpiredForStudent(lesson, customDueDate) {
     const displayDueDate = customDueDate || lesson.dueDate || 'نامشخص';
     if (displayDueDate === 'نامشخص') return false;
     
-    // محاسبه اعداد تاریخ
     const today = new Date();
     const persianDate = new Intl.DateTimeFormat('fa-IR', { 
         year: 'numeric', month: '2-digit', day: '2-digit' 
@@ -1019,7 +1105,7 @@ function renderStudentProfile() {
 }
 
 // ============================================================
-// 🆕 ویرایشگر تعداد تکالیف (با دکمه‌های + و - مثل امتیاز)
+// 🆕 ویرایشگر تعداد تکالیف
 // ============================================================
 function openEditCompletedLessons() {
     if (!currentProfileStudent) return;
@@ -1085,9 +1171,7 @@ function openEditCompletedLessons() {
         if (input) {
             input.focus();
             input.addEventListener('input', (e) => {
-                // اجازه بده منفی هم باشه
                 let val = e.target.value.replace(/[^0-9\-]/g, '');
-                // فقط یه منفی اول
                 if (val.includes('-')) {
                     val = '-' + val.replace(/-/g, '');
                 }
@@ -1401,9 +1485,6 @@ function closeDueDateModal() {
     selectedDueDateDays = null;
 }
 
-// ============================================================
-// 🆕 ذخیره تاریخ مهلت — تمدید + فعال‌سازی
-// ============================================================
 async function saveDueDate(lessonId) {
     if (!currentProfileStudent) return;
     
@@ -1418,7 +1499,6 @@ async function saveDueDate(lessonId) {
     
     const status = currentProfileStatus[lessonId] || { is_enabled: true };
     
-    // ذخیره مهلت سفارشی + فعال کردن تکلیف
     const result = await updateLessonStatus(currentProfileStudent.student_id, lessonId, {
         custom_due_date: newDate,
         is_enabled: true
@@ -1429,7 +1509,6 @@ async function saveDueDate(lessonId) {
             ...status, custom_due_date: newDate, is_enabled: true
         };
         
-        // پاک کردن کش برنامه دانش‌آموز (تا مهلت جدید رو دریافت کنه)
         try {
             localStorage.removeItem('lessonStatusCache');
         } catch (e) {}
@@ -1895,5 +1974,5 @@ function clearCache() {
     }
 }
 
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۲۰.۰.۰');
-console.log('✅ تعداد تکالیف با delta + تمدید مهلت هوشمند');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۲۱.۰.۰');
+console.log('✅ پشتیبانی از برگشت سیستمی فعال شد');
