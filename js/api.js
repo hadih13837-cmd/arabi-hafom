@@ -1,6 +1,6 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۲۰.۰.۰ — رفع باگ امتیاز تکراری (کارنامه‌های یکتا)
+// نسخه: ۲۰.۰.۰ — با یکتا کردن کارنامه‌ها
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
@@ -84,7 +84,7 @@ function calculateCompletedLessons(ranking) {
 }
 
 // ============================================================
-// 🆕 ذخیره/آپدیت امتیاز کاربر — با محاسبه امتیاز یکتا
+// 🆕 ذخیره/آپدیت امتیاز کاربر — با یکتا کردن کارنامه‌ها
 // ============================================================
 async function saveRankingToSupabase() {
     try {
@@ -111,7 +111,7 @@ async function saveRankingToSupabase() {
         const rawReports = JSON.parse(localStorage.getItem('reports') || '[]');
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         
-        // 🆕🔥 مهم: کارنامه‌های تکراری رو حذف کن (بر اساس lessonId)
+        // 🆕🔥 کارنامه‌های تکراری رو حذف کن (بر اساس lessonId)
         const uniqueReportsMap = {};
         rawReports.forEach(r => {
             if (!r.lessonId) return;
@@ -123,14 +123,14 @@ async function saveRankingToSupabase() {
         
         const uniqueReports = Object.values(uniqueReportsMap);
         
-        // اگه تعداد کارنامه‌های یکتا کمتر از کل بود، localStorage رو آپدیت کن
+        // اگه تکراری داشت، localStorage رو تمیز کن
         if (uniqueReports.length < rawReports.length) {
             console.log('🧹 کارنامه‌های تکراری پاک شدند:', 
                 rawReports.length, '→', uniqueReports.length);
             localStorage.setItem('reports', JSON.stringify(uniqueReports));
         }
         
-        // 🆕 امتیاز از کارنامه‌های یکتا
+        // امتیاز از کارنامه‌های یکتا
         const totalPoints = uniqueReports.reduce((sum, r) => sum + (r.score || 0), 0);
         const completedLessons = uniqueReports.length;
         const avgPercent = uniqueReports.length > 0
@@ -184,7 +184,6 @@ async function saveRankingToSupabase() {
             payload.custom_points_added = 0;
             payload.custom_total_points = 0;
         } else {
-            // اگه قدیمیه، completed_lessons رو دست نزن (مال معلمه)
             if (existingData.completed_lessons === null || 
                 existingData.completed_lessons === undefined) {
                 payload.completed_lessons = completedLessons;
@@ -245,12 +244,25 @@ async function getStudentLessonStatus(studentId) {
 }
 
 // ============================================================
-// کارنامه‌ها
+// کارنامه‌ها — با چک تکراری
 // ============================================================
 async function saveReportToSupabase(report, studentId) {
     try {
         const client = getSupabase();
         if (!client) return false;
+        
+        // 🆕 چک کن که این کارنامه قبلاً ثبت نشده باشه
+        const { data: existing } = await client
+            .from('reports')
+            .select('id')
+            .eq('student_id', studentId)
+            .eq('lesson_id', report.lessonId)
+            .maybeSingle();
+        
+        if (existing) {
+            console.log('ℹ️ کارنامه قبلاً در Supabase هست، دوباره ثبت نمیشه');
+            return true; // موفقیت (چون کارنامه وجود داره)
+        }
         
         const payload = {
             student_id: studentId,
@@ -266,7 +278,15 @@ async function saveReportToSupabase(report, studentId) {
         };
         
         const { error } = await client.from('reports').insert(payload);
-        if (error) return false;
+        if (error) {
+            // 🆕 اگه خطای Unique بود، نادیده بگیر
+            if (error.code === '23505') {
+                console.log('ℹ️ کارنامه تکراری (Unique Constraint)');
+                return true;
+            }
+            console.error('❌ خطا:', error.message);
+            return false;
+        }
         return true;
     } catch (error) {
         return false;

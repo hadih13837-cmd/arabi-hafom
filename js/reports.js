@@ -32,7 +32,7 @@ function convertSupabaseReportToLocal(supabaseReport, userName, userClass) {
 }
 
 // ============================================================
-// همگام‌سازی کارنامه‌ها از Supabase (با یکتا کردن)
+// 🆕 همگام‌سازی کارنامه‌ها از Supabase (با یکتا کردن)
 // ============================================================
 async function syncReportsFromSupabase() {
     try {
