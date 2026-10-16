@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۷.۰.۰ — با ذخیره progress در Supabase
+// نسخه: ۸.۰.۰ — با پشتیبانی از مهلت سفارشی
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -1007,7 +1007,7 @@ function nextQuestion() {
 }
 
 // ============================================================
-// نتیجه نهایی
+// 🆕 نتیجه نهایی — با مهلت سفارشی
 // ============================================================
 function showResult() {
     endTime = new Date();
@@ -1018,14 +1018,21 @@ function showResult() {
     document.getElementById('final-correct').textContent = toPersianNum(correctCount);
     document.getElementById('final-wrong').textContent = toPersianNum(wrongCount);
     document.getElementById('final-points').textContent = toPersianNum(score);
+    
     const practiceBanner = document.getElementById('practice-banner');
     const reportBtn = document.getElementById('report-btn');
     const resultTitle = document.getElementById('result-title');
     const pointsRow = document.getElementById('final-points-row');
     const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
     const lesson = allLessons[lessonIndex];
-    const dueDate = lesson ? (lesson.dueDate || '۱۴۰۵/۰۹/۱۵') : null;
+    
+    // 🆕 استفاده از مهلت سفارشی (نفس getEffectiveDueDate)
+    let dueDate = '۱۴۰۵/۰۹/۱۵';
+    if (lesson) {
+        dueDate = getEffectiveDueDate(lesson);
+    }
     const expired = isExpired(dueDate);
+    
     if (isPracticeMode || expired) {
         practiceBanner.classList.add('show');
         reportBtn.style.display = 'none';

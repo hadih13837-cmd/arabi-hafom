@@ -1,6 +1,6 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۱۸.۰.۰ — با پشتیبانی از custom_completed_lessons
+// نسخه: ۱۹.۰.۰ — با ذخیره‌سازی local + مهلت هوشمند
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
@@ -15,10 +15,7 @@ async function updateStudentCode(studentId, newCode) {
         if (!client) return { success: false, error: 'no_client' };
         
         const { data: existing, error: checkError } = await client
-            .from('rankings')
-            .select('student_id')
-            .eq('student_code', newCode)
-            .maybeSingle();
+            .from('rankings').select('student_id').eq('student_code', newCode).maybeSingle();
         
         if (checkError && checkError.code !== 'PGRST116') {
             return { success: false, error: checkError.message };
@@ -29,13 +26,10 @@ async function updateStudentCode(studentId, newCode) {
         }
         
         const { error } = await client
-            .from('rankings')
-            .update({ student_code: newCode })
-            .eq('student_id', studentId);
+            .from('rankings').update({ student_code: newCode }).eq('student_id', studentId);
         
         if (error) return { success: false, error: error.message };
         return { success: true };
-        
     } catch (error) {
         return { success: false, error: error.message };
     }
@@ -43,42 +37,71 @@ async function updateStudentCode(studentId, newCode) {
 
 // ============================================================
 // 🆕 تغییر تعداد تکالیف انجام‌شده (توسط معلم)
-// ⚠️ این تابع custom_completed_lessons رو تغییر میده، نه completed_lessons
+// مثل امتیاز کار می‌کنه: یه delta اضافه/کم می‌کنه
 // ============================================================
-async function updateCompletedLessons(studentId, count) {
+async function updateCompletedLessonsDelta(studentId, delta) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
         
-        const safeCount = Math.max(0, parseInt(count) || 0);
+        // اول مقدار فعلی رو بگیر
+        const { data: current } = await client
+            .from('rankings')
+            .select('completed_lessons')
+            .eq('student_id', studentId)
+            .maybeSingle();
+        
+        if (!current) return { success: false, error: 'not_found' };
+        
+        const currentLessons = parseInt(current.completed_lessons) || 0;
+        const newLessons = currentLessons + delta; // می‌تونه منفی هم بشه
         
         const { error } = await client
             .from('rankings')
-            .update({ custom_completed_lessons: safeCount })
+            .update({ completed_lessons: newLessons })
             .eq('student_id', studentId);
         
         if (error) return { success: false, error: error.message };
-        return { success: true };
         
+        return { success: true, newValue: newLessons };
     } catch (error) {
         return { success: false, error: error.message };
     }
 }
 
 // ============================================================
-// 🆕 محاسبه تعداد تکالیف واقعی (با احتساب custom_completed_lessons)
+// 🆕 تنظیم مستقیم تعداد تکالیف
+// ============================================================
+async function updateCompletedLessons(studentId, count) {
+    try {
+        const client = getSupabase();
+        if (!client) return { success: false, error: 'no_client' };
+        
+        const safeCount = parseInt(count) || 0; // می‌تونه منفی هم باشه
+        
+        const { error } = await client
+            .from('rankings')
+            .update({ completed_lessons: safeCount })
+            .eq('student_id', studentId);
+        
+        if (error) return { success: false, error: error.message };
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+// ============================================================
+// 🆕 محاسبه تعداد تکالیف کل (دیگه custom نداریم)
 // ============================================================
 function calculateCompletedLessons(ranking) {
     if (!ranking) return 0;
-    const base = parseInt(ranking.completed_lessons) || 0;
-    const custom = parseInt(ranking.custom_completed_lessons) || 0;
-    return base + custom;
+    return parseInt(ranking.completed_lessons) || 0;
 }
 
 // ============================================================
 // ذخیره/آپدیت امتیاز کاربر
-// ⚠️ نکته مهم: برنامه دانش‌آموز نباید completed_lessons 
-// و custom_completed_lessons رو آپدیت کنه
+// ⚠️ نکته: برنامه دانش‌آموز هیچ‌وقت completed_lessons رو تغییر نمیده
 // ============================================================
 async function saveRankingToSupabase() {
     try {
@@ -105,9 +128,7 @@ async function saveRankingToSupabase() {
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         
-        // امتیاز پایه از کارنامه‌ها
         const totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
-        const completedLessons = reports.length;
         const avgPercent = reports.length > 0
             ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length)
             : 0;
@@ -126,7 +147,7 @@ async function saveRankingToSupabase() {
         // چک کن آیا رکورد وجود داره
         const { data: existingData } = await client
             .from('rankings')
-            .select('student_code, custom_completed_lessons, custom_points_added, custom_total_points')
+            .select('student_code, completed_lessons')
             .eq('student_id', studentId)
             .maybeSingle();
         
@@ -134,13 +155,13 @@ async function saveRankingToSupabase() {
             ? existingData.student_code 
             : studentCode;
         
-        // 🆕 فقط فیلدهایی که برنامه مسئولشه رو آپدیت کن
+        // 🆕⚠️ مهم: completed_lessons رو دست نمی‌زنیم (چون مال معلمه)
+        // فقط اگه رکورد جدیده، از reports.length استفاده می‌کنیم
         const payload = {
             student_id: studentId,
             name: userName,
             class_name: classNameToSlug(userClass),
             total_points: totalPoints,
-            completed_lessons: completedLessons,
             avg_percent: avgPercent,
             streak_days: streakDays,
             avatar_url: String(avatarUrl),
@@ -148,22 +169,25 @@ async function saveRankingToSupabase() {
             last_update: new Date().toISOString()
         };
         
-        // 🆕 اگه رکورد جدیده، custom_* رو صفر بذار
         if (!existingData) {
+            // رکورد جدید: completed_lessons = تعداد کارنامه‌ها
+            payload.completed_lessons = reports.length;
             payload.custom_points_added = 0;
             payload.custom_total_points = 0;
-            payload.custom_completed_lessons = 0;
+        } else {
+            // رکورد قدیمی: completed_lessons رو دست نزن
+            // اما اگه قبلاً ذخیره نشده بود، از کارنامه‌ها پر کن
+            if (existingData.completed_lessons === null || existingData.completed_lessons === undefined) {
+                payload.completed_lessons = reports.length;
+            }
         }
         
         const { error } = await client
             .from('rankings')
-            .upsert(payload, { 
-                onConflict: 'student_id',
-                ignoreDuplicates: false 
-            });
+            .upsert(payload, { onConflict: 'student_id', ignoreDuplicates: false });
         
         if (error) {
-            console.error('❌ خطا در ذخیره امتیاز:', error.message);
+            console.error('❌ خطا در ذخیره:', error.message);
             return false;
         }
         
@@ -171,9 +195,7 @@ async function saveRankingToSupabase() {
             localStorage.setItem('studentCode', existingData.student_code);
         }
         
-        console.log('✅ امتیاز و تکالیف ذخیره شد:', totalPoints, '/', completedLessons);
         return true;
-        
     } catch (error) {
         console.error('❌ خطا:', error);
         return false;
@@ -181,7 +203,7 @@ async function saveRankingToSupabase() {
 }
 
 // ============================================================
-// وضعیت تکالیف
+// وضعیت تکالیف (مهلت‌ها)
 // ============================================================
 async function getStudentLessonStatus(studentId) {
     try {
@@ -189,9 +211,7 @@ async function getStudentLessonStatus(studentId) {
         if (!client) return {};
         
         const { data, error } = await client
-            .from('lesson_status')
-            .select('*')
-            .eq('student_id', studentId);
+            .from('lesson_status').select('*').eq('student_id', studentId);
         
         if (error) return {};
         
@@ -203,9 +223,7 @@ async function getStudentLessonStatus(studentId) {
                 custom_points: item.custom_points || 0
             };
         });
-        
         return statusMap;
-        
     } catch (error) {
         return {};
     }
@@ -235,7 +253,6 @@ async function saveReportToSupabase(report, studentId) {
         const { error } = await client.from('reports').insert(payload);
         if (error) return false;
         return true;
-        
     } catch (error) {
         return false;
     }
@@ -247,14 +264,11 @@ async function getReportsFromSupabase(studentId) {
         if (!client) return [];
         
         const { data, error } = await client
-            .from('reports')
-            .select('*')
-            .eq('student_id', studentId)
+            .from('reports').select('*').eq('student_id', studentId)
             .order('created_at', { ascending: false });
         
         if (error) return [];
         return data || [];
-        
     } catch (error) {
         return [];
     }
@@ -285,27 +299,17 @@ async function saveProgressToSupabase(progress, studentId) {
         };
         
         const { data: existing } = await client
-            .from('current_progress')
-            .select('id')
-            .eq('student_id', studentId)
-            .eq('lesson_id', progress.lessonId)
-            .maybeSingle();
+            .from('current_progress').select('id')
+            .eq('student_id', studentId).eq('lesson_id', progress.lessonId).maybeSingle();
         
         if (existing) {
-            const { error } = await client
-                .from('current_progress')
-                .update(payload)
-                .eq('id', existing.id);
+            const { error } = await client.from('current_progress').update(payload).eq('id', existing.id);
             if (error) throw error;
         } else {
-            const { error } = await client
-                .from('current_progress')
-                .insert(payload);
+            const { error } = await client.from('current_progress').insert(payload);
             if (error) throw error;
         }
-        
         return true;
-        
     } catch (error) {
         return false;
     }
@@ -316,15 +320,10 @@ async function getProgressFromSupabase(studentId, lessonId) {
         const client = getSupabase();
         if (!client) return null;
         
-        let query = client
-            .from('current_progress')
-            .select('*')
-            .eq('student_id', studentId);
-        
+        let query = client.from('current_progress').select('*').eq('student_id', studentId);
         if (lessonId) query = query.eq('lesson_id', lessonId);
         
         const { data, error } = await query.maybeSingle();
-        
         if (error || !data) return null;
         
         return {
@@ -338,7 +337,6 @@ async function getProgressFromSupabase(studentId, lessonId) {
             totalQuestions: data.total_questions,
             lessonTitle: data.lesson_title
         };
-        
     } catch (error) {
         return null;
     }
@@ -348,16 +346,10 @@ async function clearProgressFromSupabase(studentId, lessonId) {
     try {
         const client = getSupabase();
         if (!client) return false;
-        
-        const { error } = await client
-            .from('current_progress')
-            .delete()
-            .eq('student_id', studentId)
-            .eq('lesson_id', lessonId);
-        
+        const { error } = await client.from('current_progress').delete()
+            .eq('student_id', studentId).eq('lesson_id', lessonId);
         if (error) return false;
         return true;
-        
     } catch (error) {
         return false;
     }
@@ -372,18 +364,14 @@ async function getRankingsByClass(className) {
         if (!client) return [];
         
         const classSlug = classNameToSlug(className);
-        
         const { data, error } = await client
-            .from('rankings')
-            .select('*')
-            .eq('class_name', classSlug)
+            .from('rankings').select('*').eq('class_name', classSlug)
             .order('total_points', { ascending: false })
             .order('avg_percent', { ascending: false })
             .order('completed_lessons', { ascending: false });
         
         if (error) return [];
         return data || [];
-        
     } catch (error) {
         return [];
     }
@@ -393,15 +381,10 @@ async function getAllStudents() {
     try {
         const client = getSupabase();
         if (!client) return [];
-        
         const { data, error } = await client
-            .from('rankings')
-            .select('*')
-            .order('total_points', { ascending: false });
-        
+            .from('rankings').select('*').order('total_points', { ascending: false });
         if (error) return [];
         return data || [];
-        
     } catch (error) {
         return [];
     }
@@ -417,160 +400,98 @@ async function getMyRank() {
         const myIndex = rankings.findIndex(r => r.student_id === studentId);
         if (myIndex === -1) return null;
         
-        return {
-            rank: myIndex + 1,
-            total: rankings.length,
-            data: rankings[myIndex]
-        };
+        return { rank: myIndex + 1, total: rankings.length, data: rankings[myIndex] };
     } catch (error) {
         return null;
     }
 }
 
 // ============================================================
-// پیام‌های کلاسی
+// پیام‌ها
 // ============================================================
 async function sendClassMessageToSupabase(data) {
     try {
         const client = getSupabase();
         if (!client) return { success: false };
-        
         const payload = {
             message_id: data.message_id || 'cls_' + Date.now(),
-            class_name: data.class_name || 'all',
-            title: data.title || '',
-            text: data.text || '',
-            type: data.type || 'info',
+            class_name: data.class_name || 'all', title: data.title || '',
+            text: data.text || '', type: data.type || 'info',
             date: data.date || new Date().toISOString(),
             date_persian: data.date_persian || ''
         };
-        
-        const { data: result, error } = await client
-            .from('class_messages')
-            .insert(payload)
-            .select();
-        
+        const { data: result, error } = await client.from('class_messages').insert(payload).select();
         if (error) return { success: false, error: error.message };
         return { success: true, data: result };
-        
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
+    } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function getClassMessagesFromSupabase(className) {
     try {
         const client = getSupabase();
         if (!client) return [];
-        
         const classSlug = classNameToSlug(className);
-        
-        let query = client
-            .from('class_messages')
-            .select('*')
-            .order('date', { ascending: false });
-        
+        let query = client.from('class_messages').select('*').order('date', { ascending: false });
         if (classSlug && classSlug !== 'all' && classSlug !== 'unknown') {
             query = query.or(`class_name.eq.${classSlug},class_name.eq.all`);
         }
-        
         const { data, error } = await query;
         if (error) return [];
         return data || [];
-        
-    } catch (error) {
-        return [];
-    }
+    } catch (error) { return []; }
 }
 
-// ============================================================
-// پیام‌های شخصی
-// ============================================================
 async function sendPersonalMessageToSupabase(data) {
     try {
         const client = getSupabase();
         if (!client) return { success: false };
-        
         const payload = {
             message_id: data.message_id || 'pm_' + Date.now(),
-            student_id: data.student_id,
-            student_name: data.student_name || '',
-            class_name: data.class_name || '',
-            sender: data.sender || 'student',
-            text: data.text || '',
-            date: data.date || new Date().toISOString(),
+            student_id: data.student_id, student_name: data.student_name || '',
+            class_name: data.class_name || '', sender: data.sender || 'student',
+            text: data.text || '', date: data.date || new Date().toISOString(),
             date_persian: data.date_persian || '',
             is_seen: data.is_seen === true || data.is_seen === 'true'
         };
-        
-        const { data: result, error } = await client
-            .from('personal_messages')
-            .insert(payload)
-            .select();
-        
+        const { data: result, error } = await client.from('personal_messages').insert(payload).select();
         if (error) return { success: false, error: error.message };
         return { success: true, data: result };
-        
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
+    } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function getPersonalMessages(studentId) {
     try {
         const client = getSupabase();
         if (!client) return [];
-        
         const { data, error } = await client
-            .from('personal_messages')
-            .select('*')
-            .eq('student_id', studentId)
+            .from('personal_messages').select('*').eq('student_id', studentId)
             .order('date', { ascending: true });
-        
         if (error) return [];
         return data || [];
-        
-    } catch (error) {
-        return [];
-    }
+    } catch (error) { return []; }
 }
 
 async function getStudentConversationsFromSupabase() {
     try {
         const client = getSupabase();
         if (!client) return [];
-        
-        const { data, error } = await client
-            .from('personal_messages')
-            .select('*')
-            .order('date', { ascending: true });
-        
+        const { data, error } = await client.from('personal_messages').select('*').order('date', { ascending: true });
         if (error) return [];
         
         const conversationsMap = {};
-        
         (data || []).forEach(msg => {
             const studentId = msg.student_id;
             if (!studentId) return;
-            
             if (!conversationsMap[studentId]) {
                 conversationsMap[studentId] = {
-                    student_id: studentId,
-                    student_name: msg.student_name || '',
-                    class_name: msg.class_name || '',
-                    last_message: msg.text || '',
-                    last_sender: msg.sender || '',
-                    last_date: msg.date || '',
-                    last_date_persian: msg.date_persian || '',
-                    last_message_time: msg.date,
-                    unread_count: 0,
-                    avatar_url: '',
-                    messages: []
+                    student_id: studentId, student_name: msg.student_name || '',
+                    class_name: msg.class_name || '', last_message: msg.text || '',
+                    last_sender: msg.sender || '', last_date: msg.date || '',
+                    last_date_persian: msg.date_persian || '', last_message_time: msg.date,
+                    unread_count: 0, avatar_url: '', messages: []
                 };
             }
-            
             conversationsMap[studentId].messages.push(msg);
-            
             if (new Date(msg.date) > new Date(conversationsMap[studentId].last_date || 0)) {
                 conversationsMap[studentId].last_message = msg.text || '';
                 conversationsMap[studentId].last_sender = msg.sender || '';
@@ -578,7 +499,6 @@ async function getStudentConversationsFromSupabase() {
                 conversationsMap[studentId].last_date_persian = msg.date_persian || '';
                 conversationsMap[studentId].last_message_time = msg.date;
             }
-            
             if (msg.sender === 'student' && !msg.is_seen) {
                 conversationsMap[studentId].unread_count++;
             }
@@ -587,11 +507,8 @@ async function getStudentConversationsFromSupabase() {
         try {
             const studentIds = Object.keys(conversationsMap);
             if (studentIds.length > 0) {
-                const { data: rankings } = await client
-                    .from('rankings')
-                    .select('student_id, avatar_url')
-                    .in('student_id', studentIds);
-                
+                const { data: rankings } = await client.from('rankings')
+                    .select('student_id, avatar_url').in('student_id', studentIds);
                 (rankings || []).forEach(r => {
                     if (conversationsMap[r.student_id]) {
                         conversationsMap[r.student_id].avatar_url = r.avatar_url || '';
@@ -601,37 +518,22 @@ async function getStudentConversationsFromSupabase() {
         } catch (e) {}
         
         const conversations = Object.values(conversationsMap);
-        conversations.sort((a, b) => 
-            new Date(b.last_message_time || 0) - new Date(a.last_message_time || 0)
-        );
-        
+        conversations.sort((a, b) => new Date(b.last_message_time || 0) - new Date(a.last_message_time || 0));
         return conversations;
-        
-    } catch (error) {
-        return [];
-    }
+    } catch (error) { return []; }
 }
 
 async function markAllMessagesAsSeenSupabase(studentId, reader) {
     try {
         const client = getSupabase();
         if (!client) return { success: false };
-        
         const senderToMark = reader === 'teacher' ? 'student' : 'teacher';
-        
-        const { error } = await client
-            .from('personal_messages')
-            .update({ is_seen: true })
-            .eq('student_id', studentId)
-            .eq('sender', senderToMark)
-            .eq('is_seen', false);
-        
+        const { error } = await client.from('personal_messages')
+            .update({ is_seen: true }).eq('student_id', studentId)
+            .eq('sender', senderToMark).eq('is_seen', false);
         if (error) return { success: false, error: error.message };
         return { success: true };
-        
-    } catch (error) {
-        return { success: false };
-    }
+    } catch (error) { return { success: false }; }
 }
 
 // ============================================================
@@ -643,11 +545,9 @@ async function addEventToSupabase(data) {
         if (!client) return { success: false };
         const payload = {
             event_id: data.event_id || 'evt_' + Date.now(),
-            title: data.title || '',
-            date: data.date || '',
+            title: data.title || '', date: data.date || '',
             class_name: data.class_name || 'all',
-            type: data.type || 'event',
-            description: data.description || ''
+            type: data.type || 'event', description: data.description || ''
         };
         const { error } = await client.from('events').insert(payload);
         if (error) return { success: false, error: error.message };
@@ -723,10 +623,8 @@ async function recoverSeenDataFromSupabase(studentId) {
     try {
         const client = getSupabase();
         if (!client) return false;
-        
-        const { data: seenData, error } = await client
-            .from('seen_data').select('*').eq('student_id', studentId).maybeSingle();
-        
+        const { data: seenData, error } = await client.from('seen_data')
+            .select('*').eq('student_id', studentId).maybeSingle();
         if (error) return false;
         
         if (seenData) {
@@ -770,7 +668,6 @@ async function saveSeenDataToSupabase() {
         };
         
         const { data: existing } = await client.from('seen_data').select('id').eq('student_id', studentId).maybeSingle();
-        
         if (existing) {
             const { error } = await client.from('seen_data').update(payload).eq('id', existing.id);
             if (error) throw error;
@@ -797,8 +694,7 @@ function subscribeToPersonalMessages(studentId, onNewMessage) {
             try { client.removeChannel(personalRealtimeChannel); } catch(e) {}
             personalRealtimeChannel = null;
         }
-        personalRealtimeChannel = client
-            .channel('personal_rt_' + studentId + '_' + Date.now())
+        personalRealtimeChannel = client.channel('personal_rt_' + studentId + '_' + Date.now())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'personal_messages', filter: `student_id=eq.${studentId}` },
                 (payload) => { if (typeof onNewMessage === 'function') onNewMessage(payload); })
             .subscribe();
@@ -815,8 +711,7 @@ function subscribeToClassMessages(className, onNewMessage) {
             classRealtimeChannel = null;
         }
         const classSlug = classNameToSlug(className);
-        classRealtimeChannel = client
-            .channel('class_rt_' + classSlug + '_' + Date.now())
+        classRealtimeChannel = client.channel('class_rt_' + classSlug + '_' + Date.now())
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'class_messages' },
                 (payload) => { if (typeof onNewMessage === 'function') onNewMessage(payload); })
             .subscribe();
@@ -832,8 +727,7 @@ function subscribeToConversations(onChange) {
             try { client.removeChannel(conversationsRealtimeChannel); } catch(e) {}
             conversationsRealtimeChannel = null;
         }
-        conversationsRealtimeChannel = client
-            .channel('conversations_rt_' + Date.now())
+        conversationsRealtimeChannel = client.channel('conversations_rt_' + Date.now())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'personal_messages' },
                 (payload) => { if (typeof onChange === 'function') onChange(payload); })
             .subscribe();

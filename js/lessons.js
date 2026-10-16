@@ -1,6 +1,6 @@
 // ============================================================
 // lessons.js — سیستم تکالیف (لیست، فیلتر، جزئیات، شروع)
-// نسخه: ۶.۰.۰ — با ذخیره progress در Supabase
+// نسخه: ۷.۰.۰ — با پشتیبانی کامل از مهلت سفارشی
 // ============================================================
 
 let allLessons = [];
@@ -34,7 +34,7 @@ async function loadCustomLessonStatus() {
 }
 
 // ============================================================
-// مهلت واقعی تکلیف
+// 🆕 مهلت واقعی تکلیف (با احتساب مهلت سفارشی معلم)
 // ============================================================
 function getEffectiveDueDate(lesson) {
     const custom = customLessonStatus[lesson.id];
@@ -45,12 +45,20 @@ function getEffectiveDueDate(lesson) {
 }
 
 // ============================================================
-// فعال/غیرفعال بودن تکلیف
+// 🆕 فعال/غیرفعال بودن تکلیف
 // ============================================================
 function isLessonEnabled(lesson) {
     const custom = customLessonStatus[lesson.id];
     if (!custom) return true;
     return custom.is_enabled !== false;
+}
+
+// ============================================================
+// 🆕 چک کردن منقضی شدن (با مهلت سفارشی)
+// ============================================================
+function isLessonExpired(lesson) {
+    const effectiveDueDate = getEffectiveDueDate(lesson);
+    return isExpired(effectiveDueDate);
 }
 
 // ============================================================
@@ -125,6 +133,7 @@ function renderLessonsList() {
         };
     });
     
+    // 🆕 فیلتر تکالیف غیرفعال (مگه اینکه معلم فعال کرده باشه)
     lessonsToShow = lessonsToShow.filter(l => l.isEnabled || l.isCompleted);
     
     if (currentFilter === 'completed') lessonsToShow = lessonsToShow.filter(l => l.isCompleted);
@@ -233,6 +242,7 @@ function openLessonDetail(lessonId) {
     const currentProgress = getCurrentProgress();
     const isPaused = currentProgress && currentProgress.lessonId === lessonId;
     
+    // 🆕 استفاده از مهلت سفارشی
     const dueDate = getEffectiveDueDate(lesson);
     const expired = isExpired(dueDate);
     const isNearDeadline = !expired && !isCompleted && isDeadlineNear(dueDate);
@@ -317,7 +327,7 @@ function openLessonDetail(lessonId) {
 }
 
 // ============================================================
-// ذخیره پیشرفت (localStorage + Supabase)
+// ذخیره پیشرفت
 // ============================================================
 async function saveCurrentProgress() {
     if (!currentLesson) return;
@@ -348,21 +358,14 @@ async function saveCurrentProgress() {
     }
 }
 
-// ============================================================
-// گرفتن پیشرفت
-// ============================================================
 function getCurrentProgress() {
     const data = localStorage.getItem('currentLessonProgress');
     if (!data) return null;
     try { return JSON.parse(data); } catch(e) { return null; }
 }
 
-// ============================================================
-// پاک کردن پیشرفت
-// ============================================================
 async function clearCurrentProgress() {
     const progress = getCurrentProgress();
-    
     localStorage.removeItem('currentLessonProgress');
     
     if (progress) {
@@ -376,7 +379,7 @@ async function clearCurrentProgress() {
 }
 
 // ============================================================
-// شروع تکلیف
+// 🆕 شروع تکلیف (با چک مهلت سفارشی)
 // ============================================================
 async function startLesson(lessonId) {
     const lesson = allLessons.find(l => l.id === lessonId);
@@ -385,17 +388,21 @@ async function startLesson(lessonId) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const alreadyDone = reports.some(r => r.lessonId === lessonId);
     
+    // 🆕 اگه منقضی شده و قبلاً انجام نداده → تمرینی
     if (expired && !alreadyDone) {
         clearCurrentProgress();
         await runLesson(lessonId, true, 0, true);
         return;
     }
+    
+    // 🆕 اگه قبلاً انجام داده → مودال تکرار
     if (alreadyDone) {
         pendingLessonId = lessonId;
         document.getElementById('repeat-modal').classList.add('active');
         return;
     }
     
+    // اگه progress قبلی هست → مودال ادامه
     const progress = getCurrentProgress();
     if (progress && progress.lessonId === lessonId) {
         showResumeModal(lessonId, progress);
@@ -432,12 +439,8 @@ function showResumeModal(lessonId, progress) {
                 آیا می‌خواید ادامه بدید یا از اول شروع کنید؟
             </div>
             <div class="exit-buttons">
-                <button class="exit-btn-cancel" onclick="closeResumeModal(); startLessonFromScratch('${lessonId}')">
-                    از اول
-                </button>
-                <button class="exit-btn-confirm" style="background: linear-gradient(135deg, #4caf50, #2e7d32);" onclick="closeResumeModal(); continueLesson('${lessonId}')">
-                    ادامه بده
-                </button>
+                <button class="exit-btn-cancel" onclick="closeResumeModal(); startLessonFromScratch('${lessonId}')">از اول</button>
+                <button class="exit-btn-confirm" style="background: linear-gradient(135deg, #4caf50, #2e7d32);" onclick="closeResumeModal(); continueLesson('${lessonId}')">ادامه بده</button>
             </div>
         </div>
     `;
