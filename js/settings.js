@@ -1,10 +1,10 @@
 // ============================================================
 // settings.js — تنظیمات، پروفایل، ورود، ثبت‌نام
-// نسخه: ۱۸.۰.۰ — با اطمینان از ثبت در rankings
+// نسخه: ۱۹.۰.۰ — اطمینان کامل از ثبت در rankings
 // ============================================================
 
 // ============================================================
-// 🆕 ذخیره اطلاعات کاربر (ثبت‌نام جدید) — با اطمینان از rankings
+// ثبت‌نام جدید
 // ============================================================
 async function saveUserInfo() {
     const name = document.getElementById('welcome-name').value.trim();
@@ -59,12 +59,27 @@ async function saveUserInfo() {
         console.log('🆕 کاربر جدید:', newUUID, 'کد:', code);
         
         closeModal();
-        showModal('🎉 خوش آمدی!', 
-            `${name} جان، حسابت ساخته شد.\n\n` +
-            `🔑 کد ورودت: <strong>${code}</strong>\n\n` +
-            `⚠️ این کد رو یه جای امن نگه دار.\n` +
-            `با این کد می‌تونی از هر مرورگری وارد بشی و کارنامه‌هات برگردن.`, 
-            '✨');
+        
+        // 🆕 مهم: ثبت در rankings قبل از نمایش پیام موفقیت
+        const success = await ensureRankingSaved(newUUID, name, cls, code);
+        
+        if (success) {
+            showModal('🎉 خوش آمدی!', 
+                `${name} جان، حسابت ساخته شد.\n\n` +
+                `🔑 کد ورودت: <strong>${code}</strong>\n\n` +
+                `⚠️ این کد رو یه جای امن نگه دار.\n` +
+                `با این کد می‌تونی از هر مرورگری وارد بشی و کارنامه‌هات برگردن.`, 
+                '✨');
+            console.log('✅ ثبت‌نام کامل شد');
+        } else {
+            // اگه ثبت نشد، ولی localStorage ذخیره شد
+            console.warn('⚠️ ثبت‌نام ناقص موند، ولی اطلاعات توی localStorage ذخیره شد');
+            showModal('⚠️ توجه', 
+                `حساب شما ساخته شد، ولی نتوانستیم اطلاعات رو در سرور ذخیره کنیم.\n\n` +
+                `🔑 کد ورودت: <strong>${code}</strong>\n\n` +
+                `لطفاً بعداً دوباره امتحان کن یا با معلم تماس بگیر.`, 
+                '⚠️');
+        }
         
         if (!localStorage.getItem('streakData')) {
             localStorage.setItem('streakData', JSON.stringify({
@@ -76,9 +91,6 @@ async function saveUserInfo() {
         
         updateStreak();
         updateHomeUI();
-        
-        // 🆕 ذخیره در rankings (با چند بار تلاش)
-        await ensureRankingSaved(newUUID, name, cls, code);
         
         setTimeout(() => {
             const welcomeNameEl = document.getElementById('welcome-user-name');
@@ -96,7 +108,7 @@ async function saveUserInfo() {
 }
 
 // ============================================================
-// 🆕 اطمینان از ثبت کاربر در rankings (با چند بار تلاش)
+// اطمینان از ثبت کاربر در rankings
 // ============================================================
 async function ensureRankingSaved(studentId, name, cls, code) {
     try {
@@ -106,25 +118,34 @@ async function ensureRankingSaved(studentId, name, cls, code) {
             return false;
         }
         
-        // 🆕 چک کن که آیا رکورد وجود داره یا نه
-        const { data: existing } = await client
+        // چک کن که آیا رکورد وجود داره یا نه
+        const { data: existing, error: checkError } = await client
             .from('rankings')
-            .select('student_id, name, class_name, total_points, completed_lessons')
+            .select('student_id, name, class_name, custom_completed_lessons')
             .eq('student_id', studentId)
             .maybeSingle();
+        
+        if (checkError && checkError.code !== 'PGRST116') {
+            console.error('❌ خطا در چک رکورد:', checkError.message);
+            // اگه خطای ستون بود، ادامه بده
+            if (!checkError.message.includes('custom_completed_lessons')) {
+                return false;
+            }
+        }
         
         if (existing) {
             console.log('ℹ️ رکورد قبلاً وجود داره، آپدیت میشه');
             
-            // آپدیت اسم و کلاس (اگه تغییر کرده باشن)
+            const updatePayload = {
+                name: name,
+                class_name: classNameToSlug(cls),
+                student_code: code,
+                last_update: new Date().toISOString()
+            };
+            
             const { error } = await client
                 .from('rankings')
-                .update({
-                    name: name,
-                    class_name: classNameToSlug(cls),
-                    student_code: code,
-                    last_update: new Date().toISOString()
-                })
+                .update(updatePayload)
                 .eq('student_id', studentId);
             
             if (error) {
@@ -136,7 +157,7 @@ async function ensureRankingSaved(studentId, name, cls, code) {
             return true;
         }
         
-        // 🆕 رکورد جدید بساز
+        // رکورد جدید بساز
         const payload = {
             student_id: studentId,
             name: name,
@@ -162,7 +183,37 @@ async function ensureRankingSaved(studentId, name, cls, code) {
         if (error) {
             console.error('❌ خطا در درج رکورد:', error.message);
             
-            // 🆕 اگه خطا داد، یه بار دیگه تلاش کن
+            // اگه خطای ستون custom_completed_lessons بود، بدون اون تلاش کن
+            if (error.message.includes('custom_completed_lessons')) {
+                console.warn('⚠️ ستون custom_completed_lessons وجود نداره، بدون اون تلاش می‌کنم');
+                
+                const fallbackPayload = {
+                    student_id: studentId,
+                    name: name,
+                    class_name: classNameToSlug(cls),
+                    total_points: 0,
+                    completed_lessons: 0,
+                    avg_percent: 0,
+                    streak_days: 0,
+                    avatar_url: 'default',
+                    student_code: code,
+                    last_update: new Date().toISOString()
+                };
+                
+                const { error: retryError } = await client
+                    .from('rankings')
+                    .insert(fallbackPayload);
+                
+                if (retryError) {
+                    console.error('❌ خطا در تلاش دوم:', retryError.message);
+                    return false;
+                }
+                
+                console.log('✅ رکورد بدون custom_completed_lessons ثبت شد (لطفاً ستون رو به دیتابیس اضافه کن)');
+                return true;
+            }
+            
+            // یه بار دیگه تلاش کن
             await new Promise(resolve => setTimeout(resolve, 1000));
             
             const { error: retryError } = await client
@@ -238,7 +289,7 @@ async function loginWithCode() {
         const recovered = await recoverAllDataFromSupabase();
         await markAllAsSeenForReturningUser();
         
-        // 🆕 اطمینان از وجود رکورد در rankings
+        // اطمینان از وجود رکورد در rankings
         await ensureRankingSaved(studentId, name, className, code);
         
         if (recovered) {
@@ -351,7 +402,9 @@ async function markAllAsSeenForReturningUser() {
         
         localStorage.setItem('seenVideos', JSON.stringify(['video_1', 'video_2']));
         localStorage.setItem('dismissedNewMessageNotif', 'true');
-        localStorage.setItem('seenUpdateVersion', UPDATE_VERSION);
+        if (typeof UPDATE_VERSION !== 'undefined') {
+            localStorage.setItem('seenUpdateVersion', UPDATE_VERSION);
+        }
         localStorage.setItem('hasSeenRankingsGuide', 'true');
         localStorage.setItem('guideCompleted', 'true');
         localStorage.setItem('lessonsGuideShown', 'true');
@@ -367,7 +420,7 @@ async function markAllAsSeenForReturningUser() {
 }
 
 // ============================================================
-// پاک کردن کش‌های موقت قبل از ورود
+// پاک کردن کش‌های موقت
 // ============================================================
 function clearTempCachesBeforeLogin() {
     const tempKeys = [
@@ -383,7 +436,7 @@ function clearTempCachesBeforeLogin() {
     try {
         for (let i = localStorage.length - 1; i >= 0; i--) {
             const key = localStorage.key(i);
-            if (key && (key.startsWith('studentChatCache_'))) {
+            if (key && key.startsWith('studentChatCache_')) {
                 localStorage.removeItem(key);
             }
         }
@@ -391,7 +444,7 @@ function clearTempCachesBeforeLogin() {
 }
 
 // ============================================================
-// بقیه توابع (بدون تغییر)
+// توابع کمکی
 // ============================================================
 async function generateUniqueCodeForOldUser() {
     try {
