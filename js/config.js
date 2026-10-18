@@ -1,5 +1,6 @@
 // ============================================================
 // config.js — ثابت‌ها و داده‌های پایه برنامه
+// نسخه: ۲.۰.۰ — با پشتیبانی از letter-order
 // ============================================================
 
 // کد ادمین برای دسترسی به برنامه در حالت بروزرسانی
@@ -70,6 +71,27 @@ const QUESTION_ICONS = {
     'survey': {
         class: 'qti-survey',
         svg: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/></svg>'
+    },
+    'match-flip': {
+        class: 'qti-match',
+        svg: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>'
+    },
+    'word-attach': {
+        class: 'qti-match',
+        svg: '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
+    },
+    // 🆕 letter-order (چیدن حروف)
+    'letter-order': {
+        class: 'qti-order',
+        svg: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="13" width="7" height="7" rx="1"/><rect x="14" y="13" width="7" height="7" rx="1"/></svg>'
+    },
+    'image-question': {
+        class: 'qti-image',
+        svg: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
+    },
+    'reading-comprehension': {
+        class: 'qti-essay',
+        svg: '<svg viewBox="0 0 24 24"><path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/><path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/><line x1="9" y1="7" x2="16" y2="7"/><line x1="9" y1="11" x2="16" y2="11"/></svg>'
     }
 };
 

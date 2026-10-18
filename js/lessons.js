@@ -1,6 +1,6 @@
 // ============================================================
 // lessons.js — سیستم تکالیف (لیست، فیلتر، جزئیات، شروع)
-// نسخه: ۷.۰.۰ — با پشتیبانی کامل از مهلت سفارشی
+// نسخه: ۸.۰.۰ — با ادامه‌ی خودکار (بدون پرسیدن)
 // ============================================================
 
 let allLessons = [];
@@ -34,7 +34,7 @@ async function loadCustomLessonStatus() {
 }
 
 // ============================================================
-// 🆕 مهلت واقعی تکلیف (با احتساب مهلت سفارشی معلم)
+// مهلت واقعی تکلیف
 // ============================================================
 function getEffectiveDueDate(lesson) {
     const custom = customLessonStatus[lesson.id];
@@ -45,7 +45,7 @@ function getEffectiveDueDate(lesson) {
 }
 
 // ============================================================
-// 🆕 فعال/غیرفعال بودن تکلیف
+// فعال/غیرفعال بودن تکلیف
 // ============================================================
 function isLessonEnabled(lesson) {
     const custom = customLessonStatus[lesson.id];
@@ -54,7 +54,7 @@ function isLessonEnabled(lesson) {
 }
 
 // ============================================================
-// 🆕 چک کردن منقضی شدن (با مهلت سفارشی)
+// چک کردن منقضی شدن
 // ============================================================
 function isLessonExpired(lesson) {
     const effectiveDueDate = getEffectiveDueDate(lesson);
@@ -84,9 +84,6 @@ async function loadLessonsList() {
     }
 }
 
-// ============================================================
-// فیلتر
-// ============================================================
 function filterLessons(filter, btn) {
     currentFilter = filter;
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -94,9 +91,6 @@ function filterLessons(filter, btn) {
     renderLessonsList();
 }
 
-// ============================================================
-// جستجو
-// ============================================================
 function searchLessons(query) {
     searchQuery = query.toLowerCase().trim();
     renderLessonsList();
@@ -133,7 +127,6 @@ function renderLessonsList() {
         };
     });
     
-    // 🆕 فیلتر تکالیف غیرفعال (مگه اینکه معلم فعال کرده باشه)
     lessonsToShow = lessonsToShow.filter(l => l.isEnabled || l.isCompleted);
     
     if (currentFilter === 'completed') lessonsToShow = lessonsToShow.filter(l => l.isCompleted);
@@ -242,7 +235,6 @@ function openLessonDetail(lessonId) {
     const currentProgress = getCurrentProgress();
     const isPaused = currentProgress && currentProgress.lessonId === lessonId;
     
-    // 🆕 استفاده از مهلت سفارشی
     const dueDate = getEffectiveDueDate(lesson);
     const expired = isExpired(dueDate);
     const isNearDeadline = !expired && !isCompleted && isDeadlineNear(dueDate);
@@ -379,7 +371,7 @@ async function clearCurrentProgress() {
 }
 
 // ============================================================
-// 🆕 شروع تکلیف (با چک مهلت سفارشی)
+// 🆕 شروع تکلیف — بدون پرسیدن "ادامه یا از اول"
 // ============================================================
 async function startLesson(lessonId) {
     const lesson = allLessons.find(l => l.id === lessonId);
@@ -388,33 +380,92 @@ async function startLesson(lessonId) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const alreadyDone = reports.some(r => r.lessonId === lessonId);
     
-    // 🆕 اگه منقضی شده و قبلاً انجام نداده → تمرینی
-    if (expired && !alreadyDone) {
-        clearCurrentProgress();
-        await runLesson(lessonId, true, 0, true);
-        return;
-    }
-    
-    // 🆕 اگه قبلاً انجام داده → مودال تکرار
+    // اگه قبلاً انجام داده → مودال تکرار
     if (alreadyDone) {
         pendingLessonId = lessonId;
         document.getElementById('repeat-modal').classList.add('active');
         return;
     }
     
-    // اگه progress قبلی هست → مودال ادامه
+    // اگه progress قبلی هست → مستقیم ادامه بده (بدون پرسیدن)
     const progress = getCurrentProgress();
     if (progress && progress.lessonId === lessonId) {
-        showResumeModal(lessonId, progress);
+        console.log('▶️ ادامه تکلیف از سوال', progress.questionIndex + 1);
+        await runLesson(lessonId, progress.isPracticeMode || false, progress.questionIndex);
         return;
     }
     
+    // اگه منقضی شده → تمرینی
+    if (expired) {
+        clearCurrentProgress();
+        await runLesson(lessonId, true, 0, true);
+        return;
+    }
+    
+    // شروع از اول
     clearCurrentProgress();
     await runLesson(lessonId, false, 0);
 }
 
 // ============================================================
-// مودال ادامه/شروع مجدد
+// 🆕 مودال خروج از تکلیف (قبل از خروج)
+// ============================================================
+function showExitLessonModal() {
+    const existing = document.getElementById('exit-lesson-modal');
+    if (existing) existing.remove();
+    
+    const progress = getCurrentProgress();
+    const answeredCount = progress ? progress.questionIndex : 0;
+    const totalQuestions = currentLesson ? currentLesson.questions.length : 0;
+    const remaining = totalQuestions - answeredCount;
+    
+    const modal = document.createElement('div');
+    modal.id = 'exit-lesson-modal';
+    modal.className = 'exit-modal-overlay active';
+    modal.innerHTML = `
+        <div class="exit-modal-box">
+            <div class="exit-icon-wrapper" style="background: linear-gradient(135deg, #fff3e0, #ffe0b2);">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="stroke: #e65100; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                    <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"/>
+                    <path d="M16 17L21 12L16 7"/>
+                    <path d="M21 12H9"/>
+                </svg>
+            </div>
+            <div class="exit-title">خروج از تکلیف؟</div>
+            <div class="exit-text">
+                شما در حال انجام تکلیف هستید و تا سوال <strong>${toPersianNum(answeredCount)}</strong> پاسخ داده‌اید.<br>
+                <strong>${toPersianNum(remaining)} سوال</strong> باقی مونده.<br><br>
+                ✅ پیشرفت شما ذخیره میشه و می‌تونید بعداً <strong>ادامه بدید</strong>.
+            </div>
+            <div class="exit-buttons">
+                <button class="exit-btn-cancel" onclick="closeExitLessonModal()">بمانم</button>
+                <button class="exit-btn-confirm" onclick="confirmExitLesson()">خروج</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeExitLessonModal() {
+    const modal = document.getElementById('exit-lesson-modal');
+    if (modal) modal.remove();
+}
+
+async function confirmExitLesson() {
+    closeExitLessonModal();
+    
+    try {
+        await saveCurrentProgress();
+    } catch(e) {
+        console.warn('خطا در ذخیره پیشرفت:', e);
+    }
+    
+    vibrate(20);
+    goToScreen('screen-home', false);
+}
+
+// ============================================================
+// مودال ادامه/شروع مجدد (دیگه استفاده نمیشه، ولی نگه می‌داریم)
 // ============================================================
 function showResumeModal(lessonId, progress) {
     const answeredCount = progress.questionIndex;

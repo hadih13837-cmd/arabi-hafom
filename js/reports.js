@@ -1,6 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۱۱.۰.۰ — با جلوگیری از تکرار کارنامه
+// نسخه: ۱۳.۰.۰ — با جلوگیری از ذخیره تکراری (Race Condition)
 // ============================================================
 
 let currentPreviewReport = null;
@@ -8,9 +8,9 @@ let currentPreviewFilename = '';
 let currentPreviewSource = '';
 let currentPreviewIndex = -1;
 
-// ============================================================
-// تبدیل گزارش Supabase به فرمت localStorage
-// ============================================================
+// 🆕 قفل ذخیره (برای جلوگیری از دوبار ذخیره)
+let savingReports = {};
+
 function convertSupabaseReportToLocal(supabaseReport, userName, userClass) {
     return {
         studentName: userName || localStorage.getItem('userName') || '',
@@ -31,9 +31,6 @@ function convertSupabaseReportToLocal(supabaseReport, userName, userClass) {
     };
 }
 
-// ============================================================
-// 🆕 همگام‌سازی کارنامه‌ها از Supabase (با یکتا کردن)
-// ============================================================
 async function syncReportsFromSupabase() {
     try {
         const studentId = localStorage.getItem('studentUUID');
@@ -47,7 +44,7 @@ async function syncReportsFromSupabase() {
         const userName = localStorage.getItem('userName');
         const userClass = localStorage.getItem('userClass');
         
-        // 🆕 یکتا کردن بر اساس lessonId
+        // 🆕 یکتا کردن بر اساس lessonId (نگه داشتن جدیدترین)
         const uniqueMap = {};
         supabaseReports.forEach(r => {
             if (!uniqueMap[r.lesson_id] || 
@@ -66,13 +63,11 @@ async function syncReportsFromSupabase() {
         return true;
         
     } catch (error) {
+        console.error('خطا در sync:', error);
         return false;
     }
 }
 
-// ============================================================
-// نمایش لیست کارنامه‌ها
-// ============================================================
 async function loadReports() {
     const container = document.getElementById('reports-list');
     if (!container) return;
@@ -137,48 +132,194 @@ function renderReportsList(reports, container) {
 }
 
 // ============================================================
-// 🆕 ذخیره کارنامه — با جلوگیری از تکرار
+// 🆕 saveReport (اصلی) — با قفل درون‌برنامه‌ای
 // ============================================================
 async function saveReport(report) {
-    const reports = JSON.parse(localStorage.getItem('reports') || '[]');
-    
-    // 🆕 چک کن که کارنامه تکراری نباشه (بر اساس lessonId)
-    const existingIndex = reports.findIndex(r => r.lessonId === report.lessonId);
-    
-    if (existingIndex >= 0) {
-        console.log('ℹ️ کارنامه قبلاً بود، آپدیت شد:', report.lessonId);
-        reports[existingIndex] = report;
-    } else {
-        console.log('✅ کارنامه جدید اضافه شد:', report.lessonId);
-        reports.push(report);
+    // 🆕 قفل: اگه همین الان داره ذخیره میشه، رد شو
+    if (savingReports[report.lessonId]) {
+        console.log('ℹ️ کارنامه در حال ذخیره است، رد میشه:', report.lessonId);
+        return true;
     }
     
-    localStorage.setItem('reports', JSON.stringify(reports));
+    savingReports[report.lessonId] = true;
     
-    // ذخیره در Supabase (فقط اگه قبلاً نبوده)
     try {
-        const studentId = localStorage.getItem('studentUUID');
-        if (!studentId) return;
+        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
         
-        const existingReports = await getReportsFromSupabase(studentId);
-        const existingLessonIds = (existingReports || []).map(r => r.lesson_id);
+        const existingIndex = reports.findIndex(r => r.lessonId === report.lessonId);
         
-        if (existingLessonIds.includes(report.lessonId)) {
-            console.log('ℹ️ این کارنامه قبلاً در Supabase ثبت شده');
-            return;
+        if (existingIndex >= 0) {
+            console.log('ℹ️ کارنامه در localStorage بود، آپدیت شد:', report.lessonId);
+            reports[existingIndex] = report;
+        } else {
+            console.log('✅ کارنامه جدید اضافه شد:', report.lessonId);
+            reports.push(report);
         }
         
-        const success = await saveReportToSupabase(report, studentId);
-        if (success) {
-            console.log('✅ کارنامه در Supabase ذخیره شد');
+        localStorage.setItem('reports', JSON.stringify(reports));
+        
+        try {
+            const studentId = localStorage.getItem('studentUUID');
+            if (!studentId) return;
+            
+            const existingReports = await getReportsFromSupabase(studentId);
+            const existingLessonIds = (existingReports || []).map(r => r.lesson_id);
+            
+            if (existingLessonIds.includes(report.lessonId)) {
+                console.log('ℹ️ این کارنامه قبلاً در Supabase ثبت شده');
+                return;
+            }
+            
+            const success = await saveReportToSupabase(report, studentId);
+            if (success) {
+                console.log('✅ کارنامه در Supabase ذخیره شد');
+            }
+        } catch (error) {
+            console.error('❌ خطا:', error);
         }
-    } catch (error) {
-        console.error('❌ خطا:', error);
+    } finally {
+        // 🆕 آزاد کردن قفل بعد از ۲ ثانیه (که درخواست‌های تکراری رد بشن)
+        setTimeout(() => {
+            delete savingReports[report.lessonId];
+        }, 2000);
     }
 }
 
 // ============================================================
-// ساخت HTML کارنامه گرافیکی
+// 🆕 saveReportCardOnce — ذخیره یک‌باره کارنامه (برای showResult)
+// ============================================================
+async function saveReportCardOnce() {
+    try {
+        if (!currentLesson || !currentLesson.lessonId) {
+            console.warn('⚠️ currentLesson تعریف نشده');
+            return false;
+        }
+        
+        if (isPracticeMode) {
+            console.log('ℹ️ حالت تمرین - کارنامه ذخیره نمیشه');
+            return false;
+        }
+        
+        // 🆕 قفل درون‌برنامه‌ای
+        if (savingReports[currentLesson.lessonId]) {
+            console.log('ℹ️ کارنامه در حال ذخیره است، رد میشه');
+            return true;
+        }
+        
+        const studentId = localStorage.getItem('studentUUID');
+        if (!studentId) {
+            console.warn('⚠️ studentUUID پیدا نشد');
+            return false;
+        }
+        
+        // 🆕 چک localStorage
+        const savedReports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const alreadySaved = savedReports.find(r => r.lessonId === currentLesson.lessonId);
+        if (alreadySaved) {
+            console.log('ℹ️ کارنامه قبلاً ذخیره شده (localStorage):', currentLesson.lessonId);
+            return true;
+        }
+        
+        // 🆕 چک Supabase
+        const existingReports = await getReportsFromSupabase(studentId);
+        const existingLessonIds = (existingReports || []).map(r => r.lesson_id);
+        if (existingLessonIds.includes(currentLesson.lessonId)) {
+            console.log('ℹ️ کارنامه قبلاً در Supabase ذخیره شده:', currentLesson.lessonId);
+            
+            // ولی localStorage رو آپدیت کن
+            const existingReport = existingReports.find(r => r.lesson_id === currentLesson.lessonId);
+            if (existingReport) {
+                const localReport = convertSupabaseReportToLocal(
+                    existingReport,
+                    localStorage.getItem('userName'),
+                    localStorage.getItem('userClass')
+                );
+                savedReports.push(localReport);
+                localStorage.setItem('reports', JSON.stringify(savedReports));
+            }
+            
+            return true;
+        }
+        
+        // 🆕 چک منقضی شدن
+        const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
+        const lesson = allLessons[lessonIndex];
+        let dueDate = '۱۴۰۵/۰۹/۱۵';
+        if (lesson && typeof getEffectiveDueDate === 'function') {
+            dueDate = getEffectiveDueDate(lesson);
+        } else if (lesson) {
+            dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+        }
+        const expired = typeof isExpired === 'function' ? isExpired(dueDate) : false;
+        
+        if (expired) {
+            console.log('ℹ️ تکلیف منقضی شده - کارنامه ذخیره نمیشه');
+            return false;
+        }
+        
+        // 🆕 ساخت report
+        const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
+        const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const taskTitle = allLessons[lessonIndex] ? allLessons[lessonIndex].title : currentLesson.title;
+        
+        const report = {
+            studentName: localStorage.getItem('userName'),
+            studentClass: localStorage.getItem('userClass'),
+            lessonId: currentLesson.lessonId,
+            lessonTitle: taskTitle,
+            date: dateStr,
+            timestamp: now.toISOString(),
+            percent, correct: correctCount, wrong: wrongCount,
+            score, totalPoints: currentLesson.totalPoints, timeTaken,
+            surveyAnswer: surveyAnswerText
+        };
+        
+        // 🆕 قفل بذار و ذخیره کن
+        savingReports[currentLesson.lessonId] = true;
+        
+        // ذخیره در localStorage
+        savedReports.push(report);
+        localStorage.setItem('reports', JSON.stringify(savedReports));
+        
+        // ذخیره در Supabase
+        const success = await saveReportToSupabase(report, studentId);
+        if (success) {
+            console.log('✅ کارنامه در Supabase ذخیره شد');
+        } else {
+            console.warn('⚠️ خطا در ذخیره در Supabase');
+        }
+        
+        // به‌روزرسانی امتیاز
+        if (typeof saveRankingToSupabase === 'function') {
+            try {
+                await saveRankingToSupabase();
+                console.log('✅ امتیاز در Supabase ذخیره شد');
+            } catch(e) {
+                console.error('خطا در ذخیره امتیاز:', e);
+            }
+        }
+        
+        // چک مدال جدید
+        if (typeof checkForNewMedals === 'function') {
+            setTimeout(() => checkForNewMedals(), 1500);
+        }
+        
+        // آزاد کردن قفل
+        setTimeout(() => {
+            delete savingReports[currentLesson.lessonId];
+        }, 2000);
+        
+        return true;
+    } catch (error) {
+        console.error('❌ خطا در saveReportCardOnce:', error);
+        return false;
+    }
+}
+
+// ============================================================
+// generateGraphicReport (بدون تغییر)
 // ============================================================
 function generateGraphicReport(report) {
     const avatar = localStorage.getItem('userAvatar') || 'https://cdn.imgurl.ir/uploads/d75534_file_000000007ad481f4b2c1c6420f5e62d9.png';
@@ -271,9 +412,6 @@ function generateGraphicReport(report) {
     `;
 }
 
-// ============================================================
-// مشاهده‌ی کارنامه
-// ============================================================
 function viewReportById(index) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -296,9 +434,6 @@ function viewReportById(index) {
     goToScreen('screen-report-view');
 }
 
-// ============================================================
-// پیش‌نمایش PDF
-// ============================================================
 function openPdfPreview(report, filename, source, index = -1) {
     currentPreviewReport = report;
     currentPreviewFilename = filename;
@@ -465,7 +600,7 @@ async function downloadReportByData(index) {
 }
 
 // ============================================================
-// نمایش کارنامه بعد از تکلیف
+// showReportCard — نسخه اصلاح‌شده (فقط برای دکمه)
 // ============================================================
 async function showReportCard() {
     if (isPracticeMode) {
@@ -493,14 +628,7 @@ async function showReportCard() {
         dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
     }
     
-    const expired = isExpired(dueDate);
-    
-    console.log('📊 بررسی کارنامه:', {
-        lessonId: currentLesson.lessonId,
-        dueDate: dueDate,
-        isExpired: expired,
-        isPracticeMode: isPracticeMode
-    });
+    const expired = typeof isExpired === 'function' ? isExpired(dueDate) : false;
     
     if (expired) {
         showModal('توجه', 'مهلت این تکلیف گذشته و کارنامه‌ای صادر نمی‌شود.', '⚠️');
@@ -519,7 +647,8 @@ async function showReportCard() {
         surveyAnswer: surveyAnswerText
     };
     
-    saveReport(report);
+    // 🆕 از saveReportCardOnce استفاده کن (که خودش چک می‌کنه)
+    await saveReportCardOnce();
     
     const container = document.getElementById('report-view-content');
     container.innerHTML = generateGraphicReport(report);
@@ -536,15 +665,10 @@ async function showReportCard() {
     `;
     
     goToScreen('screen-report-view');
-    addNotification('message', 'پیام معلم', `بازخورد تکلیف شما ثبت شد. آفرین!`);
-    updateNotificationBadge();
     
-    setTimeout(() => checkForNewMedals(), 1500);
-    
-    if (typeof autoSyncRanking === 'function') {
-        autoSyncRanking('ثبت کارنامه جدید');
-    } else if (typeof saveRankingToSupabase === 'function') {
-        setTimeout(() => saveRankingToSupabase(), 1000);
+    if (typeof addNotification === 'function') {
+        addNotification('message', 'پیام معلم', `بازخورد تکلیف شما ثبت شد. آفرین!`);
+        if (typeof updateNotificationBadge === 'function') updateNotificationBadge();
     }
 }
 

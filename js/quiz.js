@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۸.۰.۰ — با پشتیبانی از مهلت سفارشی
+// نسخه: ۱۳.۰.۰ — با جلوگیری از ذخیره تکراری
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -30,9 +30,10 @@ let matchFlipChecking = false;
 let selectedAttachOption = null;
 let attachedWord = '';
 
-// ============================================================
-// shuffle
-// ============================================================
+let selectedLettersOrder = [];
+let draggedLetter = null;
+let currentLetterItems = [];
+
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -41,9 +42,6 @@ function shuffleArray(array) {
     return array;
 }
 
-// ============================================================
-// پخش صدا
-// ============================================================
 function playAudioFromVideo(videoUrl, btnElement) {
     const video = document.getElementById('audio-video-player');
     if (!video) return;
@@ -69,9 +67,6 @@ function playAudioFromVideo(videoUrl, btnElement) {
     });
 }
 
-// ============================================================
-// اجرای تکلیف
-// ============================================================
 async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracticeMode = false) {
     try {
         const lessonMeta = allLessons.find(l => l.id === lessonId);
@@ -80,6 +75,10 @@ async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracti
         const response = await fetch('./lessons/' + lessonMeta.file);
         if (!response.ok) throw new Error('خطا در بارگذاری');
         currentLesson = await response.json();
+        
+        if (!currentLesson.lessonId) {
+            currentLesson.lessonId = lessonId;
+        }
         
         const lessonIndex = allLessons.findIndex(l => l.id === lessonId);
         const taskTitle = lessonMeta.title || LESSON_TITLES[lessonIndex] || `تکلیف ${toPersianNum(lessonIndex + 1)}`;
@@ -113,8 +112,25 @@ async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracti
         goToScreen('screen-quiz');
         renderQuestion();
     } catch (error) {
+        console.error('خطا در runLesson:', error);
         showModal('خطا', 'مشکلی در بارگذاری تکلیف پیش آمد.', '❌');
     }
+}
+
+// ============================================================
+// توابع کمکی
+// ============================================================
+async function ensureCustomLessonStatus() {
+    if (typeof loadCustomLessonStatus === 'function') {
+        try { await loadCustomLessonStatus(); } catch(e) {}
+    }
+}
+
+function getEffectiveDueDateSafe(lesson) {
+    if (typeof getEffectiveDueDate === 'function') {
+        return getEffectiveDueDate(lesson);
+    }
+    return lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
 }
 
 // ============================================================
@@ -154,6 +170,10 @@ function renderQuestion() {
     selectedAttachOption = null;
     attachedWord = '';
     
+    selectedLettersOrder = [];
+    draggedLetter = null;
+    currentLetterItems = [];
+    
     submitBtn.disabled = false;
     submitBtn.textContent = 'بررسی سوال';
     
@@ -175,14 +195,10 @@ function renderQuestion() {
             </div>`;
         }
         
-        html += `<div class="image-question-box">
-            <span class="image-question-emoji">${q.image || '❓'}</span>
-        </div>`;
-        
         currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
-        html += `<div class="options-grid">`;
+        html += `<div class="image-question-grid">`;
         currentShuffledOpts.forEach((item, displayIdx) => {
-            html += `<div class="option-btn" onclick="selectOption(this, ${displayIdx})">${item.opt}</div>`;
+            html += `<div class="image-question-card" onclick="selectOption(this, ${displayIdx})">${item.opt}</div>`;
         });
         html += `</div>`;
     }
@@ -353,6 +369,40 @@ function renderQuestion() {
         html += `<div class="audio-hint">👆 روی ضمیر درست کلیک کن تا به کلمه بچسبه</div>`;
         html += `</div>`;
     }
+    else if (q.type === 'letter-order') {
+        html += `<div class="question-text">
+            <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
+            <div class="question-text-text">${q.question}</div>
+        </div>`;
+        
+        html += `<div class="letter-order-result" id="letter-order-result">
+            <span class="letter-order-placeholder">حروف رو اینجا بچین (برای برگرداندن کلیک کن)</span>
+        </div>`;
+        
+        currentLetterItems = q.letters.map((letter, i) => ({
+            letter: letter,
+            uniqueId: 'letter_' + i + '_' + Math.random().toString(36).substr(2, 5),
+            originalIdx: i
+        }));
+        
+        const shuffledItems = shuffleArray([...currentLetterItems]);
+        
+        html += `<div class="letter-order-options" id="letter-order-options">`;
+        shuffledItems.forEach((item) => {
+            html += `<div class="letter-order-item" 
+                          draggable="true"
+                          data-unique-id="${item.uniqueId}"
+                          data-letter="${item.letter}"
+                          onclick="selectLetterOrder(this, '${item.uniqueId}')"
+                          ondragstart="dragLetterStart(event, '${item.uniqueId}')"
+                          ondragover="dragLetterOver(event)"
+                          ondrop="dragLetterDrop(event)">
+                        ${item.letter}
+                     </div>`;
+        });
+        html += `</div>`;
+        html += `<div class="audio-hint">👆 حروف رو با کشیدن (یا کلیک کردن) به ترتیب درست بچین</div>`;
+    }
     else {
         html += `<div class="question-text">
             <div class="question-type-icon ${iconData.class}">${iconData.svg}</div>
@@ -404,8 +454,86 @@ function renderQuestion() {
 }
 
 // ============================================================
-// match-flip
+// letter-order
 // ============================================================
+function selectLetterOrder(el, uniqueId) {
+    if (isAnswered) return;
+    if (selectedLettersOrder.some(item => item.uniqueId === uniqueId)) return;
+    
+    const item = currentLetterItems.find(it => it.uniqueId === uniqueId);
+    if (!item) return;
+    
+    vibrate(15);
+    selectedLettersOrder.push({
+        uniqueId: uniqueId,
+        letter: item.letter,
+        originalIdx: item.originalIdx
+    });
+    el.style.display = 'none';
+    
+    const resultDiv = document.getElementById('letter-order-result');
+    if (selectedLettersOrder.length === 1) {
+        resultDiv.innerHTML = '';
+    }
+    
+    const letterCard = document.createElement('div');
+    letterCard.className = 'letter-order-placed';
+    letterCard.textContent = item.letter;
+    letterCard.dataset.uniqueId = uniqueId;
+    letterCard.onclick = function() {
+        if (isAnswered) return;
+        const idx = selectedLettersOrder.findIndex(it => it.uniqueId === uniqueId);
+        if (idx > -1) {
+            selectedLettersOrder.splice(idx, 1);
+            const optEl = document.querySelector(`#letter-order-options .letter-order-item[data-unique-id="${uniqueId}"]`);
+            if (optEl) optEl.style.display = 'flex';
+            this.remove();
+            if (selectedLettersOrder.length === 0) {
+                resultDiv.innerHTML = '<span class="letter-order-placeholder">حروف رو اینجا بچین (برای برگرداندن کلیک کن)</span>';
+            }
+        }
+    };
+    resultDiv.appendChild(letterCard);
+    
+    const q = currentLesson.questions[currentQuestionIndex];
+    if (selectedLettersOrder.length === q.letters.length) {
+        const userOrder = selectedLettersOrder.map(it => it.originalIdx);
+        const correctOrder = q.letters.map((_, i) => i);
+        const isCorrectOrder = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
+        
+        if (isCorrectOrder) {
+            setTimeout(() => {
+                resultDiv.innerHTML = `<div class="letter-order-final-word">${q.resultWord}</div>`;
+                vibrate([30, 50, 30]);
+            }, 300);
+        }
+    }
+}
+
+function dragLetterStart(event, uniqueId) {
+    if (isAnswered) return;
+    draggedLetter = uniqueId;
+    event.dataTransfer.effectAllowed = 'move';
+    try { event.dataTransfer.setData('text/plain', uniqueId); } catch(e) {}
+    event.target.classList.add('dragging');
+}
+
+function dragLetterOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+}
+
+function dragLetterDrop(event) {
+    event.preventDefault();
+    if (!draggedLetter) return;
+    const target = event.target.closest('.letter-order-item');
+    if (target && !target.classList.contains('dragging')) {
+        selectLetterOrder(target, draggedLetter);
+    }
+    document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+    draggedLetter = null;
+}
+
 function flipCard(el, cardIdx) {
     if (isAnswered) return;
     if (flipLocked) return;
@@ -461,9 +589,6 @@ function flipCard(el, cardIdx) {
     }
 }
 
-// ============================================================
-// word-attach
-// ============================================================
 function selectAttachOption(el, option) {
     if (isAnswered) return;
     vibrate(15);
@@ -477,9 +602,6 @@ function selectAttachOption(el, option) {
     }
 }
 
-// ============================================================
-// audio-match
-// ============================================================
 function selectAudio(el, audioIdx) {
     if (isAnswered) return;
     const q = currentLesson.questions[currentQuestionIndex];
@@ -537,9 +659,6 @@ function selectFaWord(el, word, faOrigIdx) {
     }
 }
 
-// ============================================================
-// find-error
-// ============================================================
 function selectErrorWord(el, index) {
     if (isAnswered) return;
     vibrate(15);
@@ -548,9 +667,6 @@ function selectErrorWord(el, index) {
     selectedErrorWord = index;
 }
 
-// ============================================================
-// word-build
-// ============================================================
 function playWordBuildAudio(el) {
     if (isAnswered) return;
     const q = currentLesson.questions[currentQuestionIndex];
@@ -586,13 +702,10 @@ function selectWordBuild(el, word) {
     resultDiv.appendChild(wordSpan);
 }
 
-// ============================================================
-// انتخاب‌های عادی
-// ============================================================
 function selectOption(el, displayIdx) {
     if (isAnswered) return;
     vibrate(15);
-    document.querySelectorAll('.option-btn, .image-option').forEach(e => e.classList.remove('selected'));
+    document.querySelectorAll('.option-btn, .image-option, .image-question-card').forEach(e => e.classList.remove('selected'));
     el.classList.add('selected');
     selectedOptionIndex = displayIdx;
 }
@@ -775,6 +888,20 @@ function checkAnswer() {
             }
         }
     } 
+    else if (q.type === 'letter-order') {
+        if (selectedLettersOrder.length > 0) {
+            answerGiven = true;
+            const userOrder = selectedLettersOrder.map(it => it.originalIdx);
+            const correctOrder = q.letters.map((_, i) => i);
+            if (JSON.stringify(userOrder) === JSON.stringify(correctOrder)) isCorrect = true;
+            else {
+                showModal('خطا', 'ترتیب حروف اشتباه است. دوباره تلاش کن.', '❌');
+                selectedLettersOrder = [];
+                renderQuestion();
+                return;
+            }
+        }
+    }
     else if (q.type === 'survey') {
         const ans = document.getElementById('survey-answer').value.trim();
         if (ans.length >= (q.minLength || 2)) {
@@ -808,9 +935,6 @@ function checkAnswer() {
     saveCurrentProgress();
 }
 
-// ============================================================
-// متن پاسخ صحیح
-// ============================================================
 function getCorrectAnswerText(q) {
     if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image' || q.type === 'image-question' || q.type === 'reading-comprehension') return q.options[q.correct];
     if (q.type === 'truefalse') return q.correct ? 'درست ✓' : 'غلط ✗';
@@ -822,13 +946,11 @@ function getCorrectAnswerText(q) {
     if (q.type === 'audio-match') return q.audios.map((a, i) => `${toPersianNum(i+1)}: ${a.correctFa}`).join(' | ');
     if (q.type === 'find-error') return q.correctFix ? `${q.correctFix.wrong} → ${q.correctFix.correct}` : '-';
     if (q.type === 'word-build') return q.correct.join(' ');
+    if (q.type === 'letter-order') return `${q.resultWord} (${q.correct.join('')})`;
     if (q.type === 'survey') return '✅ نظر شما ثبت شد. ممنون!';
     return '-';
 }
 
-// ============================================================
-// نمایش بازخورد
-// ============================================================
 function showFeedback(isCorrect, points, q) {
     goToScreen('screen-feedback');
     const icon = document.getElementById('fb-icon');
@@ -900,6 +1022,17 @@ function showFeedback(isCorrect, points, q) {
                 ${q.explanation ? `<div class="feedback-explanation-box">💡 ${q.explanation.replace(/\n/g, '<br>')}</div>` : ''}
             `;
         } 
+        else if (q.type === 'letter-order') {
+            answerBox.className = 'correct-answer-box';
+            answerBox.style.display = 'block';
+            answerBox.innerHTML = `
+                <div class="answer-label">✅ کلمه ساخته شد:</div>
+                <div class="answer-text" style="font-size: 32px; direction: rtl; color: #1b5e20;">
+                    ${q.resultWord}
+                </div>
+                ${q.explanation ? `<div class="feedback-explanation-box">💡 ${q.explanation.replace(/\n/g, '<br>')}</div>` : ''}
+            `;
+        }
         else {
             answerBox.className = 'correct-answer-box';
             answerLabel.textContent = 'پاسخ صحیح شما:';
@@ -957,6 +1090,17 @@ function showFeedback(isCorrect, points, q) {
                 ${q.explanation ? `<div class="feedback-explanation-box" style="border-right-color: #c62828; color: #b71c1c;">💡 ${q.explanation.replace(/\n/g, '<br>')}</div>` : ''}
             `;
         } 
+        else if (q.type === 'letter-order') {
+            answerBox.className = 'correct-answer-box wrong-answer';
+            answerBox.style.display = 'block';
+            answerBox.innerHTML = `
+                <div class="answer-label" style="color: #c62828;">❌ پاسخ صحیح:</div>
+                <div class="answer-text" style="font-size: 32px; direction: rtl; color: #b71c1c;">
+                    ${q.resultWord}
+                </div>
+                ${q.explanation ? `<div class="feedback-explanation-box" style="border-right-color: #c62828; color: #b71c1c;">💡 ${q.explanation.replace(/\n/g, '<br>')}</div>` : ''}
+            `;
+        }
         else if (q.type === 'find-error' && q.correctFix) {
             answerBox.style.display = 'none';
             findErrorBox.style.display = 'block';
@@ -992,9 +1136,6 @@ function showFeedback(isCorrect, points, q) {
     }
 }
 
-// ============================================================
-// سوال بعدی
-// ============================================================
 function nextQuestion() {
     currentQuestionIndex++;
     if (currentQuestionIndex < currentLesson.questions.length) {
@@ -1007,9 +1148,9 @@ function nextQuestion() {
 }
 
 // ============================================================
-// 🆕 نتیجه نهایی — با مهلت سفارشی
+// 🆕 نتیجه نهایی — با ذخیره یک‌باره کارنامه
 // ============================================================
-function showResult() {
+async function showResult() {
     endTime = new Date();
     goToScreen('screen-result');
     const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
@@ -1019,6 +1160,25 @@ function showResult() {
     document.getElementById('final-wrong').textContent = toPersianNum(wrongCount);
     document.getElementById('final-points').textContent = toPersianNum(score);
     
+    // 🆕 رنگ دایره بر اساس درصد
+    const resultCircle = document.getElementById('final-score-circle');
+    if (resultCircle) {
+        if (percent === 100) {
+            resultCircle.style.borderColor = '#4caf50';
+            resultCircle.style.color = '#2e7d32';
+            resultCircle.style.boxShadow = '0 0 0 4px rgba(76, 175, 80, 0.2), 0 8px 25px rgba(76, 175, 80, 0.4)';
+        } else if (percent >= 80) {
+            resultCircle.style.borderColor = '#8bc34a';
+            resultCircle.style.color = '#558b2f';
+        } else if (percent >= 50) {
+            resultCircle.style.borderColor = '#ff9800';
+            resultCircle.style.color = '#e65100';
+        } else {
+            resultCircle.style.borderColor = '#f44336';
+            resultCircle.style.color = '#c62828';
+        }
+    }
+    
     const practiceBanner = document.getElementById('practice-banner');
     const reportBtn = document.getElementById('report-btn');
     const resultTitle = document.getElementById('result-title');
@@ -1026,25 +1186,38 @@ function showResult() {
     const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
     const lesson = allLessons[lessonIndex];
     
-    // 🆕 استفاده از مهلت سفارشی (نفس getEffectiveDueDate)
+    await ensureCustomLessonStatus();
+    
     let dueDate = '۱۴۰۵/۰۹/۱۵';
     if (lesson) {
-        dueDate = getEffectiveDueDate(lesson);
+        dueDate = getEffectiveDueDateSafe(lesson);
     }
-    const expired = isExpired(dueDate);
+    const expired = typeof isExpired === 'function' ? isExpired(dueDate) : false;
     
-    if (isPracticeMode || expired) {
+    if (!isPracticeMode && !expired) {
+        reportBtn.style.display = 'flex';
+        resultTitle.textContent = 'تکلیف تمام شد!';
+        pointsRow.style.display = 'flex';
+        if (percent >= 80 && typeof showConfetti === 'function') showConfetti();
+        practiceBanner.classList.remove('show');
+        
+        // 🆕 ذخیره‌ی یک‌باره‌ی کارنامه (بدون دوبار)
+        setTimeout(async () => {
+            try {
+                if (typeof saveReportCardOnce === 'function') {
+                    await saveReportCardOnce();
+                    console.log('✅ saveReportCardOnce اجرا شد');
+                }
+            } catch (e) {
+                console.error('خطا در ذخیره خودکار کارنامه:', e);
+            }
+        }, 500);
+    } else {
         practiceBanner.classList.add('show');
         reportBtn.style.display = 'none';
         resultTitle.textContent = 'تمرین تمام شد!';
         pointsRow.style.display = 'none';
         if (expired) practiceBanner.innerHTML = '⚠️ مهلت این تکلیف گذشته بود، بنابراین نمره و کارنامه‌ای صادر نشد.';
-    } else {
-        practiceBanner.classList.remove('show');
-        reportBtn.style.display = 'flex';
-        resultTitle.textContent = 'تکلیف تمام شد!';
-        pointsRow.style.display = 'flex';
-        if (percent >= 80) showConfetti();
     }
     
     clearCurrentProgress();
