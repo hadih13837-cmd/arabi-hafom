@@ -1,10 +1,10 @@
 // ============================================================
 // settings.js — تنظیمات، پروفایل، ورود، ثبت‌نام
-// نسخه: ۱۷.۰.۰ — با flag برای کاربر برگشتی
+// نسخه: ۱۸.۰.۰ — با اطمینان از ثبت در rankings
 // ============================================================
 
 // ============================================================
-// ذخیره اطلاعات کاربر (ثبت‌نام جدید)
+// 🆕 ذخیره اطلاعات کاربر (ثبت‌نام جدید) — با اطمینان از rankings
 // ============================================================
 async function saveUserInfo() {
     const name = document.getElementById('welcome-name').value.trim();
@@ -54,8 +54,6 @@ async function saveUserInfo() {
         localStorage.setItem('userYear', '۱۴۰۵-۱۴۰۶');
         localStorage.setItem('studentCode', code);
         localStorage.setItem('userRegistered', 'true');
-        
-        // 🆕 کاربر جدید - flag false
         localStorage.setItem('isReturningUser', 'false');
         
         console.log('🆕 کاربر جدید:', newUUID, 'کد:', code);
@@ -79,11 +77,8 @@ async function saveUserInfo() {
         updateStreak();
         updateHomeUI();
         
-        setTimeout(async () => {
-            if (typeof saveRankingToSupabase === 'function') {
-                await saveRankingToSupabase();
-            }
-        }, 500);
+        // 🆕 ذخیره در rankings (با چند بار تلاش)
+        await ensureRankingSaved(newUUID, name, cls, code);
         
         setTimeout(() => {
             const welcomeNameEl = document.getElementById('welcome-user-name');
@@ -101,7 +96,99 @@ async function saveUserInfo() {
 }
 
 // ============================================================
-// 🆕 ورود با کد — کاربر برگشتی
+// 🆕 اطمینان از ثبت کاربر در rankings (با چند بار تلاش)
+// ============================================================
+async function ensureRankingSaved(studentId, name, cls, code) {
+    try {
+        const client = getSupabase();
+        if (!client) {
+            console.warn('⚠️ Supabase client آماده نیست');
+            return false;
+        }
+        
+        // 🆕 چک کن که آیا رکورد وجود داره یا نه
+        const { data: existing } = await client
+            .from('rankings')
+            .select('student_id, name, class_name, total_points, completed_lessons')
+            .eq('student_id', studentId)
+            .maybeSingle();
+        
+        if (existing) {
+            console.log('ℹ️ رکورد قبلاً وجود داره، آپدیت میشه');
+            
+            // آپدیت اسم و کلاس (اگه تغییر کرده باشن)
+            const { error } = await client
+                .from('rankings')
+                .update({
+                    name: name,
+                    class_name: classNameToSlug(cls),
+                    student_code: code,
+                    last_update: new Date().toISOString()
+                })
+                .eq('student_id', studentId);
+            
+            if (error) {
+                console.error('❌ خطا در آپدیت رکورد:', error.message);
+                return false;
+            }
+            
+            console.log('✅ رکورد آپدیت شد');
+            return true;
+        }
+        
+        // 🆕 رکورد جدید بساز
+        const payload = {
+            student_id: studentId,
+            name: name,
+            class_name: classNameToSlug(cls),
+            total_points: 0,
+            completed_lessons: 0,
+            custom_completed_lessons: 0,
+            custom_points_added: 0,
+            custom_total_points: 0,
+            avg_percent: 0,
+            streak_days: 0,
+            avatar_url: 'default',
+            student_code: code,
+            last_update: new Date().toISOString()
+        };
+        
+        console.log('📤 ارسال به rankings:', payload);
+        
+        const { error } = await client
+            .from('rankings')
+            .insert(payload);
+        
+        if (error) {
+            console.error('❌ خطا در درج رکورد:', error.message);
+            
+            // 🆕 اگه خطا داد، یه بار دیگه تلاش کن
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const { error: retryError } = await client
+                .from('rankings')
+                .insert(payload);
+            
+            if (retryError) {
+                console.error('❌ خطا در تلاش دوم:', retryError.message);
+                return false;
+            }
+            
+            console.log('✅ رکورد در تلاش دوم ثبت شد');
+            return true;
+        }
+        
+        console.log('✅ رکورد جدید در rankings ثبت شد');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ خطا در ensureRankingSaved:', error);
+        return false;
+    }
+}
+
+// ============================================================
+// ورود با کد
 // ============================================================
 async function loginWithCode() {
     const code = document.getElementById('login-code').value.trim();
@@ -134,7 +221,6 @@ async function loginWithCode() {
         const name = checkResult.name;
         const className = slugToClassName(checkResult.className);
         
-        // 🆕 پاک کردن کش‌های موقت
         clearTempCachesBeforeLogin();
         
         localStorage.setItem('studentUUID', studentId);
@@ -142,8 +228,6 @@ async function loginWithCode() {
         localStorage.setItem('userClass', className);
         localStorage.setItem('studentCode', code);
         localStorage.setItem('userRegistered', 'true');
-        
-        // 🆕🆕🆕 این کاربر برگشتیه!
         localStorage.setItem('isReturningUser', 'true');
         
         console.log('✅ کاربر برگشتی:', name, studentId);
@@ -151,17 +235,16 @@ async function loginWithCode() {
         closeModal();
         showModal('⏳ در حال بازیابی...', 'داریم اطلاعاتت رو برمی‌گردونیم...', '🔄');
         
-        // 🆕 بازیابی کامل داده‌ها + seen_data
         const recovered = await recoverAllDataFromSupabase();
-        
-        // 🆕 بعد از بازیابی، همه چیز رو seen کن
         await markAllAsSeenForReturningUser();
+        
+        // 🆕 اطمینان از وجود رکورد در rankings
+        await ensureRankingSaved(studentId, name, className, code);
         
         if (recovered) {
             const reports = JSON.parse(localStorage.getItem('reports') || '[]');
             const totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
             
-            // 🆕 فقط پیام خوش برگشتی
             showModal('✅ خوش برگشتی!', 
                 `${name} جان، خوش برگشتی! 🎉\n\n` +
                 `📚 تعداد تکالیف: ${toPersianNum(reports.length)}\n` +
@@ -194,12 +277,10 @@ async function loginWithCode() {
             }
         }, 500);
         
-        // 🆕 بعد از ۲ ثانیه، به صفحه خانه برو (بدون نشون دادن چیز اضافی)
         setTimeout(() => {
             const welcomeNameEl = document.getElementById('welcome-user-name');
             if (welcomeNameEl) welcomeNameEl.textContent = name;
             
-            // 🆕 مستقیم به صفحه خانه برو (خوش‌آمد رو نشون نده)
             goToScreen('screen-home', false);
         }, 2000);
         
@@ -211,19 +292,18 @@ async function loginWithCode() {
 }
 
 // ============================================================
-// 🆕 علامت‌گذاری همه چیز به عنوان دیده‌شده برای کاربر برگشتی
+// علامت‌گذاری همه چیز به عنوان دیده‌شده
 // ============================================================
 async function markAllAsSeenForReturningUser() {
     try {
         const studentId = localStorage.getItem('studentUUID');
         if (!studentId) return;
         
-        console.log('🔇 علامت‌گذاری همه اعلان‌ها به عنوان دیده‌شده...');
+        console.log('🔇 علامت‌گذاری همه اعلان‌ها...');
         
         const client = getSupabase();
         if (!client) return;
         
-        // ۱. پیام‌های شخصی
         try {
             const { data: personalMsgs } = await client
                 .from('personal_messages')
@@ -234,11 +314,9 @@ async function markAllAsSeenForReturningUser() {
             if (personalMsgs && personalMsgs.length > 0) {
                 const seenChat = personalMsgs.map(m => m.message_id);
                 localStorage.setItem('seenChatMessages', JSON.stringify(seenChat));
-                console.log('✅ چت seen شد:', seenChat.length);
             }
-        } catch (e) { console.warn('خطا در چت:', e); }
+        } catch (e) {}
         
-        // ۲. پیام‌های کلاسی
         try {
             const userClass = localStorage.getItem('userClass');
             const classSlug = classNameToSlug(userClass);
@@ -250,11 +328,9 @@ async function markAllAsSeenForReturningUser() {
             if (classMsgs && classMsgs.length > 0) {
                 const seenClass = classMsgs.map(m => m.message_id);
                 localStorage.setItem('seenClassMessages', JSON.stringify(seenClass));
-                console.log('✅ پیام کلاسی seen شد:', seenClass.length);
             }
-        } catch (e) { console.warn('خطا در کلاسی:', e); }
+        } catch (e) {}
         
-        // ۳. تکالیف (همه seen)
         try {
             const response = await fetch('./lessons/index.json?t=' + Date.now());
             const data = await response.json();
@@ -262,10 +338,8 @@ async function markAllAsSeenForReturningUser() {
             const seenLessons = lessons.map(l => l.id);
             localStorage.setItem('seenLessonsForNotif', JSON.stringify(seenLessons));
             localStorage.setItem('seenLessons', JSON.stringify(seenLessons));
-            console.log('✅ تکالیف seen شد:', seenLessons.length);
-        } catch (e) { console.warn('خطا در تکالیف:', e); }
+        } catch (e) {}
         
-        // ۴. جزوه‌ها (همه seen)
         try {
             const response = await fetch('./jozve/index.json?t=' + Date.now());
             const data = await response.json();
@@ -273,13 +347,9 @@ async function markAllAsSeenForReturningUser() {
             const seenJozve = items.map(item => item.id);
             localStorage.setItem('seenJozveIds', JSON.stringify(seenJozve));
             localStorage.setItem('dismissedNewJozveNotif', 'true');
-            console.log('✅ جزوه‌ها seen شد:', seenJozve.length);
-        } catch (e) { console.warn('خطا در جزوه:', e); }
+        } catch (e) {}
         
-        // ۵. ویدیوها
         localStorage.setItem('seenVideos', JSON.stringify(['video_1', 'video_2']));
-        
-        // ۶. مودال‌هایی که نباید دوباره نشون داده بشن
         localStorage.setItem('dismissedNewMessageNotif', 'true');
         localStorage.setItem('seenUpdateVersion', UPDATE_VERSION);
         localStorage.setItem('hasSeenRankingsGuide', 'true');
@@ -287,12 +357,9 @@ async function markAllAsSeenForReturningUser() {
         localStorage.setItem('lessonsGuideShown', 'true');
         localStorage.setItem('welcomeShown', 'true');
         
-        // 🆕 تاریخ امروز رو برای streak ست کن که پیام استریک نشون داده نشه
         const today = getPersianDate();
         localStorage.setItem('lastStreakMessageShown', today);
         localStorage.setItem('lastDeadlineNotifDate', today);
-        
-        console.log('✅ همه اعلان‌ها seen شدن');
         
     } catch (error) {
         console.error('❌ خطا در seen:', error);
@@ -300,7 +367,7 @@ async function markAllAsSeenForReturningUser() {
 }
 
 // ============================================================
-// 🆕 پاک کردن کش‌های موقت قبل از ورود
+// پاک کردن کش‌های موقت قبل از ورود
 // ============================================================
 function clearTempCachesBeforeLogin() {
     const tempKeys = [
@@ -313,7 +380,6 @@ function clearTempCachesBeforeLogin() {
         try { localStorage.removeItem(key); } catch (e) {}
     });
     
-    // پاک کردن کش چت هر دانش‌آموز
     try {
         for (let i = localStorage.length - 1; i >= 0; i--) {
             const key = localStorage.key(i);
@@ -322,12 +388,10 @@ function clearTempCachesBeforeLogin() {
             }
         }
     } catch (e) {}
-    
-    console.log('🧹 کش‌های موقت پاک شدند');
 }
 
 // ============================================================
-// بقیه توابع (بدون تغییر مهم)
+// بقیه توابع (بدون تغییر)
 // ============================================================
 async function generateUniqueCodeForOldUser() {
     try {
