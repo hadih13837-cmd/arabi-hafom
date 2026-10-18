@@ -1,6 +1,6 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۲۳.۰.۰ — رفع کامل خطای ذخیره‌سازی در rankings
+// نسخه: ۲۴.۰.۰ — با سیستم Fallback برای جلوگیری از خطای 400
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
@@ -86,7 +86,7 @@ function calculateCompletedLessons(ranking) {
 }
 
 // ============================================================
-// ذخیره/آپدیت امتیاز و رتبه‌بندی
+// 🆕 ذخیره امتیاز — با سیستم Fallback (ضد خطای 400)
 // ============================================================
 async function saveRankingToSupabase() {
     try {
@@ -110,19 +110,15 @@ async function saveRankingToSupabase() {
         
         if (!userName || !userClass) return false;
         
-        // امتیاز از Supabase
+        // ۱. محاسبه امتیاز و تکالیف از روی کارنامه‌های ثبت شده
         const supabaseReports = await getReportsFromSupabase(studentId);
-        
-        // یکتا کردن
         const uniqueMap = {};
         (supabaseReports || []).forEach(r => {
             if (!r.lesson_id) return;
-            if (!uniqueMap[r.lesson_id] || 
-                new Date(r.created_at) > new Date(uniqueMap[r.lesson_id].created_at)) {
+            if (!uniqueMap[r.lesson_id] || new Date(r.created_at) > new Date(uniqueMap[r.lesson_id].created_at)) {
                 uniqueMap[r.lesson_id] = r;
             }
         });
-        
         const uniqueReports = Object.values(uniqueMap);
         
         const totalPoints = uniqueReports.reduce((sum, r) => sum + (r.score || 0), 0);
@@ -137,25 +133,16 @@ async function saveRankingToSupabase() {
         let avatarUrl = 'default';
         const avatarImg = localStorage.getItem('userAvatar');
         const avatarEmoji = localStorage.getItem('userAvatarEmoji');
+        if (avatarImg) avatarUrl = avatarImg.length > 100000 ? 'emoji:👤' : avatarImg;
+        else if (avatarEmoji) avatarUrl = 'emoji:' + avatarEmoji;
         
-        if (avatarImg) {
-            avatarUrl = avatarImg.length > 100000 ? 'emoji:👤' : avatarImg;
-        } else if (avatarEmoji) {
-            avatarUrl = 'emoji:' + avatarEmoji;
-        }
-        
+        // گرفتن کد فعلی ثبت شده
         const { data: existingData } = await client
-            .from('rankings')
-            .select('student_code, custom_completed_lessons, custom_points_added')
-            .eq('student_id', studentId)
-            .maybeSingle();
+            .from('rankings').select('student_code').eq('student_id', studentId).maybeSingle();
+        const finalCode = (existingData && existingData.student_code) ? existingData.student_code : studentCode;
         
-        const finalCode = (existingData && existingData.student_code) 
-            ? existingData.student_code 
-            : studentCode;
-        
-        // 🆕 Payload اصلی
-        const payload = {
+        // ۲. Payload کامل (همراه با ستون‌های custom)
+        const fullPayload = {
             student_id: studentId,
             name: userName,
             class_name: classNameToSlug(userClass),
@@ -165,35 +152,56 @@ async function saveRankingToSupabase() {
             avatar_url: String(avatarUrl),
             student_code: finalCode,
             last_update: new Date().toISOString(),
-            completed_lessons: realCompletedLessons
+            completed_lessons: realCompletedLessons,
+            // اینا ممکنه توی دیتابیس کاربر نباشن
+            custom_completed_lessons: 0,
+            custom_points_added: 0,
+            custom_total_points: 0
         };
         
-        // 🆕 مقادیر پیش‌فرض فقط در صورت نبود رکورد یا null بودن
-        if (!existingData) {
-            payload.custom_completed_lessons = 0;
-            payload.custom_points_added = 0;
-            payload.custom_total_points = 0;
-        } else {
-            if (existingData.custom_completed_lessons == null) {
-                payload.custom_completed_lessons = 0;
-            }
-            if (existingData.custom_points_added == null) {
-                payload.custom_points_added = 0;
-            }
-        }
+        console.log('📤 تلاش برای ذخیره امتیاز:', totalPoints, 'و تعداد تکالیف:', realCompletedLessons);
         
-        const { error } = await client
+        // ۳. تلاش اول: ارسال کل اطلاعات
+        let { error } = await client
             .from('rankings')
-            .upsert(payload, { onConflict: 'student_id' });
+            .upsert(fullPayload, { onConflict: 'student_id' });
         
+        // ۴. اگه خطا داد (مثلاً گفت ستون custom رو ندارم)، با Payload ساده تلاش میکنیم
         if (error) {
-            console.error('❌ خطا در ذخیره امتیاز:', error.message);
-            return false;
+            console.warn('⚠️ خطا در تلاش اول (احتمالا ستون های custom وجود ندارند):', error.message);
+            
+            // Payload بدون ستون‌های custom
+            const fallbackPayload = {
+                student_id: studentId,
+                name: userName,
+                class_name: classNameToSlug(userClass),
+                total_points: totalPoints,
+                avg_percent: avgPercent,
+                streak_days: streakDays,
+                avatar_url: String(avatarUrl),
+                student_code: finalCode,
+                last_update: new Date().toISOString(),
+                completed_lessons: realCompletedLessons
+            };
+            
+            const { error: fallbackError } = await client
+                .from('rankings')
+                .upsert(fallbackPayload, { onConflict: 'student_id' });
+            
+            if (fallbackError) {
+                console.error('❌ خطا در تلاش دوم (امتیاز ذخیره نشد):', fallbackError.message);
+                return false;
+            }
+            
+            console.log('✅ امتیاز در تلاش دوم (بدون ستون های custom) ذخیره شد');
+            return true;
         }
         
+        console.log('✅ امتیاز با موفقیت ذخیره شد');
         return true;
+        
     } catch (error) {
-        console.error('❌ خطا در saveRankingToSupabase:', error);
+        console.error('❌ خطای کلی در saveRankingToSupabase:', error);
         return false;
     }
 }
@@ -228,7 +236,10 @@ async function saveReportToSupabase(report, studentId) {
         const { data: existing } = await client
             .from('reports').select('id').eq('student_id', studentId).eq('lesson_id', report.lessonId).maybeSingle();
         
-        if (existing) return true;
+        if (existing) {
+            console.log('ℹ️ کارنامه قبلاً ثبت شده');
+            return true;
+        }
         
         const payload = {
             student_id: studentId,
@@ -245,7 +256,7 @@ async function saveReportToSupabase(report, studentId) {
         
         const { error } = await client.from('reports').insert(payload);
         if (error) {
-            if (error.code === '23505') return true; // کد خطای تکراری بودن
+            if (error.code === '23505') return true; 
             return false;
         }
         return true;
