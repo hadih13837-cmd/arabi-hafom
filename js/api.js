@@ -1,6 +1,6 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۲۱.۰.۰ — محاسبه امتیاز از Supabase (نه localStorage)
+// نسخه: ۲۲.۰.۰ — آپدیت خودکار completed_lessons
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
@@ -44,18 +44,18 @@ async function updateCompletedLessonsDelta(studentId, delta) {
         if (!client) return { success: false, error: 'no_client' };
         
         const { data: current } = await client
-            .from('rankings').select('completed_lessons').eq('student_id', studentId).maybeSingle();
+            .from('rankings').select('custom_completed_lessons').eq('student_id', studentId).maybeSingle();
         
         if (!current) return { success: false, error: 'not_found' };
         
-        const currentLessons = parseInt(current.completed_lessons) || 0;
-        const newLessons = currentLessons + delta;
+        const currentCustom = parseInt(current.custom_completed_lessons) || 0;
+        const newCustom = currentCustom + delta;
         
         const { error } = await client
-            .from('rankings').update({ completed_lessons: newLessons }).eq('student_id', studentId);
+            .from('rankings').update({ custom_completed_lessons: newCustom }).eq('student_id', studentId);
         
         if (error) return { success: false, error: error.message };
-        return { success: true, newValue: newLessons };
+        return { success: true, newValue: newCustom };
     } catch (error) {
         return { success: false, error: error.message };
     }
@@ -69,7 +69,7 @@ async function updateCompletedLessons(studentId, count) {
         const safeCount = parseInt(count) || 0;
         
         const { error } = await client
-            .from('rankings').update({ completed_lessons: safeCount }).eq('student_id', studentId);
+            .from('rankings').update({ custom_completed_lessons: safeCount }).eq('student_id', studentId);
         
         if (error) return { success: false, error: error.message };
         return { success: true };
@@ -80,11 +80,13 @@ async function updateCompletedLessons(studentId, count) {
 
 function calculateCompletedLessons(ranking) {
     if (!ranking) return 0;
-    return parseInt(ranking.completed_lessons) || 0;
+    const base = parseInt(ranking.completed_lessons) || 0;
+    const custom = parseInt(ranking.custom_completed_lessons) || 0;
+    return base + custom;
 }
 
 // ============================================================
-// 🆕 ذخیره/آپدیت امتیاز کاربر — از Supabase می‌خونه (نه localStorage)
+// 🆕 ذخیره/آپدیت امتیاز — با completed_lessons خودکار
 // ============================================================
 async function saveRankingToSupabase() {
     try {
@@ -128,9 +130,9 @@ async function saveRankingToSupabase() {
         const avgPercent = uniqueReports.length > 0
             ? Math.round(uniqueReports.reduce((sum, r) => sum + (r.percent || 0), 0) / uniqueReports.length)
             : 0;
-        const completedLessons = uniqueReports.length;
+        const realCompletedLessons = uniqueReports.length;  // 🆕 تعداد واقعی
         
-        // استریک از localStorage (چون توی Supabase نیست)
+        // استریک از localStorage
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         const streakDays = streakData.count || 0;
         
@@ -148,7 +150,7 @@ async function saveRankingToSupabase() {
         // چک کن آیا رکورد وجود داره
         const { data: existingData } = await client
             .from('rankings')
-            .select('student_code, completed_lessons, total_points, custom_points_added, custom_total_points')
+            .select('student_code, completed_lessons, custom_completed_lessons, total_points, custom_points_added, custom_total_points')
             .eq('student_id', studentId)
             .maybeSingle();
         
@@ -160,7 +162,7 @@ async function saveRankingToSupabase() {
             supabaseReportsCount: supabaseReports ? supabaseReports.length : 0,
             uniqueReportsCount: uniqueReports.length,
             totalPoints: totalPoints,
-            completedLessons: completedLessons
+            realCompletedLessons: realCompletedLessons
         });
         
         const payload = {
@@ -172,17 +174,19 @@ async function saveRankingToSupabase() {
             streak_days: streakDays,
             avatar_url: String(avatarUrl),
             student_code: finalCode,
-            last_update: new Date().toISOString()
+            last_update: new Date().toISOString(),
+            // 🆕 همیشه آپدیت بشه (نه فقط بار اول)
+            completed_lessons: realCompletedLessons
         };
         
-        // completed_lessons فقط اگه null یا undefined باشه ست میشه
+        // 🆕 custom_completed_lessons فقط اگه null باشه ست میشه
         if (!existingData) {
-            payload.completed_lessons = completedLessons;
+            payload.custom_completed_lessons = 0;
             payload.custom_points_added = 0;
             payload.custom_total_points = 0;
-        } else if (existingData.completed_lessons === null || 
-                   existingData.completed_lessons === undefined) {
-            payload.completed_lessons = completedLessons;
+        } else if (existingData.custom_completed_lessons === null || 
+                   existingData.custom_completed_lessons === undefined) {
+            payload.custom_completed_lessons = 0;
         }
         
         const { error } = await client
@@ -202,7 +206,11 @@ async function saveRankingToSupabase() {
             localStorage.setItem('studentCode', existingData.student_code);
         }
         
-        console.log('✅ امتیاز ذخیره شد:', totalPoints, '/', completedLessons, 'تکلیف');
+        console.log('✅ امتیاز ذخیره شد:', {
+            totalPoints: totalPoints,
+            completedLessons: realCompletedLessons,
+            customLessons: existingData?.custom_completed_lessons || 0
+        });
         return true;
         
     } catch (error) {
@@ -212,8 +220,9 @@ async function saveRankingToSupabase() {
 }
 
 // ============================================================
-// وضعیت تکالیف (مهلت‌ها)
+// بقیه توابع (بدون تغییر)
 // ============================================================
+
 async function getStudentLessonStatus(studentId) {
     try {
         const client = getSupabase();
@@ -238,9 +247,6 @@ async function getStudentLessonStatus(studentId) {
     }
 }
 
-// ============================================================
-// 🆕 کارنامه‌ها — با چک تکراری
-// ============================================================
 async function saveReportToSupabase(report, studentId) {
     try {
         const client = getSupabase();
@@ -249,7 +255,6 @@ async function saveReportToSupabase(report, studentId) {
             return false;
         }
         
-        // چک کن که این کارنامه قبلاً ثبت نشده باشه
         const { data: existing } = await client
             .from('reports')
             .select('id')
@@ -279,7 +284,6 @@ async function saveReportToSupabase(report, studentId) {
         
         const { error } = await client.from('reports').insert(payload);
         if (error) {
-            // اگه خطای Unique Constraint بود، نادیده بگیر
             if (error.code === '23505') {
                 console.log('ℹ️ کارنامه تکراری (Unique Constraint)');
                 return true;
@@ -310,9 +314,6 @@ async function getReportsFromSupabase(studentId) {
     }
 }
 
-// ============================================================
-// پیشرفت
-// ============================================================
 async function saveProgressToSupabase(progress, studentId) {
     try {
         const client = getSupabase();
@@ -391,9 +392,6 @@ async function clearProgressFromSupabase(studentId, lessonId) {
     }
 }
 
-// ============================================================
-// رتبه‌بندی
-// ============================================================
 async function getRankingsByClass(className) {
     try {
         const client = getSupabase();
@@ -403,8 +401,7 @@ async function getRankingsByClass(className) {
         const { data, error } = await client
             .from('rankings').select('*').eq('class_name', classSlug)
             .order('total_points', { ascending: false })
-            .order('avg_percent', { ascending: false })
-            .order('completed_lessons', { ascending: false });
+            .order('avg_percent', { ascending: false });
         
         if (error) return [];
         return data || [];
