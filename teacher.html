@@ -171,7 +171,6 @@
                     <input type="text" id="student-search" placeholder="جستجو (نام یا کد)..." oninput="filterStudents()">
                 </div>
                 
-                <!-- 🆕 دکمه‌های فیلتر کلاس -->
                 <div class="student-class-tabs" id="student-class-tabs">
                     <button class="class-tab active" data-class="all" onclick="filterStudentsByClass('all', this)">همه</button>
                     <button class="class-tab" data-class="hafom-1" onclick="filterStudentsByClass('hafom-1', this)">هفتم یک</button>
@@ -231,7 +230,6 @@
                 </button>
             </div>
 
-            <!-- تب ۱: پیام کلاسی -->
             <div class="messages-tab-content active" id="tab-class">
                 <div class="class-message-form-card">
                     <div class="class-message-form-title">📢 ارسال پیام جدید به کلاس</div>
@@ -279,7 +277,6 @@
                 </div>
             </div>
 
-            <!-- تب ۲: چت شخصی -->
             <div class="messages-tab-content" id="tab-personal">
                 <div class="messenger-wrapper" id="messenger-wrapper">
                     <div class="messenger-list" id="messenger-list">
@@ -338,10 +335,13 @@
                 </div>
             </div>
             
-            <!-- 🆕 دکمه تنظیم مهلت کلاسی -->
+            <!-- 🆕 دکمه‌های مدیریت -->
             <div class="lesson-toolbar">
                 <button class="lesson-toolbar-btn" onclick="openClassDueDateModal()">
                     ⚙️ تنظیم مهلت برای یک کلاس
+                </button>
+                <button class="lesson-toolbar-btn toggle-btn" onclick="openToggleLessonModal()">
+                    🔄 فعال/غیرفعال کردن تکلیف
                 </button>
             </div>
             
@@ -556,7 +556,7 @@
     <div class="toast-text" id="toast-text">پیام</div>
 </div>
 
-<!-- 🆕 مودال تنظیم مهلت کلاسی (برای همه) -->
+<!-- 🆕 مودال تنظیم مهلت کلاسی -->
 <div class="class-duedate-modal-overlay" id="class-duedate-modal">
     <div class="class-duedate-modal-box">
         <div class="class-duedate-header">
@@ -587,9 +587,7 @@
             
             <div class="class-duedate-field">
                 <label>۳. مهلت جدید را انتخاب کن:</label>
-                <div class="day-picker-grid class-day-picker" id="class-day-picker">
-                    <!-- دکمه‌ها با جاوااسکریپت پر می‌شن -->
-                </div>
+                <div class="day-picker-grid class-day-picker" id="class-day-picker"></div>
                 <div class="due-date-preview-box" style="margin-top: 12px;">
                     <div class="preview-label">📅 تاریخ مهلت جدید:</div>
                     <div class="preview-value" id="class-preview-date">---</div>
@@ -604,6 +602,59 @@
         <div class="class-duedate-footer">
             <button class="due-date-btn due-date-btn-cancel" onclick="closeClassDueDateModal()">انصراف</button>
             <button class="due-date-btn due-date-btn-save" onclick="saveClassDueDate()">✅ ذخیره برای کلاس</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🆕 مودال فعال/غیرفعال کردن تکلیف -->
+<div class="toggle-lesson-modal-overlay" id="toggle-lesson-modal">
+    <div class="toggle-lesson-modal-box">
+        <div class="toggle-lesson-header">
+            <div class="toggle-lesson-icon">🔄</div>
+            <div class="toggle-lesson-title">فعال/غیرفعال کردن تکلیف</div>
+            <div class="toggle-lesson-subtitle">تکلیف رو برای یک کلاس فعال یا غیرفعال کن</div>
+        </div>
+        
+        <div class="toggle-lesson-body">
+            <div class="toggle-lesson-field">
+                <label>۱. تکلیف مورد نظر:</label>
+                <select id="toggle-lesson-select" class="toggle-lesson-select">
+                    <option value="">--- انتخاب تکلیف ---</option>
+                </select>
+            </div>
+            
+            <div class="toggle-lesson-field">
+                <label>۲. کلاس مورد نظر:</label>
+                <select id="toggle-class-select" class="toggle-lesson-select">
+                    <option value="all">همه کلاس‌ها</option>
+                    <option value="hafom-1">هفتم یک</option>
+                    <option value="hafom-2">هفتم دو</option>
+                    <option value="hafom-3">هفتم سه</option>
+                    <option value="hafom-4">هفتم چهار</option>
+                    <option value="hafom-5">هفتم پنج</option>
+                </select>
+            </div>
+            
+            <div class="toggle-lesson-field">
+                <label>۳. وضعیت:</label>
+                <div class="toggle-lesson-switches">
+                    <button class="toggle-status-btn active-btn" id="toggle-active-btn" onclick="setToggleStatus(true)">
+                        🟢 فعال
+                    </button>
+                    <button class="toggle-status-btn inactive-btn" id="toggle-inactive-btn" onclick="setToggleStatus(false)">
+                        🔴 غیرفعال
+                    </button>
+                </div>
+            </div>
+            
+            <div class="toggle-lesson-warning">
+                ⚠️ اگه تکلیف رو غیرفعال کنی، دانش‌آموزان کلاس انتخاب‌شده نمی‌تونن انجامش بدن.
+            </div>
+        </div>
+        
+        <div class="toggle-lesson-footer">
+            <button class="due-date-btn due-date-btn-cancel" onclick="closeToggleLessonModal()">انصراف</button>
+            <button class="due-date-btn due-date-btn-save" onclick="saveToggleLesson()">✅ اعمال</button>
         </div>
     </div>
 </div>
