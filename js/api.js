@@ -1,81 +1,47 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۲۵.۰.۰ — اضافه شدن توابع مهلت کلاسی و وضعیت تکلیف
+// نسخه: ۲۶.۰.۰ — رفع کامل خطای مهلت شخصی و کلاسی
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
 const API_URL = TEACHER_API_URL;
 
-// ============================================================
-// تغییر کد ورود دانش‌آموز
-// ============================================================
 async function updateStudentCode(studentId, newCode) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
-        
-        const { data: existing, error: checkError } = await client
-            .from('rankings').select('student_id').eq('student_code', newCode).maybeSingle();
-        
-        if (checkError && checkError.code !== 'PGRST116') {
-            return { success: false, error: checkError.message };
-        }
-        
-        if (existing && existing.student_id !== studentId) {
-            return { success: false, error: 'code_taken' };
-        }
-        
-        const { error } = await client
-            .from('rankings').update({ student_code: newCode }).eq('student_id', studentId);
-        
+        const { data: existing, error: checkError } = await client.from('rankings').select('student_id').eq('student_code', newCode).maybeSingle();
+        if (checkError && checkError.code !== 'PGRST116') return { success: false, error: checkError.message };
+        if (existing && existing.student_id !== studentId) return { success: false, error: 'code_taken' };
+        const { error } = await client.from('rankings').update({ student_code: newCode }).eq('student_id', studentId);
         if (error) return { success: false, error: error.message };
         return { success: true };
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
+    } catch (error) { return { success: false, error: error.message }; }
 }
 
-// ============================================================
-// تغییر تعداد تکالیف انجام‌شده (توسط معلم)
-// ============================================================
 async function updateCompletedLessonsDelta(studentId, delta) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
-        
-        const { data: current } = await client
-            .from('rankings').select('custom_completed_lessons').eq('student_id', studentId).maybeSingle();
-        
+        const { data: current } = await client.from('rankings').select('custom_completed_lessons').eq('student_id', studentId).maybeSingle();
         if (!current) return { success: false, error: 'not_found' };
-        
         const currentCustom = parseInt(current.custom_completed_lessons) || 0;
         const newCustom = currentCustom + delta;
-        
-        const { error } = await client
-            .from('rankings').update({ custom_completed_lessons: newCustom }).eq('student_id', studentId);
-        
+        const { error } = await client.from('rankings').update({ custom_completed_lessons: newCustom }).eq('student_id', studentId);
         if (error) return { success: false, error: error.message };
         return { success: true, newValue: newCustom };
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
+    } catch (error) { return { success: false, error: error.message }; }
 }
 
 async function updateCompletedLessons(studentId, count) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
-        
         const safeCount = parseInt(count) || 0;
-        
-        const { error } = await client
-            .from('rankings').update({ custom_completed_lessons: safeCount }).eq('student_id', studentId);
-        
+        const { error } = await client.from('rankings').update({ custom_completed_lessons: safeCount }).eq('student_id', studentId);
         if (error) return { success: false, error: error.message };
         return { success: true };
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
+    } catch (error) { return { success: false, error: error.message }; }
 }
 
 function calculateCompletedLessons(ranking) {
@@ -85,29 +51,21 @@ function calculateCompletedLessons(ranking) {
     return base + custom;
 }
 
-// ============================================================
-// ذخیره/آپدیت امتیاز و رتبه‌بندی
-// ============================================================
 async function saveRankingToSupabase() {
     try {
         const client = getSupabase();
         if (!client) return false;
-        
         let studentId = localStorage.getItem('studentUUID');
         if (!studentId) {
             const studentCode = localStorage.getItem('studentCode');
             if (studentCode && typeof generateUUIDFromCode === 'function') {
                 studentId = await generateUUIDFromCode(studentCode);
                 localStorage.setItem('studentUUID', studentId);
-            } else {
-                return false;
-            }
+            } else { return false; }
         }
-        
         const userName = localStorage.getItem('userName');
         const userClass = localStorage.getItem('userClass');
         const studentCode = localStorage.getItem('studentCode') || null;
-        
         if (!userName || !userClass) return false;
         
         const supabaseReports = await getReportsFromSupabase(studentId);
@@ -119,41 +77,26 @@ async function saveRankingToSupabase() {
             }
         });
         const uniqueReports = Object.values(uniqueMap);
-        
         const totalPoints = uniqueReports.reduce((sum, r) => sum + (r.score || 0), 0);
-        const avgPercent = uniqueReports.length > 0
-            ? Math.round(uniqueReports.reduce((sum, r) => sum + (r.percent || 0), 0) / uniqueReports.length)
-            : 0;
+        const avgPercent = uniqueReports.length > 0 ? Math.round(uniqueReports.reduce((sum, r) => sum + (r.percent || 0), 0) / uniqueReports.length) : 0;
         const realCompletedLessons = uniqueReports.length;
-        
         const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
         const streakDays = streakData.count || 0;
-        
         let avatarUrl = 'default';
         const avatarImg = localStorage.getItem('userAvatar');
         const avatarEmoji = localStorage.getItem('userAvatarEmoji');
         if (avatarImg) avatarUrl = avatarImg.length > 100000 ? 'emoji:👤' : avatarImg;
         else if (avatarEmoji) avatarUrl = 'emoji:' + avatarEmoji;
         
-        const { data: existingData } = await client
-            .from('rankings').select('student_code, custom_completed_lessons, custom_points_added')
-            .eq('student_id', studentId).maybeSingle();
-        
+        const { data: existingData } = await client.from('rankings').select('student_code, custom_completed_lessons, custom_points_added').eq('student_id', studentId).maybeSingle();
         const finalCode = (existingData && existingData.student_code) ? existingData.student_code : studentCode;
         
         const payload = {
-            student_id: studentId,
-            name: userName,
-            class_name: classNameToSlug(userClass),
-            total_points: totalPoints,
-            avg_percent: avgPercent,
-            streak_days: streakDays,
-            avatar_url: String(avatarUrl),
-            student_code: finalCode,
-            last_update: new Date().toISOString(),
-            completed_lessons: realCompletedLessons
+            student_id: studentId, name: userName, class_name: classNameToSlug(userClass),
+            total_points: totalPoints, avg_percent: avgPercent, streak_days: streakDays,
+            avatar_url: String(avatarUrl), student_code: finalCode,
+            last_update: new Date().toISOString(), completed_lessons: realCompletedLessons
         };
-        
         if (!existingData) {
             payload.custom_completed_lessons = 0;
             payload.custom_points_added = 0;
@@ -162,19 +105,12 @@ async function saveRankingToSupabase() {
             if (existingData.custom_completed_lessons == null) payload.custom_completed_lessons = 0;
             if (existingData.custom_points_added == null) payload.custom_points_added = 0;
         }
-        
         const { error } = await client.from('rankings').upsert(payload, { onConflict: 'student_id' });
         if (error) { console.error('❌ خطا در ذخیره امتیاز:', error.message); return false; }
         return true;
-    } catch (error) {
-        console.error('❌ خطا در saveRankingToSupabase:', error);
-        return false;
-    }
+    } catch (error) { console.error(error); return false; }
 }
 
-// ============================================================
-// وضعیت تکالیف (مهلت‌ها و فعال/غیرفعال)
-// ============================================================
 async function getStudentLessonStatus(studentId) {
     try {
         const client = getSupabase();
@@ -183,42 +119,25 @@ async function getStudentLessonStatus(studentId) {
         if (error) return {};
         const statusMap = {};
         (data || []).forEach(item => {
-            statusMap[item.lesson_id] = {
-                is_enabled: item.is_enabled !== false,
-                custom_due_date: item.custom_due_date || null,
-                custom_points: item.custom_points || 0
-            };
+            statusMap[item.lesson_id] = { is_enabled: item.is_enabled !== false, custom_due_date: item.custom_due_date || null, custom_points: item.custom_points || 0 };
         });
         return statusMap;
     } catch (error) { return {}; }
 }
 
-// ============================================================
-// 🆕 تنظیم مهلت برای کل یک کلاس (یا همه کلاس‌ها)
-// ============================================================
+// 🆕 تنظیم مهلت برای کل یک کلاس
 async function setClassDueDate(lessonId, className, newDate) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
-        
         console.log('📤 setClassDueDate:', { lessonId, className, newDate });
         
-        // ۱. حذف رکوردهای قبلی برای این تکلیف و این کلاس
         if (className === 'all') {
-            const { error: delError } = await client.from('lesson_status')
-                .delete()
-                .eq('lesson_id', lessonId)
-                .not('class_name', 'is', null);
-            if (delError) console.warn('هشدار در حذف:', delError.message);
+            await client.from('lesson_status').delete().eq('lesson_id', lessonId).not('class_name', 'is', null);
         } else {
-            const { error: delError } = await client.from('lesson_status')
-                .delete()
-                .eq('lesson_id', lessonId)
-                .eq('class_name', className);
-            if (delError) console.warn('هشدار در حذف:', delError.message);
+            await client.from('lesson_status').delete().eq('lesson_id', lessonId).eq('class_name', className);
         }
         
-        // ۲. درج رکورد جدید
         const { error } = await client.from('lesson_status').insert({
             student_id: null,
             lesson_id: lessonId,
@@ -227,44 +146,24 @@ async function setClassDueDate(lessonId, className, newDate) {
             custom_points: 0,
             custom_due_date: newDate
         });
-        
-        if (error) {
-            console.error('❌ خطا در درج مهلت کلاسی:', error.message);
-            return { success: false, error: error.message };
-        }
-        
-        console.log('✅ مهلت کلاسی ذخیره شد');
+        if (error) { console.error('❌ خطا:', error.message); return { success: false, error: error.message }; }
         return { success: true };
-    } catch (error) {
-        console.error('❌ خطا در setClassDueDate:', error);
-        return { success: false, error: error.message };
-    }
+    } catch (error) { return { success: false, error: error.message }; }
 }
 
-// ============================================================
 // 🆕 تنظیم وضعیت فعال/غیرفعال برای کل کلاس
-// ============================================================
 async function setClassLessonStatus(lessonId, className, isEnabled) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
-        
         console.log('📤 setClassLessonStatus:', { lessonId, className, isEnabled });
         
-        // ۱. حذف وضعیت قبلی
         if (className === 'all') {
-            await client.from('lesson_status')
-                .delete()
-                .eq('lesson_id', lessonId)
-                .not('class_name', 'is', null);
+            await client.from('lesson_status').delete().eq('lesson_id', lessonId).not('class_name', 'is', null);
         } else {
-            await client.from('lesson_status')
-                .delete()
-                .eq('lesson_id', lessonId)
-                .eq('class_name', className);
+            await client.from('lesson_status').delete().eq('lesson_id', lessonId).eq('class_name', className);
         }
         
-        // ۲. درج وضعیت جدید
         const { error } = await client.from('lesson_status').insert({
             student_id: null,
             lesson_id: lessonId,
@@ -273,51 +172,65 @@ async function setClassLessonStatus(lessonId, className, isEnabled) {
             custom_points: 0,
             custom_due_date: null
         });
-        
-        if (error) {
-            console.error('❌ خطا در درج وضعیت کلاسی:', error.message);
-            return { success: false, error: error.message };
-        }
-        
-        console.log('✅ وضعیت کلاسی ذخیره شد');
+        if (error) { console.error('❌ خطا:', error.message); return { success: false, error: error.message }; }
         return { success: true };
-    } catch (error) {
-        console.error('❌ خطا در setClassLessonStatus:', error);
-        return { success: false, error: error.message };
-    }
+    } catch (error) { return { success: false, error: error.message }; }
 }
 
-// ============================================================
-// کارنامه‌ها
-// ============================================================
+// 🆕 تنظیم مهلت برای یک دانش‌آموز (شخصی)
+async function updateStudentDueDate(studentId, lessonId, newDate) {
+    try {
+        const client = getSupabase();
+        if (!client) return { success: false, error: 'no_client' };
+        console.log('📤 updateStudentDueDate:', { studentId, lessonId, newDate });
+        
+        const { data: existing } = await client.from('lesson_status').select('id').eq('student_id', studentId).eq('lesson_id', lessonId).maybeSingle();
+        
+        if (existing) {
+            const { error } = await client.from('lesson_status').update({ custom_due_date: newDate, is_enabled: true }).eq('id', existing.id);
+            if (error) { console.error('❌ خطا:', error.message); return { success: false, error: error.message }; }
+        } else {
+            const { error } = await client.from('lesson_status').insert({
+                student_id: studentId,
+                lesson_id: lessonId,
+                is_enabled: true,
+                custom_points: 0,
+                custom_due_date: newDate
+            });
+            if (error) { console.error('❌ خطا:', error.message); return { success: false, error: error.message }; }
+        }
+        return { success: true };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
+// 🆕 حذف مهلت سفارشی یک دانش‌آموز
+async function removeStudentCustomDueDate(studentId, lessonId) {
+    try {
+        const client = getSupabase();
+        if (!client) return { success: false, error: 'no_client' };
+        const { data: existing } = await client.from('lesson_status').select('id').eq('student_id', studentId).eq('lesson_id', lessonId).maybeSingle();
+        if (existing) {
+            const { error } = await client.from('lesson_status').update({ custom_due_date: null }).eq('id', existing.id);
+            if (error) return { success: false, error: error.message };
+        }
+        return { success: true };
+    } catch (error) { return { success: false, error: error.message }; }
+}
+
 async function saveReportToSupabase(report, studentId) {
     try {
         const client = getSupabase();
         if (!client) return false;
-        
-        const { data: existing } = await client
-            .from('reports').select('id').eq('student_id', studentId).eq('lesson_id', report.lessonId).maybeSingle();
-        
-        if (existing) { return true; }
-        
+        const { data: existing } = await client.from('reports').select('id').eq('student_id', studentId).eq('lesson_id', report.lessonId).maybeSingle();
+        if (existing) return true;
         const payload = {
-            student_id: studentId,
-            lesson_id: report.lessonId,
-            lesson_title: report.lessonTitle,
-            percent: report.percent || 0,
-            score: report.score || 0,
-            total_points: report.totalPoints || 0,
-            correct: report.correct || 0,
-            wrong: report.wrong || 0,
-            time_taken: report.timeTaken || 0,
+            student_id: studentId, lesson_id: report.lessonId, lesson_title: report.lessonTitle,
+            percent: report.percent || 0, score: report.score || 0, total_points: report.totalPoints || 0,
+            correct: report.correct || 0, wrong: report.wrong || 0, time_taken: report.timeTaken || 0,
             created_at: report.timestamp || new Date().toISOString()
         };
-        
         const { error } = await client.from('reports').insert(payload);
-        if (error) {
-            if (error.code === '23505') return true;
-            return false;
-        }
+        if (error) { if (error.code === '23505') return true; return false; }
         return true;
     } catch (error) { return false; }
 }
@@ -332,9 +245,6 @@ async function getReportsFromSupabase(studentId) {
     } catch (error) { return []; }
 }
 
-// ============================================================
-// پیشرفت
-// ============================================================
 async function saveProgressToSupabase(progress, studentId) {
     try {
         const client = getSupabase();
@@ -381,9 +291,6 @@ async function clearProgressFromSupabase(studentId, lessonId) {
     } catch (error) { return false; }
 }
 
-// ============================================================
-// رتبه‌بندی
-// ============================================================
 async function getRankingsByClass(className) {
     try {
         const client = getSupabase();
@@ -417,9 +324,6 @@ async function getMyRank() {
     } catch (error) { return null; }
 }
 
-// ============================================================
-// پیام‌ها
-// ============================================================
 async function sendClassMessageToSupabase(data) {
     try {
         const client = getSupabase();
@@ -520,9 +424,6 @@ async function markAllMessagesAsSeenSupabase(studentId, reader) {
     } catch (error) { return { success: false }; }
 }
 
-// ============================================================
-// رویدادها، مسابقات، کتابخانه
-// ============================================================
 async function addEventToSupabase(data) {
     try {
         const client = getSupabase();
@@ -583,9 +484,6 @@ async function getLibraryFromSupabase() {
     } catch (error) { return []; }
 }
 
-// ============================================================
-// seen_data
-// ============================================================
 async function recoverSeenDataFromSupabase(studentId) {
     try {
         const client = getSupabase();
@@ -634,9 +532,6 @@ async function saveSeenDataToSupabase() {
     } catch (error) { return false; }
 }
 
-// ============================================================
-// Realtime
-// ============================================================
 let personalRealtimeChannel = null;
 let classRealtimeChannel = null;
 let conversationsRealtimeChannel = null;
