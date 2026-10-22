@@ -10684,3 +10684,1504 @@ body.dark-mode .quiz-exit-btn svg {
 body.dark-mode .quiz-exit-btn:active {
     background: linear-gradient(135deg, #4a1a1a, #5a2020);
 }
+/* ============================================================
+   🆕 drag-gender (کشیدن کلمات به کادر مذکر/مؤنث)
+   ============================================================ */
+.gender-words-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 18px;
+    margin: 16px 0;
+    min-height: 70px;
+    direction: rtl;
+}
+
+.gender-word-item {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    border: 2.5px solid #90caf9;
+    padding: 12px 22px;
+    border-radius: 14px;
+    font-size: 20px;
+    font-weight: 900;
+    color: #1565c0;
+    cursor: grab;
+    transition: all 0.2s ease;
+    user-select: none;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.12);
+}
+
+.gender-word-item:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+}
+
+.gender-word-item.selected-for-move {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    border-color: #ff9800;
+    transform: scale(1.05);
+    box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.3);
+}
+
+.gender-word-item.placed {
+    display: none;
+}
+
+.gender-boxes-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.gender-box {
+    border-radius: 20px;
+    padding: 16px 12px;
+    min-height: 200px;
+    transition: all 0.3s ease;
+}
+
+.male-box {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border: 3px dashed #ff9800;
+}
+
+.female-box {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    border: 3px dashed #9c27b0;
+}
+
+.gender-box-title {
+    font-size: 16px;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+.male-box .gender-box-title { color: #e65100; }
+.female-box .gender-box-title { color: #6a1b9a; }
+
+.gender-box-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.gender-word-placed {
+    background: #fff;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 16px;
+    font-weight: 900;
+    text-align: center;
+    animation: genderPlacedPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.male-box .gender-word-placed {
+    color: #e65100;
+    border: 2px solid #ff9800;
+}
+
+.female-box .gender-word-placed {
+    color: #6a1b9a;
+    border: 2px solid #9c27b0;
+}
+
+@keyframes genderPlacedPop {
+    0% { transform: scale(0.3); opacity: 0; }
+    60% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ============================================================
+   🆕 fill-multiple (پر کردن چند جای خالی)
+   ============================================================ */
+.fill-multiple-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.fill-multiple-row {
+    background: #fff;
+    border: 2px solid #e3f2fd;
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.08);
+}
+
+.fill-multiple-sentence {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    direction: rtl;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.fill-multiple-blank {
+    display: inline-block;
+    min-width: 90px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    border: 2px dashed #ff9800;
+    border-radius: 10px;
+    color: #e65100;
+    font-weight: 900;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    font-size: 16px;
+}
+
+.fill-multiple-blank.filled {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border: 2px solid #4caf50;
+    border-style: solid;
+    color: #2e7d32;
+}
+
+.fill-multiple-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 16px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 18px;
+}
+
+.fill-multiple-option {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    border: 2.5px solid #90caf9;
+    padding: 10px 24px;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 900;
+    color: #1565c0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.fill-multiple-option:active {
+    transform: scale(0.95);
+}
+
+.fill-multiple-option:hover:not(.used) {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
+}
+
+.fill-multiple-option.used {
+    opacity: 0.3;
+    pointer-events: none;
+    filter: grayscale(1);
+}
+
+/* ============================================================
+   🆕 truefalse-custom (بله/نه)
+   ============================================================ */
+.truefalse-custom-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.tf-custom-btn {
+    flex: 1;
+    max-width: 200px;
+    padding: 24px 20px;
+    border: 3px solid;
+    border-radius: 20px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+}
+
+.tf-custom-btn:active {
+    transform: scale(0.95);
+}
+
+.tf-custom-btn.tf-yes {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+.tf-custom-btn.tf-yes:hover {
+    background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.tf-custom-btn.tf-no {
+    background: linear-gradient(135deg, #ffebee, #ffcdd2);
+    border-color: #f44336;
+    color: #c62828;
+}
+
+.tf-custom-btn.tf-no:hover {
+    background: linear-gradient(135deg, #ffcdd2, #ef9a9a);
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+.tf-custom-btn.selected {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1), 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* حالت شب برای سوالات جدید */
+body.dark-mode .gender-words-pool,
+body.dark-mode .fill-multiple-options {
+    background: rgba(15, 20, 25, 0.7);
+}
+
+body.dark-mode .gender-word-item,
+body.dark-mode .fill-multiple-option {
+    background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%);
+    border-color: #2a3444;
+    color: #90caf9;
+}
+
+body.dark-mode .fill-multiple-row {
+    background: #1a2332;
+    border-color: #2a3444;
+}
+
+body.dark-mode .fill-multiple-sentence {
+    color: #e0e0e0;
+}
+
+body.dark-mode .gender-box.male-box {
+    background: linear-gradient(135deg, #3a2a0a 0%, #4a3a1a 100%);
+    border-color: #ff9800;
+}
+
+body.dark-mode .gender-box.female-box {
+    background: linear-gradient(135deg, #2a1a2a 0%, #3a1a3a 100%);
+    border-color: #9c27b0;
+}
+
+body.dark-mode .gender-word-placed {
+    background: #0f1419;
+}
+
+/* ریسپانسیو */
+@media (max-width: 500px) {
+    .gender-boxes-container {
+        grid-template-columns: 1fr;
+    }
+    .gender-box {
+        min-height: 120px;
+    }
+    .gender-word-item {
+        font-size: 17px;
+        padding: 10px 16px;
+    }
+    .fill-multiple-sentence {
+        font-size: 15px;
+    }
+    .fill-multiple-blank {
+        min-width: 70px;
+        font-size: 14px;
+    }
+    .fill-multiple-option {
+        font-size: 16px;
+        padding: 8px 18px;
+    }
+    .tf-custom-btn {
+        font-size: 18px;
+        padding: 18px 15px;
+    }
+}
+/* ============================================================
+   🆕 drag-into-blank (کشیدن کلمه به جای خالی)
+   ============================================================ */
+
+/* کادر کلماتی که باید کشیده بشن */
+.dib-options-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid #e3f2fd;
+    border-radius: 18px;
+    margin: 20px 0;
+    min-height: 70px;
+    direction: rtl;
+}
+
+.dib-option-item {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    border: 2.5px solid #90caf9;
+    padding: 12px 26px;
+    border-radius: 14px;
+    font-size: 20px;
+    font-weight: 900;
+    color: #1565c0;
+    cursor: grab;
+    transition: all 0.2s ease;
+    user-select: none;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.12);
+}
+
+.dib-option-item:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+}
+
+.dib-option-item.selected-for-move {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border-color: #1976d2;
+    transform: scale(1.08);
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.3);
+}
+
+.dib-option-item:hover:not(.used) {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(25, 118, 210, 0.25);
+}
+
+.dib-option-item.used {
+    opacity: 0.3;
+    pointer-events: none;
+    filter: grayscale(1);
+}
+
+/* کادر جمله‌های دارای جای خالی */
+.dib-sentences-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 20px;
+}
+
+.dib-sentence-row {
+    background: #fff;
+    border: 2px solid #e3f2fd;
+    border-radius: 16px;
+    padding: 18px 22px;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.08);
+    transition: all 0.25s ease;
+}
+
+.dib-sentence-row:hover {
+    border-color: #90caf9;
+}
+
+.dib-sentence-text {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    direction: rtl;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    line-height: 1.8;
+}
+
+.dib-blank {
+    display: inline-block;
+    min-width: 100px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    border: 2.5px dashed #ff9800;
+    border-radius: 12px;
+    color: #e65100;
+    font-weight: 900;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-size: 18px;
+    vertical-align: middle;
+}
+
+.dib-blank:hover {
+    border-color: #f57c00;
+    background: linear-gradient(135deg, #ffecb3, #ffe082);
+    transform: scale(1.03);
+}
+
+.dib-blank.filled {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border: 2.5px solid #4caf50;
+    border-style: solid;
+    color: #2e7d32;
+    animation: dibBlankFill 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dibBlankFill {
+    0% { transform: scale(0.5); opacity: 0.5; }
+    60% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* حالت شب */
+body.dark-mode .dib-options-pool {
+    background: rgba(15, 20, 25, 0.7);
+    border-color: #2a3444;
+}
+
+body.dark-mode .dib-option-item {
+    background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%);
+    border-color: #2a3444;
+    color: #90caf9;
+}
+
+body.dark-mode .dib-option-item.selected-for-move {
+    background: linear-gradient(135deg, #0d47a1, #1565c0);
+    border-color: #90caf9;
+}
+
+body.dark-mode .dib-sentence-row {
+    background: #1a2332;
+    border-color: #2a3444;
+}
+
+body.dark-mode .dib-sentence-text {
+    color: #e0e0e0;
+}
+
+body.dark-mode .dib-blank {
+    background: linear-gradient(135deg, #3a2a0a, #4a3a1a);
+    border-color: #ff9800;
+    color: #ffcc80;
+}
+
+body.dark-mode .dib-blank.filled {
+    background: linear-gradient(135deg, #1a3a1a, #1e4a1e);
+    border-color: #4caf50;
+    color: #a5d6a7;
+}
+
+/* ریسپانسیو */
+@media (max-width: 500px) {
+    .dib-option-item {
+        font-size: 17px;
+        padding: 10px 18px;
+    }
+    .dib-sentence-text {
+        font-size: 17px;
+    }
+    .dib-blank {
+        min-width: 80px;
+        font-size: 16px;
+        padding: 6px 12px;
+    }
+    .dib-sentence-row {
+        padding: 14px 16px;
+    }
+}
+/* ============================================================
+   🆕 دکمه‌های فوتر تکلیف (بررسی + رد کردن)
+   ============================================================ */
+.quiz-footer {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    padding: 10px 20px 20px 20px;
+    background: transparent;
+}
+
+.btn-skip {
+    flex: 0 0 auto;
+    min-width: 130px;
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    color: #e65100;
+    border: 2px solid #ff9800;
+    padding: 0 18px;
+    height: 54px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: 'Vazirmatn', sans-serif;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 10px rgba(255, 152, 0, 0.2);
+}
+
+.btn-skip:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 6px rgba(255, 152, 0, 0.3);
+}
+
+.btn-skip:hover {
+    background: linear-gradient(135deg, #ffe0b2, #ffcc80);
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.35);
+}
+
+.btn-skip svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.btn-next {
+    flex: 1;
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+    padding: 0 30px;
+    height: 54px;
+    border-radius: 50px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Vazirmatn', sans-serif;
+    transition: transform 0.15s ease;
+}
+
+.btn-next:active {
+    transform: scale(0.98);
+}
+
+.btn-next:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* حالت شب */
+body.dark-mode .btn-skip {
+    background: linear-gradient(135deg, #3a2a0a, #4a3a1a);
+    border-color: #ff9800;
+    color: #ffcc80;
+}
+
+body.dark-mode .btn-skip:hover {
+    background: linear-gradient(135deg, #4a3a1a, #5a4a2a);
+}
+
+/* ریسپانسیو */
+@media (max-width: 500px) {
+    .btn-skip {
+        min-width: 110px;
+        padding: 0 12px;
+        font-size: 13px;
+        height: 50px;
+    }
+    .btn-skip svg {
+        width: 16px;
+        height: 16px;
+    }
+    .btn-next {
+        height: 50px;
+        font-size: 15px;
+        padding: 0 20px;
+    }
+    .quiz-footer {
+        gap: 8px;
+        padding: 10px 15px 15px 15px;
+    }
+}
+
+@media (max-width: 380px) {
+    .btn-skip {
+        min-width: 90px;
+        font-size: 12px;
+        padding: 0 10px;
+    }
+    .btn-skip span {
+        display: none;
+    }
+    .btn-skip {
+        width: 50px;
+        min-width: 50px;
+        padding: 0;
+    }
+    .btn-skip svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+/* ============================================================
+   🆕 مودال گرافیکی رد کردن سوال
+   ============================================================ */
+.skip-modal-box {
+    background: #fff;
+    border-radius: 24px;
+    padding: 30px 25px 25px 25px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    animation: skipModalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes skipModalPop {
+    0% { transform: scale(0.8) translateY(20px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.skip-modal-icon-wrapper {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px auto;
+    border: 4px solid #fff;
+    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+    animation: skipIconPulse 2s ease-in-out infinite;
+}
+
+@keyframes skipIconPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 8px 35px rgba(255, 152, 0, 0.6); }
+}
+
+.skip-modal-icon-wrapper svg {
+    width: 44px;
+    height: 44px;
+    stroke: #f57c00;
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.skip-modal-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #e65100;
+    margin-bottom: 12px;
+}
+
+.skip-modal-text {
+    font-size: 14px;
+    color: #607d8b;
+    font-weight: bold;
+    line-height: 1.8;
+    margin-bottom: 22px;
+}
+
+.skip-modal-text strong {
+    color: #c62828;
+    font-weight: 900;
+}
+
+.skip-modal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.skip-modal-btn-cancel {
+    background: #f5f5f5;
+    color: #546e7a;
+    border: 2px solid #e0e0e0;
+    padding: 14px 20px;
+    border-radius: 50px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.skip-modal-btn-cancel:active {
+    transform: scale(0.97);
+    background: #eeeeee;
+}
+
+.skip-modal-btn-confirm {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: #fff;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 50px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(245, 124, 0, 0.4);
+    transition: all 0.2s ease;
+}
+
+.skip-modal-btn-confirm:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(245, 124, 0, 0.6);
+}
+
+/* ============================================================
+   🆕 بهینه‌سازی سوالات برای عدم نیاز به اسکرول
+   ============================================================ */
+
+/* کاهش padding اضافی توی صفحه کوییز */
+#screen-quiz {
+    padding: 0 !important;
+}
+
+.quiz-header-area {
+    padding: 10px 15px 8px 15px !important;
+    margin-top: 0 !important;
+}
+
+.quiz-scroll-area {
+    padding: 8px 15px !important;
+    overflow-y: auto;
+}
+
+.quiz-footer {
+    padding: 8px 15px 12px 15px !important;
+}
+
+/* کاهش فاصله سوالات */
+.question-text {
+    margin-bottom: 10px !important;
+    padding: 10px 14px !important;
+    font-size: 16px !important;
+}
+
+/* بهینه‌سازی drag-gender برای جا شدن در صفحه */
+#screen-quiz .gender-words-pool {
+    padding: 10px !important;
+    gap: 8px !important;
+    margin: 8px 0 !important;
+    min-height: 50px !important;
+}
+
+#screen-quiz .gender-word-item {
+    padding: 8px 14px !important;
+    font-size: 15px !important;
+    border-width: 2px !important;
+}
+
+#screen-quiz .gender-boxes-container {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+}
+
+#screen-quiz .gender-box {
+    padding: 10px 6px !important;
+    min-height: 140px !important;
+    border-width: 2px !important;
+}
+
+#screen-quiz .gender-box-title {
+    font-size: 13px !important;
+    margin-bottom: 6px !important;
+    padding-bottom: 6px !important;
+}
+
+#screen-quiz .gender-box-items {
+    gap: 4px !important;
+}
+
+#screen-quiz .gender-word-placed {
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+    border-width: 1.5px !important;
+}
+
+/* بهینه‌سازی drag-into-blank */
+#screen-quiz .dib-options-pool {
+    padding: 10px !important;
+    gap: 8px !important;
+    margin: 8px 0 !important;
+    min-height: 50px !important;
+}
+
+#screen-quiz .dib-option-item {
+    padding: 8px 18px !important;
+    font-size: 16px !important;
+    border-width: 2px !important;
+}
+
+#screen-quiz .dib-sentences-container {
+    gap: 8px !important;
+    margin-top: 8px !important;
+}
+
+#screen-quiz .dib-sentence-row {
+    padding: 10px 14px !important;
+    border-width: 1.5px !important;
+}
+
+#screen-quiz .dib-sentence-text {
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+}
+
+#screen-quiz .dib-blank {
+    min-width: 80px !important;
+    padding: 5px 12px !important;
+    font-size: 15px !important;
+    border-width: 2px !important;
+}
+
+/* بهینه‌سازی fill-multiple */
+#screen-quiz .fill-multiple-row {
+    padding: 10px 14px !important;
+    border-width: 1.5px !important;
+}
+
+#screen-quiz .fill-multiple-sentence {
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+}
+
+#screen-quiz .fill-multiple-blank {
+    min-width: 70px !important;
+    padding: 4px 10px !important;
+    font-size: 14px !important;
+}
+
+#screen-quiz .fill-multiple-options {
+    padding: 10px !important;
+    gap: 6px !important;
+    margin-top: 8px !important;
+}
+
+#screen-quiz .fill-multiple-option {
+    padding: 7px 16px !important;
+    font-size: 15px !important;
+}
+
+/* بهینه‌سازی truefalse-custom */
+#screen-quiz .truefalse-custom-container {
+    margin: 15px 0 !important;
+    gap: 12px !important;
+}
+
+#screen-quiz .tf-custom-btn {
+    padding: 16px 15px !important;
+    font-size: 17px !important;
+}
+
+/* بهینه‌سازی گزینه‌ها */
+#screen-quiz .options-grid {
+    gap: 8px !important;
+}
+
+#screen-quiz .option-btn {
+    padding: 12px !important;
+    font-size: 15px !important;
+}
+
+/* بهینه‌سازی matching */
+#screen-quiz .matching-item {
+    padding: 10px !important;
+    font-size: 14px !important;
+}
+
+/* بهینه‌سازی word-build */
+#screen-quiz .word-build-result {
+    min-height: 50px !important;
+    padding: 8px !important;
+    margin-top: 8px !important;
+}
+
+#screen-quiz .word-build-options {
+    gap: 6px !important;
+    margin-top: 8px !important;
+}
+
+#screen-quiz .word-build-item {
+    padding: 8px 16px !important;
+    font-size: 15px !important;
+}
+
+/* بهینه‌سازی image-question */
+#screen-quiz .image-question-grid {
+    gap: 8px !important;
+    margin: 8px auto !important;
+}
+
+#screen-quiz .image-question-card {
+    min-height: 80px !important;
+    font-size: 44px !important;
+    border-radius: 14px !important;
+}
+
+/* بهینه‌سازی match-flip */
+#screen-quiz .match-flip-grid {
+    gap: 6px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+}
+
+#screen-quiz .match-flip-back {
+    font-size: 12px !important;
+    padding: 6px !important;
+}
+
+#screen-quiz .match-flip-back.ar {
+    font-size: 13px !important;
+}
+
+/* بهینه‌سازی letter-order */
+#screen-quiz .letter-order-result {
+    min-height: 60px !important;
+    padding: 8px !important;
+    margin-top: 8px !important;
+}
+
+#screen-quiz .letter-order-options {
+    gap: 6px !important;
+    padding: 8px !important;
+    margin-top: 8px !important;
+    min-height: 50px !important;
+}
+
+#screen-quiz .letter-order-item,
+#screen-quiz .letter-order-placed {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 16px !important;
+    border-radius: 10px !important;
+}
+
+/* بهینه‌سازی fill-blank (تک جای خالی) */
+#screen-quiz .fill-blank-container {
+    padding: 12px 14px !important;
+    margin: 8px auto !important;
+}
+
+#screen-quiz .fill-blank-sentence {
+    font-size: 18px !important;
+}
+
+#screen-quiz .fill-blank-sentence .blank-slot {
+    min-width: 80px !important;
+    font-size: 17px !important;
+    min-height: 32px !important;
+}
+
+/* بهینه‌سازی word-attach */
+#screen-quiz .word-attach-container {
+    gap: 12px !important;
+    padding: 10px 5px !important;
+}
+
+#screen-quiz .word-attach-base {
+    padding: 15px 25px !important;
+    min-width: 180px !important;
+}
+
+#screen-quiz .word-attach-text {
+    font-size: 24px !important;
+}
+
+#screen-quiz .word-attach-item {
+    padding: 10px 18px !important;
+    font-size: 18px !important;
+    min-width: 55px !important;
+}
+
+/* بهینه‌سازی find-error */
+#screen-quiz .find-error-container {
+    gap: 10px !important;
+}
+
+#screen-quiz .find-error-sentence {
+    padding: 15px 12px !important;
+    gap: 8px !important;
+}
+
+#screen-quiz .find-error-word {
+    padding: 8px 16px !important;
+    font-size: 18px !important;
+    border-width: 2px !important;
+}
+
+/* حالت شب */
+body.dark-mode .skip-modal-box {
+    background: #1a2332;
+}
+
+body.dark-mode .skip-modal-title {
+    color: #ffcc80;
+}
+
+body.dark-mode .skip-modal-text {
+    color: #90a4ae;
+}
+
+body.dark-mode .skip-modal-btn-cancel {
+    background: #2a3444;
+    color: #b0bec5;
+    border-color: #37474f;
+}
+
+/* ریسپانسیو - برای صفحه‌های خیلی کوچک */
+@media (max-width: 400px) {
+    .quiz-header-area {
+        padding: 8px 10px 6px 10px !important;
+    }
+    
+    .quiz-scroll-area {
+        padding: 6px 10px !important;
+    }
+    
+    .quiz-footer {
+        padding: 6px 10px 10px 10px !important;
+    }
+    
+    .question-text {
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    #screen-quiz .gender-word-item {
+        padding: 6px 12px !important;
+        font-size: 13px !important;
+    }
+    
+    #screen-quiz .gender-box {
+        min-height: 120px !important;
+    }
+    
+    #screen-quiz .dib-option-item {
+        padding: 6px 14px !important;
+        font-size: 14px !important;
+    }
+    
+    #screen-quiz .dib-sentence-text {
+        font-size: 14px !important;
+    }
+    
+    #screen-quiz .fill-multiple-sentence {
+        font-size: 13px !important;
+    }
+    
+    #screen-quiz .tf-custom-btn {
+        padding: 14px 12px !important;
+        font-size: 15px !important;
+    }
+    
+    #screen-quiz .option-btn {
+        padding: 10px !important;
+        font-size: 14px !important;
+    }
+    
+    #screen-quiz .image-question-card {
+        min-height: 70px !important;
+        font-size: 38px !important;
+    }
+    
+    #screen-quiz .letter-order-item,
+    #screen-quiz .letter-order-placed {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 14px !important;
+    }
+    
+    .skip-modal-box {
+        padding: 25px 20px 20px 20px;
+        border-radius: 20px;
+    }
+    
+    .skip-modal-icon-wrapper {
+        width: 75px;
+        height: 75px;
+        margin-bottom: 14px;
+    }
+    
+    .skip-modal-icon-wrapper svg {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .skip-modal-title {
+        font-size: 19px;
+    }
+    
+    .skip-modal-text {
+        font-size: 13px;
+    }
+    
+    .skip-modal-btn-cancel,
+    .skip-modal-btn-confirm {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+}
+
+/* برای صفحه‌هایی که ارتفاع کمی دارن */
+@media (max-height: 700px) {
+    .quiz-header-area {
+        padding: 8px 15px 6px 15px !important;
+    }
+    
+    .quiz-scroll-area {
+        padding: 6px 15px !important;
+    }
+
+    
+    .quiz-footer {
+        padding: 6px 15px 10px 15px !important;
+    }
+    
+    #screen-quiz .gender-box {
+        min-height: 100px !important;
+    }
+    
+    #screen-quiz .gender-words-pool,
+    #screen-quiz .dib-options-pool,
+    #screen-quiz .fill-multiple-options {
+        padding: 8px !important;
+        margin: 6px 0 !important;
+    }
+}
+/* ============================================================
+   🆕 بهینه‌سازی سوالات (نسخه متعادل - خوانا و بدون اسکرول)
+   ============================================================ */
+
+/* --- بخش هدر و فوتر کوییز --- */
+#screen-quiz {
+    padding: 0 !important;
+}
+
+.quiz-header-area {
+    padding: 15px 20px 10px 20px !important;
+    margin-top: 5px !important;
+}
+
+.quiz-scroll-area {
+    padding: 10px 20px !important;
+    overflow-y: auto;
+}
+
+.quiz-footer {
+    padding: 10px 20px 15px 20px !important;
+}
+
+/* --- سوالات عمومی (متن و گزینه‌ها) --- */
+.question-text {
+    margin-bottom: 15px !important;
+    padding: 12px 16px !important;
+    font-size: 18px !important; /* فونت خوانا */
+}
+
+#screen-quiz .options-grid {
+    gap: 10px !important;
+}
+
+#screen-quiz .option-btn {
+    padding: 14px !important;
+    font-size: 16px !important; /* فونت خوانا */
+}
+
+/* --- drag-gender (کشیدن کلمات به کادر مذکر/مؤنث) --- */
+#screen-quiz .gender-words-pool {
+    padding: 12px !important;
+    gap: 8px !important;
+    margin: 10px 0 !important;
+    min-height: 60px !important;
+}
+
+#screen-quiz .gender-word-item {
+    padding: 10px 18px !important;
+    font-size: 16px !important; /* بزرگ‌تر شد */
+    border-width: 2px !important;
+}
+
+#screen-quiz .gender-boxes-container {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-top: 10px !important;
+}
+
+#screen-quiz .gender-box {
+    padding: 12px 8px !important;
+    min-height: 160px !important; /* فضای کافی */
+    border-width: 2px !important;
+}
+
+#screen-quiz .gender-box-title {
+    font-size: 14px !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 8px !important;
+}
+
+#screen-quiz .gender-box-items {
+    gap: 6px !important;
+}
+
+#screen-quiz .gender-word-placed {
+    padding: 8px 12px !important;
+    font-size: 15px !important; /* خوانا */
+    border-width: 1.5px !important;
+}
+
+/* --- drag-into-blank (کشیدن کلمه به جای خالی) --- */
+#screen-quiz .dib-options-pool {
+    padding: 12px !important;
+    gap: 8px !important;
+    margin: 10px 0 !important;
+    min-height: 60px !important;
+}
+
+#screen-quiz .dib-option-item {
+    padding: 10px 22px !important;
+    font-size: 18px !important; /* خوانا */
+    border-width: 2px !important;
+}
+
+#screen-quiz .dib-sentences-container {
+    gap: 10px !important;
+    margin-top: 10px !important;
+}
+
+#screen-quiz .dib-sentence-row {
+    padding: 12px 16px !important;
+    border-width: 1.5px !important;
+}
+
+#screen-quiz .dib-sentence-text {
+    font-size: 18px !important;
+    line-height: 1.6 !important;
+}
+
+#screen-quiz .dib-blank {
+    min-width: 90px !important;
+    padding: 6px 14px !important;
+    font-size: 16px !important;
+    border-width: 2px !important;
+}
+
+/* --- fill-multiple (پر کردن چند جای خالی) --- */
+#screen-quiz .fill-multiple-row {
+    padding: 12px 16px !important;
+    border-width: 1.5px !important;
+}
+
+#screen-quiz .fill-multiple-sentence {
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+}
+
+#screen-quiz .fill-multiple-blank {
+    min-width: 80px !important;
+    padding: 6px 12px !important;
+    font-size: 15px !important;
+}
+
+#screen-quiz .fill-multiple-options {
+    padding: 12px !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+}
+
+#screen-quiz .fill-multiple-option {
+    padding: 8px 18px !important;
+    font-size: 16px !important;
+}
+
+/* --- truefalse-custom (بله/نه) --- */
+#screen-quiz .truefalse-custom-container {
+    margin: 20px 0 !important;
+    gap: 15px !important;
+}
+
+#screen-quiz .tf-custom-btn {
+    padding: 18px 15px !important;
+    font-size: 18px !important;
+}
+
+/* --- سایر سوالات (مچ، حروف، تصویر و ...) --- */
+#screen-quiz .matching-item {
+    padding: 12px !important;
+    font-size: 16px !important;
+}
+
+#screen-quiz .word-build-result {
+    min-height: 60px !important;
+    padding: 10px !important;
+    margin-top: 10px !important;
+}
+
+#screen-quiz .word-build-options {
+    gap: 8px !important;
+    margin-top: 10px !important;
+}
+
+#screen-quiz .word-build-item {
+    padding: 10px 18px !important;
+    font-size: 16px !important;
+}
+
+#screen-quiz .image-question-grid {
+    gap: 10px !important;
+    margin: 10px auto !important;
+}
+
+#screen-quiz .image-question-card {
+    min-height: 100px !important;
+    font-size: 50px !important;
+    border-radius: 16px !important;
+}
+
+#screen-quiz .match-flip-grid {
+    gap: 8px !important;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+#screen-quiz .match-flip-back {
+    font-size: 13px !important;
+    padding: 8px !important;
+}
+
+#screen-quiz .match-flip-back.ar {
+    font-size: 15px !important;
+}
+
+#screen-quiz .letter-order-result {
+    min-height: 70px !important;
+    padding: 10px !important;
+    margin-top: 10px !important;
+}
+
+#screen-quiz .letter-order-options {
+    gap: 8px !important;
+    padding: 10px !important;
+    margin-top: 10px !important;
+    min-height: 60px !important;
+}
+
+#screen-quiz .letter-order-item,
+#screen-quiz .letter-order-placed {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 18px !important; /* کارت حروف بزرگ‌تر */
+    border-radius: 12px !important;
+}
+
+#screen-quiz .fill-blank-container {
+    padding: 14px 16px !important;
+    margin: 10px auto !important;
+}
+
+#screen-quiz .fill-blank-sentence {
+    font-size: 20px !important;
+}
+
+#screen-quiz .fill-blank-sentence .blank-slot {
+    min-width: 90px !important;
+    font-size: 18px !important;
+    min-height: 35px !important;
+}
+
+#screen-quiz .word-attach-container {
+    gap: 15px !important;
+    padding: 12px 8px !important;
+}
+
+#screen-quiz .word-attach-base {
+    padding: 18px 28px !important;
+    min-width: 200px !important;
+}
+
+#screen-quiz .word-attach-text {
+    font-size: 26px !important;
+}
+
+#screen-quiz .word-attach-item {
+    padding: 12px 20px !important;
+    font-size: 20px !important;
+    min-width: 60px !important;
+}
+
+#screen-quiz .find-error-container {
+    gap: 12px !important;
+}
+
+#screen-quiz .find-error-sentence {
+    padding: 18px 14px !important;
+    gap: 10px !important;
+}
+
+#screen-quiz .find-error-word {
+    padding: 10px 18px !important;
+    font-size: 20px !important;
+    border-width: 2px !important;
+}
+
+/* --- ریسپانسیو برای موبایل‌های کوچک (کمی کوچیک‌تر ولی خوانا) --- */
+@media (max-width: 400px) {
+    .quiz-header-area { padding: 10px 12px 8px 12px !important; }
+    .quiz-scroll-area { padding: 8px 12px !important; }
+    .quiz-footer { padding: 8px 12px 12px 12px !important; }
+    
+    .question-text { font-size: 16px !important; }
+    #screen-quiz .option-btn { padding: 12px !important; font-size: 15px !important; }
+    
+    #screen-quiz .gender-word-item { padding: 8px 14px !important; font-size: 14px !important; }
+    #screen-quiz .gender-box { min-height: 140px !important; }
+    #screen-quiz .gender-word-placed { font-size: 14px !important; padding: 6px 10px !important; }
+    
+    #screen-quiz .dib-option-item { padding: 8px 16px !important; font-size: 16px !important; }
+    #screen-quiz .dib-sentence-text { font-size: 16px !important; }
+    #screen-quiz .dib-blank { min-width: 80px !important; font-size: 15px !important; }
+    
+    #screen-quiz .fill-multiple-sentence { font-size: 14px !important; }
+    #screen-quiz .fill-multiple-option { font-size: 14px !important; padding: 7px 14px !important; }
+    
+    #screen-quiz .tf-custom-btn { padding: 16px 12px !important; font-size: 16px !important; }
+    
+    #screen-quiz .image-question-card { min-height: 80px !important; font-size: 44px !important; }
+    
+    #screen-quiz .letter-order-item,
+    #screen-quiz .letter-order-placed {
+        width: 42px !important;
+        height: 42px !important;
+        font-size: 16px !important;
+    }
+    
+    #screen-quiz .fill-blank-sentence { font-size: 18px !important; }
+    #screen-quiz .find-error-word { font-size: 18px !important; padding: 8px 14px !important; }
+    #screen-quiz .word-attach-text { font-size: 24px !important; }
+    #screen-quiz .word-attach-item { font-size: 18px !important; padding: 10px 16px !important; }
+}
+
+/* --- برای صفحه‌های کم‌ارتفاع (مثل گوشی‌های کوچک) --- */
+@media (max-height: 700px) {
+    .quiz-header-area { padding: 8px 15px 6px 15px !important; }
+    .quiz-scroll-area { padding: 6px 15px !important; }
+    .quiz-footer { padding: 6px 15px 10px 15px !important; }
+    
+    /* کوتاه کردن سوالات کشیدنی که فضای بیشتری می‌گیرن */
+    #screen-quiz .gender-box { min-height: 120px !important; }
+    #screen-quiz .gender-words-pool,
+    #screen-quiz .dib-options-pool,
+    #screen-quiz .fill-multiple-options {
+        padding: 8px !important;
+        margin: 6px 0 !important;
+    }
+    #screen-quiz .dib-sentence-row { padding: 8px 12px !important; }
+    #screen-quiz .fill-multiple-row { padding: 8px 12px !important; }
+}
