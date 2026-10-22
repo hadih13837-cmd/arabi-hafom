@@ -1,6 +1,6 @@
 // ============================================================
 // config.js — ثابت‌ها و داده‌های پایه برنامه
-// نسخه: ۲.۰.۰ — با پشتیبانی از letter-order
+// نسخه: ۳.۰.۰ — با پشتیبانی از drag-gender و fill-multiple
 // ============================================================
 
 // کد ادمین برای دسترسی به برنامه در حالت بروزرسانی
@@ -80,7 +80,6 @@ const QUESTION_ICONS = {
         class: 'qti-match',
         svg: '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
     },
-    // 🆕 letter-order (چیدن حروف)
     'letter-order': {
         class: 'qti-order',
         svg: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="13" width="7" height="7" rx="1"/><rect x="14" y="13" width="7" height="7" rx="1"/></svg>'
@@ -92,6 +91,21 @@ const QUESTION_ICONS = {
     'reading-comprehension': {
         class: 'qti-essay',
         svg: '<svg viewBox="0 0 24 24"><path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20"/><path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z"/><line x1="9" y1="7" x2="16" y2="7"/><line x1="9" y1="11" x2="16" y2="11"/></svg>'
+    },
+    // 🆕 drag-gender
+    'drag-gender': {
+        class: 'qti-match',
+        svg: '<svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="3"/><path d="M15 9l4-4"/><path d="M17 5h4v4"/><path d="M15 15l4 4"/><path d="M17 19h4v-4"/></svg>'
+    },
+    // 🆕 fill-multiple
+    'fill-multiple': {
+        class: 'qti-blank',
+        svg: '<svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="21" y2="12"/><line x1="10" y1="8" x2="14" y2="16"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
+    },
+    // 🆕 truefalse-custom
+    'truefalse-custom': {
+        class: 'qti-tf',
+        svg: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
     }
 };
 
