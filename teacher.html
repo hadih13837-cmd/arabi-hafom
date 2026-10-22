@@ -170,14 +170,16 @@
                     </svg>
                     <input type="text" id="student-search" placeholder="جستجو (نام یا کد)..." oninput="filterStudents()">
                 </div>
-                <select class="page-toolbar-select" id="student-class-filter" onchange="filterStudents()">
-                    <option value="all">همه‌ی کلاس‌ها</option>
-                    <option value="hafom-1">هفتم یک</option>
-                    <option value="hafom-2">هفتم دو</option>
-                    <option value="hafom-3">هفتم سه</option>
-                    <option value="hafom-4">هفتم چهار</option>
-                    <option value="hafom-5">هفتم پنج</option>
-                </select>
+                
+                <!-- 🆕 دکمه‌های فیلتر کلاس -->
+                <div class="student-class-tabs" id="student-class-tabs">
+                    <button class="class-tab active" data-class="all" onclick="filterStudentsByClass('all', this)">همه</button>
+                    <button class="class-tab" data-class="hafom-1" onclick="filterStudentsByClass('hafom-1', this)">هفتم یک</button>
+                    <button class="class-tab" data-class="hafom-2" onclick="filterStudentsByClass('hafom-2', this)">هفتم دو</button>
+                    <button class="class-tab" data-class="hafom-3" onclick="filterStudentsByClass('hafom-3', this)">هفتم سه</button>
+                    <button class="class-tab" data-class="hafom-4" onclick="filterStudentsByClass('hafom-4', this)">هفتم چهار</button>
+                    <button class="class-tab" data-class="hafom-5" onclick="filterStudentsByClass('hafom-5', this)">هفتم پنج</button>
+                </div>
             </div>
             
             <div class="students-grid" id="students-grid"></div>
@@ -280,7 +282,6 @@
             <!-- تب ۲: چت شخصی -->
             <div class="messages-tab-content" id="tab-personal">
                 <div class="messenger-wrapper" id="messenger-wrapper">
-                    
                     <div class="messenger-list" id="messenger-list">
                         <div class="messenger-search">
                             <svg viewBox="0 0 24 24" fill="none">
@@ -336,6 +337,14 @@
                     تکالیف از فایل <strong>lessons/index.json</strong> خونده می‌شن.
                 </div>
             </div>
+            
+            <!-- 🆕 دکمه تنظیم مهلت کلاسی -->
+            <div class="lesson-toolbar">
+                <button class="lesson-toolbar-btn" onclick="openClassDueDateModal()">
+                    ⚙️ تنظیم مهلت برای یک کلاس
+                </button>
+            </div>
+            
             <div class="lessons-list" id="lessons-list"></div>
         </section>
 
@@ -545,6 +554,58 @@
 <div class="toast" id="toast">
     <div class="toast-icon" id="toast-icon">✅</div>
     <div class="toast-text" id="toast-text">پیام</div>
+</div>
+
+<!-- 🆕 مودال تنظیم مهلت کلاسی (برای همه) -->
+<div class="class-duedate-modal-overlay" id="class-duedate-modal">
+    <div class="class-duedate-modal-box">
+        <div class="class-duedate-header">
+            <div class="class-duedate-icon">📅</div>
+            <div class="class-duedate-title">تنظیم مهلت کلاسی</div>
+            <div class="class-duedate-subtitle">مهلت جدید برای همه دانش‌آموزان کلاس انتخاب‌شده اعمال می‌شود</div>
+        </div>
+        
+        <div class="class-duedate-body">
+            <div class="class-duedate-field">
+                <label>۱. تکلیف مورد نظر را انتخاب کن:</label>
+                <select id="class-duedate-lesson-select" class="class-duedate-select">
+                    <option value="">--- انتخاب تکلیف ---</option>
+                </select>
+            </div>
+            
+            <div class="class-duedate-field">
+                <label>۲. کلاس مورد نظر:</label>
+                <select id="class-duedate-class-select" class="class-duedate-select">
+                    <option value="all">همه کلاس‌ها</option>
+                    <option value="hafom-1">هفتم یک</option>
+                    <option value="hafom-2">هفتم دو</option>
+                    <option value="hafom-3">هفتم سه</option>
+                    <option value="hafom-4">هفتم چهار</option>
+                    <option value="hafom-5">هفتم پنج</option>
+                </select>
+            </div>
+            
+            <div class="class-duedate-field">
+                <label>۳. مهلت جدید را انتخاب کن:</label>
+                <div class="day-picker-grid class-day-picker" id="class-day-picker">
+                    <!-- دکمه‌ها با جاوااسکریپت پر می‌شن -->
+                </div>
+                <div class="due-date-preview-box" style="margin-top: 12px;">
+                    <div class="preview-label">📅 تاریخ مهلت جدید:</div>
+                    <div class="preview-value" id="class-preview-date">---</div>
+                </div>
+            </div>
+            
+            <div class="class-duedate-warning">
+                ⚠️ با تأیید، مهلت این تکلیف برای <strong>همه دانش‌آموزان کلاس انتخاب‌شده</strong> تغییر می‌کند.
+            </div>
+        </div>
+        
+        <div class="class-duedate-footer">
+            <button class="due-date-btn due-date-btn-cancel" onclick="closeClassDueDateModal()">انصراف</button>
+            <button class="due-date-btn due-date-btn-save" onclick="saveClassDueDate()">✅ ذخیره برای کلاس</button>
+        </div>
+    </div>
 </div>
 
 <!-- بارگذاری فایل‌های JavaScript -->
