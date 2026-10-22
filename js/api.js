@@ -1,6 +1,6 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۲۶.۰.۰ — رفع کامل خطای مهلت شخصی و کلاسی
+// نسخه: ۲۷.۰.۰ — رفع کامل خطای مهلت شخصی و کلاسی
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
@@ -125,19 +125,15 @@ async function getStudentLessonStatus(studentId) {
     } catch (error) { return {}; }
 }
 
-// 🆕 تنظیم مهلت برای کل یک کلاس
 async function setClassDueDate(lessonId, className, newDate) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
-        console.log('📤 setClassDueDate:', { lessonId, className, newDate });
-        
         if (className === 'all') {
             await client.from('lesson_status').delete().eq('lesson_id', lessonId).not('class_name', 'is', null);
         } else {
             await client.from('lesson_status').delete().eq('lesson_id', lessonId).eq('class_name', className);
         }
-        
         const { error } = await client.from('lesson_status').insert({
             student_id: null,
             lesson_id: lessonId,
@@ -151,19 +147,15 @@ async function setClassDueDate(lessonId, className, newDate) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
-// 🆕 تنظیم وضعیت فعال/غیرفعال برای کل کلاس
 async function setClassLessonStatus(lessonId, className, isEnabled) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
-        console.log('📤 setClassLessonStatus:', { lessonId, className, isEnabled });
-        
         if (className === 'all') {
             await client.from('lesson_status').delete().eq('lesson_id', lessonId).not('class_name', 'is', null);
         } else {
             await client.from('lesson_status').delete().eq('lesson_id', lessonId).eq('class_name', className);
         }
-        
         const { error } = await client.from('lesson_status').insert({
             student_id: null,
             lesson_id: lessonId,
@@ -177,15 +169,11 @@ async function setClassLessonStatus(lessonId, className, isEnabled) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
-// 🆕 تنظیم مهلت برای یک دانش‌آموز (شخصی)
 async function updateStudentDueDate(studentId, lessonId, newDate) {
     try {
         const client = getSupabase();
         if (!client) return { success: false, error: 'no_client' };
-        console.log('📤 updateStudentDueDate:', { studentId, lessonId, newDate });
-        
         const { data: existing } = await client.from('lesson_status').select('id').eq('student_id', studentId).eq('lesson_id', lessonId).maybeSingle();
-        
         if (existing) {
             const { error } = await client.from('lesson_status').update({ custom_due_date: newDate, is_enabled: true }).eq('id', existing.id);
             if (error) { console.error('❌ خطا:', error.message); return { success: false, error: error.message }; }
@@ -203,7 +191,6 @@ async function updateStudentDueDate(studentId, lessonId, newDate) {
     } catch (error) { return { success: false, error: error.message }; }
 }
 
-// 🆕 حذف مهلت سفارشی یک دانش‌آموز
 async function removeStudentCustomDueDate(studentId, lessonId) {
     try {
         const client = getSupabase();
