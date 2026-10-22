@@ -1,6 +1,6 @@
 // ============================================================
 // lessons.js — سیستم تکالیف (لیست، فیلتر، جزئیات، شروع)
-// نسخه: ۸.۰.۰ — مخفی کردن تکالیف غیرفعال کلاسی
+// نسخه: ۹.۰.۰ — رفع کامل مشکل مخفی شدن تکالیف غیرفعال کلاسی
 // ============================================================
 
 let allLessons = [];
@@ -10,7 +10,7 @@ let isPracticeMode = false;
 let pendingLessonId = null;
 let searchQuery = '';
 let customLessonStatus = {}; 
-let customClassStatus = {}; // 🆕 برای وضعیت کلاسی
+let customClassStatus = {}; 
 
 // ============================================================
 // بارگذاری وضعیت تکالیف از Supabase
@@ -30,12 +30,12 @@ async function loadCustomLessonStatus() {
         
         const classNameSlug = classNameToSlug(userClass);
         
-        // ۱. گرفتن وضعیت‌های شخصی (برای این دانش‌آموز)
+        // ۱. گرفتن وضعیت‌های شخصی
         if (typeof getStudentLessonStatus === 'function') {
             customLessonStatus = await getStudentLessonStatus(studentId);
         }
         
-        // ۲. 🆕 گرفتن وضعیت‌های کلاسی (برای کلاس این دانش‌آموز)
+        // ۲. گرفتن وضعیت‌های کلاسی
         const { data: classData, error: classError } = await client
             .from('lesson_status')
             .select('*')
@@ -49,6 +49,9 @@ async function loadCustomLessonStatus() {
                 };
             });
         }
+        
+        console.log('📋 وضعیت شخصی:', customLessonStatus);
+        console.log('📋 وضعیت کلاسی:', customClassStatus);
         
     } catch (error) {
         console.error('خطا در loadCustomLessonStatus:', error);
@@ -81,19 +84,16 @@ function isLessonEnabled(lesson) {
 // مهلت واقعی تکلیف
 // ============================================================
 function getEffectiveDueDate(lesson) {
-    // ۱. اولویت با مهلت شخصی
     const custom = customLessonStatus[lesson.id];
     if (custom && custom.custom_due_date) {
         return custom.custom_due_date;
     }
     
-    // ۲. بعد مهلت کلاسی
     const classCustom = customClassStatus[lesson.id];
     if (classCustom && classCustom.custom_due_date) {
         return classCustom.custom_due_date;
     }
     
-    // ۳. پیش‌فرض
     return lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
 }
 
@@ -160,7 +160,7 @@ function renderLessonsList() {
         const lessonDueDate = getEffectiveDueDate(lesson);
         const expired = isExpired(lessonDueDate);
         const isNearDeadline = !expired && !isCompleted && isDeadlineNear(lessonDueDate);
-        const isEnabled = isLessonEnabled(lesson); // 🆕
+        const isEnabled = isLessonEnabled(lesson);
         
         return {
             ...lesson, isCompleted, isPaused, isExpired: expired, isNearDeadline,
@@ -171,7 +171,7 @@ function renderLessonsList() {
         };
     });
     
-    // 🆕 فیلتر کردن تکالیف غیرفعال (مگه اینکه قبلاً انجام شده باشن)
+    // 🆕 مخفی کردن تکالیف غیرفعال (مگه اینکه قبلاً انجام شده باشن)
     lessonsToShow = lessonsToShow.filter(l => l.isEnabled || l.isCompleted);
     
     if (currentFilter === 'completed') lessonsToShow = lessonsToShow.filter(l => l.isCompleted);
