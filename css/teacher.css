@@ -2757,3 +2757,15 @@ body.dark-mode #toggle-inactive-btn.active-btn {
         padding: 12px 18px;
     }
 }
+/* 🆕 وضعیت غیرفعال تکلیف */
+.lesson-item-status.inactive {
+    background: linear-gradient(135deg, #ffcdd2, #ef9a9a);
+    color: #b71c1c;
+    font-weight: 900;
+}
+
+.lesson-item-status.active {
+    background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+    color: #1b5e20;
+    font-weight: 900;
+}
