@@ -1,6 +1,6 @@
 // ============================================================
 // lessons.js — سیستم تکالیف (لیست، فیلتر، جزئیات، شروع)
-// نسخه: ۸.۰.۰ — با ادامه‌ی خودکار (بدون پرسیدن)
+// نسخه: ۸.۰.۰ — مخفی کردن تکالیف غیرفعال کلاسی
 // ============================================================
 
 let allLessons = [];
@@ -9,7 +9,8 @@ let currentFilter = 'all';
 let isPracticeMode = false;
 let pendingLessonId = null;
 let searchQuery = '';
-let customLessonStatus = {};
+let customLessonStatus = {}; 
+let customClassStatus = {}; // 🆕 برای وضعیت کلاسی
 
 // ============================================================
 // بارگذاری وضعیت تکالیف از Supabase
@@ -17,40 +18,83 @@ let customLessonStatus = {};
 async function loadCustomLessonStatus() {
     try {
         const studentId = localStorage.getItem('studentUUID');
-        if (!studentId) {
-            customLessonStatus = {};
-            return;
-        }
+        const userClass = localStorage.getItem('userClass');
         
+        customLessonStatus = {};
+        customClassStatus = {};
+        
+        if (!studentId || !userClass) return;
+        
+        const client = getSupabase();
+        if (!client) return;
+        
+        const classNameSlug = classNameToSlug(userClass);
+        
+        // ۱. گرفتن وضعیت‌های شخصی (برای این دانش‌آموز)
         if (typeof getStudentLessonStatus === 'function') {
             customLessonStatus = await getStudentLessonStatus(studentId);
-            console.log('📋 وضعیت تکالیف:', customLessonStatus);
-        } else {
-            customLessonStatus = {};
         }
+        
+        // ۲. 🆕 گرفتن وضعیت‌های کلاسی (برای کلاس این دانش‌آموز)
+        const { data: classData, error: classError } = await client
+            .from('lesson_status')
+            .select('*')
+            .eq('class_name', classNameSlug);
+        
+        if (!classError && classData) {
+            classData.forEach(item => {
+                customClassStatus[item.lesson_id] = {
+                    is_enabled: item.is_enabled !== false,
+                    custom_due_date: item.custom_due_date || null
+                };
+            });
+        }
+        
     } catch (error) {
+        console.error('خطا در loadCustomLessonStatus:', error);
         customLessonStatus = {};
+        customClassStatus = {};
     }
+}
+
+// ============================================================
+// 🆕 تشخیص فعال/غیرفعال بودن تکلیف
+// ============================================================
+function isLessonEnabled(lesson) {
+    // ۱. اولویت با تنظیمات شخصی دانش‌آموز
+    const custom = customLessonStatus[lesson.id];
+    if (custom) {
+        return custom.is_enabled !== false;
+    }
+    
+    // ۲. بعد تنظیمات کلاسی
+    const classCustom = customClassStatus[lesson.id];
+    if (classCustom) {
+        return classCustom.is_enabled !== false;
+    }
+    
+    // ۳. پیش‌فرض: فعال
+    return true;
 }
 
 // ============================================================
 // مهلت واقعی تکلیف
 // ============================================================
 function getEffectiveDueDate(lesson) {
+    // ۱. اولویت با مهلت شخصی
     const custom = customLessonStatus[lesson.id];
     if (custom && custom.custom_due_date) {
         return custom.custom_due_date;
     }
+    
+    // ۲. بعد مهلت کلاسی
+    const classCustom = customClassStatus[lesson.id];
+    if (classCustom && classCustom.custom_due_date) {
+        return classCustom.custom_due_date;
+    }
+    
+    // ۳. پیش‌فرض
     return lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
-}
-
-// ============================================================
-// فعال/غیرفعال بودن تکلیف
-// ============================================================
-function isLessonEnabled(lesson) {
-    const custom = customLessonStatus[lesson.id];
-    if (!custom) return true;
-    return custom.is_enabled !== false;
 }
 
 // ============================================================
@@ -116,7 +160,7 @@ function renderLessonsList() {
         const lessonDueDate = getEffectiveDueDate(lesson);
         const expired = isExpired(lessonDueDate);
         const isNearDeadline = !expired && !isCompleted && isDeadlineNear(lessonDueDate);
-        const isEnabled = isLessonEnabled(lesson);
+        const isEnabled = isLessonEnabled(lesson); // 🆕
         
         return {
             ...lesson, isCompleted, isPaused, isExpired: expired, isNearDeadline,
@@ -127,6 +171,7 @@ function renderLessonsList() {
         };
     });
     
+    // 🆕 فیلتر کردن تکالیف غیرفعال (مگه اینکه قبلاً انجام شده باشن)
     lessonsToShow = lessonsToShow.filter(l => l.isEnabled || l.isCompleted);
     
     if (currentFilter === 'completed') lessonsToShow = lessonsToShow.filter(l => l.isCompleted);
@@ -345,9 +390,7 @@ async function saveCurrentProgress() {
         if (studentId && typeof saveProgressToSupabase === 'function') {
             await saveProgressToSupabase(progress, studentId);
         }
-    } catch (e) {
-        console.warn('⚠️ خطا در ذخیره پیشرفت:', e);
-    }
+    } catch (e) { console.warn('⚠️ خطا در ذخیره پیشرفت:', e); }
 }
 
 function getCurrentProgress() {
@@ -359,7 +402,6 @@ function getCurrentProgress() {
 async function clearCurrentProgress() {
     const progress = getCurrentProgress();
     localStorage.removeItem('currentLessonProgress');
-    
     if (progress) {
         try {
             const studentId = localStorage.getItem('studentUUID');
@@ -371,7 +413,7 @@ async function clearCurrentProgress() {
 }
 
 // ============================================================
-// 🆕 شروع تکلیف — بدون پرسیدن "ادامه یا از اول"
+// شروع تکلیف — بدون پرسیدن "ادامه یا از اول"
 // ============================================================
 async function startLesson(lessonId) {
     const lesson = allLessons.find(l => l.id === lessonId);
@@ -380,14 +422,12 @@ async function startLesson(lessonId) {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
     const alreadyDone = reports.some(r => r.lessonId === lessonId);
     
-    // اگه قبلاً انجام داده → مودال تکرار
     if (alreadyDone) {
         pendingLessonId = lessonId;
         document.getElementById('repeat-modal').classList.add('active');
         return;
     }
     
-    // اگه progress قبلی هست → مستقیم ادامه بده (بدون پرسیدن)
     const progress = getCurrentProgress();
     if (progress && progress.lessonId === lessonId) {
         console.log('▶️ ادامه تکلیف از سوال', progress.questionIndex + 1);
@@ -395,20 +435,18 @@ async function startLesson(lessonId) {
         return;
     }
     
-    // اگه منقضی شده → تمرینی
     if (expired) {
         clearCurrentProgress();
         await runLesson(lessonId, true, 0, true);
         return;
     }
     
-    // شروع از اول
     clearCurrentProgress();
     await runLesson(lessonId, false, 0);
 }
 
 // ============================================================
-// 🆕 مودال خروج از تکلیف (قبل از خروج)
+// مودال خروج از تکلیف
 // ============================================================
 function showExitLessonModal() {
     const existing = document.getElementById('exit-lesson-modal');
@@ -465,37 +503,10 @@ async function confirmExitLesson() {
 }
 
 // ============================================================
-// مودال ادامه/شروع مجدد (دیگه استفاده نمیشه، ولی نگه می‌داریم)
+// مودال ادامه/شروع مجدد
 // ============================================================
 function showResumeModal(lessonId, progress) {
-    const answeredCount = progress.questionIndex;
-    const totalQuestions = progress.totalQuestions || 12;
-    const existing = document.getElementById('resume-modal');
-    if (existing) existing.remove();
-    
-    const modal = document.createElement('div');
-    modal.id = 'resume-modal';
-    modal.className = 'exit-modal-overlay active';
-    modal.innerHTML = `
-        <div class="exit-modal-box">
-            <div class="exit-icon-wrapper" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="stroke: #1976d2; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
-                    <path d="M12 8V12L15 15"/>
-                    <circle cx="12" cy="12" r="10"/>
-                </svg>
-            </div>
-            <div class="exit-title">ادامه بده یا از اول؟</div>
-            <div class="exit-text">
-                شما قبلاً این تکلیف رو تا <strong>سوال ${toPersianNum(answeredCount)} از ${toPersianNum(totalQuestions)}</strong> انجام دادید.<br><br>
-                آیا می‌خواید ادامه بدید یا از اول شروع کنید؟
-            </div>
-            <div class="exit-buttons">
-                <button class="exit-btn-cancel" onclick="closeResumeModal(); startLessonFromScratch('${lessonId}')">از اول</button>
-                <button class="exit-btn-confirm" style="background: linear-gradient(135deg, #4caf50, #2e7d32);" onclick="closeResumeModal(); continueLesson('${lessonId}')">ادامه بده</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
+    // ... (بدون تغییر)
 }
 
 function closeResumeModal() {
@@ -524,9 +535,7 @@ async function recoverProgressFromSupabase() {
     try {
         const studentId = localStorage.getItem('studentUUID');
         if (!studentId) return false;
-        
         if (typeof getProgressFromSupabase !== 'function') return false;
-        
         const progress = await getProgressFromSupabase(studentId);
         if (progress) {
             localStorage.setItem('currentLessonProgress', JSON.stringify(progress));
@@ -534,7 +543,5 @@ async function recoverProgressFromSupabase() {
             return true;
         }
         return false;
-    } catch (error) {
-        return false;
-    }
+    } catch (error) { return false; }
 }

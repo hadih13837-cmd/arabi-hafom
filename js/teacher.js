@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۲۶.۰.۰ — رفع کامل خطای مهلت شخصی و کلاسی
+// نسخه: ۲۷.۰.۰ — نمایش وضعیت واقعی تکالیف
 // ============================================================
 
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
@@ -20,6 +20,7 @@ const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007a
 
 let allStudents = [];
 let allLessonsList = [];
+let allLessonStatuses = []; // 🆕 برای نگه داشتن وضعیت کلاسی
 let allReportsMap = {}; 
 let allReportsRaw = [];
 let currentConversations = [];
@@ -836,12 +837,16 @@ function renderStudentProfile() {
     container.innerHTML = `<div class="profile-header-card"><div class="profile-avatar-big">${renderAvatarHTML(student)}</div><div class="profile-name-big">${student.name || 'بدون نام'}</div><div class="profile-class-big">${classPersian}</div></div><div class="profile-stats-grid"><div class="profile-stat-card" onclick="openEditStudentCode()" style="cursor:pointer;"><div class="profile-stat-icon">🔑</div><div class="profile-stat-value">${studentCode}</div><div class="profile-stat-label">کد ورود (کلیک کن)</div></div><div class="profile-stat-card" onclick="openEditCompletedLessons()" style="cursor:pointer;"><div class="profile-stat-icon">📚</div><div class="profile-stat-value">${toPersianNum(completedLessons)}</div><div class="profile-stat-label">تکالیف (کلیک کن)</div></div><div class="profile-stat-card"><div class="profile-stat-icon">📊</div><div class="profile-stat-value">${toPersianNum(student.avg_percent || 0)}%</div><div class="profile-stat-label">میانگین درصد</div></div><div class="profile-stat-card"><div class="profile-stat-icon">🔥</div><div class="profile-stat-value">${toPersianNum(student.streak_days || 0)}</div><div class="profile-stat-label">روز متوالی</div></div></div><button class="profile-chat-btn" onclick="goToChatFromProfile()">💬 چت با این دانش‌آموز</button><div class="profile-total-points-card"><div class="profile-total-points-label">⭐ امتیاز کل (قابل ویرایش)</div><div class="profile-total-points-value">${toPersianNum(totalPoints)}</div><div class="profile-total-points-actions"><button class="point-btn minus" onclick="changeTotalPoints(-10)">−۱۰</button><button class="point-btn minus" onclick="changeTotalPoints(-1)">−۱</button><button class="point-btn plus" onclick="changeTotalPoints(1)">+۱</button><button class="point-btn plus" onclick="changeTotalPoints(10)">+۱۰</button></div></div><div class="profile-lessons-card"><div class="profile-lessons-title">📚 مدیریت تکالیف</div><div class="profile-lessons-list">${lessonsHTML}</div></div>`;
 }
 
+// ============================================================
+// 🆕 مدیریت تکالیف — با نمایش وضعیت واقعی
+// ============================================================
 async function loadLessonsPage() {
     const container = document.getElementById('lessons-list');
     if (!container) return;
     const cached = getCachedData(LESSONS_CACHE_KEY, 600000);
     if (cached && cached.length > 0) {
         allLessonsList = cached;
+        await loadLessonStatuses();
         renderLessonsList(cached);
     } else {
         container.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
@@ -852,17 +857,64 @@ async function loadLessonsPage() {
         const lessons = data.lessons || [];
         allLessonsList = lessons;
         setCachedData(LESSONS_CACHE_KEY, lessons);
+        await loadLessonStatuses();
         renderLessonsList(lessons);
     } catch (error) { if (!cached) container.innerHTML = '<div style="text-align:center; padding:40px; color:#c62828; font-weight:bold;">خطا</div>'; }
+}
+
+// 🆕 بارگذاری وضعیت کلاسی
+async function loadLessonStatuses() {
+    try {
+        const client = getSupabase();
+        if (!client) return;
+        const { data, error } = await client.from('lesson_status').select('*').is('student_id', null);
+        if (error) { console.warn('خطا در لود وضعیت:', error); return; }
+        allLessonStatuses = data || [];
+        console.log('📋 وضعیت‌های کلاسی لود شد:', allLessonStatuses.length);
+    } catch (e) { console.error(e); }
 }
 
 function renderLessonsList(lessons) {
     const container = document.getElementById('lessons-list');
     if (!container) return;
     if (!lessons || lessons.length === 0) { container.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">تکلیفی یافت نشد</div>'; return; }
+    
     let html = '';
     lessons.forEach(lesson => {
-        html += `<div class="lesson-item"><div class="lesson-item-icon">📚</div><div class="lesson-item-info"><div class="lesson-item-title">${lesson.title}</div><div class="lesson-item-meta"><span>📅 مهلت پیش‌فرض: ${lesson.dueDate || 'نامشخص'}</span><span>📝 ${toPersianNum(lesson.activityCount || 0)} سوال</span></div></div><div class="lesson-item-status active">فعال</div></div>`;
+        // 🆕 پیدا کردن وضعیت این تکلیف
+        const statusRecords = allLessonStatuses.filter(s => s.lesson_id === lesson.id);
+        
+        // 🆕 اگه هیچ رکوردی نبود، پیش‌فرض فعال
+        let statusText = 'فعال';
+        let statusClass = 'active';
+        
+        if (statusRecords.length > 0) {
+            // اگه همه رکوردهای این تکلیف غیرفعال باشن، غیرفعال نشون بده
+            const allDisabled = statusRecords.every(s => s.is_enabled === false);
+            if (allDisabled) {
+                statusText = 'غیرفعال';
+                statusClass = 'inactive';
+            }
+            // اگه حداقل یک رکورد کلاسی فعال باشه، فعال نشون بده
+            else {
+                statusText = 'فعال (کلاسی)';
+                statusClass = 'active';
+            }
+        }
+        
+        html += `
+            <div class="lesson-item">
+                <div class="lesson-item-icon">📚</div>
+                <div class="lesson-item-info">
+                    <div class="lesson-item-title">${lesson.title}</div>
+                    <div class="lesson-item-meta">
+                        <span>📅 مهلت پیش‌فرض: ${lesson.dueDate || 'نامشخص'}</span>
+                        <span>📝 ${toPersianNum(lesson.activityCount || 0)} سوال</span>
+                    </div>
+                </div>
+                <div class="lesson-item-status ${statusClass}">${statusText}</div>
+            </div>
+        `;
     });
     container.innerHTML = html;
 }
@@ -919,6 +971,9 @@ async function saveClassDueDate() {
     if (result.success) {
         closeClassDueDateModal();
         showToast(`✅ مهلت برای ${className === 'all' ? 'همه کلاس‌ها' : getClassPersianName(className)} تغییر کرد تا ${newDate}`, 'success');
+        // 🆕 آپدیت لیست
+        await loadLessonStatuses();
+        renderLessonsList(allLessonsList);
     } else { showToast('خطا در ذخیره', 'error'); }
 }
 
@@ -962,6 +1017,9 @@ async function saveToggleLesson() {
     if (result.success) {
         closeToggleLessonModal();
         showToast(`✅ تکلیف برای ${className === 'all' ? 'همه کلاس‌ها' : getClassPersianName(className)} ${toggleStatusValue ? 'فعال' : 'غیرفعال'} شد`, 'success');
+        // 🆕 آپدیت لیست
+        await loadLessonStatuses();
+        renderLessonsList(allLessonsList);
     } else { showToast('خطا در ذخیره', 'error'); }
 }
 
@@ -1315,4 +1373,5 @@ function clearCache() {
     }
 }
 
-console.log('🎓 پنل معلم عربی هفتم - نسخه ۲۶.۰.۰');
+console.log('🎓 پنل معلم عربی هفتم - نسخه ۲۷.۰.۰');
+console.log('✅ نمایش وضعیت واقعی تکالیف فعال/غیرفعال');

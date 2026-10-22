@@ -1,6 +1,6 @@
 // ============================================================
 // api.js — API با Supabase
-// نسخه: ۲۷.۰.۰ — رفع کامل خطای مهلت شخصی و کلاسی
+// نسخه: ۲۸.۰.۰ — پشتیبانی از وضعیت کلاسی تکالیف
 // ============================================================
 
 const TEACHER_API_URL = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
@@ -125,6 +125,17 @@ async function getStudentLessonStatus(studentId) {
     } catch (error) { return {}; }
 }
 
+// 🆕 دریافت وضعیت همه تکالیف برای پنل معلم
+async function getAllLessonStatuses() {
+    try {
+        const client = getSupabase();
+        if (!client) return [];
+        const { data, error } = await client.from('lesson_status').select('*');
+        if (error) return [];
+        return data || [];
+    } catch (error) { return []; }
+}
+
 async function setClassDueDate(lessonId, className, newDate) {
     try {
         const client = getSupabase();
@@ -135,12 +146,8 @@ async function setClassDueDate(lessonId, className, newDate) {
             await client.from('lesson_status').delete().eq('lesson_id', lessonId).eq('class_name', className);
         }
         const { error } = await client.from('lesson_status').insert({
-            student_id: null,
-            lesson_id: lessonId,
-            class_name: className,
-            is_enabled: true,
-            custom_points: 0,
-            custom_due_date: newDate
+            student_id: null, lesson_id: lessonId, class_name: className,
+            is_enabled: true, custom_points: 0, custom_due_date: newDate
         });
         if (error) { console.error('❌ خطا:', error.message); return { success: false, error: error.message }; }
         return { success: true };
@@ -157,12 +164,8 @@ async function setClassLessonStatus(lessonId, className, isEnabled) {
             await client.from('lesson_status').delete().eq('lesson_id', lessonId).eq('class_name', className);
         }
         const { error } = await client.from('lesson_status').insert({
-            student_id: null,
-            lesson_id: lessonId,
-            class_name: className,
-            is_enabled: isEnabled,
-            custom_points: 0,
-            custom_due_date: null
+            student_id: null, lesson_id: lessonId, class_name: className,
+            is_enabled: isEnabled, custom_points: 0, custom_due_date: null
         });
         if (error) { console.error('❌ خطا:', error.message); return { success: false, error: error.message }; }
         return { success: true };
@@ -179,11 +182,7 @@ async function updateStudentDueDate(studentId, lessonId, newDate) {
             if (error) { console.error('❌ خطا:', error.message); return { success: false, error: error.message }; }
         } else {
             const { error } = await client.from('lesson_status').insert({
-                student_id: studentId,
-                lesson_id: lessonId,
-                is_enabled: true,
-                custom_points: 0,
-                custom_due_date: newDate
+                student_id: studentId, lesson_id: lessonId, is_enabled: true, custom_points: 0, custom_due_date: newDate
             });
             if (error) { console.error('❌ خطا:', error.message); return { success: false, error: error.message }; }
         }
