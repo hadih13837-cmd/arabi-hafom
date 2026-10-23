@@ -2868,3 +2868,219 @@ body.dark-mode .home-menu-notif-badge {
         height: 22px;
     }
 }
+/* ============================================================
+   🆕 کارت‌های مدیریت تکالیف — طراحی جدید
+   ============================================================ */
+.lesson-manage-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08);
+    border: 2px solid #e3f2fd;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.lesson-manage-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(180deg, #1976d2, #1565c0);
+}
+
+.lesson-manage-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed #e3f2fd;
+}
+
+.lesson-manage-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.15);
+}
+
+.lesson-manage-title {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 900;
+    color: #1976d2;
+    line-height: 1.5;
+    text-align: right;
+}
+
+.lesson-manage-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.meta-item {
+    background: #f8fbff;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #546e7a;
+    border: 1px solid #e3f2fd;
+}
+
+.lesson-manage-status-section,
+.lesson-manage-dates-section {
+    margin-bottom: 10px;
+}
+
+.lesson-manage-dates-section {
+    padding-top: 10px;
+    border-top: 1px dashed #e3f2fd;
+}
+
+.status-section-label,
+.dates-section-label {
+    font-size: 12px;
+    font-weight: 900;
+    color: #546e7a;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.status-badges-container,
+.dates-badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 900;
+    border: 1.5px solid;
+    white-space: nowrap;
+}
+
+.status-badge.badge-active {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    color: #1b5e20;
+    border-color: #4caf50;
+}
+
+.status-badge.badge-inactive {
+    background: linear-gradient(135deg, #ffebee, #ffcdd2);
+    color: #b71c1c;
+    border-color: #f44336;
+}
+
+.status-badge.badge-default {
+    background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+    color: #546e7a;
+    border-color: #90a4ae;
+}
+
+.status-badge.badge-global-inactive {
+    background: linear-gradient(135deg, #ffebee, #ef9a9a);
+    color: #b71c1c;
+    border-color: #c62828;
+    font-weight: 900;
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+.date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    color: #e65100;
+    border: 1.5px solid #ffc107;
+    white-space: nowrap;
+}
+
+/* حالت شب */
+body.dark-mode .lesson-manage-card {
+    background: #1a2332;
+    border-color: #2a3444;
+}
+
+body.dark-mode .lesson-manage-card::before {
+    background: linear-gradient(180deg, #64b5f6, #1976d2);
+}
+
+body.dark-mode .lesson-manage-header {
+    border-color: #2a3444;
+}
+
+body.dark-mode .lesson-manage-icon {
+    background: linear-gradient(135deg, #0d47a1, #1565c0);
+}
+
+body.dark-mode .lesson-manage-title {
+    color: #90caf9;
+}
+
+body.dark-mode .meta-item {
+    background: #0f1419;
+    border-color: #2a3444;
+    color: #90a4ae;
+}
+
+body.dark-mode .status-section-label,
+body.dark-mode .dates-section-label {
+    color: #90a4ae;
+}
+
+body.dark-mode .lesson-manage-dates-section {
+    border-color: #2a3444;
+}
+
+/* ریسپانسیو */
+@media (max-width: 500px) {
+    .lesson-manage-card {
+        padding: 15px;
+    }
+    .lesson-manage-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    .lesson-manage-title {
+        font-size: 14px;
+    }
+    .meta-item {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+    .status-badge,
+    .date-badge {
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+}
