@@ -1,24 +1,20 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۱۵.۰.۰ — با کنترل کامل برای کاربر برگشتی
+// نسخه: ۱۶.۰.۰ — با بروزرسانی خودکار کامل
 // ============================================================
 
-// ============================================================
-// متغیر سراسری
-// ============================================================
-const UPDATE_VERSION = 'v2.2.0';
+const UPDATE_VERSION = 'v2.3.0';
 
 // ============================================================
-// 🆕 بررسی آیا کاربر برگشتیه
+// بررسی آیا کاربر برگشتیه
 // ============================================================
 function isReturningUser() {
     return localStorage.getItem('isReturningUser') === 'true';
 }
 
 // ============================================================
-// 🆕 تعویض بین حالت‌های صفحه Welcome
+// تعویض بین حالت‌های صفحه Welcome
 // ============================================================
-
 function showChoiceView() {
     document.querySelectorAll('.welcome-view').forEach(v => v.classList.remove('active'));
     const choiceView = document.getElementById('welcome-choice-view');
@@ -31,7 +27,6 @@ function showRegisterView() {
     const registerView = document.getElementById('welcome-register-view');
     if (registerView) registerView.classList.add('active');
     vibrate(15);
-    
     setTimeout(() => {
         const nameInput = document.getElementById('welcome-name');
         if (nameInput) nameInput.focus();
@@ -43,7 +38,6 @@ function showLoginView() {
     const loginView = document.getElementById('welcome-login-view');
     if (loginView) loginView.classList.add('active');
     vibrate(15);
-    
     setTimeout(() => {
         const codeInput = document.getElementById('login-code');
         if (codeInput) codeInput.focus();
@@ -54,37 +48,24 @@ function showLoginView() {
 // مودال بروزرسانی
 // ============================================================
 function checkAndShowUpdateModal() {
-    // 🆕 اگه کاربر برگشتیه، نشون نده
-    if (isReturningUser()) {
-        console.log('🔇 کاربر برگشتی - مودال بروزرسانی نشون داده نمیشه');
-        return;
-    }
-    
+    if (isReturningUser()) return;
     const seenVersion = localStorage.getItem('seenUpdateVersion');
-    
     if (seenVersion === UPDATE_VERSION) return;
     if (localStorage.getItem('userRegistered') !== 'true') return;
-    
     setTimeout(() => showUpdateModal(), 2500);
 }
 
 function showUpdateModal() {
     const modal = document.getElementById('update-modal');
-    if (modal) {
-        modal.classList.add('active');
-        console.log('🎉 مودال بروزرسانی نشون داده شد');
-    }
+    if (modal) modal.classList.add('active');
 }
 
 function closeUpdateModal() {
     const modal = document.getElementById('update-modal');
     if (modal) modal.classList.remove('active');
-    
     localStorage.setItem('seenUpdateVersion', UPDATE_VERSION);
     localStorage.setItem('seenUpdateDate', new Date().toISOString());
-    
     vibrate(20);
-    console.log('✅ بروزرسانی دیده شد');
 }
 
 // ============================================================
@@ -93,42 +74,16 @@ function closeUpdateModal() {
 let rankingsGuideStep = 0;
 
 const RANKINGS_GUIDE_STEPS = [
-    {
-        icon: '🏆',
-        title: 'رتبه‌بندی کلاس',
-        subtitle: 'با دوستات رقابت کن!',
-        text: 'اینجا می‌تونی <strong>رتبه‌ت رو در کلاس</strong> ببینی. هر کسی که امتیاز بیشتری داشته باشه، بالاتر قرار می‌گیره.'
-    },
-    {
-        icon: '🥇',
-        title: 'سکوی قهرمانی',
-        subtitle: 'سه نفر اول',
-        text: 'سه نفر اول کلاس با <strong>مدال طلا، نقره و برنز</strong> نشون داده میشن. سعی کن به این سه نفر برسی!'
-    },
-    {
-        icon: '👆',
-        title: 'کارت پروفایل',
-        subtitle: 'اطلاعات کامل',
-        text: 'با کلیک روی هر دانش‌آموز، <strong>کارت پروفایلش</strong> باز میشه و می‌تونی اطلاعات کامل و مدال‌هاش رو ببینی.'
-    },
-    {
-        icon: '⭐',
-        title: 'امتیاز بگیر',
-        subtitle: 'تکالیف رو انجام بده',
-        text: 'برای بالا رفتن در رتبه‌بندی، <strong>تکالیفت رو انجام بده</strong> و امتیاز جمع کن. هر چه امتیاز بیشتر، رتبه بالاتر!'
-    }
+    { icon: '🏆', title: 'رتبه‌بندی کلاس', subtitle: 'با دوستات رقابت کن!', text: 'اینجا می‌تونی <strong>رتبه‌ت رو در کلاس</strong> ببینی.' },
+    { icon: '🥇', title: 'سکوی قهرمانی', subtitle: 'سه نفر اول', text: 'سه نفر اول کلاس با <strong>مدال طلا، نقره و برنز</strong> نشون داده میشن.' },
+    { icon: '👆', title: 'کارت پروفایل', subtitle: 'اطلاعات کامل', text: 'با کلیک روی هر دانش‌آموز، <strong>کارت پروفایلش</strong> باز میشه.' },
+    { icon: '⭐', title: 'امتیاز بگیر', subtitle: 'تکالیف رو انجام بده', text: 'برای بالا رفتن در رتبه‌بندی، <strong>تکالیفت رو انجام بده</strong>.' }
 ];
 
 function checkAndShowRankingsGuide() {
-    // 🆕 اگه کاربر برگشتیه، نشون نده
-    if (isReturningUser()) {
-        console.log('🔇 کاربر برگشتی - راهنمای رتبه‌بندی نشون داده نمیشه');
-        return false;
-    }
-    
+    if (isReturningUser()) return false;
     const hasSeen = localStorage.getItem('hasSeenRankingsGuide') === 'true';
     if (hasSeen) return false;
-    
     setTimeout(() => showRankingsGuide(), 800);
     return true;
 }
@@ -136,7 +91,6 @@ function checkAndShowRankingsGuide() {
 function showRankingsGuide() {
     rankingsGuideStep = 0;
     updateRankingsGuideStep();
-    
     const overlay = document.getElementById('rankings-guide');
     if (overlay) overlay.classList.add('active');
 }
@@ -144,7 +98,6 @@ function showRankingsGuide() {
 function updateRankingsGuideStep() {
     const step = RANKINGS_GUIDE_STEPS[rankingsGuideStep];
     if (!step) return;
-    
     const stepEl = document.getElementById('rankings-guide-step');
     const iconEl = document.getElementById('rankings-guide-icon');
     const titleEl = document.getElementById('rankings-guide-title');
@@ -152,19 +105,12 @@ function updateRankingsGuideStep() {
     const textEl = document.getElementById('rankings-guide-text');
     const nextBtn = document.getElementById('rankings-guide-next');
     const dotsEl = document.getElementById('rankings-guide-dots');
-    
     if (stepEl) stepEl.textContent = `گام ${toPersianNum(rankingsGuideStep + 1)} از ${toPersianNum(RANKINGS_GUIDE_STEPS.length)}`;
     if (iconEl) iconEl.textContent = step.icon;
     if (titleEl) titleEl.textContent = step.title;
     if (subtitleEl) subtitleEl.textContent = step.subtitle;
     if (textEl) textEl.innerHTML = step.text;
-    
-    if (nextBtn) {
-        nextBtn.textContent = (rankingsGuideStep === RANKINGS_GUIDE_STEPS.length - 1) 
-            ? 'شروع! 🎯' 
-            : 'فهمیدم';
-    }
-    
+    if (nextBtn) nextBtn.textContent = (rankingsGuideStep === RANKINGS_GUIDE_STEPS.length - 1) ? 'شروع! 🎯' : 'فهمیدم';
     if (dotsEl) {
         let dotsHTML = '';
         for (let i = 0; i < RANKINGS_GUIDE_STEPS.length; i++) {
@@ -177,235 +123,136 @@ function updateRankingsGuideStep() {
 function nextRankingsGuide() {
     vibrate(15);
     rankingsGuideStep++;
-    
-    if (rankingsGuideStep >= RANKINGS_GUIDE_STEPS.length) {
-        closeRankingsGuide();
-    } else {
-        updateRankingsGuideStep();
-    }
+    if (rankingsGuideStep >= RANKINGS_GUIDE_STEPS.length) closeRankingsGuide();
+    else updateRankingsGuideStep();
 }
 
-function skipRankingsGuide() {
-    vibrate(15);
-    closeRankingsGuide();
-}
+function skipRankingsGuide() { vibrate(15); closeRankingsGuide(); }
 
 function closeRankingsGuide() {
     const overlay = document.getElementById('rankings-guide');
     if (overlay) overlay.classList.remove('active');
-    
     localStorage.setItem('hasSeenRankingsGuide', 'true');
     localStorage.setItem('rankingsGuideSeenDate', new Date().toISOString());
-    console.log('✅ راهنمای رتبه‌بندی دیده شد');
 }
 
 // ============================================================
-// 🆕 نوتیفیکیشن پیام‌های معلم (با بررسی seen و isReturningUser)
+// نوتیفیکیشن پیام‌های معلم
 // ============================================================
 function checkAndShowNewMessageNotification() {
-    // 🆕 اگه کاربر برگشتیه، نشون نده
-    if (isReturningUser()) {
-        console.log('🔇 کاربر برگشتی - نوتیفیکیشن پیام نشون داده نمیشه');
-        return;
-    }
-    
+    if (isReturningUser()) return;
     const dismissed = localStorage.getItem('dismissedNewMessageNotif') === 'true';
     if (dismissed) return;
-    
     const studentId = localStorage.getItem('studentUUID');
     if (!studentId) return;
-    
     const cachedChat = getCachedData('studentChatCache_' + studentId);
     const cachedClass = getCachedData('studentClassMessagesCache');
-    
     if (!cachedChat && !cachedClass) return;
-    
     const seenChat = JSON.parse(localStorage.getItem('seenChatMessages') || '[]');
     const seenClass = JSON.parse(localStorage.getItem('seenClassMessages') || '[]');
-    
-    let unreadChat = 0;
-    let unreadClass = 0;
-    
-    if (cachedChat && cachedChat.length > 0) {
-        unreadChat = cachedChat.filter(m => m.sender === 'teacher' && !seenChat.includes(m.message_id)).length;
-    }
-    
-    if (cachedClass && cachedClass.length > 0) {
-        unreadClass = cachedClass.filter(m => !seenClass.includes(m.message_id)).length;
-    }
-    
+    let unreadChat = 0, unreadClass = 0;
+    if (cachedChat && cachedChat.length > 0) unreadChat = cachedChat.filter(m => m.sender === 'teacher' && !seenChat.includes(m.message_id)).length;
+    if (cachedClass && cachedClass.length > 0) unreadClass = cachedClass.filter(m => !seenClass.includes(m.message_id)).length;
     const totalUnread = unreadChat + unreadClass;
-    
-    if (totalUnread === 0) {
-        console.log('ℹ️ هیچ پیام خونده‌نشده‌ای نیست');
-        return;
-    }
-    
+    if (totalUnread === 0) return;
     const notif = document.getElementById('new-message-notification');
     const subText = document.getElementById('new-message-notification-sub');
-    
     if (notif && subText) {
         let text = '';
-        if (unreadChat > 0 && unreadClass > 0) {
-            text = `${toPersianNum(unreadChat)} پیام شخصی و ${toPersianNum(unreadClass)} پیام کلاسی جدید`;
-        } else if (unreadChat > 0) {
-            text = unreadChat === 1 ? 'یک پیام شخصی جدید داری' : `${toPersianNum(unreadChat)} پیام شخصی جدید داری`;
-        } else {
-            text = unreadClass === 1 ? 'یک پیام کلاسی جدید داری' : `${toPersianNum(unreadClass)} پیام کلاسی جدید داری`;
-        }
-        
+        if (unreadChat > 0 && unreadClass > 0) text = `${toPersianNum(unreadChat)} پیام شخصی و ${toPersianNum(unreadClass)} پیام کلاسی جدید`;
+        else if (unreadChat > 0) text = unreadChat === 1 ? 'یک پیام شخصی جدید داری' : `${toPersianNum(unreadChat)} پیام شخصی جدید داری`;
+        else text = unreadClass === 1 ? 'یک پیام کلاسی جدید داری' : `${toPersianNum(unreadClass)} پیام کلاسی جدید داری`;
         subText.textContent = text;
-        
-        if (typeof repositionNotifications === 'function') {
-            repositionNotifications();
-        }
-        
-        setTimeout(() => {
-            notif.classList.add('show');
-            if (typeof repositionNotifications === 'function') {
-                repositionNotifications();
-            }
-        }, 600);
+        if (typeof repositionNotifications === 'function') repositionNotifications();
+        setTimeout(() => { notif.classList.add('show'); if (typeof repositionNotifications === 'function') repositionNotifications(); }, 600);
     }
 }
 
 function dismissNewMessageNotification() {
     const notif = document.getElementById('new-message-notification');
     if (!notif) return;
-    
     notif.classList.add('swiping');
     notif.style.transform = 'translateY(-200%)';
     notif.style.opacity = '0';
-    
     setTimeout(() => {
         notif.classList.remove('show', 'swiping');
         notif.style.transform = '';
         notif.style.opacity = '';
-        
-        if (typeof repositionNotifications === 'function') {
-            repositionNotifications();
-        }
+        if (typeof repositionNotifications === 'function') repositionNotifications();
     }, 300);
-    
     localStorage.setItem('dismissedNewMessageNotif', 'true');
-    if (typeof debouncedSaveSeenData === 'function') {
-        debouncedSaveSeenData();
-    }
+    if (typeof debouncedSaveSeenData === 'function') debouncedSaveSeenData();
 }
 
 function goToTeacherMessagesFromNotification() {
     dismissNewMessageNotification();
-    setTimeout(() => {
-        goToScreen('screen-teacher-messages');
-    }, 200);
+    setTimeout(() => goToScreen('screen-teacher-messages'), 200);
 }
 
-function resetNewMessageNotification() {
-    localStorage.removeItem('dismissedNewMessageNotif');
-}
+function resetNewMessageNotification() { localStorage.removeItem('dismissedNewMessageNotif'); }
 
 // ============================================================
-// نوتیفیکیشن جزوه جدید (با بررسی isReturningUser)
+// نوتیفیکیشن جزوه جدید
 // ============================================================
 async function checkAndShowNewJozveNotification() {
-    // 🆕 اگه کاربر برگشتیه، نشون نده
-    if (isReturningUser()) {
-        console.log('🔇 کاربر برگشتی - نوتیفیکیشن جزوه نشون داده نمیشه');
-        return;
-    }
-    
+    if (isReturningUser()) return;
     const dismissed = localStorage.getItem('dismissedNewJozveNotif') === 'true';
     if (dismissed) return;
-    
     try {
         const response = await fetch('./jozve/index.json?t=' + Date.now());
         if (!response.ok) return;
-        
         const data = await response.json();
         const items = data.items || [];
-        
         if (items.length === 0) return;
-        
         const seenJozve = JSON.parse(localStorage.getItem('seenJozveIds') || '[]');
         const newItems = items.filter(item => !seenJozve.includes(item.id));
-        
         if (newItems.length > 0) {
             const notif = document.getElementById('new-jozve-notification');
             const subText = document.getElementById('new-jozve-notification-sub');
-            
             if (notif && subText) {
-                const text = newItems.length === 1 
-                    ? `«${newItems[0].title}» اضافه شد` 
-                    : `${toPersianNum(newItems.length)} جزوه جدید اضافه شد`;
-                
+                const text = newItems.length === 1 ? `«${newItems[0].title}» اضافه شد` : `${toPersianNum(newItems.length)} جزوه جدید اضافه شد`;
                 subText.textContent = text;
-                
-                if (typeof repositionNotifications === 'function') {
-                    repositionNotifications();
-                }
-                
-                setTimeout(() => {
-                    notif.classList.add('show');
-                    if (typeof repositionNotifications === 'function') {
-                        repositionNotifications();
-                    }
-                }, 300);
+                if (typeof repositionNotifications === 'function') repositionNotifications();
+                setTimeout(() => { notif.classList.add('show'); if (typeof repositionNotifications === 'function') repositionNotifications(); }, 300);
             }
         }
-    } catch (e) {
-        console.warn('خطا در چک جزوه:', e);
-    }
+    } catch (e) { console.warn('خطا در چک جزوه:', e); }
 }
 
 function dismissNewJozveNotification() {
     const notif = document.getElementById('new-jozve-notification');
     if (!notif) return;
-    
     notif.classList.add('swiping');
     notif.style.transform = 'translateY(-200%)';
     notif.style.opacity = '0';
-    
     setTimeout(() => {
         notif.classList.remove('show', 'swiping');
         notif.style.transform = '';
         notif.style.opacity = '';
-        
-        if (typeof repositionNotifications === 'function') {
-            repositionNotifications();
-        }
+        if (typeof repositionNotifications === 'function') repositionNotifications();
     }, 300);
-    
     saveJozveSeen();
 }
 
 function goToJozveFromNotification() {
     dismissNewJozveNotification();
-    setTimeout(() => {
-        window.location.href = './jozve.html';
-    }, 250);
+    setTimeout(() => { window.location.href = './jozve.html'; }, 250);
 }
 
 async function saveJozveSeen() {
     try {
         const response = await fetch('./jozve/index.json?t=' + Date.now());
         if (!response.ok) return;
-        
         const data = await response.json();
         const items = data.items || [];
         const ids = items.map(item => item.id);
-        
         localStorage.setItem('seenJozveIds', JSON.stringify(ids));
         localStorage.setItem('dismissedNewJozveNotif', 'true');
-        
-        if (typeof debouncedSaveSeenData === 'function') {
-            debouncedSaveSeenData();
-        }
+        if (typeof debouncedSaveSeenData === 'function') debouncedSaveSeenData();
     } catch (e) {}
 }
 
-function resetJozveNotification() {
-    localStorage.removeItem('dismissedNewJozveNotif');
-}
+function resetJozveNotification() { localStorage.removeItem('dismissedNewJozveNotif'); }
 
 // ============================================================
 // همگام‌سازی خودکار
@@ -413,11 +260,8 @@ function resetJozveNotification() {
 function autoSyncRanking(reason = 'unknown') {
     if (localStorage.getItem('userRegistered') !== 'true') return;
     if (typeof saveRankingToSupabase !== 'function') return;
-    
     setTimeout(async () => {
-        try {
-            await saveRankingToSupabase();
-        } catch (e) {}
+        try { await saveRankingToSupabase(); } catch (e) {}
     }, 500);
 }
 
@@ -427,18 +271,14 @@ function autoSyncRanking(reason = 'unknown') {
 async function checkMaintenanceMode() {
     const urlParams = new URLSearchParams(window.location.search);
     const isAdmin = urlParams.get('admin') === ADMIN_CODE;
-    
     try {
         const response = await fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' });
         if (!response.ok) return false;
         const data = await response.json();
-        
         isPublished = (data.published !== false);
         if (isAdmin) return false;
         return data.maintenance === true;
-    } catch(e) {
-        return false;
-    }
+    } catch(e) { return false; }
 }
 
 // ============================================================
@@ -446,39 +286,27 @@ async function checkMaintenanceMode() {
 // ============================================================
 async function startApp() {
     const isRegistered = localStorage.getItem('userRegistered') === 'true';
-    
     if (isRegistered) {
         updateStreak();
         await loadLessonsListForNotification();
         goToScreen('screen-home');
         
-        // 🆕 اگه کاربر قدیمیه و کد نداره، کد خودکار براش بساز
         setTimeout(async () => {
             const existingCode = localStorage.getItem('studentCode');
             if (!existingCode || !/^[0-9]{3}$/.test(existingCode)) {
-                console.log('🔄 کاربر قدیمی - ساخت کد خودکار...');
                 if (typeof assignCodeToOldUser === 'function') {
                     const newCode = await assignCodeToOldUser();
-                    if (newCode) {
-                        setTimeout(() => {
-                            if (typeof showCodeModalToOldUser === 'function') {
-                                showCodeModalToOldUser(newCode);
-                            }
-                        }, 3000);
+                    if (newCode && typeof showCodeModalToOldUser === 'function') {
+                        setTimeout(() => showCodeModalToOldUser(newCode), 3000);
                     }
                 }
             }
         }, 1000);
         
         setTimeout(async () => {
-            console.log('🔄 شروع انتقال خودکار داده‌ها به Supabase...');
             try {
-                if (typeof transferLocalDataToSupabase === 'function') {
-                    await transferLocalDataToSupabase();
-                }
-            } catch (e) {
-                console.error('❌ خطا در انتقال:', e);
-            }
+                if (typeof transferLocalDataToSupabase === 'function') await transferLocalDataToSupabase();
+            } catch (e) {}
         }, 2000);
         
         setTimeout(() => {
@@ -486,33 +314,15 @@ async function startApp() {
             checkDeadlineWarning();
             updateNotificationBadge();
             checkVideoNotification();
-            
-            if (typeof checkTeacherMessagesBadge === 'function') {
-                checkTeacherMessagesBadge();
-            }
-            
-            if (typeof startRealtimeSubscriptions === 'function' && 
-                typeof isRealtimeStarted !== 'undefined' && 
-                !isRealtimeStarted) {
+            if (typeof checkTeacherMessagesBadge === 'function') checkTeacherMessagesBadge();
+            if (typeof startRealtimeSubscriptions === 'function' && typeof isRealtimeStarted !== 'undefined' && !isRealtimeStarted) {
                 setTimeout(() => startRealtimeSubscriptions(), 500);
             }
-            
-            // 🆕 چک‌های وابسته به isReturningUser
             if (!isReturningUser()) {
                 checkAndShowUpdateModal();
-                
-                setTimeout(() => {
-                    checkAndShowNewMessageNotification();
-                }, 1500);
-                
-                setTimeout(() => {
-                    checkAndShowNewJozveNotification();
-                }, 2000);
-            } else {
-                console.log('🔇 کاربر برگشتی - همه اعلان‌ها نادیده گرفته میشن');
+                setTimeout(() => checkAndShowNewMessageNotification(), 1500);
+                setTimeout(() => checkAndShowNewJozveNotification(), 2000);
             }
-            
-            // 🆕 راهنما و استریک فقط برای کاربر جدید
             if (!isReturningUser()) {
                 if (localStorage.getItem('guideCompleted') !== 'true') {
                     currentGuideStep = 0;
@@ -532,9 +342,7 @@ async function startApp() {
 // UUID
 // ============================================================
 function generateUUID() {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        return crypto.randomUUID();
-    }
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         const r = Math.random() * 16 | 0;
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -543,7 +351,7 @@ function generateUUID() {
 }
 
 // ============================================================
-// PWA — Service Worker
+// 🆕 PWA — Service Worker (با بروزرسانی خودکار)
 // ============================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -551,24 +359,20 @@ if ('serviceWorker' in navigator) {
             const registration = await navigator.serviceWorker.register('./service-worker.js');
             console.log('✅ Service Worker ثبت شد');
 
+            // 🆕 چک کردن بروزرسانی هر ۳۰ ثانیه
             setInterval(() => {
-                registration.update().then(() => {
-                    console.log('🔄 چک کردن بروزرسانی...');
-                }).catch(() => {});
+                registration.update().catch(() => {});
             }, 30000);
 
+            // 🆕 اگه نسخه جدید اومد، خودکار لود کن
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 if (!newWorker) return;
-                
                 console.log('🆕 نسخه‌ی جدید پیدا شد!');
-
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        console.log('✅ نسخه‌ی جدید آماده‌ست - در حال بارگذاری...');
-                        
+                        console.log('✅ نسخه‌ی جدید آماده - در حال بارگذاری...');
                         showUpdateNotification();
-                        
                         setTimeout(() => {
                             newWorker.postMessage({ type: 'SKIP_WAITING' });
                         }, 1500);
@@ -576,6 +380,7 @@ if ('serviceWorker' in navigator) {
                 });
             });
 
+            // 🆕 وقتی SW جدید کنترل کرد، صفحه رو رفرش کن
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
@@ -593,47 +398,22 @@ if ('serviceWorker' in navigator) {
 
 function showUpdateNotification() {
     if (document.getElementById('sw-update-notification')) return;
-    
     const notif = document.createElement('div');
     notif.id = 'sw-update-notification';
     notif.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%) translateY(-100px);
-        background: linear-gradient(135deg, #4caf50, #2e7d32);
-        color: #fff;
-        padding: 14px 22px;
-        border-radius: 50px;
-        font-family: 'Vazirmatn', sans-serif;
-        font-size: 14px;
-        font-weight: 900;
-        z-index: 999999;
-        box-shadow: 0 8px 30px rgba(76, 175, 80, 0.6);
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+        background: linear-gradient(135deg, #4caf50, #2e7d32); color: #fff; padding: 14px 22px;
+        border-radius: 50px; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: 900;
+        z-index: 999999; box-shadow: 0 8px 30px rgba(76, 175, 80, 0.6);
+        display: flex; align-items: center; gap: 10px;
         transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     `;
-    notif.innerHTML = `
-        <span style="font-size: 20px; animation: swSpin 1s linear infinite;">🔄</span>
-        <span>نسخه‌ی جدید در حال بارگذاری...</span>
-    `;
+    notif.innerHTML = `<span style="font-size: 20px; animation: swSpin 1s linear infinite;">🔄</span><span>نسخه‌ی جدید در حال بارگذاری...</span>`;
     document.body.appendChild(notif);
-
     const style = document.createElement('style');
-    style.textContent = `
-        @keyframes swSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-    `;
+    style.textContent = `@keyframes swSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
     document.head.appendChild(style);
-
-    setTimeout(() => {
-        notif.style.transform = 'translateX(-50%) translateY(0)';
-    }, 50);
-
+    setTimeout(() => { notif.style.transform = 'translateX(-50%) translateY(0)'; }, 50);
     setTimeout(() => {
         notif.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         notif.style.opacity = '0';
@@ -686,150 +466,13 @@ async function installApp() {
         deferredPrompt = null;
     } else {
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        alert(isIOS
-            ? 'برای نصب در آیفون:\n\n۱. دکمه Share را بزنید.\n۲. Add to Home Screen را انتخاب کنید.'
-            : 'برای نصب:\n\nمنوی مرورگر → Add to home screen یا نصب برنامه');
+        alert(isIOS ? 'برای نصب در آیفون:\n\n۱. دکمه Share را بزنید.\n۲. Add to Home Screen را انتخاب کنید.' : 'برای نصب:\n\nمنوی مرورگر → Add to home screen یا نصب برنامه');
     }
 }
 
 window.addEventListener('appinstalled', () => {
     if (installBanner) installBanner.classList.remove('show');
     localStorage.setItem('installBannerDismissed', 'true');
-});
-
-// ============================================================
-// بارگذاری مسابقات
-// ============================================================
-async function loadHomeContests() {
-    const section = document.getElementById('home-contests-section');
-    const list = document.getElementById('home-contests-list');
-    if (!section || !list) return;
-    
-    try {
-        if (typeof getContestsFromSupabase !== 'function') return;
-        const contests = await getContestsFromSupabase();
-        
-        if (!contests || contests.length === 0) {
-            section.style.display = 'none';
-            return;
-        }
-        
-        const today = getPersianDate();
-        const activeContests = contests.filter(c => {
-            const endNum = persianDateToNumber(c.end_date);
-            const todayNum = persianDateToNumber(today);
-            return endNum >= todayNum;
-        });
-        
-        if (activeContests.length === 0) {
-            section.style.display = 'none';
-            return;
-        }
-        
-        list.innerHTML = activeContests.slice(0, 3).map(c => `
-            <div class="home-contest-item">
-                <div class="home-contest-icon">🏆</div>
-                <div class="home-contest-info">
-                    <div class="home-contest-title">${c.title}</div>
-                    <div class="home-contest-meta">🎁 ${c.prize || 'بدون جایزه'} • تا ${c.end_date}</div>
-                </div>
-            </div>
-        `).join('');
-        
-        section.style.display = 'block';
-    } catch (error) {
-        section.style.display = 'none';
-    }
-}
-
-// ============================================================
-// بارگذاری کتابخانه
-// ============================================================
-async function loadHomeLibrary() {
-    const section = document.getElementById('home-library-section');
-    const list = document.getElementById('home-library-list');
-    if (!section || !list) return;
-    
-    try {
-        if (typeof getLibraryFromSupabase !== 'function') return;
-        const items = await getLibraryFromSupabase();
-        
-        if (!items || items.length === 0) {
-            section.style.display = 'none';
-            return;
-        }
-        
-        const typeIcons = { video: '🎬', pdf: '📄', audio: '🎵', site: '🌐', book: '📚' };
-        
-        list.innerHTML = items.slice(0, 4).map(item => `
-            <a href="${item.url}" target="_blank" class="home-library-item">
-                <div class="home-library-icon">${typeIcons[item.type] || '📄'}</div>
-                <div class="home-library-info">
-                    <div class="home-library-title">${item.title}</div>
-                </div>
-            </a>
-        `).join('');
-        
-        section.style.display = 'block';
-    } catch (error) {
-        section.style.display = 'none';
-    }
-}
-
-// ============================================================
-// مدیریت visibility change
-// ============================================================
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        if (localStorage.getItem('userRegistered') === 'true') {
-            autoSyncRanking('بازگشت به برنامه');
-            
-            if (typeof startRealtimeSubscriptions === 'function' && 
-                typeof isRealtimeStarted !== 'undefined' && 
-                !isRealtimeStarted) {
-                setTimeout(() => startRealtimeSubscriptions(), 1000);
-            }
-            
-            // 🆕 فقط اگه کاربر برگشتی نبود، اعلان‌ها رو چک کن
-            if (!isReturningUser()) {
-                setTimeout(() => {
-                    checkAndShowNewMessageNotification();
-                }, 1000);
-                
-                setTimeout(() => {
-                    checkAndShowNewJozveNotification();
-                }, 1500);
-            }
-        }
-    }
-});
-
-// ============================================================
-// محدود کردن input کد به عدد
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-    const codeInputs = ['welcome-code', 'login-code'];
-    
-    codeInputs.forEach(id => {
-        const input = document.getElementById(id);
-        if (!input) return;
-        
-        input.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-        });
-        
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                if (id === 'welcome-code') {
-                    saveUserInfo();
-                } else if (id === 'login-code') {
-                    loginWithCode();
-                }
-            }
-        });
-    });
-    
-    console.log('✅ ورودی‌های کد راه‌اندازی شدند');
 });
 
 // ============================================================
@@ -845,20 +488,14 @@ window.addEventListener('load', async () => {
     loadUserInfo();
     loadTheme();
     
-    // 🆕 اگه کاربر ثبت‌نام کرده ولی کد نداره، کد خودکار براش بساز
     if (localStorage.getItem('userRegistered') === 'true') {
         const existingCode = localStorage.getItem('studentCode');
         if (!existingCode || !/^[0-9]{3}$/.test(existingCode)) {
             setTimeout(async () => {
-                console.log('🔄 کاربر قدیمی - ساخت کد خودکار...');
                 if (typeof assignCodeToOldUser === 'function') {
                     const newCode = await assignCodeToOldUser();
-                    if (newCode) {
-                        setTimeout(() => {
-                            if (typeof showCodeModalToOldUser === 'function') {
-                                showCodeModalToOldUser(newCode);
-                            }
-                        }, 2000);
+                    if (newCode && typeof showCodeModalToOldUser === 'function') {
+                        setTimeout(() => showCodeModalToOldUser(newCode), 2000);
                     }
                 }
             }, 2000);
@@ -898,22 +535,14 @@ window.addEventListener('load', async () => {
     if (cameFromClips || window.location.hash === '#home') {
         sessionStorage.removeItem('cameFromClips');
         history.replaceState({ screen: 'screen-home' }, '', '');
-        
         if (isRegistered) {
             updateStreak();
             goToScreen('screen-home', false);
-            
             setTimeout(async () => {
-                console.log('🔄 شروع انتقال خودکار داده‌ها به Supabase...');
                 try {
-                    if (typeof transferLocalDataToSupabase === 'function') {
-                        await transferLocalDataToSupabase();
-                    }
-                } catch (e) {
-                    console.error('❌ خطا:', e);
-                }
+                    if (typeof transferLocalDataToSupabase === 'function') await transferLocalDataToSupabase();
+                } catch (e) {}
             }, 1500);
-            
             setTimeout(() => {
                 if (allLessons.length === 0) {
                     loadLessonsListForNotification().then(() => {
@@ -927,32 +556,15 @@ window.addEventListener('load', async () => {
                     updateNotificationBadge();
                 }
                 checkVideoNotification();
-                
-                if (typeof checkTeacherMessagesBadge === 'function') {
-                    checkTeacherMessagesBadge();
-                }
-                
-                if (typeof startRealtimeSubscriptions === 'function' && 
-                    typeof isRealtimeStarted !== 'undefined' && 
-                    !isRealtimeStarted) {
+                if (typeof checkTeacherMessagesBadge === 'function') checkTeacherMessagesBadge();
+                if (typeof startRealtimeSubscriptions === 'function' && typeof isRealtimeStarted !== 'undefined' && !isRealtimeStarted) {
                     setTimeout(() => startRealtimeSubscriptions(), 1000);
                 }
-                
-                // 🆕 فقط اگه کاربر برگشتی نبود، این‌ها رو نشون بده
                 if (!isReturningUser()) {
                     checkAndShowUpdateModal();
-                    
-                    setTimeout(() => {
-                        checkAndShowNewMessageNotification();
-                    }, 1500);
-                    
-                    setTimeout(() => {
-                        checkAndShowNewJozveNotification();
-                    }, 2000);
-                    
+                    setTimeout(() => checkAndShowNewMessageNotification(), 1500);
+                    setTimeout(() => checkAndShowNewJozveNotification(), 2000);
                     setTimeout(() => showStreakMessage(), 800);
-                } else {
-                    console.log('🔇 کاربر برگشتی - همه اعلان‌ها نادیده گرفته میشن');
                 }
             }, 300);
         } else {
@@ -967,9 +579,104 @@ window.addEventListener('load', async () => {
     if (isRegistered) {
         setTimeout(() => autoSyncRanking('ورود به برنامه'), 1500);
     }
+});
 
+// ============================================================
+// تغییر visibilitychange
+// ============================================================
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        if (localStorage.getItem('userRegistered') === 'true') {
+            autoSyncRanking('بازگشت به برنامه');
+            if (typeof startRealtimeSubscriptions === 'function' && typeof isRealtimeStarted !== 'undefined' && !isRealtimeStarted) {
+                setTimeout(() => startRealtimeSubscriptions(), 1000);
+            }
+            if (!isReturningUser()) {
+                setTimeout(() => checkAndShowNewMessageNotification(), 1000);
+                setTimeout(() => checkAndShowNewJozveNotification(), 1500);
+            }
+        }
+    }
+});
+
+// ============================================================
+// محدود کردن input کد به عدد
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const codeInputs = ['welcome-code', 'login-code'];
+    codeInputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (id === 'welcome-code') saveUserInfo();
+                else if (id === 'login-code') loginWithCode();
+            }
+        });
+    });
+});
+
+// ============================================================
+// توابع کمکی دیگر (در صورت نبود)
+// ============================================================
+async function loadHomeContests() {
+    const section = document.getElementById('home-contests-section');
+    const list = document.getElementById('home-contests-list');
+    if (!section || !list) return;
+    try {
+        if (typeof getContestsFromSupabase !== 'function') return;
+        const contests = await getContestsFromSupabase();
+        if (!contests || contests.length === 0) { section.style.display = 'none'; return; }
+        const today = getPersianDate();
+        const activeContests = contests.filter(c => {
+            const endNum = persianDateToNumber(c.end_date);
+            const todayNum = persianDateToNumber(today);
+            return endNum >= todayNum;
+        });
+        if (activeContests.length === 0) { section.style.display = 'none'; return; }
+        list.innerHTML = activeContests.slice(0, 3).map(c => `
+            <div class="home-contest-item">
+                <div class="home-contest-icon">🏆</div>
+                <div class="home-contest-info">
+                    <div class="home-contest-title">${c.title}</div>
+                    <div class="home-contest-meta">🎁 ${c.prize || 'بدون جایزه'} • تا ${c.end_date}</div>
+                </div>
+            </div>
+        `).join('');
+        section.style.display = 'block';
+    } catch (error) { section.style.display = 'none'; }
+}
+
+async function loadHomeLibrary() {
+    const section = document.getElementById('home-library-section');
+    const list = document.getElementById('home-library-list');
+    if (!section || !list) return;
+    try {
+        if (typeof getLibraryFromSupabase !== 'function') return;
+        const items = await getLibraryFromSupabase();
+        if (!items || items.length === 0) { section.style.display = 'none'; return; }
+        const typeIcons = { video: '🎬', pdf: '📄', audio: '🎵', site: '🌐', book: '📚' };
+        list.innerHTML = items.slice(0, 4).map(item => `
+            <a href="${item.url}" target="_blank" class="home-library-item">
+                <div class="home-library-icon">${typeIcons[item.type] || '📄'}</div>
+                <div class="home-library-info">
+                    <div class="home-library-title">${item.title}</div>
+                </div>
+            </a>
+        `).join('');
+        section.style.display = 'block';
+    } catch (error) { section.style.display = 'none'; }
+}
+
+// ============================================================
+// استارت
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-        if (isRegistered) {
+        if (localStorage.getItem('userRegistered') === 'true') {
             loadHomeContests();
             loadHomeLibrary();
         }
