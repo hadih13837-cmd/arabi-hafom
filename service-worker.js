@@ -1,9 +1,9 @@
 // ============================================================
-// service-worker.js — کش کردن فایل‌ها
-// نسخه: v169 — با پشتیبانی از جزوه و کلمات
+// service-worker.js — با بروزرسانی خودکار
+// نسخه: v172
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v206';
+const CACHE_NAME = 'arabi-hafom-v172';
 
 const urlsToCache = [
     './',
@@ -38,116 +38,62 @@ const urlsToCache = [
     './lessons/index.json',
     './lessons/lesson1.json',
     './lessons/lesson2.json',
-
+    './lessons/lesson3.json',
+    './lessons/lesson4.json',
+    './lessons/lesson5.json',
     './jozve/index.json',
-
-    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-    'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css',
-    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
 ];
 
-// ============================================================
-// نصب
-// ============================================================
+// نصب — فایل‌ها رو ذخیره کن و فوراً فعال شو
 self.addEventListener('install', event => {
+    self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('✅ شروع ذخیره فایل‌ها');
-                return Promise.all(
-                    urlsToCache.map(url => {
-                        return cache.add(url).catch(err => {
-                            console.warn('⚠️ خطا در کش کردن:', url, err.message);
-                        });
-                    })
-                );
-            })
-            .then(() => {
-                console.log('✅ همه فایل‌ها ذخیره شدند');
-                return self.skipWaiting();
-            })
-            .catch(err => {
-                console.log('❌ خطا:', err);
-            })
+        caches.open(CACHE_NAME).then(cache => {
+            return Promise.all(
+                urlsToCache.map(url => cache.add(url).catch(err => console.warn('خطا در کش:', url)))
+            );
+        })
     );
 });
 
-// ============================================================
-// فعال‌سازی
-// ============================================================
+// فعال‌سازی — کش‌های قدیمی رو پاک کن
 self.addEventListener('activate', event => {
     event.waitUntil(
-        caches.keys()
-            .then(cacheNames => {
-                return Promise.all(
-                    cacheNames.map(cache => {
-                        if (cache !== CACHE_NAME) {
-                            console.log('🗑️ حذف کش قدیمی:', cache);
-                            return caches.delete(cache);
-                        }
-                    })
-                );
-            })
-            .then(() => {
-                console.log('✅ Service Worker فعال شد');
-                return self.clients.claim();
-            })
+        caches.keys().then(names => {
+            return Promise.all(
+                names.map(name => {
+                    if (name !== CACHE_NAME) {
+                        console.log('🗑️ پاک کردن کش قدیمی:', name);
+                        return caches.delete(name);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
     );
 });
 
-// ============================================================
-// مدیریت fetch
-// ============================================================
+// مدیریت fetch — همیشه اول از شبکه بخون (Network First)
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
-
     const url = event.request.url;
 
-    // درخواست‌های Supabase — مستقیم از شبکه
-    if (url.includes('supabase.co')) {
+    if (url.includes('supabase.co') || url.includes('realtime') || url.includes('ws')) {
         event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
         return;
     }
 
-    // WebSocket / Realtime
-    if (url.includes('realtime') || url.includes('ws')) {
-        event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
+    if (url.includes('cdn.imgurl.ir') || url.includes('imgurl.ir') || url.includes('githubusercontent.com')) {
+        event.respondWith(fetch(event.request, { mode: 'no-cors' }).catch(() => new Response('', { status: 503 })));
         return;
     }
 
-    // عکس‌های CDN خارجی — بدون کش
-    if (url.includes('cdn.imgurl.ir') || 
-        url.includes('imgurl.ir') ||
-        url.includes('githubusercontent.com') ||
-        url.includes('googleusercontent.com')) {
-        event.respondWith(
-            fetch(event.request, { mode: 'no-cors' })
-                .catch(() => new Response('', { status: 503 }))
-        );
-        return;
-    }
-
-    // maintenance.json — همیشه از شبکه
-    if (url.includes('maintenance.json')) {
-        event.respondWith(
-            fetch(event.request, { cache: 'no-store' })
-                .catch(() => caches.match(event.request))
-        );
-        return;
-    }
-
-    // فایل‌های درس و جزوه — همیشه از شبکه چک
-    if (url.includes('/lessons/') || url.includes('/jozve/')) {
+    if (url.includes('maintenance.json') || url.includes('/lessons/') || url.includes('/jozve/')) {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' })
                 .then(response => {
                     if (response && response.status === 200) {
-                        const responseClone = response.clone();
-                        caches.open(CACHE_NAME).then(cache => {
-                            cache.put(event.request, responseClone).catch(() => {});
-                        });
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then(c => c.put(event.request, clone).catch(() => {}));
                     }
                     return response;
                 })
@@ -156,45 +102,28 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // بقیه — اول از کش
+    // برای بقیه فایل‌ها: اول شبکه، بعد کش
     event.respondWith(
-        caches.match(event.request)
+        fetch(event.request)
             .then(response => {
-                if (response) return response;
-                return fetch(event.request)
-                    .then(response => {
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
-                            return response;
-                        }
-                        const responseToCache = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                cache.put(event.request, responseToCache).catch(() => {});
-                            });
-                        return response;
-                    })
-                    .catch(() => {
-                        if (event.request.mode === 'navigate') {
-                            return caches.match('./index.html');
-                        }
-                        return new Response('', { status: 503 });
-                    });
+                if (response && response.status === 200) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(c => c.put(event.request, clone).catch(() => {}));
+                }
+                return response;
             })
+            .catch(() => caches.match(event.request))
     );
 });
 
-// ============================================================
 // پیام‌ها
-// ============================================================
 self.addEventListener('message', event => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
     if (event.data && event.data.type === 'CLEAR_CACHE') {
         caches.keys().then(names => {
-            names.forEach(name => {
-                caches.delete(name);
-            });
+            names.forEach(name => caches.delete(name));
         });
     }
 });
