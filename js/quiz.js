@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۲۲.۰.۰ — اصلاح متن راهنما + رفع مشکل جای خالی (fill)
+// نسخه: ۲۴.۰.۰ — رفع کامل سوال ۱۱ و سوال تصویری تکلیف ۴
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -173,25 +173,31 @@ function renderQuestion() {
     const iconData = QUESTION_ICONS[qType] || QUESTION_ICONS.multiple || { class: 'qti-test', svg: '' };
     let html = '';
 
+    // 🆕 اصلاح سوالات image-question
     if (q.type === 'image-question') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         if (q.arabicSentence) html += `<div class="arabic-question-box"><div class="arabic-question-text">${q.arabicSentence}</div></div>`;
         
-        if (q.image) {
+        if (q.image && q.image.trim() !== '') {
             html += `<div class="image-question-box"><span class="image-question-emoji">${q.image}</span></div>`;
+            currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
+            html += `<div class="options-grid">`;
+            currentShuffledOpts.forEach((item, displayIdx) => {
+                html += `<div class="option-btn" onclick="selectOption(this, ${displayIdx})">${item.opt}</div>`;
+            });
+            html += `</div>`;
+        } else {
+            currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
+            html += `<div class="image-question-grid">`;
+            currentShuffledOpts.forEach((item, displayIdx) => {
+                html += `<div class="image-question-card" onclick="selectOption(this, ${displayIdx})">${item.opt}</div>`;
+            });
+            html += `</div>`;
         }
-        
-        currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
-        html += `<div class="options-grid">`;
-        currentShuffledOpts.forEach((item, displayIdx) => {
-            html += `<div class="option-btn" onclick="selectOption(this, ${displayIdx})">${item.opt}</div>`;
-        });
-        html += `</div>`;
     }
     else if (q.type === 'fill') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         
-        // 🆕 اصلاح نمایش جای خالی در سوال fill
         let sentenceHTML = q.sentence;
         sentenceHTML = sentenceHTML.replace(/\.{3,}/g, '<span class="blank-slot" id="blank-slot"></span>');
         sentenceHTML = sentenceHTML.replace(/_{3,}/g, '<span class="blank-slot" id="blank-slot"></span>');
@@ -265,7 +271,6 @@ function renderQuestion() {
     else if (q.type === 'drag-gender') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         
-        // 🆕 راهنمای دقیقاً طبق درخواست
         html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
         
         const shuffledWords = shuffleArray([...q.words]);
@@ -283,7 +288,6 @@ function renderQuestion() {
     else if (q.type === 'fill-multiple') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         
-        // 🆕 راهنمای دقیقاً طبق درخواست
         html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
         
         fillMultipleAnswers = new Array(q.sentences.length).fill(null);
@@ -299,7 +303,6 @@ function renderQuestion() {
     else if (q.type === 'drag-into-blank') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         
-        // 🆕 راهنمای دقیقاً طبق درخواست
         html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
         
         dragIntoBlankItems = q.items.map((it, i) => ({ ...it, id: 'dib_' + i, filled: false }));
@@ -348,9 +351,6 @@ function renderQuestion() {
     }
     else if (q.type === 'letter-order') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
-        
-        // 🆕 راهنمای دقیقاً طبق درخواست
-        html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
         
         html += `<div class="letter-order-result" id="letter-order-result"><span class="letter-order-placeholder">حروف رو اینجا بچین (برای برگرداندن کلیک کن)</span></div>`;
         currentLetterItems = q.letters.map((letter, i) => ({ letter: letter, uniqueId: 'letter_' + i + '_' + Math.random().toString(36).substr(2, 5), originalIdx: i }));
@@ -631,6 +631,8 @@ function selectLetterOrder(el, uniqueId) {
     };
     resultDiv.appendChild(letterCard);
     const q = currentLesson.questions[currentQuestionIndex];
+    
+    // 🆕 وقتی همه حروف چیده شد، کلمه کامل رو نشون بده
     if (selectedLettersOrder.length === q.letters.length) {
         const userOrder = selectedLettersOrder.map(it => it.originalIdx);
         const correctOrder = q.letters.map((_, i) => i);
@@ -1019,7 +1021,7 @@ function getCorrectAnswerText(q) {
     if (q.type === 'audio-match') return q.audios.map((a, i) => `${toPersianNum(i+1)}: ${a.correctFa}`).join(' | ');
     if (q.type === 'find-error') return q.correctFix ? `${q.correctFix.wrong} → ${q.correctFix.correct}` : '-';
     if (q.type === 'word-build') return q.correct.join(' ');
-    if (q.type === 'letter-order') return `${q.resultWord} (${q.correct.join('')})`;
+    if (q.type === 'letter-order') return `${q.resultWord}`;
     if (q.type === 'drag-gender') return 'همه کلمات در کادر درست قرار گرفتند';
     if (q.type === 'drag-into-blank') return q.items.map((it, i) => `${i+1}. ${it.correct}`).join(' | ');
     if (q.type === 'fill-multiple') return q.sentences.map((s, i) => `${toPersianNum(i+1)}. ${s.correct}`).join(' | ');
