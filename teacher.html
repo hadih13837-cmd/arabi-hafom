@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۳۱.۰.۰ — رفع کامل باگ اعلان‌های تکرارشونده
+// نسخه: ۳۲.۰.۰ — نسخه کامل با رفع مشکل اعلان‌های تکراری
 // ============================================================
 
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
@@ -20,8 +20,8 @@ const DEFAULT_AVATAR_URL = 'https://cdn.imgurl.ir/uploads/d75534_file_000000007a
 
 let allStudents = [];
 let allLessonsList = [];
-let allLessonStatuses = []; 
-let allReportsMap = {}; 
+let allLessonStatuses = [];
+let allReportsMap = {};
 let allReportsRaw = [];
 let currentConversations = [];
 let currentChatStudent = null;
@@ -350,7 +350,192 @@ function renderHomeTopStudents(students) {
     cont.innerHTML = h;
 }
 
-// (توابع پیام‌رسانی - کامل)
+// ============================================================
+// دانش‌آموزان — نسخه اصلاح‌شده با اعلان‌های مجزا
+// ============================================================
+async function loadStudents() {
+    const c = document.getElementById('students-grid');
+    if (!c) return;
+    const ca = getCachedData(STUDENTS_CACHE_KEY);
+    if (ca && ca.length > 0) {
+        allStudents = ca;
+        await loadAllReportsForBadges();
+        renderStudents(getFilteredStudents());
+    } else {
+        c.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
+    }
+    try {
+        const st = await getAllStudents();
+        allStudents = st;
+        setCachedData(STUDENTS_CACHE_KEY, st);
+        await loadAllReportsForBadges();
+        renderStudents(getFilteredStudents());
+        updateHomeBadgesImmediately();
+    } catch (e) {
+        if (!ca) c.innerHTML = '<div style="text-align:center; padding:40px; color:#c62828; font-weight:bold;">خطا</div>';
+    }
+}
+
+function getFilteredStudents() {
+    let f = [...allStudents];
+    if (currentStudentClassFilter !== 'all') f = f.filter(s => s.class_name === currentStudentClassFilter);
+    const q = document.getElementById('student-search')?.value?.toLowerCase().trim() || '';
+    if (q) f = f.filter(s => (s.name || '').toLowerCase().includes(q) || (s.student_code || '').includes(q));
+    return f;
+}
+function filterStudentsByClass(cn, btn) {
+    currentStudentClassFilter = cn;
+    document.querySelectorAll('.class-tab').forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderStudents(getFilteredStudents());
+}
+function filterStudents() { renderStudents(getFilteredStudents()); }
+
+function renderStudents(students) {
+    const c = document.getElementById('students-grid');
+    if (!c) return;
+    if (students.length === 0) { c.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">دانش‌آموزی یافت نشد</div>'; return; }
+    
+    const seen = getReadLessons();
+    
+    // مرتب‌سازی
+    students.sort((a, b) => {
+        const aReports = allReportsRaw.filter(r => r.student_id === a.student_id);
+        const bReports = allReportsRaw.filter(r => r.student_id === b.student_id);
+        const aHasUnseen = aReports.some(r => !seen[r.id]);
+        const bHasUnseen = bReports.some(r => !seen[r.id]);
+        if (aHasUnseen && !bHasUnseen) return -1;
+        if (!aHasUnseen && bHasUnseen) return 1;
+        const aHasDone = aReports.length > 0;
+        const bHasDone = bReports.length > 0;
+        if (aHasDone && !bHasDone) return -1;
+        if (!aHasDone && bHasDone) return 1;
+        return 0;
+    });
+    
+    let h = '';
+    students.forEach(s => {
+        const sc = s.student_code || '---';
+        const tl = getTotalCompletedLessons(s);
+        const studentReports = allReportsRaw.filter(r => r.student_id === s.student_id);
+        const hasDoneLesson = studentReports.length > 0;
+        const hasUnseenReport = studentReports.some(r => !seen[r.id]);
+        const latestReport = studentReports.length > 0 ? studentReports[0] : null;
+        
+        let badgeHTML = '';
+        if (hasUnseenReport) badgeHTML = `<div class="student-notif-badge">🔔 اعلان</div>`;
+        else if (hasDoneLesson) badgeHTML = `<div class="student-done-badge">✅</div>`;
+        
+        const onclickAction = (hasUnseenReport && latestReport)
+            ? `markAndOpenProfile('${s.student_id}', '${latestReport.id}')`
+            : `openStudentProfile('${s.student_id}')`;
+        
+        const cardClass = hasUnseenReport ? 'has-new-lesson' : (hasDoneLesson ? 'has-done-lesson' : '');
+        
+        h += `<div class="student-card ${cardClass}" onclick="${onclickAction}">
+            ${badgeHTML}
+            <div class="student-avatar">${renderAvatarHTML(s)}</div>
+            <div class="student-info">
+                <div class="student-name">${s.name || 'بدون نام'}</div>
+                <span class="student-class">${getClassPersianName(s.class_name)}</span>
+                <div class="student-stats"><span>🔑 ${sc}</span><span>📚 ${toPersianNum(tl)} تکلیف</span></div>
+            </div>
+            <div class="student-points"><span>⭐</span><span>${toPersianNum(calculateTotalPoints(s))}</span></div>
+        </div>`;
+    });
+    c.innerHTML = h;
+}
+
+function markAndOpenProfile(sid, rid) {
+    markLessonReportAsSeen(rid);
+    openStudentProfile(sid);
+    updateHomeBadgesImmediately();
+    setTimeout(() => { renderStudents(getFilteredStudents()); }, 500);
+}
+
+async function openStudentProfile(sid) {
+    let s = allStudents.find(x => x.student_id === sid);
+    if (!s) { showToast('دانش‌آموز پیدا نشد', 'error'); return; }
+    currentProfileStudent = s;
+    vibrate(15);
+    const c = document.getElementById('student-profile-content');
+    if (c) c.innerHTML = '<div style="text-align:center; padding:60px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
+    navigateToPage('student-profile', true);
+    try {
+        const cl = getSupabase();
+        if (cl) {
+            const { data } = await cl.from('rankings').select('*').eq('student_id', sid).maybeSingle();
+            if (data) {
+                currentProfileStudent = data;
+                const i = allStudents.findIndex(x => x.student_id === sid);
+                if (i >= 0) allStudents[i] = data;
+            }
+        }
+        const r = await fetch('./lessons/index.json');
+        const d = await r.json();
+        currentProfileLessons = d.lessons || [];
+        currentProfileStatus = await getLessonStatusForStudent(sid);
+        currentProfileReports = await getStudentReports(sid);
+        renderStudentProfile();
+    } catch (e) {
+        if (c) c.innerHTML = '<div style="text-align:center; padding:60px; color:#c62828; font-weight:bold;">خطا</div>';
+    }
+}
+
+function isLessonExpiredForStudent(lesson, cd) {
+    const d = cd || lesson.dueDate || 'نامشخص';
+    if (d === 'نامشخص') return false;
+    const t = new Date();
+    const pd = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(t);
+    return persianDateToNum(pd) > persianDateToNum(d);
+}
+function persianDateToNum(ds) {
+    if (!ds || ds === 'نامشخص') return 0;
+    const n = String(ds).replace(/[۰-۹]/g, x => '۰۱۲۳۴۵۶۷۸۹'.indexOf(x));
+    const p = n.split(/[\/\-]/);
+    if (p.length !== 3) return 0;
+    return parseInt(p[0]) * 10000 + parseInt(p[1]) * 100 + parseInt(p[2]);
+}
+
+function renderStudentProfile() {
+    const c = document.getElementById('student-profile-content');
+    if (!c || !currentProfileStudent) return;
+    const s = currentProfileStudent;
+    const tp = calculateTotalPoints(s);
+    const cp = getClassPersianName(s.class_name);
+    const sc = s.student_code || '---';
+    const cl = getTotalCompletedLessons(s);
+    const rm = {};
+    currentProfileReports.forEach(r => { if (!rm[r.lesson_id]) rm[r.lesson_id] = r; });
+    let lh = '';
+    currentProfileLessons.forEach(l => {
+        const st = currentProfileStatus[l.id] || { is_enabled: true, custom_due_date: null };
+        const ie = st.is_enabled !== false;
+        const cd = st.custom_due_date || null;
+        const r = rm[l.id];
+        const id = !!r;
+        const dd = cd || l.dueDate || 'نامشخص';
+        const ic = !!cd;
+        const ix = isLessonExpiredForStudent(l, cd);
+        let rh = '';
+        if (id) {
+            rh = `<div class="profile-lesson-report done"><div class="report-row"><span class="report-label">✅ انجام شده</span><span class="report-value-percent">${toPersianNum(r.percent || 0)}%</span></div><div class="report-row"><span class="report-label">امتیاز:</span><span class="report-value-points">${toPersianNum(r.score || 0)} از ${toPersianNum(r.total_points || 0)}</span></div></div>`;
+        } else if (ix && !ic) {
+            rh = `<div class="profile-lesson-report pending"><span class="report-badge" style="background:linear-gradient(135deg,#ffcdd2,#ef9a9a);color:#b71c1c;">⏰ منقضی شده</span></div>`;
+        } else {
+            rh = `<div class="profile-lesson-report pending"><span class="report-badge pending">⏳ انجام نشده</span></div>`;
+        }
+        const th = `<div class="profile-lesson-toggle"><span class="toggle-label ${ie ? 'enabled' : 'disabled'}">${ie ? '🟢 فعال' : '🔴 غیرفعال'}</span><label class="switch-small"><input type="checkbox" ${ie ? 'checked' : ''} onchange="toggleLessonEnabled('${l.id}', this.checked)"><span class="slider-small"></span></label></div>`;
+        const dh = `<div class="profile-lesson-duedate"><div class="due-date-info"><span class="due-date-label">📅 مهلت:</span><span class="due-date-value ${ic ? 'custom' : (ix ? 'expired' : '')}">${dd}</span>${ic ? '<span class="custom-badge">سفارشی</span>' : ''}${ix && !ic ? '<span class="expired-badge">منقضی</span>' : ''}</div><button class="edit-date-btn" onclick="openDueDateEditor('${l.id}', '${dd}', ${ic})">✏️ ${ic ? 'ویرایش' : 'تمدید'}</button></div>`;
+        lh += `<div class="profile-lesson-item ${!ie ? 'disabled' : ''} ${id ? 'done' : ''}"><div class="profile-lesson-header"><div class="profile-lesson-title">${l.title}</div>${id ? '<span class="lesson-done-badge">✓</span>' : ''}</div><div class="profile-lesson-meta"><span>📝 ${toPersianNum(l.activityCount || 0)} سوال</span></div>${dh}${rh}${th}</div>`;
+    });
+    if (currentProfileLessons.length === 0) lh = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">تکلیفی یافت نشد</div>';
+    c.innerHTML = `<div class="profile-header-card"><div class="profile-avatar-big">${renderAvatarHTML(s)}</div><div class="profile-name-big">${s.name || 'بدون نام'}</div><div class="profile-class-big">${cp}</div></div><div class="profile-stats-grid"><div class="profile-stat-card" onclick="openEditStudentCode()" style="cursor:pointer;"><div class="profile-stat-icon">🔑</div><div class="profile-stat-value">${sc}</div><div class="profile-stat-label">کد ورود (کلیک کن)</div></div><div class="profile-stat-card" onclick="openEditCompletedLessons()" style="cursor:pointer;"><div class="profile-stat-icon">📚</div><div class="profile-stat-value">${toPersianNum(cl)}</div><div class="profile-stat-label">تکالیف (کلیک کن)</div></div><div class="profile-stat-card"><div class="profile-stat-icon">📊</div><div class="profile-stat-value">${toPersianNum(s.avg_percent || 0)}%</div><div class="profile-stat-label">میانگین درصد</div></div><div class="profile-stat-card"><div class="profile-stat-icon">🔥</div><div class="profile-stat-value">${toPersianNum(s.streak_days || 0)}</div><div class="profile-stat-label">روز متوالی</div></div></div><button class="profile-chat-btn" onclick="goToChatFromProfile()">💬 چت با این دانش‌آموز</button><div class="profile-total-points-card"><div class="profile-total-points-label">⭐ امتیاز کل (قابل ویرایش)</div><div class="profile-total-points-value">${toPersianNum(tp)}</div><div class="profile-total-points-actions"><button class="point-btn minus" onclick="changeTotalPoints(-10)">−۱۰</button><button class="point-btn minus" onclick="changeTotalPoints(-1)">−۱</button><button class="point-btn plus" onclick="changeTotalPoints(1)">+۱</button><button class="point-btn plus" onclick="changeTotalPoints(10)">+۱۰</button></div></div><div class="profile-lessons-card"><div class="profile-lessons-title">📚 مدیریت تکالیف</div><div class="profile-lessons-list">${lh}</div></div>`;
+}
+
+// ============================================================
+// پیام‌رسانی
+// ============================================================
 function switchMessagesTab(tab) {
     document.querySelectorAll('.messages-tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.messages-tab-content').forEach(c => c.classList.remove('active'));
@@ -567,214 +752,6 @@ function playDingSound() {
 }
 
 // ============================================================
-// 🆕 دانش‌آموزان — اصلاح کامل اعلان‌ها
-// ============================================================
-async function loadStudents() {
-    const c = document.getElementById('students-grid');
-    if (!c) return;
-    const ca = getCachedData(STUDENTS_CACHE_KEY);
-    if (ca && ca.length > 0) {
-        allStudents = ca;
-        await loadAllReportsForBadges();
-        renderStudents(getFilteredStudents());
-    } else {
-        c.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
-    }
-    try {
-        const st = await getAllStudents();
-        allStudents = st;
-        setCachedData(STUDENTS_CACHE_KEY, st);
-        await loadAllReportsForBadges();
-        renderStudents(getFilteredStudents());
-        updateHomeBadgesImmediately();
-    } catch (e) {
-        if (!ca) c.innerHTML = '<div style="text-align:center; padding:40px; color:#c62828; font-weight:bold;">خطا</div>';
-    }
-}
-
-function getFilteredStudents() {
-    let f = [...allStudents];
-    if (currentStudentClassFilter !== 'all') f = f.filter(s => s.class_name === currentStudentClassFilter);
-    const q = document.getElementById('student-search')?.value?.toLowerCase().trim() || '';
-    if (q) f = f.filter(s => (s.name || '').toLowerCase().includes(q) || (s.student_code || '').includes(q));
-    return f;
-}
-function filterStudentsByClass(cn, btn) {
-    currentStudentClassFilter = cn;
-    document.querySelectorAll('.class-tab').forEach(t => t.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    renderStudents(getFilteredStudents());
-}
-function filterStudents() { renderStudents(getFilteredStudents()); }
-
-// 🆕 رندر دانش‌آموزان — هر دانش‌آموز اعلان خودش رو داره
-function renderStudents(students) {
-    const c = document.getElementById('students-grid');
-    if (!c) return;
-    if (students.length === 0) { c.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">دانش‌آموزی یافت نشد</div>'; return; }
-    
-    const seen = getReadLessons();
-    
-    // مرتب‌سازی: اول کسایی که اعلان دارن (کارنامه دیده‌نشده)، بعد کسایی که تکلیف انجام دادن، بعد بقیه
-    students.sort((a, b) => {
-        const aReports = allReportsRaw.filter(r => r.student_id === a.student_id);
-        const bReports = allReportsRaw.filter(r => r.student_id === b.student_id);
-        
-        const aHasUnseen = aReports.some(r => !seen[r.id]);
-        const bHasUnseen = bReports.some(r => !seen[r.id]);
-        
-        if (aHasUnseen && !bHasUnseen) return -1;
-        if (!aHasUnseen && bHasUnseen) return 1;
-        
-        const aHasDone = aReports.length > 0;
-        const bHasDone = bReports.length > 0;
-        
-        if (aHasDone && !bHasDone) return -1;
-        if (!aHasDone && bHasDone) return 1;
-        
-        return 0;
-    });
-    
-    let h = '';
-    students.forEach(s => {
-        const sc = s.student_code || '---';
-        const tl = getTotalCompletedLessons(s);
-        
-        // کارنامه‌های این دانش‌آموز
-        const studentReports = allReportsRaw.filter(r => r.student_id === s.student_id);
-        const hasDoneLesson = studentReports.length > 0;
-        
-        // آیا کارنامه دیده‌نشده داره؟
-        const hasUnseenReport = studentReports.some(r => !seen[r.id]);
-        
-        // پیدا کردن آخرین کارنامه برای کلیک
-        const latestReport = studentReports.length > 0 ? studentReports[0] : null;
-        
-        let badgeHTML = '';
-        if (hasUnseenReport) {
-            badgeHTML += `<div class="student-notif-badge">🔔 اعلان</div>`;
-        } else if (hasDoneLesson) {
-            badgeHTML += `<div class="student-done-badge">✅</div>`;
-        }
-        
-        let onclickAction = '';
-        if (hasUnseenReport && latestReport) {
-            onclickAction = `markAndOpenProfile('${s.student_id}', '${latestReport.id}')`;
-        } else {
-            onclickAction = `openStudentProfile('${s.student_id}')`;
-        }
-        
-        const cardClass = hasUnseenReport ? 'has-new-lesson' : (hasDoneLesson ? 'has-done-lesson' : '');
-        
-        h += `<div class="student-card ${cardClass}" onclick="${onclickAction}">
-            ${badgeHTML}
-            <div class="student-avatar">${renderAvatarHTML(s)}</div>
-            <div class="student-info">
-                <div class="student-name">${s.name || 'بدون نام'}</div>
-                <span class="student-class">${getClassPersianName(s.class_name)}</span>
-                <div class="student-stats"><span>🔑 ${sc}</span><span>📚 ${toPersianNum(tl)} تکلیف</span></div>
-            </div>
-            <div class="student-points"><span>⭐</span><span>${toPersianNum(calculateTotalPoints(s))}</span></div>
-        </div>`;
-    });
-    c.innerHTML = h;
-}
-
-function markAndOpenProfile(sid, rid) {
-    markLessonReportAsSeen(rid);
-    openStudentProfile(sid);
-    updateHomeBadgesImmediately();
-    setTimeout(() => { renderStudents(getFilteredStudents()); }, 500);
-}
-
-// ادامه کدهای مربوط به پروفایل دانش‌آموز (بدون تغییر)
-async function openStudentProfile(sid) {
-    let s = allStudents.find(x => x.student_id === sid);
-    if (!s) { showToast('دانش‌آموز پیدا نشد', 'error'); return; }
-    currentProfileStudent = s;
-    vibrate(15);
-    const c = document.getElementById('student-profile-content');
-    if (c) c.innerHTML = '<div style="text-align:center; padding:60px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
-    navigateToPage('student-profile', true);
-    try {
-        const cl = getSupabase();
-        if (cl) {
-            const { data } = await cl.from('rankings').select('*').eq('student_id', sid).maybeSingle();
-            if (data) {
-                currentProfileStudent = data;
-                const i = allStudents.findIndex(x => x.student_id === sid);
-                if (i >= 0) allStudents[i] = data;
-            }
-        }
-        const r = await fetch('./lessons/index.json');
-        const d = await r.json();
-        currentProfileLessons = d.lessons || [];
-        currentProfileStatus = await getLessonStatusForStudent(sid);
-        currentProfileReports = await getStudentReports(sid);
-        renderStudentProfile();
-    } catch (e) {
-        if (c) c.innerHTML = '<div style="text-align:center; padding:60px; color:#c62828; font-weight:bold;">خطا</div>';
-    }
-}
-
-function isLessonExpiredForStudent(lesson, cd) {
-    const d = cd || lesson.dueDate || 'نامشخص';
-    if (d === 'نامشخص') return false;
-    const t = new Date();
-    const pd = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(t);
-    return persianDateToNum(pd) > persianDateToNum(d);
-}
-function persianDateToNum(ds) {
-    if (!ds || ds === 'نامشخص') return 0;
-    const n = String(ds).replace(/[۰-۹]/g, x => '۰۱۲۳۴۵۶۷۸۹'.indexOf(x));
-    const p = n.split(/[\/\-]/);
-    if (p.length !== 3) return 0;
-    return parseInt(p[0]) * 10000 + parseInt(p[1]) * 100 + parseInt(p[2]);
-}
-
-function renderStudentProfile() {
-    const c = document.getElementById('student-profile-content');
-    if (!c || !currentProfileStudent) return;
-    const s = currentProfileStudent;
-    const tp = calculateTotalPoints(s);
-    const cp = getClassPersianName(s.class_name);
-    const sc = s.student_code || '---';
-    const cl = getTotalCompletedLessons(s);
-
-    const rm = {};
-    currentProfileReports.forEach(r => { if (!rm[r.lesson_id]) rm[r.lesson_id] = r; });
-
-    let lh = '';
-    currentProfileLessons.forEach(l => {
-        const st = currentProfileStatus[l.id] || { is_enabled: true, custom_due_date: null };
-        const ie = st.is_enabled !== false;
-        const cd = st.custom_due_date || null;
-        const r = rm[l.id];
-        const id = !!r;
-        const dd = cd || l.dueDate || 'نامشخص';
-        const ic = !!cd;
-        const ix = isLessonExpiredForStudent(l, cd);
-
-        let rh = '';
-        if (id) {
-            rh = `<div class="profile-lesson-report done"><div class="report-row"><span class="report-label">✅ انجام شده</span><span class="report-value-percent">${toPersianNum(r.percent || 0)}%</span></div><div class="report-row"><span class="report-label">امتیاز:</span><span class="report-value-points">${toPersianNum(r.score || 0)} از ${toPersianNum(r.total_points || 0)}</span></div></div>`;
-        } else if (ix && !ic) {
-            rh = `<div class="profile-lesson-report pending"><span class="report-badge" style="background:linear-gradient(135deg,#ffcdd2,#ef9a9a);color:#b71c1c;">⏰ منقضی شده</span></div>`;
-        } else {
-            rh = `<div class="profile-lesson-report pending"><span class="report-badge pending">⏳ انجام نشده</span></div>`;
-        }
-
-        const th = `<div class="profile-lesson-toggle"><span class="toggle-label ${ie ? 'enabled' : 'disabled'}">${ie ? '🟢 فعال' : '🔴 غیرفعال'}</span><label class="switch-small"><input type="checkbox" ${ie ? 'checked' : ''} onchange="toggleLessonEnabled('${l.id}', this.checked)"><span class="slider-small"></span></label></div>`;
-        const dh = `<div class="profile-lesson-duedate"><div class="due-date-info"><span class="due-date-label">📅 مهلت:</span><span class="due-date-value ${ic ? 'custom' : (ix ? 'expired' : '')}">${dd}</span>${ic ? '<span class="custom-badge">سفارشی</span>' : ''}${ix && !ic ? '<span class="expired-badge">منقضی</span>' : ''}</div><button class="edit-date-btn" onclick="openDueDateEditor('${l.id}', '${dd}', ${ic})">✏️ ${ic ? 'ویرایش' : 'تمدید'}</button></div>`;
-
-        lh += `<div class="profile-lesson-item ${!ie ? 'disabled' : ''} ${id ? 'done' : ''}"><div class="profile-lesson-header"><div class="profile-lesson-title">${l.title}</div>${id ? '<span class="lesson-done-badge">✓</span>' : ''}</div><div class="profile-lesson-meta"><span>📝 ${toPersianNum(l.activityCount || 0)} سوال</span></div>${dh}${rh}${th}</div>`;
-    });
-    if (currentProfileLessons.length === 0) lh = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">تکلیفی یافت نشد</div>';
-
-    c.innerHTML = `<div class="profile-header-card"><div class="profile-avatar-big">${renderAvatarHTML(s)}</div><div class="profile-name-big">${s.name || 'بدون نام'}</div><div class="profile-class-big">${cp}</div></div><div class="profile-stats-grid"><div class="profile-stat-card" onclick="openEditStudentCode()" style="cursor:pointer;"><div class="profile-stat-icon">🔑</div><div class="profile-stat-value">${sc}</div><div class="profile-stat-label">کد ورود (کلیک کن)</div></div><div class="profile-stat-card" onclick="openEditCompletedLessons()" style="cursor:pointer;"><div class="profile-stat-icon">📚</div><div class="profile-stat-value">${toPersianNum(cl)}</div><div class="profile-stat-label">تکالیف (کلیک کن)</div></div><div class="profile-stat-card"><div class="profile-stat-icon">📊</div><div class="profile-stat-value">${toPersianNum(s.avg_percent || 0)}%</div><div class="profile-stat-label">میانگین درصد</div></div><div class="profile-stat-card"><div class="profile-stat-icon">🔥</div><div class="profile-stat-value">${toPersianNum(s.streak_days || 0)}</div><div class="profile-stat-label">روز متوالی</div></div></div><button class="profile-chat-btn" onclick="goToChatFromProfile()">💬 چت با این دانش‌آموز</button><div class="profile-total-points-card"><div class="profile-total-points-label">⭐ امتیاز کل (قابل ویرایش)</div><div class="profile-total-points-value">${toPersianNum(tp)}</div><div class="profile-total-points-actions"><button class="point-btn minus" onclick="changeTotalPoints(-10)">−۱۰</button><button class="point-btn minus" onclick="changeTotalPoints(-1)">−۱</button><button class="point-btn plus" onclick="changeTotalPoints(1)">+۱</button><button class="point-btn plus" onclick="changeTotalPoints(10)">+۱۰</button></div></div><div class="profile-lessons-card"><div class="profile-lessons-title">📚 مدیریت تکالیف</div><div class="profile-lessons-list">${lh}</div></div>`;
-}
-
-// ============================================================
 // مدیریت تکالیف
 // ============================================================
 async function loadLessonsPage() {
@@ -795,7 +772,6 @@ async function loadLessonsPage() {
         if (!ca) c.innerHTML = '<div style="text-align:center; padding:40px; color:#c62828; font-weight:bold;">خطا</div>';
     }
 }
-
 async function loadLessonStatuses() {
     try {
         const cl = getSupabase();
@@ -804,7 +780,6 @@ async function loadLessonStatuses() {
         allLessonStatuses = data || [];
     } catch (e) {}
 }
-
 function renderLessonsList(lessons) {
     const c = document.getElementById('lessons-list');
     if (!c) return;
@@ -837,7 +812,6 @@ function renderLessonsList(lessons) {
     });
     c.innerHTML = h;
 }
-
 function openClassDueDateModal() {
     const m = document.getElementById('class-duedate-modal');
     if (!m) return;
@@ -854,9 +828,7 @@ function openClassDueDateModal() {
     }
     m.classList.add('active');
 }
-
 function closeClassDueDateModal() { const m = document.getElementById('class-duedate-modal'); if (m) m.classList.remove('active'); }
-
 function selectClassDay(days, btn) {
     selectedClassDay = days;
     document.querySelectorAll('.class-day-picker .day-picker-btn').forEach(b => b.classList.remove('selected'));
@@ -865,7 +837,6 @@ function selectClassDay(days, btn) {
     const p = document.getElementById('class-preview-date');
     if (p) { p.textContent = nd; p.classList.add('show'); }
 }
-
 async function saveClassDueDate() {
     const ls = document.getElementById('class-duedate-lesson-select');
     const cs = document.getElementById('class-duedate-class-select');
@@ -884,7 +855,6 @@ async function saveClassDueDate() {
         renderLessonsList(allLessonsList);
     } else showToast('خطا', 'error');
 }
-
 function openToggleLessonModal() {
     const m = document.getElementById('toggle-lesson-modal');
     if (!m) return;
@@ -893,9 +863,7 @@ function openToggleLessonModal() {
     setToggleStatus(true);
     m.classList.add('active');
 }
-
 function closeToggleLessonModal() { const m = document.getElementById('toggle-lesson-modal'); if (m) m.classList.remove('active'); }
-
 function setToggleStatus(ia) {
     toggleStatusValue = ia;
     const a = document.getElementById('toggle-active-btn');
@@ -903,7 +871,6 @@ function setToggleStatus(ia) {
     if (a) a.classList.toggle('active-btn', ia);
     if (i) i.classList.toggle('active-btn', !ia);
 }
-
 async function saveToggleLesson() {
     const ls = document.getElementById('toggle-lesson-select');
     const cs = document.getElementById('toggle-class-select');
@@ -920,7 +887,6 @@ async function saveToggleLesson() {
         renderLessonsList(allLessonsList);
     } else showToast('خطا', 'error');
 }
-
 function calculatePersianDatePlusDays(daysToAdd) {
     const t = new Date();
     const pd = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(t);
@@ -951,9 +917,7 @@ function openDueDateEditor(lessonId, currentDate, isCustom) {
     document.body.appendChild(m);
     setTimeout(() => { const f = m.querySelector('.day-picker-btn'); if (f) selectDueDateDay(1, f); }, 200);
 }
-
 let selectedDueDateDays = null;
-
 function selectDueDateDay(days, btn) {
     selectedDueDateDays = days;
     document.querySelectorAll('.day-picker-btn').forEach(b => b.classList.remove('selected'));
@@ -966,7 +930,6 @@ function selectDueDateDay(days, btn) {
     vibrate(10);
 }
 function closeDueDateModal() { const m = document.getElementById('due-date-modal'); if (m) m.remove(); selectedDueDateDays = null; }
-
 async function saveDueDate(lessonId) {
     if (!currentProfileStudent) return;
     if (!selectedDueDateDays) { showToast('روز انتخاب کنید', 'warning'); return; }
@@ -982,7 +945,6 @@ async function saveDueDate(lessonId) {
         showToast(`✅ مهلت تا ${nd} تمدید شد`, 'success');
     } else showToast('خطا', 'error');
 }
-
 async function removeCustomDueDate(lessonId) {
     if (!currentProfileStudent) return;
     vibrate(15);
@@ -995,7 +957,6 @@ async function removeCustomDueDate(lessonId) {
         showToast('✅ مهلت سفارشی حذف شد', 'success');
     } else showToast('خطا', 'error');
 }
-
 async function toggleLessonEnabled(lessonId, isEnabled) {
     if (!currentProfileStudent) return;
     vibrate(15);
@@ -1007,7 +968,6 @@ async function toggleLessonEnabled(lessonId, isEnabled) {
         showToast(isEnabled ? '✅ فعال شد' : '⛔ غیرفعال شد', 'success');
     } else showToast('خطا', 'error');
 }
-
 async function changeTotalPoints(delta) {
     if (!currentProfileStudent) return;
     vibrate(15);
@@ -1024,7 +984,6 @@ async function changeTotalPoints(delta) {
         showToast(`امتیاز ${delta > 0 ? '+' + delta : delta} شد`, 'success');
     } catch (e) { showToast('خطا', 'error'); }
 }
-
 function goToChatFromProfile() {
     if (!currentProfileStudent) return;
     const s = currentProfileStudent;
@@ -1046,7 +1005,6 @@ function switchRankingClass(cn, btn) {
     if (ti) ti.textContent = getClassPersianName(cn);
     loadRankings();
 }
-
 async function loadRankings() {
     const c = document.getElementById('rankings-list');
     if (!c) return;
@@ -1073,7 +1031,7 @@ async function loadRankings() {
 }
 
 // ============================================================
-// بقیه (رویدادها، مسابقات، کتابخانه، گزارش‌ها، تنظیمات)
+// رویدادها، مسابقات، کتابخانه، گزارش‌ها، تنظیمات
 // ============================================================
 async function addEvent() {
     const ti = document.getElementById('event-title').value.trim();
@@ -1265,4 +1223,4 @@ function clearCache() {
 function openEditStudentCode() { if (!currentProfileStudent) return; showToast('به زودی', 'info'); }
 function openEditCompletedLessons() { if (!currentProfileStudent) return; showToast('به زودی', 'info'); }
 
-console.log('🎓 پنل معلم - نسخه ۳۱.۰.۰');
+console.log('🎓 پنل معلم - نسخه ۳۲.۰.۰ (کامل و پایدار)');
