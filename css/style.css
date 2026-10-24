@@ -12185,3 +12185,47 @@ body.dark-mode .skip-modal-btn-cancel {
     #screen-quiz .dib-sentence-row { padding: 8px 12px !important; }
     #screen-quiz .fill-multiple-row { padding: 8px 12px !important; }
 }
+/* ============================================================
+   🆕 استایل راهنمای سوالات کشیدنی
+   ============================================================ */
+.drag-guide-text {
+    background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+    border: 1.5px solid #4dd0e1;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 15px;
+    font-size: 12.5px;
+    font-weight: 900;
+    color: #006064;
+    text-align: center;
+    line-height: 1.6;
+    box-shadow: 0 3px 10px rgba(0, 150, 136, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+body.dark-mode .drag-guide-text {
+    background: linear-gradient(135deg, #00363a, #004d40);
+    border-color: #00897b;
+    color: #80cbc4;
+}
+.drag-guide-text {
+    background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+    border: 1.5px solid #4dd0e1;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 15px;
+    font-size: 12.5px;
+    font-weight: 900;
+    color: #006064;
+    text-align: center;
+    line-height: 1.6;
+    box-shadow: 0 3px 10px rgba(0, 150, 136, 0.15);
+}
+body.dark-mode .drag-guide-text {
+    background: linear-gradient(135deg, #00363a, #004d40);
+    border-color: #00897b;
+    color: #80cbc4;
+}
