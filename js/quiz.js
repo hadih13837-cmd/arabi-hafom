@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۱۷.۰.۰ — ذخیره خودکار در انتها + مودال گرافیکی رد کردن
+// نسخه: ۲۲.۰.۰ — اصلاح متن راهنما + رفع مشکل جای خالی (fill)
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -20,7 +20,7 @@ let selectedErrorWord = null;
 let surveyAnswerText = '';
 let selectedFillWord = '';
 let currentShuffledOpts = [];
-let hasSavedReport = false; // 🆕 جلوگیری از ذخیره دوباره
+let hasSavedReport = false;
 
 let flippedCards = [];
 let matchedFlipPairs = 0;
@@ -87,7 +87,7 @@ async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracti
         
         if (!currentLesson.lessonId) currentLesson.lessonId = lessonId;
         
-        hasSavedReport = false; // 🆕 ریست
+        hasSavedReport = false;
         
         if (startFromIndex > 0 && !forcePracticeMode) {
             const progress = getCurrentProgress();
@@ -176,16 +176,27 @@ function renderQuestion() {
     if (q.type === 'image-question') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         if (q.arabicSentence) html += `<div class="arabic-question-box"><div class="arabic-question-text">${q.arabicSentence}</div></div>`;
+        
+        if (q.image) {
+            html += `<div class="image-question-box"><span class="image-question-emoji">${q.image}</span></div>`;
+        }
+        
         currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
-        html += `<div class="image-question-grid">`;
+        html += `<div class="options-grid">`;
         currentShuffledOpts.forEach((item, displayIdx) => {
-            html += `<div class="image-question-card" onclick="selectOption(this, ${displayIdx})">${item.opt}</div>`;
+            html += `<div class="option-btn" onclick="selectOption(this, ${displayIdx})">${item.opt}</div>`;
         });
         html += `</div>`;
     }
     else if (q.type === 'fill') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
-        html += `<div class="fill-blank-container"><div class="fill-blank-sentence" id="fill-sentence">${q.sentence.replace('.......', '<span class="blank-slot" id="blank-slot"></span>').replace('______', '<span class="blank-slot" id="blank-slot"></span>')}</div></div>`;
+        
+        // 🆕 اصلاح نمایش جای خالی در سوال fill
+        let sentenceHTML = q.sentence;
+        sentenceHTML = sentenceHTML.replace(/\.{3,}/g, '<span class="blank-slot" id="blank-slot"></span>');
+        sentenceHTML = sentenceHTML.replace(/_{3,}/g, '<span class="blank-slot" id="blank-slot"></span>');
+        
+        html += `<div class="fill-blank-container"><div class="fill-blank-sentence" id="fill-sentence">${sentenceHTML}</div></div>`;
         currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
         html += `<div class="options-grid">`;
         currentShuffledOpts.forEach((item, displayIdx) => {
@@ -202,13 +213,39 @@ function renderQuestion() {
             <div class="matching-col" id="col-ar">${shuffledMatchAr.map((item) => `<div class="matching-item" data-idx="${item.idx}" data-type="ar" onclick="selectMatch(this, 'ar')">${item.text}</div>`).join('')}</div>
         </div>`;
     }
+    else if (q.type === 'order') {
+        html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
+        if (q.arabicSentence) {
+            html += `<div class="arabic-sentence-box">
+                <div class="arabic-sentence-label">جمله عربی:</div>
+                <div class="arabic-sentence-text">${q.arabicSentence}</div>
+            </div>`;
+        }
+        shuffledOrderOptions = shuffleArray([...q.options]);
+        html += `<div class="order-container" id="order-container">${shuffledOrderOptions.map((opt) => `<div class="order-item" onclick="selectOrder(this, '${opt}')">${opt}</div>`).join('')}</div>`;
+        html += `<div class="order-result" id="order-result">کلمات را اینجا بچینید (برای برگرداندن کلیک کنید)</div>`;
+    }
     else if (q.type === 'word-build') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
-        if (q.sentence) html += `<div class="sentence-prompt-box"><div class="sentence-prompt-label">جمله فارسی:</div><div class="sentence-prompt-text">${q.sentence}</div></div>`;
+        
+        if (q.sentence) {
+            html += `<div class="sentence-prompt-box">
+                <div class="sentence-prompt-label">جمله فارسی:</div>
+                <div class="sentence-prompt-text">${q.sentence}</div>
+            </div>`;
+        }
+        else if (q.audioUrl) {
+            html += `<div class="word-build-audio-only" onclick="playWordBuildAudio(this, '${q.audioUrl}')">
+                <img src="${SOUND_VECTOR_URL}" alt="صدا">
+            </div>`;
+        }
+        
         html += `<div class="word-build-result" id="word-build-result">کلمات رو اینجا بچین (برای برگرداندن کلیک کن)</div>`;
         html += `<div class="word-build-options" id="word-build-options">`;
         const shuffledWB = shuffleArray([...q.words]);
-        shuffledWB.forEach((word) => { html += `<div class="word-build-item" onclick="selectWordBuild(this, '${word}')">${word}</div>`; });
+        shuffledWB.forEach((word) => {
+            html += `<div class="word-build-item" onclick="selectWordBuild(this, '${word}')">${word}</div>`;
+        });
         html += `</div>`;
     }
     else if (q.type === 'word-attach') {
@@ -227,6 +264,10 @@ function renderQuestion() {
     }
     else if (q.type === 'drag-gender') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
+        
+        // 🆕 راهنمای دقیقاً طبق درخواست
+        html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
+        
         const shuffledWords = shuffleArray([...q.words]);
         dragGenderItems = shuffledWords.map((w, i) => ({ text: w.text, gender: w.gender, uniqueId: 'gword_' + i }));
         html += `<div class="gender-words-pool" id="gender-words-pool">`;
@@ -241,6 +282,10 @@ function renderQuestion() {
     }
     else if (q.type === 'fill-multiple') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
+        
+        // 🆕 راهنمای دقیقاً طبق درخواست
+        html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
+        
         fillMultipleAnswers = new Array(q.sentences.length).fill(null);
         html += `<div class="fill-multiple-container">`;
         q.sentences.forEach((s, i) => {
@@ -253,6 +298,10 @@ function renderQuestion() {
     }
     else if (q.type === 'drag-into-blank') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
+        
+        // 🆕 راهنمای دقیقاً طبق درخواست
+        html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
+        
         dragIntoBlankItems = q.items.map((it, i) => ({ ...it, id: 'dib_' + i, filled: false }));
         html += `<div class="dib-options-pool" id="dib-options-pool">`;
         const shuffledOpts = shuffleArray([...q.options]);
@@ -299,6 +348,10 @@ function renderQuestion() {
     }
     else if (q.type === 'letter-order') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
+        
+        // 🆕 راهنمای دقیقاً طبق درخواست
+        html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
+        
         html += `<div class="letter-order-result" id="letter-order-result"><span class="letter-order-placeholder">حروف رو اینجا بچین (برای برگرداندن کلیک کن)</span></div>`;
         currentLetterItems = q.letters.map((letter, i) => ({ letter: letter, uniqueId: 'letter_' + i + '_' + Math.random().toString(36).substr(2, 5), originalIdx: i }));
         const shuffledItems = shuffleArray([...currentLetterItems]);
@@ -355,9 +408,6 @@ function renderQuestion() {
     container.innerHTML = html;
 }
 
-// ============================================================
-// 🆕 دکمه رد کردن (Skip) — مودال گرافیکی
-// ============================================================
 function skipQuestion() {
     if (isAnswered) return;
     
@@ -402,11 +452,8 @@ function closeSkipQuestionModal() {
 function confirmSkipQuestion() {
     closeSkipQuestionModal();
     vibrate(20);
-    
     wrongCount++;
-    
     currentQuestionIndex++;
-    
     if (currentQuestionIndex < currentLesson.questions.length) {
         saveCurrentProgress();
         goToScreen('screen-quiz');
@@ -416,9 +463,12 @@ function confirmSkipQuestion() {
     }
 }
 
-// ============================================================
-// drag-into-blank
-// ============================================================
+function playWordBuildAudio(el, audioUrl) {
+    if (isAnswered) return;
+    if (!audioUrl) return;
+    playAudioFromVideo(audioUrl, el);
+}
+
 function selectDibOption(el, value) {
     if (isAnswered) return;
     vibrate(15);
@@ -477,9 +527,6 @@ function clearDibBlank(index) {
     }
 }
 
-// ============================================================
-// drag-gender
-// ============================================================
 function selectGenderWord(el, uniqueId) {
     if (isAnswered) return;
     if (el.classList.contains('placed')) return;
@@ -557,7 +604,6 @@ function selectTFCustom(el, value) {
     selectedOptionIndex = value ? 1 : 0;
 }
 
-// بقیه توابع (بدون تغییر)
 function selectLetterOrder(el, uniqueId) {
     if (isAnswered) return;
     if (selectedLettersOrder.some(item => item.uniqueId === uniqueId)) return;
@@ -699,7 +745,8 @@ function selectErrorWord(el, index) {
 }
 
 function selectWordBuild(el, word) {
-    if (isAnswered || orderSelected.includes(word)) return;
+    if (isAnswered) return;
+    if (orderSelected.includes(word)) return;
     vibrate(15);
     orderSelected.push(word);
     el.style.display = 'none';
@@ -718,6 +765,32 @@ function selectWordBuild(el, word) {
             });
             this.remove();
             if (orderSelected.length === 0) resultDiv.innerHTML = 'کلمات رو اینجا بچین (برای برگرداندن کلیک کن)';
+        }
+    };
+    resultDiv.appendChild(wordSpan);
+}
+
+function selectOrder(el, word) {
+    if (isAnswered) return;
+    if (orderSelected.includes(word)) return;
+    vibrate(15);
+    orderSelected.push(word);
+    el.style.display = 'none';
+    const resultDiv = document.getElementById('order-result');
+    if (orderSelected.length === 1) resultDiv.innerHTML = '';
+    const wordSpan = document.createElement('span');
+    wordSpan.textContent = word;
+    wordSpan.style.cursor = 'pointer';
+    wordSpan.onclick = function() {
+        if (isAnswered) return;
+        const idx = orderSelected.indexOf(word);
+        if (idx > -1) {
+            orderSelected.splice(idx, 1);
+            document.querySelectorAll('#order-container .order-item').forEach(item => {
+                if (item.textContent === word) item.style.display = 'block';
+            });
+            this.remove();
+            if (orderSelected.length === 0) resultDiv.innerHTML = 'کلمات را اینجا بچینید (برای برگرداندن کلیک کنید)';
         }
     };
     resultDiv.appendChild(wordSpan);
@@ -826,7 +899,7 @@ function checkAnswer() {
             if (selectedErrorWord === errorIdx) isCorrect = true;
         }
     }
-    else if (q.type === 'word-build') {
+    else if (q.type === 'order') {
         if (orderSelected.length > 0) {
             answerGiven = true;
             const userAnswer = JSON.stringify(orderSelected);
@@ -836,10 +909,13 @@ function checkAnswer() {
                     if (JSON.stringify(orderSelected) === JSON.stringify(alt)) { matched = true; break; }
                 }
             }
-            if (matched) isCorrect = true;
-            else {
-                showModal('خطا', 'جمله اشتباهه. دوباره تلاش کن.', '❌');
-                orderSelected = []; renderQuestion(); return;
+            if (matched) {
+                isCorrect = true;
+            } else {
+                showModal('خطا', 'ترتیب کلمات اشتباهه. دوباره تلاش کن.', '❌');
+                orderSelected = [];
+                renderQuestion();
+                return;
             }
         }
     }
@@ -884,6 +960,26 @@ function checkAnswer() {
             else { showModal('خطا', 'بعضی جواب‌ها اشتباه است. دوباره تلاش کن.', '❌'); return; }
         } else { showModal('توجه', 'لطفاً همه جای خالی‌ها را پر کن.', '⚠️'); return; }
     }
+    else if (q.type === 'word-build') {
+        if (orderSelected.length > 0) {
+            answerGiven = true;
+            const userAnswer = JSON.stringify(orderSelected);
+            let matched = (userAnswer === JSON.stringify(q.correct));
+            if (!matched && q.altCorrect) {
+                for (const alt of q.altCorrect) {
+                    if (JSON.stringify(orderSelected) === JSON.stringify(alt)) { matched = true; break; }
+                }
+            }
+            if (matched) {
+                isCorrect = true;
+            } else {
+                showModal('خطا', 'جمله اشتباهه. دوباره تلاش کن.', '❌');
+                orderSelected = [];
+                renderQuestion();
+                return;
+            }
+        }
+    }
     else if (q.type === 'survey') {
         const ans = document.getElementById('survey-answer').value.trim();
         if (ans.length >= (q.minLength || 2)) { answerGiven = true; isCorrect = true; surveyAnswerText = ans; }
@@ -910,9 +1006,7 @@ function checkAnswer() {
         vibrate([50, 30, 50]);
         showFeedback(false, 0, q);
     }
-    currentQuestionIndex++;
     saveCurrentProgress();
-    currentQuestionIndex--;
 }
 
 function getCorrectAnswerText(q) {
@@ -1028,7 +1122,6 @@ async function showResult() {
         if (percent >= 80 && typeof showConfetti === 'function') showConfetti();
         practiceBanner.classList.remove('show');
         
-        // 🆕 ذخیره خودکار کارنامه فقط یک بار
         if (!hasSavedReport) {
             hasSavedReport = true;
             setTimeout(async () => {
