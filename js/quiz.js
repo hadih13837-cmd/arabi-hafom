@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۲۷.۰.۰ — سوالات کشیدنی با کلیک و قابلیت برگشت
+// نسخه: ۲۸.۰.۰ — رفع باگ selectTFCustom
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -35,7 +35,6 @@ let selectedLettersOrder = [];
 let draggedLetter = null;
 let currentLetterItems = [];
 
-// 🆕 متغیرهای drag-gender و fill-multiple و drag-into-blank (با کلیک)
 let dragGenderItems = [];
 let selectedGenderWordId = null;
 
@@ -270,7 +269,6 @@ function renderQuestion() {
         q.words.forEach((word, index) => { html += `<div class="find-error-word" data-idx="${index}" onclick="selectErrorWord(this, ${index})">${word.text}</div>`; });
         html += `</div></div>`;
     }
-    // 🆕 drag-gender: با کلیک + قابلیت برگشت
     else if (q.type === 'drag-gender') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         
@@ -288,7 +286,6 @@ function renderQuestion() {
             <div class="gender-box female-box" data-gender="f" onclick="clickGenderBox('f')"><div class="gender-box-title">هَذِهِ (مؤنث) ♀️</div><div class="gender-box-items" id="gender-box-f"></div></div>
         </div>`;
     }
-    // 🆕 fill-multiple: با کلیک + قابلیت برگشت
     else if (q.type === 'fill-multiple') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         
@@ -305,7 +302,6 @@ function renderQuestion() {
         shuffledOpts.forEach((opt) => { html += `<div class="fill-multiple-option" data-value="${opt}" onclick="clickFillMultipleOption(this, '${opt}')">${opt}</div>`; });
         html += `</div>`;
     }
-    // 🆕 drag-into-blank: با کلیک + قابلیت برگشت
     else if (q.type === 'drag-into-blank') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         
@@ -418,14 +414,12 @@ function renderQuestion() {
 function clickGenderWord(el, uniqueId) {
     if (isAnswered) return;
     if (el.classList.contains('placed')) {
-        // 🆕 اگه قبلاً قرار گرفته، برگردونش
         vibrate(15);
         const item = dragGenderItems.find(it => it.uniqueId === uniqueId);
         if (!item) return;
         el.classList.remove('placed');
         el.classList.add('selected-for-move');
         el.style.display = '';
-        // حذف از کادر
         const placedEls = document.querySelectorAll('.gender-word-placed');
         placedEls.forEach(p => {
             if (p.textContent === item.text) p.remove();
@@ -480,7 +474,6 @@ function moveGenderWordToBox(item, gender) {
 function clickFillMultipleOption(el, word) {
     if (isAnswered) return;
     if (el.classList.contains('used')) {
-        // 🆕 اگه قبلاً استفاده شده، برگردونش
         vibrate(15);
         el.classList.remove('used');
         const idx = fillMultipleAnswers.indexOf(word);
@@ -500,7 +493,6 @@ function clickFillMultipleOption(el, word) {
 function clickFillMultipleBlank(index) {
     if (isAnswered) return;
     if (!selectedFillMultipleWord) {
-        // 🆕 اگه قبلاً پر شده، خالیش کن
         if (fillMultipleAnswers[index] !== null) {
             vibrate(15);
             const word = fillMultipleAnswers[index];
@@ -531,7 +523,6 @@ function clickFillMultipleBlank(index) {
 function clickDibOption(el, value) {
     if (isAnswered) return;
     if (el.classList.contains('used')) {
-        // 🆕 اگه قبلاً استفاده شده، برگردونش
         vibrate(15);
         el.classList.remove('used');
         const idx = dragIntoBlankItems.findIndex(it => it.filled && it.correct === value);
@@ -551,7 +542,6 @@ function clickDibOption(el, value) {
 function clickDibBlank(index) {
     if (isAnswered) return;
     if (!selectedDibWord) {
-        // 🆕 اگه قبلاً پر شده، خالیش کن
         if (dragIntoBlankItems[index].filled) {
             vibrate(15);
             const oldValue = dragIntoBlankItems[index].correct;
@@ -837,6 +827,25 @@ function selectFillOption(el, word, displayIdx) {
     selectedFillWord = word;
     const slot = document.getElementById('blank-slot');
     if (slot) { slot.textContent = word; slot.classList.add('filled'); }
+}
+
+// ============================================================
+// 🆕 truefalse-custom — انتخاب بله/نه (رفع باگ)
+// ============================================================
+function selectTFCustom(el, isYes) {
+    if (isAnswered) return;
+    vibrate(15);
+    
+    // حذف انتخاب قبلی از همه دکمه‌ها
+    document.querySelectorAll('.tf-custom-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    
+    // مارک دکمه انتخاب‌شده
+    el.classList.add('selected');
+    
+    // ذخیره انتخاب: 1 = بله، 0 = نه
+    selectedOptionIndex = isYes ? 1 : 0;
 }
 
 function selectMatch(el, type) {
