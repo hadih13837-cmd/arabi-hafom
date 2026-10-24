@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۲۴.۰.۰ — رفع کامل سوال ۱۱ و سوال تصویری تکلیف ۴
+// نسخه: ۲۷.۰.۰ — سوالات کشیدنی با کلیک و قابلیت برگشت
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -35,13 +35,15 @@ let selectedLettersOrder = [];
 let draggedLetter = null;
 let currentLetterItems = [];
 
+// 🆕 متغیرهای drag-gender و fill-multiple و drag-into-blank (با کلیک)
 let dragGenderItems = [];
-let draggedGenderWord = null;
+let selectedGenderWordId = null;
 
 let fillMultipleAnswers = [];
+let selectedFillMultipleWord = null;
 
 let dragIntoBlankItems = [];
-let draggedBlankWord = null;
+let selectedDibWord = null;
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -159,10 +161,11 @@ function renderQuestion() {
     draggedLetter = null;
     currentLetterItems = [];
     dragGenderItems = [];
-    draggedGenderWord = null;
+    selectedGenderWordId = null;
     fillMultipleAnswers = [];
+    selectedFillMultipleWord = null;
     dragIntoBlankItems = [];
-    draggedBlankWord = null;
+    selectedDibWord = null;
     
     submitBtn.disabled = false;
     submitBtn.textContent = 'بررسی سوال';
@@ -173,7 +176,6 @@ function renderQuestion() {
     const iconData = QUESTION_ICONS[qType] || QUESTION_ICONS.multiple || { class: 'qti-test', svg: '' };
     let html = '';
 
-    // 🆕 اصلاح سوالات image-question
     if (q.type === 'image-question') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         if (q.arabicSentence) html += `<div class="arabic-question-box"><div class="arabic-question-text">${q.arabicSentence}</div></div>`;
@@ -268,53 +270,57 @@ function renderQuestion() {
         q.words.forEach((word, index) => { html += `<div class="find-error-word" data-idx="${index}" onclick="selectErrorWord(this, ${index})">${word.text}</div>`; });
         html += `</div></div>`;
     }
+    // 🆕 drag-gender: با کلیک + قابلیت برگشت
     else if (q.type === 'drag-gender') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         
-        html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
+        html += `<div class="drag-guide-text">روی یک کلمه بزن، بعد روی کادر مذکر یا مؤنث بزن تا اونجا بره.</div>`;
         
         const shuffledWords = shuffleArray([...q.words]);
         dragGenderItems = shuffledWords.map((w, i) => ({ text: w.text, gender: w.gender, uniqueId: 'gword_' + i }));
         html += `<div class="gender-words-pool" id="gender-words-pool">`;
         dragGenderItems.forEach((item) => {
-            html += `<div class="gender-word-item" draggable="true" data-unique-id="${item.uniqueId}" onclick="selectGenderWord(this, '${item.uniqueId}')" ondragstart="dragGenderStart(event, '${item.uniqueId}')" ondragover="dragGenderOver(event)" ondrop="dragGenderDrop(event)">${item.text}</div>`;
+            html += `<div class="gender-word-item" data-unique-id="${item.uniqueId}" onclick="clickGenderWord(this, '${item.uniqueId}')">${item.text}</div>`;
         });
         html += `</div>`;
         html += `<div class="gender-boxes-container">
-            <div class="gender-box male-box" data-gender="m" ondragover="dragGenderOver(event)" ondrop="dragGenderDropBox(event, 'm')"><div class="gender-box-title">هَذَا (مذکر) ♂️</div><div class="gender-box-items" id="gender-box-m"></div></div>
-            <div class="gender-box female-box" data-gender="f" ondragover="dragGenderOver(event)" ondrop="dragGenderDropBox(event, 'f')"><div class="gender-box-title">هَذِهِ (مؤنث) ♀️</div><div class="gender-box-items" id="gender-box-f"></div></div>
+            <div class="gender-box male-box" data-gender="m" onclick="clickGenderBox('m')"><div class="gender-box-title">هَذَا (مذکر) ♂️</div><div class="gender-box-items" id="gender-box-m"></div></div>
+            <div class="gender-box female-box" data-gender="f" onclick="clickGenderBox('f')"><div class="gender-box-title">هَذِهِ (مؤنث) ♀️</div><div class="gender-box-items" id="gender-box-f"></div></div>
         </div>`;
     }
+    // 🆕 fill-multiple: با کلیک + قابلیت برگشت
     else if (q.type === 'fill-multiple') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         
-        html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
+        html += `<div class="drag-guide-text">روی یک کلمه بزن، بعد روی جای خالی بزن تا اونجا بره.</div>`;
         
         fillMultipleAnswers = new Array(q.sentences.length).fill(null);
         html += `<div class="fill-multiple-container">`;
         q.sentences.forEach((s, i) => {
-            html += `<div class="fill-multiple-row"><div class="fill-multiple-sentence"><span class="fill-multiple-blank" id="fm-blank-${i}" onclick="clearFillMultiple(${i})">---</span> ${s.sentence.replace('.......', '')}</div></div>`;
+            html += `<div class="fill-multiple-row"><div class="fill-multiple-sentence"><span class="fill-multiple-blank" id="fm-blank-${i}" onclick="clickFillMultipleBlank(${i})">---</span> ${s.sentence.replace('.......', '')}</div></div>`;
         });
         html += `</div>`;
-        html += `<div class="fill-multiple-options">`;
-        q.options.forEach((opt, i) => { html += `<div class="fill-multiple-option" onclick="selectFillMultipleOption(this, '${opt}')">${opt}</div>`; });
+        html += `<div class="fill-multiple-options" id="fill-multiple-options">`;
+        const shuffledOpts = shuffleArray([...q.options]);
+        shuffledOpts.forEach((opt) => { html += `<div class="fill-multiple-option" data-value="${opt}" onclick="clickFillMultipleOption(this, '${opt}')">${opt}</div>`; });
         html += `</div>`;
     }
+    // 🆕 drag-into-blank: با کلیک + قابلیت برگشت
     else if (q.type === 'drag-into-blank') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
         
-        html += `<div class="drag-guide-text">یک کلمه را نگه دار و بکش و در جای مناسب قرار بده.</div>`;
+        html += `<div class="drag-guide-text">روی یک کلمه بزن، بعد روی جای خالی بزن تا اونجا بره.</div>`;
         
         dragIntoBlankItems = q.items.map((it, i) => ({ ...it, id: 'dib_' + i, filled: false }));
         html += `<div class="dib-options-pool" id="dib-options-pool">`;
         const shuffledOpts = shuffleArray([...q.options]);
         shuffledOpts.forEach((opt) => {
-            html += `<div class="dib-option-item" draggable="true" data-value="${opt}" onclick="selectDibOption(this, '${opt}')" ondragstart="dragDibStart(event, '${opt}')" ondragover="dragDibOver(event)" ondrop="dragDibDropOption(event)">${opt}</div>`;
+            html += `<div class="dib-option-item" data-value="${opt}" onclick="clickDibOption(this, '${opt}')">${opt}</div>`;
         });
         html += `</div>`;
         html += `<div class="dib-sentences-container">`;
         dragIntoBlankItems.forEach((item, i) => {
-            html += `<div class="dib-sentence-row"><div class="dib-sentence-text"><span class="dib-blank" id="dib-blank-${i}" data-index="${i}" data-correct="${item.correct}" ondragover="dragDibOver(event)" ondrop="dragDibDropBlank(event, ${i})" onclick="clearDibBlank(${i})">---</span> ${item.sentence.replace('.......', '')}</div></div>`;
+            html += `<div class="dib-sentence-row"><div class="dib-sentence-text"><span class="dib-blank" id="dib-blank-${i}" data-index="${i}" onclick="clickDibBlank(${i})">---</span> ${item.sentence.replace('.......', '')}</div></div>`;
         });
         html += `</div>`;
     }
@@ -357,7 +363,7 @@ function renderQuestion() {
         const shuffledItems = shuffleArray([...currentLetterItems]);
         html += `<div class="letter-order-options" id="letter-order-options">`;
         shuffledItems.forEach((item) => {
-            html += `<div class="letter-order-item" draggable="true" data-unique-id="${item.uniqueId}" data-letter="${item.letter}" onclick="selectLetterOrder(this, '${item.uniqueId}')" ondragstart="dragLetterStart(event, '${item.uniqueId}')" ondragover="dragLetterOver(event)" ondrop="dragLetterDrop(event)">${item.letter}</div>`;
+            html += `<div class="letter-order-item" data-unique-id="${item.uniqueId}" data-letter="${item.letter}" onclick="selectLetterOrder(this, '${item.uniqueId}')">${item.letter}</div>`;
         });
         html += `</div>`;
     }
@@ -408,6 +414,174 @@ function renderQuestion() {
     container.innerHTML = html;
 }
 
+// 🆕 drag-gender با کلیک + قابلیت برگشت
+function clickGenderWord(el, uniqueId) {
+    if (isAnswered) return;
+    if (el.classList.contains('placed')) {
+        // 🆕 اگه قبلاً قرار گرفته، برگردونش
+        vibrate(15);
+        const item = dragGenderItems.find(it => it.uniqueId === uniqueId);
+        if (!item) return;
+        el.classList.remove('placed');
+        el.classList.add('selected-for-move');
+        el.style.display = '';
+        // حذف از کادر
+        const placedEls = document.querySelectorAll('.gender-word-placed');
+        placedEls.forEach(p => {
+            if (p.textContent === item.text) p.remove();
+        });
+        selectedGenderWordId = uniqueId;
+        return;
+    }
+    vibrate(15);
+    document.querySelectorAll('.gender-word-item').forEach(w => w.classList.remove('selected-for-move'));
+    el.classList.add('selected-for-move');
+    selectedGenderWordId = uniqueId;
+}
+
+function clickGenderBox(gender) {
+    if (isAnswered) return;
+    if (!selectedGenderWordId) return;
+    const item = dragGenderItems.find(it => it.uniqueId === selectedGenderWordId);
+    if (!item) return;
+    if (item.gender !== gender) {
+        vibrate([50, 30, 50]);
+        return;
+    }
+    moveGenderWordToBox(item, gender);
+    selectedGenderWordId = null;
+    if (document.querySelectorAll('.gender-word-item:not(.placed)').length === 0) {
+        setTimeout(() => checkAnswer(), 500);
+    }
+}
+
+function moveGenderWordToBox(item, gender) {
+    vibrate(15);
+    const wordEl = document.querySelector(`.gender-word-item[data-unique-id="${item.uniqueId}"]`);
+    if (wordEl) { wordEl.classList.add('placed'); wordEl.classList.remove('selected-for-move'); wordEl.style.display = 'none'; }
+    const boxItems = document.getElementById('gender-box-' + gender);
+    if (boxItems) {
+        const placedEl = document.createElement('div');
+        placedEl.className = 'gender-word-placed';
+        placedEl.textContent = item.text;
+        placedEl.style.cursor = 'pointer';
+        placedEl.onclick = function() {
+            if (isAnswered) return;
+            vibrate(15);
+            this.remove();
+            const wEl = document.querySelector(`.gender-word-item[data-unique-id="${item.uniqueId}"]`);
+            if (wEl) { wEl.classList.remove('placed'); wEl.style.display = ''; }
+        };
+        boxItems.appendChild(placedEl);
+    }
+}
+
+// 🆕 fill-multiple با کلیک + قابلیت برگشت
+function clickFillMultipleOption(el, word) {
+    if (isAnswered) return;
+    if (el.classList.contains('used')) {
+        // 🆕 اگه قبلاً استفاده شده، برگردونش
+        vibrate(15);
+        el.classList.remove('used');
+        const idx = fillMultipleAnswers.indexOf(word);
+        if (idx >= 0) {
+            fillMultipleAnswers[idx] = null;
+            const blankEl = document.getElementById('fm-blank-' + idx);
+            if (blankEl) { blankEl.textContent = '---'; blankEl.classList.remove('filled'); }
+        }
+        return;
+    }
+    vibrate(15);
+    document.querySelectorAll('.fill-multiple-option').forEach(o => o.classList.remove('selected-for-move'));
+    el.classList.add('selected-for-move');
+    selectedFillMultipleWord = word;
+}
+
+function clickFillMultipleBlank(index) {
+    if (isAnswered) return;
+    if (!selectedFillMultipleWord) {
+        // 🆕 اگه قبلاً پر شده، خالیش کن
+        if (fillMultipleAnswers[index] !== null) {
+            vibrate(15);
+            const word = fillMultipleAnswers[index];
+            fillMultipleAnswers[index] = null;
+            const blankEl = document.getElementById('fm-blank-' + index);
+            if (blankEl) { blankEl.textContent = '---'; blankEl.classList.remove('filled'); }
+            document.querySelectorAll('.fill-multiple-option').forEach(o => {
+                if (o.dataset.value === word) o.classList.remove('used');
+            });
+        }
+        return;
+    }
+    if (fillMultipleAnswers[index] !== null) return;
+    vibrate(15);
+    fillMultipleAnswers[index] = selectedFillMultipleWord;
+    const blankEl = document.getElementById('fm-blank-' + index);
+    if (blankEl) { blankEl.textContent = selectedFillMultipleWord; blankEl.classList.add('filled'); }
+    document.querySelectorAll('.fill-multiple-option').forEach(o => {
+        if (o.dataset.value === selectedFillMultipleWord) { o.classList.add('used'); o.classList.remove('selected-for-move'); }
+    });
+    selectedFillMultipleWord = null;
+    if (fillMultipleAnswers.every(a => a !== null)) {
+        setTimeout(() => checkAnswer(), 500);
+    }
+}
+
+// 🆕 drag-into-blank با کلیک + قابلیت برگشت
+function clickDibOption(el, value) {
+    if (isAnswered) return;
+    if (el.classList.contains('used')) {
+        // 🆕 اگه قبلاً استفاده شده، برگردونش
+        vibrate(15);
+        el.classList.remove('used');
+        const idx = dragIntoBlankItems.findIndex(it => it.filled && it.correct === value);
+        if (idx >= 0) {
+            dragIntoBlankItems[idx].filled = false;
+            const blankEl = document.getElementById('dib-blank-' + idx);
+            if (blankEl) { blankEl.textContent = '---'; blankEl.classList.remove('filled'); delete blankEl.dataset.value; }
+        }
+        return;
+    }
+    vibrate(15);
+    document.querySelectorAll('.dib-option-item').forEach(o => o.classList.remove('selected-for-move'));
+    el.classList.add('selected-for-move');
+    selectedDibWord = value;
+}
+
+function clickDibBlank(index) {
+    if (isAnswered) return;
+    if (!selectedDibWord) {
+        // 🆕 اگه قبلاً پر شده، خالیش کن
+        if (dragIntoBlankItems[index].filled) {
+            vibrate(15);
+            const oldValue = dragIntoBlankItems[index].correct;
+            dragIntoBlankItems[index].filled = false;
+            const blankEl = document.getElementById('dib-blank-' + index);
+            if (blankEl) { blankEl.textContent = '---'; blankEl.classList.remove('filled'); delete blankEl.dataset.value; }
+            document.querySelectorAll('.dib-option-item').forEach(o => {
+                if (o.dataset.value === oldValue) o.classList.remove('used');
+            });
+        }
+        return;
+    }
+    if (dragIntoBlankItems[index].filled) return;
+    vibrate(15);
+    dragIntoBlankItems[index].filled = true;
+    const blankEl = document.getElementById('dib-blank-' + index);
+    if (blankEl) { blankEl.textContent = selectedDibWord; blankEl.classList.add('filled'); blankEl.dataset.value = selectedDibWord; }
+    const remainingBlankCount = dragIntoBlankItems.filter(it => !it.filled && it.correct === selectedDibWord).length;
+    if (remainingBlankCount === 0) {
+        document.querySelectorAll('.dib-option-item').forEach(opt => {
+            if (opt.dataset.value === selectedDibWord) { opt.classList.add('used'); opt.classList.remove('selected-for-move'); }
+        });
+    }
+    selectedDibWord = null;
+    if (dragIntoBlankItems.every(it => it.filled)) {
+        setTimeout(() => { if (!isAnswered) checkAnswer(); }, 500);
+    }
+}
+
+// بقیه توابع (بدون تغییر)
 function skipQuestion() {
     if (isAnswered) return;
     
@@ -469,141 +643,6 @@ function playWordBuildAudio(el, audioUrl) {
     playAudioFromVideo(audioUrl, el);
 }
 
-function selectDibOption(el, value) {
-    if (isAnswered) return;
-    vibrate(15);
-    document.querySelectorAll('.dib-option-item').forEach(o => o.classList.remove('selected-for-move'));
-    el.classList.add('selected-for-move');
-    draggedBlankWord = value;
-}
-
-function dragDibStart(event, value) {
-    if (isAnswered) return;
-    draggedBlankWord = value;
-    event.dataTransfer.effectAllowed = 'move';
-    try { event.dataTransfer.setData('text/plain', value); } catch(e) {}
-}
-
-function dragDibOver(event) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }
-function dragDibDropOption(event) { event.preventDefault(); }
-
-function dragDibDropBlank(event, index) {
-    event.preventDefault();
-    if (!draggedBlankWord) return;
-    fillDibBlank(index, draggedBlankWord);
-    draggedBlankWord = null;
-}
-
-function fillDibBlank(index, value) {
-    if (isAnswered) return;
-    if (dragIntoBlankItems[index].filled) return;
-    vibrate(15);
-    dragIntoBlankItems[index].filled = true;
-    const blankEl = document.getElementById('dib-blank-' + index);
-    if (blankEl) { blankEl.textContent = value; blankEl.classList.add('filled'); blankEl.dataset.value = value; }
-    const remainingBlankCount = dragIntoBlankItems.filter(it => !it.filled && it.correct === value).length;
-    if (remainingBlankCount === 0) {
-        document.querySelectorAll('.dib-option-item').forEach(opt => {
-            if (opt.dataset.value === value) { opt.classList.add('used'); opt.classList.remove('selected-for-move'); }
-        });
-    }
-    if (dragIntoBlankItems.every(it => it.filled)) {
-        setTimeout(() => { if (!isAnswered) checkAnswer(); }, 500);
-    }
-}
-
-function clearDibBlank(index) {
-    if (isAnswered) return;
-    if (!dragIntoBlankItems[index].filled) return;
-    vibrate(15);
-    const blankEl = document.getElementById('dib-blank-' + index);
-    const oldValue = blankEl ? blankEl.dataset.value : null;
-    dragIntoBlankItems[index].filled = false;
-    if (blankEl) { blankEl.textContent = '---'; blankEl.classList.remove('filled'); delete blankEl.dataset.value; }
-    if (oldValue) {
-        document.querySelectorAll('.dib-option-item').forEach(opt => {
-            if (opt.dataset.value === oldValue) opt.classList.remove('used');
-        });
-    }
-}
-
-function selectGenderWord(el, uniqueId) {
-    if (isAnswered) return;
-    if (el.classList.contains('placed')) return;
-    vibrate(15);
-    draggedGenderWord = uniqueId;
-    document.querySelectorAll('.gender-word-item').forEach(w => w.classList.remove('selected-for-move'));
-    el.classList.add('selected-for-move');
-}
-
-function dragGenderStart(event, uniqueId) {
-    if (isAnswered) return;
-    draggedGenderWord = uniqueId;
-    event.dataTransfer.effectAllowed = 'move';
-    try { event.dataTransfer.setData('text/plain', uniqueId); } catch(e) {}
-}
-
-function dragGenderOver(event) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }
-function dragGenderDrop(event) { event.preventDefault(); }
-
-function dragGenderDropBox(event, gender) {
-    event.preventDefault();
-    if (!draggedGenderWord) return;
-    const item = dragGenderItems.find(it => it.uniqueId === draggedGenderWord);
-    if (!item) return;
-    if (item.gender !== gender) { vibrate([50, 30, 50]); draggedGenderWord = null; return; }
-    moveGenderWordToBox(item, gender);
-    draggedGenderWord = null;
-    if (document.querySelectorAll('.gender-word-item:not(.placed)').length === 0) {
-        setTimeout(() => checkAnswer(), 500);
-    }
-}
-
-function moveGenderWordToBox(item, gender) {
-    vibrate(15);
-    const wordEl = document.querySelector(`.gender-word-item[data-unique-id="${item.uniqueId}"]`);
-    if (wordEl) { wordEl.classList.add('placed'); wordEl.classList.remove('selected-for-move'); wordEl.setAttribute('draggable', 'false'); }
-    const boxItems = document.getElementById('gender-box-' + gender);
-    if (boxItems) {
-        const placedEl = document.createElement('div');
-        placedEl.className = 'gender-word-placed';
-        placedEl.textContent = item.text;
-        boxItems.appendChild(placedEl);
-    }
-}
-
-function selectFillMultipleOption(el, word) {
-    if (isAnswered) return;
-    vibrate(15);
-    const firstEmpty = fillMultipleAnswers.findIndex(a => a === null);
-    if (firstEmpty === -1) return;
-    fillMultipleAnswers[firstEmpty] = word;
-    const blankEl = document.getElementById('fm-blank-' + firstEmpty);
-    if (blankEl) { blankEl.textContent = word; blankEl.classList.add('filled'); }
-    el.classList.add('used');
-}
-
-function clearFillMultiple(index) {
-    if (isAnswered) return;
-    if (fillMultipleAnswers[index] === null) return;
-    vibrate(15);
-    const word = fillMultipleAnswers[index];
-    fillMultipleAnswers[index] = null;
-    const blankEl = document.getElementById('fm-blank-' + index);
-    if (blankEl) { blankEl.textContent = '---'; blankEl.classList.remove('filled'); }
-    document.querySelectorAll('.fill-multiple-option').forEach(opt => {
-        if (opt.textContent.trim() === word) opt.classList.remove('used');
-    });
-}
-
-function selectTFCustom(el, value) {
-    if (isAnswered) return;
-    vibrate(15);
-    document.querySelectorAll('.tf-custom-btn').forEach(b => b.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedOptionIndex = value ? 1 : 0;
-}
-
 function selectLetterOrder(el, uniqueId) {
     if (isAnswered) return;
     if (selectedLettersOrder.some(item => item.uniqueId === uniqueId)) return;
@@ -631,8 +670,6 @@ function selectLetterOrder(el, uniqueId) {
     };
     resultDiv.appendChild(letterCard);
     const q = currentLesson.questions[currentQuestionIndex];
-    
-    // 🆕 وقتی همه حروف چیده شد، کلمه کامل رو نشون بده
     if (selectedLettersOrder.length === q.letters.length) {
         const userOrder = selectedLettersOrder.map(it => it.originalIdx);
         const correctOrder = q.letters.map((_, i) => i);
@@ -643,21 +680,6 @@ function selectLetterOrder(el, uniqueId) {
             }, 300);
         }
     }
-}
-
-function dragLetterStart(event, uniqueId) {
-    if (isAnswered) return;
-    draggedLetter = uniqueId;
-    event.dataTransfer.effectAllowed = 'move';
-    try { event.dataTransfer.setData('text/plain', uniqueId); } catch(e) {}
-}
-function dragLetterOver(event) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }
-function dragLetterDrop(event) {
-    event.preventDefault();
-    if (!draggedLetter) return;
-    const target = event.target.closest('.letter-order-item');
-    if (target) selectLetterOrder(target, draggedLetter);
-    draggedLetter = null;
 }
 
 function flipCard(el, cardIdx) {
