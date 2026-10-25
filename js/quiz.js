@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۳۰.۰.۰ — رفع کامل باگ کارنامه و امتیاز
+// نسخه: ۳۰.۰.۰ — رفع باگ کارنامه و امتیاز
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -1159,12 +1159,15 @@ async function showResult() {
     const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
     const lesson = allLessons[lessonIndex];
 
-    // 🆕 حذف خط ensureCustomLessonStatus که باعث خطا میشد
+    // 🆕 جایگزینی برای ensureCustomLessonStatus
     let dueDate = '۱۴۰۵/۰۹/۱۵';
-    if (lesson && typeof getEffectiveDueDate === 'function') {
-        dueDate = getEffectiveDueDate(lesson);
-    } else if (lesson) {
-        dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+    if (lesson) {
+        // از getEffectiveDueDate استفاده می‌کنیم اگه وجود داشت، وگرنه dueDate پیش‌فرض
+        if (typeof getEffectiveDueDate === 'function') {
+            dueDate = getEffectiveDueDate(lesson);
+        } else {
+            dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+        }
     }
     const expired = typeof isExpired === 'function' ? isExpired(dueDate) : false;
 
@@ -1181,6 +1184,7 @@ async function showResult() {
                 try {
                     if (typeof saveReportCardOnce === 'function') {
                         await saveReportCardOnce();
+                        console.log('✅ کارنامه به صورت خودکار ذخیره شد');
                     }
                 } catch (e) { console.error('خطا در ذخیره خودکار:', e); }
             }, 300);
