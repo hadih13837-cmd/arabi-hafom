@@ -1,6 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۱۳.۰.۰ — با جلوگیری از ذخیره تکراری (Race Condition)
+// نسخه: ۱۴.۰.۰ — رفع باگ دکمه دیدن کارنامه و جلوگیری از ذخیره تکراری
 // ============================================================
 
 let currentPreviewReport = null;
@@ -44,7 +44,7 @@ async function syncReportsFromSupabase() {
         const userName = localStorage.getItem('userName');
         const userClass = localStorage.getItem('userClass');
         
-        // 🆕 یکتا کردن بر اساس lessonId (نگه داشتن جدیدترین)
+        // یکتا کردن بر اساس lessonId (نگه داشتن جدیدترین)
         const uniqueMap = {};
         supabaseReports.forEach(r => {
             if (!uniqueMap[r.lesson_id] || 
@@ -135,7 +135,6 @@ function renderReportsList(reports, container) {
 // 🆕 saveReport (اصلی) — با قفل درون‌برنامه‌ای
 // ============================================================
 async function saveReport(report) {
-    // 🆕 قفل: اگه همین الان داره ذخیره میشه، رد شو
     if (savingReports[report.lessonId]) {
         console.log('ℹ️ کارنامه در حال ذخیره است، رد میشه:', report.lessonId);
         return true;
@@ -178,7 +177,6 @@ async function saveReport(report) {
             console.error('❌ خطا:', error);
         }
     } finally {
-        // 🆕 آزاد کردن قفل بعد از ۲ ثانیه (که درخواست‌های تکراری رد بشن)
         setTimeout(() => {
             delete savingReports[report.lessonId];
         }, 2000);
@@ -200,33 +198,27 @@ async function saveReportCardOnce() {
             return false;
         }
         
-        // 🆕 قفل درون‌برنامه‌ای
-        if (savingReports[currentLesson.lessonId]) {
-            console.log('ℹ️ کارنامه در حال ذخیره است، رد میشه');
-            return true;
-        }
-        
         const studentId = localStorage.getItem('studentUUID');
         if (!studentId) {
             console.warn('⚠️ studentUUID پیدا نشد');
             return false;
         }
         
-        // 🆕 چک localStorage
+        // 🆕 چک کردن شدید در حافظه محلی (جلوگیری از ذخیره تکراری)
         const savedReports = JSON.parse(localStorage.getItem('reports') || '[]');
-        const alreadySaved = savedReports.find(r => r.lessonId === currentLesson.lessonId);
-        if (alreadySaved) {
-            console.log('ℹ️ کارنامه قبلاً ذخیره شده (localStorage):', currentLesson.lessonId);
+        const alreadySavedLocal = savedReports.find(r => r.lessonId === currentLesson.lessonId);
+        if (alreadySavedLocal) {
+            console.log('ℹ️ کارنامه قبلاً در این دستگاه ذخیره شده است:', currentLesson.lessonId);
             return true;
         }
         
-        // 🆕 چک Supabase
+        // 🆕 چک کردن در Supabase (جلوگیری از ذخیره تکراری)
         const existingReports = await getReportsFromSupabase(studentId);
         const existingLessonIds = (existingReports || []).map(r => r.lesson_id);
         if (existingLessonIds.includes(currentLesson.lessonId)) {
-            console.log('ℹ️ کارنامه قبلاً در Supabase ذخیره شده:', currentLesson.lessonId);
+            console.log('ℹ️ کارنامه قبلاً در سرور ذخیره شده است:', currentLesson.lessonId);
             
-            // ولی localStorage رو آپدیت کن
+            // آپدیت حافظه محلی
             const existingReport = existingReports.find(r => r.lesson_id === currentLesson.lessonId);
             if (existingReport) {
                 const localReport = convertSupabaseReportToLocal(
@@ -237,11 +229,10 @@ async function saveReportCardOnce() {
                 savedReports.push(localReport);
                 localStorage.setItem('reports', JSON.stringify(savedReports));
             }
-            
             return true;
         }
         
-        // 🆕 چک منقضی شدن
+        // 🆕 چک کردن منقضی شدن
         const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
         const lesson = allLessons[lessonIndex];
         let dueDate = '۱۴۰۵/۰۹/۱۵';
@@ -257,8 +248,12 @@ async function saveReportCardOnce() {
             return false;
         }
         
-        // 🆕 ساخت report
-        const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
+        // 🆕 محاسبه دقیق نمره (جلوگیری از محاسبه اشتباه)
+        const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
+        const finalScore = Math.min(score, maxTotalPoints); 
+        let finalPercent = Math.round((correctCount / currentLesson.questions.length) * 100);
+        if (finalPercent > 100) finalPercent = 100;
+        
         const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
         const now = new Date();
         const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -271,45 +266,34 @@ async function saveReportCardOnce() {
             lessonTitle: taskTitle,
             date: dateStr,
             timestamp: now.toISOString(),
-            percent, correct: correctCount, wrong: wrongCount,
-            score, totalPoints: currentLesson.totalPoints, timeTaken,
+            percent: finalPercent,
+            correct: correctCount, 
+            wrong: wrongCount,
+            score: finalScore, 
+            totalPoints: maxTotalPoints, 
+            timeTaken, 
             surveyAnswer: surveyAnswerText
         };
         
-        // 🆕 قفل بذار و ذخیره کن
-        savingReports[currentLesson.lessonId] = true;
-        
-        // ذخیره در localStorage
         savedReports.push(report);
         localStorage.setItem('reports', JSON.stringify(savedReports));
         
-        // ذخیره در Supabase
         const success = await saveReportToSupabase(report, studentId);
         if (success) {
             console.log('✅ کارنامه در Supabase ذخیره شد');
-        } else {
-            console.warn('⚠️ خطا در ذخیره در Supabase');
         }
         
-        // به‌روزرسانی امتیاز
         if (typeof saveRankingToSupabase === 'function') {
             try {
                 await saveRankingToSupabase();
-                console.log('✅ امتیاز در Supabase ذخیره شد');
             } catch(e) {
                 console.error('خطا در ذخیره امتیاز:', e);
             }
         }
         
-        // چک مدال جدید
         if (typeof checkForNewMedals === 'function') {
             setTimeout(() => checkForNewMedals(), 1500);
         }
-        
-        // آزاد کردن قفل
-        setTimeout(() => {
-            delete savingReports[currentLesson.lessonId];
-        }, 2000);
         
         return true;
     } catch (error) {
@@ -600,7 +584,7 @@ async function downloadReportByData(index) {
 }
 
 // ============================================================
-// showReportCard — نسخه اصلاح‌شده (فقط برای دکمه)
+// 🆕 showReportCard — نسخه اصلاح‌شده و مطمئن
 // ============================================================
 async function showReportCard() {
     if (isPracticeMode) {
@@ -612,7 +596,14 @@ async function showReportCard() {
         await loadCustomLessonStatus();
     }
     
-    const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
+    // 🆕 محاسبه دقیق درصد (محدود به ۱۰۰)
+    let percent = Math.round((correctCount / currentLesson.questions.length) * 100);
+    if (percent > 100) percent = 100;
+    
+    // 🆕 محاسبه دقیق امتیاز (محدود به حداکثر)
+    const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
+    const finalScore = Math.min(score, maxTotalPoints);
+
     const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
     const now = new Date();
     const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -642,8 +633,12 @@ async function showReportCard() {
         lessonTitle: taskTitle,
         date: dateStr,
         timestamp: now.toISOString(),
-        percent, correct: correctCount, wrong: wrongCount,
-        score, totalPoints: currentLesson.totalPoints, timeTaken,
+        percent: percent,
+        correct: correctCount, 
+        wrong: wrongCount,
+        score: finalScore,
+        totalPoints: maxTotalPoints,
+        timeTaken, 
         surveyAnswer: surveyAnswerText
     };
     
@@ -673,7 +668,11 @@ async function showReportCard() {
 }
 
 async function downloadCurrentReport() {
-    const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
+    let percent = Math.round((correctCount / currentLesson.questions.length) * 100);
+    if (percent > 100) percent = 100;
+    const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
+    const finalScore = Math.min(score, maxTotalPoints);
+
     const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
     const now = new Date();
     const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -684,8 +683,8 @@ async function downloadCurrentReport() {
         studentName: localStorage.getItem('userName'),
         studentClass: localStorage.getItem('userClass'),
         lessonTitle: taskTitle, date: dateStr,
-        percent, correct: correctCount, wrong: wrongCount,
-        score, totalPoints: currentLesson.totalPoints, timeTaken,
+        percent: percent, correct: correctCount, wrong: wrongCount,
+        score: finalScore, totalPoints: maxTotalPoints, timeTaken,
         surveyAnswer: surveyAnswerText
     };
     
