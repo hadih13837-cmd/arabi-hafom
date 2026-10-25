@@ -3,7 +3,7 @@
 // نسخه: v172
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v183';
+const CACHE_NAME = 'arabi-hafom-v184';
 
 const urlsToCache = [
     './',
