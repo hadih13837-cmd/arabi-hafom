@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۲۸.۰.۰ — رفع باگ selectTFCustom
+// نسخه: ۲۹.۰.۰ — رفع باگ امتیاز تکراری و درصد بالای ۱۰۰
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -136,6 +136,7 @@ function renderQuestion() {
         skipBtn.style.display = (currentQuestionIndex === currentLesson.questions.length - 1) ? 'none' : 'flex';
     }
     
+    // ریست کردن متغیرها
     selectedOptionIndex = -1;
     selectedMatchFa = null;
     selectedMatchAr = null;
@@ -882,7 +883,9 @@ function selectMatch(el, type) {
 }
 
 function checkAnswer() {
-    if (isAnswered) return;
+    // 🆕 جلوگیری از اجرای مجدد (مهم‌ترین بخش برای رفع باگ)
+    if (isAnswered) return; 
+    
     const q = currentLesson.questions[currentQuestionIndex];
     let isCorrect = false;
     let answerGiven = false;
@@ -1024,11 +1027,16 @@ function checkAnswer() {
         return;
     }
 
+    // 🆕 تنظیم isAnswered روی true تا از اجرای مجدد جلوگیری بشه
     isAnswered = true;
     document.getElementById('submit-btn').disabled = true;
 
     if (isCorrect) {
-        if (!isPracticeMode) score += q.points;
+        if (!isPracticeMode) {
+            // 🆕 محدود کردن امتیاز به حداکثر امتیاز ممکن (جلوگیری از باگ ۲۰۷٪)
+            const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
+            score = Math.min(score + q.points, maxTotalPoints);
+        }
         correctCount++;
         playCorrectSound();
         vibrate(30);
@@ -1121,12 +1129,20 @@ function nextQuestion() {
 async function showResult() {
     endTime = new Date();
     goToScreen('screen-result');
-    const percent = Math.round((correctCount / currentLesson.questions.length) * 100);
+    
+    // 🆕 محاسبه دقیق درصد (با محدود کردن به ۱۰۰)
+    let percent = Math.round((correctCount / currentLesson.questions.length) * 100);
+    if (percent > 100) percent = 100;
+    
+    // 🆕 محاسبه دقیق امتیاز (با محدود کردن به حداکثر امتیاز ممکن)
+    const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
+    const finalScore = Math.min(score, maxTotalPoints);
+
     document.getElementById('final-score-circle').textContent = `${toPersianNum(percent)}%`;
     document.getElementById('final-percent').textContent = `${toPersianNum(percent)}%`;
     document.getElementById('final-correct').textContent = toPersianNum(correctCount);
     document.getElementById('final-wrong').textContent = toPersianNum(wrongCount);
-    document.getElementById('final-points').textContent = toPersianNum(score);
+    document.getElementById('final-points').textContent = toPersianNum(finalScore);
 
     const resultCircle = document.getElementById('final-score-circle');
     if (resultCircle) {
