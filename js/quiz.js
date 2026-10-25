@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۲۹.۰.۰ — رفع باگ امتیاز تکراری و درصد بالای ۱۰۰
+// نسخه: ۳۰.۰.۰ — رفع کامل باگ کارنامه و امتیاز
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -1159,9 +1159,13 @@ async function showResult() {
     const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
     const lesson = allLessons[lessonIndex];
 
-    await ensureCustomLessonStatus();
+    // 🆕 حذف خط ensureCustomLessonStatus که باعث خطا میشد
     let dueDate = '۱۴۰۵/۰۹/۱۵';
-    if (lesson) dueDate = getEffectiveDueDateSafe(lesson);
+    if (lesson && typeof getEffectiveDueDate === 'function') {
+        dueDate = getEffectiveDueDate(lesson);
+    } else if (lesson) {
+        dueDate = lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
+    }
     const expired = typeof isExpired === 'function' ? isExpired(dueDate) : false;
 
     if (!isPracticeMode && !expired) {
@@ -1177,7 +1181,6 @@ async function showResult() {
                 try {
                     if (typeof saveReportCardOnce === 'function') {
                         await saveReportCardOnce();
-                        console.log('✅ کارنامه به صورت خودکار ذخیره شد');
                     }
                 } catch (e) { console.error('خطا در ذخیره خودکار:', e); }
             }, 300);
