@@ -1,9 +1,9 @@
 // ============================================================
 // service-worker.js — با بروزرسانی خودکار
-// نسخه: v172
+// نسخه: v173
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v186';
+const CACHE_NAME = 'arabi-hafom-v173';
 
 const urlsToCache = [
     './',
@@ -14,6 +14,7 @@ const urlsToCache = [
     './maintenance.html',
     './maintenance.json',
     './manifest.json',
+    './icon-192.png',
     './icon-512.png',
 
     './css/style.css',
@@ -42,6 +43,7 @@ const urlsToCache = [
     './lessons/lesson4.json',
     './lessons/lesson5.json',
     './jozve/index.json',
+    './stories.json',
 ];
 
 // نصب — فایل‌ها رو ذخیره کن و فوراً فعال شو
@@ -87,7 +89,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    if (url.includes('maintenance.json') || url.includes('/lessons/') || url.includes('/jozve/')) {
+    if (url.includes('maintenance.json') || url.includes('/lessons/') || url.includes('/jozve/') || url.includes('stories.json')) {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' })
                 .then(response => {
