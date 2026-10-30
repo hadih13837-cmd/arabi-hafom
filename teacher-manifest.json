@@ -1,0 +1,33 @@
+{
+  "name": "پنل معلم - عربی هفتم",
+  "short_name": "پنل معلم",
+  "description": "پنل مدیریت معلم برای برنامه عربی هفتم",
+  "start_url": "./teacher.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0f7ff",
+  "theme_color": "#1976d2",
+  "lang": "fa",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "https://cdn.imgurl.ir/uploads/j666993_.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.imgurl.ir/uploads/k226977_.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.imgurl.ir/uploads/k226977_.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ]
+}
