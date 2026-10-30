@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۳۱.۰.۰ — رفع کامل باگ اعلان‌های تکرارشونده
+// نسخه: ۳۴.۰.۰ — با قابلیت تغییر کد ورود دانش‌آموز
 // ============================================================
 
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
@@ -37,6 +37,17 @@ let selectedClassDay = null;
 let toggleStatusValue = true;
 
 let conversationsChannel = null;
+
+// 🆕 تابع escape برای جلوگیری از XSS
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 function vibrate(pattern = 30) { if (navigator.vibrate) { try { navigator.vibrate(pattern); } catch (e) {} } }
 function toPersianNum(num) { if (num === null || num === undefined) return '۰'; const p = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹']; return num.toString().replace(/\d/g, x => p[parseInt(x)]); }
@@ -132,9 +143,23 @@ function calculateTotalPoints(student) {
     return (parseInt(student.total_points) || 0) + (parseInt(student.custom_points_added) || 0) + (parseInt(student.custom_total_points) || 0);
 }
 
-function checkPassword() {
+// 🆕 دریافت رمز از سرور
+async function getTeacherPassword() {
+    try {
+        const c = getSupabase();
+        if (!c) return localStorage.getItem(TEACHER_PASSWORD_KEY) || DEFAULT_PASSWORD;
+        const { data } = await c.from('teacher_settings').select('password').eq('id', 1).maybeSingle();
+        if (data && data.password) {
+            localStorage.setItem(TEACHER_PASSWORD_KEY, data.password);
+            return data.password;
+        }
+    } catch (e) {}
+    return localStorage.getItem(TEACHER_PASSWORD_KEY) || DEFAULT_PASSWORD;
+}
+
+async function checkPassword() {
     const input = document.getElementById('login-password').value.trim();
-    const saved = localStorage.getItem(TEACHER_PASSWORD_KEY) || DEFAULT_PASSWORD;
+    const saved = await getTeacherPassword();
     if (input === saved) {
         document.getElementById('login-screen').classList.remove('active');
         document.getElementById('main-panel').classList.add('active');
@@ -345,230 +370,11 @@ function renderHomeTopStudents(students) {
     top.forEach((s, i) => {
         const r = i + 1;
         const m = r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : toPersianNum(r);
-        h += `<div class="home-top-item" onclick="openStudentProfile('${s.student_id}')"><div class="home-top-rank">${m}</div><div class="home-top-avatar">${renderAvatarHTML(s)}</div><div class="home-top-info"><div class="home-top-name">${s.name || 'دانش‌آموز'}</div><div class="home-top-class">${getClassPersianName(s.class_name)} • ${toPersianNum(getTotalCompletedLessons(s))} تکلیف</div></div><div class="home-top-points"><span>⭐</span><span>${toPersianNum(calculateTotalPoints(s))}</span></div></div>`;
+        h += `<div class="home-top-item" onclick="openStudentProfile('${escapeHTML(s.student_id)}')"><div class="home-top-rank">${m}</div><div class="home-top-avatar">${renderAvatarHTML(s)}</div><div class="home-top-info"><div class="home-top-name">${escapeHTML(s.name || 'دانش‌آموز')}</div><div class="home-top-class">${getClassPersianName(s.class_name)} • ${toPersianNum(getTotalCompletedLessons(s))} تکلیف</div></div><div class="home-top-points"><span>⭐</span><span>${toPersianNum(calculateTotalPoints(s))}</span></div></div>`;
     });
     cont.innerHTML = h;
 }
 
-// (توابع پیام‌رسانی - کامل)
-function switchMessagesTab(tab) {
-    document.querySelectorAll('.messages-tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.messages-tab-content').forEach(c => c.classList.remove('active'));
-    const t = document.querySelector(`.messages-tab-btn[data-tab="${tab}"]`);
-    if (t) t.classList.add('active');
-    const c = document.getElementById('tab-' + tab);
-    if (c) c.classList.add('active');
-    if (tab === 'personal') loadStudentConversations(); else if (tab === 'class') loadClassMessages();
-}
-async function sendClassMessage() {
-    const cn = document.getElementById('class-message-target').value;
-    const ti = document.getElementById('class-message-title').value.trim();
-    const tx = document.getElementById('class-message-text').value.trim();
-    const ty = document.getElementById('class-message-type').value;
-    if (!ti) { showToast('عنوان را وارد کنید', 'warning'); return; }
-    if (!tx) { showToast('متن پیام را وارد کنید', 'warning'); return; }
-    const d = { message_id: 'cls_' + Date.now(), class_name: cn, title: ti, text: tx, type: ty, date: new Date().toISOString(), date_persian: new Date().toLocaleDateString('fa-IR') };
-    try {
-        showToast('در حال ارسال...', 'info');
-        const r = await sendClassMessageToSupabase(d);
-        if (r.success) {
-            showToast('پیام ارسال شد! ✅', 'success');
-            document.getElementById('class-message-title').value = '';
-            document.getElementById('class-message-text').value = '';
-            localStorage.removeItem(CLASS_MESSAGES_CACHE_KEY);
-            setTimeout(loadClassMessages, 500);
-        } else showToast('خطا', 'error');
-    } catch (e) { showToast('خطا', 'error'); }
-}
-async function loadClassMessages() {
-    const c = document.getElementById('class-messages-list');
-    if (!c) return;
-    const ca = getCachedData(CLASS_MESSAGES_CACHE_KEY);
-    if (ca && ca.length > 0) renderClassMessages(ca);
-    else c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
-    try {
-        const m = await getClassMessagesFromSupabase('all');
-        setCachedData(CLASS_MESSAGES_CACHE_KEY, m);
-        renderClassMessages(m);
-    } catch (e) { if (!ca) c.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا</div>'; }
-}
-function renderClassMessages(messages) {
-    const c = document.getElementById('class-messages-list');
-    if (!c) return;
-    if (!messages || messages.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز پیام کلاسی ارسال نشده</div>'; return; }
-    messages.sort((a, b) => new Date(b.date) - new Date(a.date));
-    const tt = { info: 'ℹ️ اطلاعیه', warning: '⚠️ هشدار', success: '✅ تبریک', reminder: '🔔 یادآوری' };
-    let h = '';
-    messages.forEach(m => {
-        h += `<div class="class-message-item type-${m.type || 'info'}"><div class="class-message-item-header"><div class="class-message-item-title">${m.title}</div><div class="class-message-item-type">${tt[m.type] || 'ℹ️'}</div></div><div class="class-message-item-text">${m.text}</div><div class="class-message-item-footer"><div class="class-message-item-target">👥 ${getClassPersianName(m.class_name)}</div><div>${m.date_persian || ''}</div></div></div>`;
-    });
-    c.innerHTML = h;
-}
-async function loadStudentConversations() {
-    const c = document.getElementById('messenger-list-items');
-    if (!c) return;
-    const ca = getCachedData(CONVERSATIONS_CACHE_KEY);
-    if (ca && ca.length > 0) {
-        currentConversations = ca;
-        currentConversations.forEach(x => { x.unread_count = computeUnreadForConversation(x); });
-        renderMessengerList(currentConversations);
-    } else c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
-    try {
-        const co = await getStudentConversationsFromSupabase();
-        co.forEach(x => { x.unread_count = computeUnreadForConversation(x); });
-        currentConversations = co;
-        setCachedData(CONVERSATIONS_CACHE_KEY, co);
-        if (co.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز مکالمه‌ای وجود نداره</div>'; return; }
-        renderMessengerList(currentConversations);
-        updateHomeBadgesImmediately();
-    } catch (e) { if (!ca) c.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا</div>'; }
-}
-function renderMessengerList(convs) {
-    const c = document.getElementById('messenger-list-items');
-    if (!c) return;
-    if (convs.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">مکالمه‌ای یافت نشد</div>'; return; }
-    let h = '';
-    convs.forEach(x => {
-        const a = currentChatStudent && currentChatStudent.student_id === x.student_id;
-        const av = renderAvatarHTML(x);
-        const u = x.unread_count || 0;
-        h += `<div class="messenger-item ${a ? 'active' : ''}" onclick="openChatWith('${x.student_id}', '${x.student_name}', '${x.class_name}')"><div class="messenger-item-avatar">${av}</div><div class="messenger-item-info"><div class="messenger-item-name">${x.student_name}</div><div class="messenger-item-last">${x.last_message || 'بدون پیام'}</div></div><div class="messenger-item-meta"><div class="messenger-item-time">${x.last_date_persian || ''}</div>${u > 0 ? `<div class="messenger-item-unread">${toPersianNum(u)}</div>` : ''}</div></div>`;
-    });
-    c.innerHTML = h;
-}
-function filterMessengerList(q) {
-    q = q.toLowerCase().trim();
-    if (!q) { renderMessengerList(currentConversations); return; }
-    const f = currentConversations.filter(c => (c.student_name || '').toLowerCase().includes(q));
-    renderMessengerList(f);
-}
-async function openChatWith(sid, sname, cname) {
-    currentChatStudent = { student_id: sid, student_name: sname, class_name: cname };
-    document.getElementById('messenger-empty').style.display = 'none';
-    document.getElementById('messenger-list').style.display = 'none';
-    document.getElementById('messenger-chat').style.display = 'flex';
-    document.getElementById('messenger-chat-name').textContent = sname;
-    document.getElementById('messenger-chat-status').textContent = getClassPersianName(cname);
-    const av = document.getElementById('messenger-chat-avatar');
-    const cv = currentConversations.find(c => c.student_id === sid);
-    if (cv) av.innerHTML = renderAvatarHTML(cv);
-    else av.innerHTML = `<img src="${DEFAULT_AVATAR_URL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-    setReadTime(sid);
-    const ci = currentConversations.findIndex(c => c.student_id === sid);
-    if (ci >= 0) {
-        currentConversations[ci].unread_count = 0;
-        setCachedData(CONVERSATIONS_CACHE_KEY, currentConversations);
-        renderMessengerList(currentConversations);
-    }
-    updateHomeBadgesImmediately();
-    await loadChatMessages(sid);
-    markAllMessagesAsSeenSupabase(sid, 'teacher').catch(() => {});
-}
-function closeMessengerChat() {
-    document.getElementById('messenger-empty').style.display = 'flex';
-    document.getElementById('messenger-list').style.display = 'flex';
-    document.getElementById('messenger-chat').style.display = 'none';
-    currentChatStudent = null;
-    loadStudentConversations();
-}
-async function loadChatMessages(sid) {
-    const c = document.getElementById('messenger-chat-messages');
-    if (!c) return;
-    const ck = 'teacherMessagesCache_' + sid;
-    const ca = getCachedData(ck);
-    if (ca && ca.length > 0) renderChatMessages(ca);
-    else c.innerHTML = '<div class="messenger-chat-messages-empty">در حال بارگذاری...</div>';
-    try {
-        const m = await getPersonalMessages(sid);
-        if (m.length === 0) { c.innerHTML = '<div class="messenger-chat-messages-empty">هنوز پیامی رد و بدل نشده<br>اولین پیام رو بفرست!</div>'; return; }
-        m.sort((a, b) => new Date(a.date) - new Date(b.date));
-        setCachedData(ck, m);
-        renderChatMessages(m);
-    } catch (e) { if (!ca) c.innerHTML = '<div class="messenger-chat-messages-empty">خطا</div>'; }
-}
-function renderChatMessages(messages) {
-    const c = document.getElementById('messenger-chat-messages');
-    if (!c) return;
-    let h = '';
-    messages.forEach(m => {
-        const sc = m.sender === 'teacher' ? 'teacher' : 'student';
-        const t = m.date_persian || '';
-        let th = '';
-        if (sc === 'teacher') {
-            const is = m.is_seen === true || m.is_seen === 'true' || m.is_seen === 1;
-            th = is ? `<span class="chat-tick chat-tick-seen">✓✓</span>` : `<span class="chat-tick">✓</span>`;
-        }
-        h += `<div class="messenger-chat-message ${sc}"><div>${m.text}</div><div class="messenger-chat-message-time">${t}${th}</div></div>`;
-    });
-    c.innerHTML = h;
-    c.scrollTop = c.scrollHeight;
-}
-async function sendChatMessage() {
-    if (!currentChatStudent) return;
-    const i = document.getElementById('messenger-chat-input');
-    const tx = i.value.trim();
-    if (!tx) return;
-    const d = {
-        message_id: 'pm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-        student_id: currentChatStudent.student_id, student_name: currentChatStudent.student_name,
-        class_name: currentChatStudent.class_name, sender: 'teacher', text: tx,
-        date: new Date().toISOString(), date_persian: new Date().toLocaleDateString('fa-IR'), is_seen: false
-    };
-    try {
-        i.value = '';
-        const c = document.getElementById('messenger-chat-messages');
-        const t = d.date_persian;
-        const e = c.querySelector('.messenger-chat-messages-empty');
-        if (e) e.remove();
-        const el = document.createElement('div');
-        el.className = 'messenger-chat-message teacher';
-        el.innerHTML = `<div>${tx}</div><div class="messenger-chat-message-time">${t}<span class="chat-tick">✓</span></div>`;
-        c.appendChild(el);
-        c.scrollTop = c.scrollHeight;
-        const ck = 'teacherMessagesCache_' + currentChatStudent.student_id;
-        const ca = getCachedData(ck) || [];
-        ca.push(d);
-        setCachedData(ck, ca);
-        await sendPersonalMessageToSupabase(d);
-        setReadTime(currentChatStudent.student_id);
-    } catch (e) { showToast('خطا', 'error'); }
-}
-function showTeacherInAppNotification(sname, msg, sid) {
-    document.querySelectorAll('.inapp-notification').forEach(n => n.remove());
-    const n = document.createElement('div');
-    n.className = 'inapp-notification';
-    n.innerHTML = `<div class="inapp-icon">💬</div><div class="inapp-content"><div class="inapp-title">پیام از ${sname}</div><div class="inapp-text">${(msg || '').substring(0, 60)}${(msg || '').length > 60 ? '...' : ''}</div></div>`;
-    n.onclick = () => {
-        n.remove();
-        navigateToPage('messages', true);
-        setTimeout(() => {
-            switchMessagesTab('personal');
-            setTimeout(() => { const cv = currentConversations.find(c => c.student_id === sid); if (cv) openChatWith(sid, cv.student_name, cv.class_name); }, 400);
-        }, 300);
-    };
-    document.body.appendChild(n);
-    setTimeout(() => n.classList.add('show'), 50);
-    setTimeout(() => { n.classList.remove('show'); setTimeout(() => n.remove(), 400); }, 6000);
-}
-function playDingSound() {
-    try {
-        const a = new (window.AudioContext || window.webkitAudioContext)();
-        const n = a.currentTime;
-        [880, 1108.73].forEach((f, i) => {
-            const o = a.createOscillator(); const g = a.createGain();
-            o.type = 'sine'; o.frequency.value = f;
-            g.gain.setValueAtTime(0, n + i * 0.15);
-            g.gain.linearRampToValueAtTime(0.3, n + i * 0.15 + 0.02);
-            g.gain.exponentialRampToValueAtTime(0.001, n + i * 0.15 + 0.4);
-            o.connect(g); g.connect(a.destination);
-            o.start(n + i * 0.15); o.stop(n + i * 0.15 + 0.4);
-        });
-    } catch (e) {}
-}
-
-// ============================================================
-// 🆕 دانش‌آموزان — اصلاح کامل اعلان‌ها
-// ============================================================
 async function loadStudents() {
     const c = document.getElementById('students-grid');
     if (!c) return;
@@ -607,7 +413,6 @@ function filterStudentsByClass(cn, btn) {
 }
 function filterStudents() { renderStudents(getFilteredStudents()); }
 
-// 🆕 رندر دانش‌آموزان — هر دانش‌آموز اعلان خودش رو داره
 function renderStudents(students) {
     const c = document.getElementById('students-grid');
     if (!c) return;
@@ -615,23 +420,17 @@ function renderStudents(students) {
     
     const seen = getReadLessons();
     
-    // مرتب‌سازی: اول کسایی که اعلان دارن (کارنامه دیده‌نشده)، بعد کسایی که تکلیف انجام دادن، بعد بقیه
     students.sort((a, b) => {
         const aReports = allReportsRaw.filter(r => r.student_id === a.student_id);
         const bReports = allReportsRaw.filter(r => r.student_id === b.student_id);
-        
         const aHasUnseen = aReports.some(r => !seen[r.id]);
         const bHasUnseen = bReports.some(r => !seen[r.id]);
-        
         if (aHasUnseen && !bHasUnseen) return -1;
         if (!aHasUnseen && bHasUnseen) return 1;
-        
         const aHasDone = aReports.length > 0;
         const bHasDone = bReports.length > 0;
-        
         if (aHasDone && !bHasDone) return -1;
         if (!aHasDone && bHasDone) return 1;
-        
         return 0;
     });
     
@@ -639,15 +438,9 @@ function renderStudents(students) {
     students.forEach(s => {
         const sc = s.student_code || '---';
         const tl = getTotalCompletedLessons(s);
-        
-        // کارنامه‌های این دانش‌آموز
         const studentReports = allReportsRaw.filter(r => r.student_id === s.student_id);
         const hasDoneLesson = studentReports.length > 0;
-        
-        // آیا کارنامه دیده‌نشده داره؟
         const hasUnseenReport = studentReports.some(r => !seen[r.id]);
-        
-        // پیدا کردن آخرین کارنامه برای کلیک
         const latestReport = studentReports.length > 0 ? studentReports[0] : null;
         
         let badgeHTML = '';
@@ -659,9 +452,9 @@ function renderStudents(students) {
         
         let onclickAction = '';
         if (hasUnseenReport && latestReport) {
-            onclickAction = `markAndOpenProfile('${s.student_id}', '${latestReport.id}')`;
+            onclickAction = `markAndOpenProfile('${escapeHTML(s.student_id)}', '${escapeHTML(latestReport.id)}')`;
         } else {
-            onclickAction = `openStudentProfile('${s.student_id}')`;
+            onclickAction = `openStudentProfile('${escapeHTML(s.student_id)}')`;
         }
         
         const cardClass = hasUnseenReport ? 'has-new-lesson' : (hasDoneLesson ? 'has-done-lesson' : '');
@@ -670,7 +463,7 @@ function renderStudents(students) {
             ${badgeHTML}
             <div class="student-avatar">${renderAvatarHTML(s)}</div>
             <div class="student-info">
-                <div class="student-name">${s.name || 'بدون نام'}</div>
+                <div class="student-name">${escapeHTML(s.name || 'بدون نام')}</div>
                 <span class="student-class">${getClassPersianName(s.class_name)}</span>
                 <div class="student-stats"><span>🔑 ${sc}</span><span>📚 ${toPersianNum(tl)} تکلیف</span></div>
             </div>
@@ -687,7 +480,6 @@ function markAndOpenProfile(sid, rid) {
     setTimeout(() => { renderStudents(getFilteredStudents()); }, 500);
 }
 
-// ادامه کدهای مربوط به پروفایل دانش‌آموز (بدون تغییر)
 async function openStudentProfile(sid) {
     let s = allStudents.find(x => x.student_id === sid);
     if (!s) { showToast('دانش‌آموز پیدا نشد', 'error'); return; }
@@ -767,16 +559,13 @@ function renderStudentProfile() {
         const th = `<div class="profile-lesson-toggle"><span class="toggle-label ${ie ? 'enabled' : 'disabled'}">${ie ? '🟢 فعال' : '🔴 غیرفعال'}</span><label class="switch-small"><input type="checkbox" ${ie ? 'checked' : ''} onchange="toggleLessonEnabled('${l.id}', this.checked)"><span class="slider-small"></span></label></div>`;
         const dh = `<div class="profile-lesson-duedate"><div class="due-date-info"><span class="due-date-label">📅 مهلت:</span><span class="due-date-value ${ic ? 'custom' : (ix ? 'expired' : '')}">${dd}</span>${ic ? '<span class="custom-badge">سفارشی</span>' : ''}${ix && !ic ? '<span class="expired-badge">منقضی</span>' : ''}</div><button class="edit-date-btn" onclick="openDueDateEditor('${l.id}', '${dd}', ${ic})">✏️ ${ic ? 'ویرایش' : 'تمدید'}</button></div>`;
 
-        lh += `<div class="profile-lesson-item ${!ie ? 'disabled' : ''} ${id ? 'done' : ''}"><div class="profile-lesson-header"><div class="profile-lesson-title">${l.title}</div>${id ? '<span class="lesson-done-badge">✓</span>' : ''}</div><div class="profile-lesson-meta"><span>📝 ${toPersianNum(l.activityCount || 0)} سوال</span></div>${dh}${rh}${th}</div>`;
+        lh += `<div class="profile-lesson-item ${!ie ? 'disabled' : ''} ${id ? 'done' : ''}"><div class="profile-lesson-header"><div class="profile-lesson-title">${escapeHTML(l.title)}</div>${id ? '<span class="lesson-done-badge">✓</span>' : ''}</div><div class="profile-lesson-meta"><span>📝 ${toPersianNum(l.activityCount || 0)} سوال</span></div>${dh}${rh}${th}</div>`;
     });
     if (currentProfileLessons.length === 0) lh = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">تکلیفی یافت نشد</div>';
 
-    c.innerHTML = `<div class="profile-header-card"><div class="profile-avatar-big">${renderAvatarHTML(s)}</div><div class="profile-name-big">${s.name || 'بدون نام'}</div><div class="profile-class-big">${cp}</div></div><div class="profile-stats-grid"><div class="profile-stat-card" onclick="openEditStudentCode()" style="cursor:pointer;"><div class="profile-stat-icon">🔑</div><div class="profile-stat-value">${sc}</div><div class="profile-stat-label">کد ورود (کلیک کن)</div></div><div class="profile-stat-card" onclick="openEditCompletedLessons()" style="cursor:pointer;"><div class="profile-stat-icon">📚</div><div class="profile-stat-value">${toPersianNum(cl)}</div><div class="profile-stat-label">تکالیف (کلیک کن)</div></div><div class="profile-stat-card"><div class="profile-stat-icon">📊</div><div class="profile-stat-value">${toPersianNum(s.avg_percent || 0)}%</div><div class="profile-stat-label">میانگین درصد</div></div><div class="profile-stat-card"><div class="profile-stat-icon">🔥</div><div class="profile-stat-value">${toPersianNum(s.streak_days || 0)}</div><div class="profile-stat-label">روز متوالی</div></div></div><button class="profile-chat-btn" onclick="goToChatFromProfile()">💬 چت با این دانش‌آموز</button><div class="profile-total-points-card"><div class="profile-total-points-label">⭐ امتیاز کل (قابل ویرایش)</div><div class="profile-total-points-value">${toPersianNum(tp)}</div><div class="profile-total-points-actions"><button class="point-btn minus" onclick="changeTotalPoints(-10)">−۱۰</button><button class="point-btn minus" onclick="changeTotalPoints(-1)">−۱</button><button class="point-btn plus" onclick="changeTotalPoints(1)">+۱</button><button class="point-btn plus" onclick="changeTotalPoints(10)">+۱۰</button></div></div><div class="profile-lessons-card"><div class="profile-lessons-title">📚 مدیریت تکالیف</div><div class="profile-lessons-list">${lh}</div></div>`;
+    c.innerHTML = `<div class="profile-header-card"><div class="profile-avatar-big">${renderAvatarHTML(s)}</div><div class="profile-name-big">${escapeHTML(s.name || 'بدون نام')}</div><div class="profile-class-big">${cp}</div></div><div class="profile-stats-grid"><div class="profile-stat-card" onclick="openEditStudentCode()" style="cursor:pointer;"><div class="profile-stat-icon">🔑</div><div class="profile-stat-value">${sc}</div><div class="profile-stat-label">کد ورود (کلیک کن)</div></div><div class="profile-stat-card" onclick="openEditCompletedLessons()" style="cursor:pointer;"><div class="profile-stat-icon">📚</div><div class="profile-stat-value">${toPersianNum(cl)}</div><div class="profile-stat-label">تکالیف (کلیک کن)</div></div><div class="profile-stat-card"><div class="profile-stat-icon">📊</div><div class="profile-stat-value">${toPersianNum(s.avg_percent || 0)}%</div><div class="profile-stat-label">میانگین درصد</div></div><div class="profile-stat-card"><div class="profile-stat-icon">🔥</div><div class="profile-stat-value">${toPersianNum(s.streak_days || 0)}</div><div class="profile-stat-label">روز متوالی</div></div></div><button class="profile-chat-btn" onclick="goToChatFromProfile()">💬 چت با این دانش‌آموز</button><div class="profile-total-points-card"><div class="profile-total-points-label">⭐ امتیاز کل (قابل ویرایش)</div><div class="profile-total-points-value">${toPersianNum(tp)}</div><div class="profile-total-points-actions"><button class="point-btn minus" onclick="changeTotalPoints(-10)">−۱۰</button><button class="point-btn minus" onclick="changeTotalPoints(-1)">−۱</button><button class="point-btn plus" onclick="changeTotalPoints(1)">+۱</button><button class="point-btn plus" onclick="changeTotalPoints(10)">+۱۰</button></div></div><div class="profile-lessons-card"><div class="profile-lessons-title">📚 مدیریت تکالیف</div><div class="profile-lessons-list">${lh}</div></div>`;
 }
 
-// ============================================================
-// مدیریت تکالیف
-// ============================================================
 async function loadLessonsPage() {
     const c = document.getElementById('lessons-list');
     if (!c) return;
@@ -833,7 +622,7 @@ function renderLessonsList(lessons) {
                 cdh += `<span class="date-badge">📅 ${cl}: ${s.custom_due_date}</span>`;
             }
         });
-        h += `<div class="lesson-manage-card"><div class="lesson-manage-header"><div class="lesson-manage-icon">📚</div><div class="lesson-manage-title">${l.title}</div></div><div class="lesson-manage-meta"><span class="meta-item">📅 مهلت پیش‌فرض: ${l.dueDate || 'نامشخص'}</span><span class="meta-item">📝 ${toPersianNum(l.activityCount || 0)} سوال</span></div><div class="lesson-manage-status-section"><div class="status-section-label">📋 وضعیت برای کلاس‌ها:</div><div class="status-badges-container">${gb}${sb}${ds}</div></div>${cdh ? `<div class="lesson-manage-dates-section"><div class="dates-section-label">📅 مهلت‌های سفارشی:</div><div class="dates-badges-container">${cdh}</div></div>` : ''}</div>`;
+        h += `<div class="lesson-manage-card"><div class="lesson-manage-header"><div class="lesson-manage-icon">📚</div><div class="lesson-manage-title">${escapeHTML(l.title)}</div></div><div class="lesson-manage-meta"><span class="meta-item">📅 مهلت پیش‌فرض: ${l.dueDate || 'نامشخص'}</span><span class="meta-item">📝 ${toPersianNum(l.activityCount || 0)} سوال</span></div><div class="lesson-manage-status-section"><div class="status-section-label">📋 وضعیت برای کلاس‌ها:</div><div class="status-badges-container">${gb}${sb}${ds}</div></div>${cdh ? `<div class="lesson-manage-dates-section"><div class="dates-section-label">📅 مهلت‌های سفارشی:</div><div class="dates-badges-container">${cdh}</div></div>` : ''}</div>`;
     });
     c.innerHTML = h;
 }
@@ -842,7 +631,7 @@ function openClassDueDateModal() {
     const m = document.getElementById('class-duedate-modal');
     if (!m) return;
     const s = document.getElementById('class-duedate-lesson-select');
-    if (s) { let o = '<option value="">--- انتخاب تکلیف ---</option>'; allLessonsList.forEach(l => { o += `<option value="${l.id}">${l.title}</option>`; }); s.innerHTML = o; }
+    if (s) { let o = '<option value="">--- انتخاب تکلیف ---</option>'; allLessonsList.forEach(l => { o += `<option value="${l.id}">${escapeHTML(l.title)}</option>`; }); s.innerHTML = o; }
     selectedClassDay = null;
     const p = document.getElementById('class-preview-date');
     if (p) p.textContent = '---';
@@ -889,7 +678,7 @@ function openToggleLessonModal() {
     const m = document.getElementById('toggle-lesson-modal');
     if (!m) return;
     const s = document.getElementById('toggle-lesson-select');
-    if (s) { let o = '<option value="">--- انتخاب تکلیف ---</option>'; allLessonsList.forEach(l => { o += `<option value="${l.id}">${l.title}</option>`; }); s.innerHTML = o; }
+    if (s) { let o = '<option value="">--- انتخاب تکلیف ---</option>'; allLessonsList.forEach(l => { o += `<option value="${l.id}">${escapeHTML(l.title)}</option>`; }); s.innerHTML = o; }
     setToggleStatus(true);
     m.classList.add('active');
 }
@@ -936,9 +725,6 @@ function calculatePersianDatePlusDays(daysToAdd) {
     return `${toPersianNum(y)}/${toPersianNum(String(m).padStart(2, '0'))}/${toPersianNum(String(d).padStart(2, '0'))}`;
 }
 
-// ============================================================
-// تمدید مهلت شخصی
-// ============================================================
 function openDueDateEditor(lessonId, currentDate, isCustom) {
     if (!currentProfileStudent) return;
     vibrate(15);
@@ -1035,9 +821,6 @@ function goToChatFromProfile() {
     }, 300);
 }
 
-// ============================================================
-// رتبه‌بندی
-// ============================================================
 function switchRankingClass(cn, btn) {
     currentRankingClass = cn;
     document.querySelectorAll('.rankings-class-tab').forEach(t => t.classList.remove('active'));
@@ -1064,7 +847,7 @@ async function loadRankings() {
             const rc = r <= 3 ? `rank-${r}` : '';
             const m = r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : toPersianNum(r);
             const tl = getTotalCompletedLessons(s);
-            h += `<div class="ranking-item ${rc}" onclick="openStudentProfile('${s.student_id}')"><div class="ranking-rank">${m}</div><div class="student-avatar" style="width:46px;height:46px;">${renderAvatarHTML(s)}</div><div class="student-info"><div class="student-name">${s.name || 'بدون نام'}</div><span class="student-class">${toPersianNum(tl)} تکلیف • ${toPersianNum(s.avg_percent || 0)}%</span></div><div class="student-points"><span>⭐</span><span>${toPersianNum(calculateTotalPoints(s))}</span></div></div>`;
+            h += `<div class="ranking-item ${rc}" onclick="openStudentProfile('${escapeHTML(s.student_id)}')"><div class="ranking-rank">${m}</div><div class="student-avatar" style="width:46px;height:46px;">${renderAvatarHTML(s)}</div><div class="student-info"><div class="student-name">${escapeHTML(s.name || 'بدون نام')}</div><span class="student-class">${toPersianNum(tl)} تکلیف • ${toPersianNum(s.avg_percent || 0)}%</span></div><div class="student-points"><span>⭐</span><span>${toPersianNum(calculateTotalPoints(s))}</span></div></div>`;
         });
         c.innerHTML = h;
     } catch (e) {
@@ -1072,9 +855,6 @@ async function loadRankings() {
     }
 }
 
-// ============================================================
-// بقیه (رویدادها، مسابقات، کتابخانه، گزارش‌ها، تنظیمات)
-// ============================================================
 async function addEvent() {
     const ti = document.getElementById('event-title').value.trim();
     const da = document.getElementById('event-date').value.trim();
@@ -1112,7 +892,7 @@ function renderEvents(events) {
     if (!events || events.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز رویدادی ثبت نشده</div>'; return; }
     const ti = { exam: '📝', homework: '📚', holiday: '🎉', event: '📌' };
     let h = '';
-    events.forEach(e => { h += `<div class="event-item"><div class="event-item-icon">${ti[e.type] || '📌'}</div><div class="event-item-info"><div class="event-item-title">${e.title}</div><div class="event-item-meta">${e.date} • ${getClassPersianName(e.class_name)}${e.description ? ' • ' + e.description : ''}</div></div></div>`; });
+    events.forEach(e => { h += `<div class="event-item"><div class="event-item-icon">${ti[e.type] || '📌'}</div><div class="event-item-info"><div class="event-item-title">${escapeHTML(e.title)}</div><div class="event-item-meta">${e.date} • ${getClassPersianName(e.class_name)}${e.description ? ' • ' + escapeHTML(e.description) : ''}</div></div></div>`; });
     c.innerHTML = h;
 }
 async function addContest() {
@@ -1153,7 +933,7 @@ function renderContests(contests) {
     if (!c) return;
     if (!contests || contests.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز مسابقه‌ای نیست</div>'; return; }
     let h = '';
-    contests.forEach(x => { h += `<div class="contest-item"><div class="contest-item-icon">🏆</div><div class="contest-item-info"><div class="contest-item-title">${x.title}</div><div class="contest-item-meta">🎁 ${x.prize || 'بدون جایزه'} • 📅 از ${x.start_date} تا ${x.end_date}</div></div></div>`; });
+    contests.forEach(x => { h += `<div class="contest-item"><div class="contest-item-icon">🏆</div><div class="contest-item-info"><div class="contest-item-title">${escapeHTML(x.title)}</div><div class="contest-item-meta">🎁 ${escapeHTML(x.prize || 'بدون جایزه')} • 📅 از ${x.start_date} تا ${x.end_date}</div></div></div>`; });
     c.innerHTML = h;
 }
 async function addLibraryItem() {
@@ -1192,9 +972,10 @@ function renderLibrary(items) {
     if (!items || items.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز منبعی اضافه نشده</div>'; return; }
     const ti = { video: '🎬', pdf: '📄', audio: '🎵', site: '🌐', book: '📚' };
     let h = '';
-    items.forEach(x => { h += `<div class="library-item"><div class="library-item-icon">${ti[x.type] || '📄'}</div><div class="library-item-info"><div class="library-item-title">${x.title}</div><div class="library-item-meta">${x.description || ''} • <a href="${x.url}" target="_blank" style="color:#1976d2;">باز کردن</a></div></div></div>`; });
+    items.forEach(x => { h += `<div class="library-item"><div class="library-item-icon">${ti[x.type] || '📄'}</div><div class="library-item-info"><div class="library-item-title">${escapeHTML(x.title)}</div><div class="library-item-meta">${escapeHTML(x.description || '')} • <a href="${escapeHTML(x.url)}" target="_blank" style="color:#1976d2;">باز کردن</a></div></div></div>`; });
     c.innerHTML = h;
 }
+
 function downloadAllStudents() {
     if (allStudents.length === 0) { showToast('داده‌ای نیست', 'warning'); return; }
     let csv = '\uFEFF';
@@ -1230,7 +1011,7 @@ function showTopStudentsReport() {
     let h = '<div style="font-weight:900; color:#1976d2; margin-bottom:12px; font-size:15px;">🏆 ۱۰ دانش‌آموز برتر:</div>';
     top.forEach((s, i) => {
         const m = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : toPersianNum(i + 1) + '.';
-        h += `<div style="padding:8px 0; border-bottom:1px dashed #e3f2fd; font-size:13px;">${m} <strong>${s.name}</strong> - ${getClassPersianName(s.class_name)} - <span style="color:#f57c00; font-weight:900;">${toPersianNum(calculateTotalPoints(s))} امتیاز</span></div>`;
+        h += `<div style="padding:8px 0; border-bottom:1px dashed #e3f2fd; font-size:13px;">${m} <strong>${escapeHTML(s.name)}</strong> - ${getClassPersianName(s.class_name)} - <span style="color:#f57c00; font-weight:900;">${toPersianNum(calculateTotalPoints(s))} امتیاز</span></div>`;
     });
     c.innerHTML = h;
 }
@@ -1246,11 +1027,26 @@ function generateFullReport() {
     let h = `<div style="font-weight:900; color:#1976d2; margin-bottom:15px; font-size:15px;">📊 گزارش ${cl === 'all' ? 'همه' : getClassPersianName(cl)}</div><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div style="padding:12px; background:#fff; border-radius:12px;"><div style="font-size:11px; color:#78909c; font-weight:bold;">تعداد دانش‌آموزان</div><div style="font-size:20px; color:#1976d2; font-weight:900;">${toPersianNum(f.length)}</div></div><div style="padding:12px; background:#fff; border-radius:12px;"><div style="font-size:11px; color:#78909c; font-weight:bold;">میانگین امتیاز</div><div style="font-size:20px; color:#1976d2; font-weight:900;">${toPersianNum(ap)}</div></div><div style="padding:12px; background:#fff; border-radius:12px;"><div style="font-size:11px; color:#78909c; font-weight:bold;">کل تکالیف</div><div style="font-size:20px; color:#1976d2; font-weight:900;">${toPersianNum(tl)}</div></div><div style="padding:12px; background:#fff; border-radius:12px;"><div style="font-size:11px; color:#78909c; font-weight:bold;">میانگین درصد</div><div style="font-size:20px; color:#1976d2; font-weight:900;">${toPersianNum(aсp)}%</div></div></div>`;
     c.innerHTML = h;
 }
-function changePassword() {
-    const np = prompt('رمز جدید:');
-    if (np && np.length >= 4) { localStorage.setItem(TEACHER_PASSWORD_KEY, np); showToast('رمز تغییر کرد', 'success'); }
-    else if (np) showToast('حداقل ۴ کاراکتر', 'warning');
+
+async function changePassword() {
+    const np = prompt('رمز جدید (حداقل ۴ کاراکتر):');
+    if (!np || np.length < 4) {
+        if (np) showToast('حداقل ۴ کاراکتر', 'warning');
+        return;
+    }
+    try {
+        const c = getSupabase();
+        if (c) {
+            const { error } = await c.from('teacher_settings').upsert({ id: 1, password: np }, { onConflict: 'id' });
+            if (error) throw error;
+        }
+        localStorage.setItem(TEACHER_PASSWORD_KEY, np);
+        showToast('رمز تغییر کرد', 'success');
+    } catch (e) {
+        showToast('خطا در تغییر رمز', 'error');
+    }
 }
+
 function clearCache() {
     if (confirm('مطمئنید؟')) {
         const p = localStorage.getItem(TEACHER_PASSWORD_KEY);
@@ -1262,7 +1058,338 @@ function clearCache() {
         setTimeout(() => location.reload(), 1000);
     }
 }
-function openEditStudentCode() { if (!currentProfileStudent) return; showToast('به زودی', 'info'); }
+
+// 🆕 توابع مربوط به تغییر کد ورود دانش‌آموز
+function openEditStudentCode() {
+    if (!currentProfileStudent) return;
+    vibrate(15);
+    
+    const existing = document.getElementById('edit-student-code-modal');
+    if (existing) existing.remove();
+    
+    const currentCode = currentProfileStudent.student_code || '---';
+    
+    const modal = document.createElement('div');
+    modal.id = 'edit-student-code-modal';
+    modal.className = 'change-code-overlay active';
+    modal.innerHTML = `
+        <div class="change-code-box">
+            <button class="change-code-close" onclick="closeEditStudentCodeModal()">✕</button>
+            <div class="change-code-header" style="background: linear-gradient(135deg, #42a5f5 0%, #1976d2 100%);">
+                <div class="change-code-icon">🔑</div>
+                <div class="change-code-title">تغییر کد ورود</div>
+                <div class="change-code-subtitle">کد فعلی: <span class="current-code-badge">${currentCode}</span></div>
+            </div>
+            <div class="change-code-body">
+                <label class="change-code-label">کد جدید (۳ رقم):</label>
+                <input type="text" id="teacher-new-code-input" class="change-code-input" placeholder="123" inputmode="numeric" maxlength="3" dir="ltr">
+                <div class="change-code-warning">
+                    ⚠️ اگه کد رو تغییر بدی، دانش‌آموز از این به بعد باید با کد جدید وارد بشه.
+                </div>
+            </div>
+            <div class="change-code-footer">
+                <button class="change-code-btn change-code-btn-cancel" onclick="closeEditStudentCodeModal()">انصراف</button>
+                <button class="change-code-btn change-code-btn-save" onclick="saveNewStudentCode()">✅ ذخیره</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        const input = document.getElementById('teacher-new-code-input');
+        if (input) {
+            input.focus();
+            input.addEventListener('input', (e) => e.target.value = e.target.value.replace(/[^0-9]/g, ''));
+            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') saveNewStudentCode(); });
+        }
+    }, 300);
+}
+
+function closeEditStudentCodeModal() {
+    const modal = document.getElementById('edit-student-code-modal');
+    if (modal) modal.remove();
+}
+
+async function saveNewStudentCode() {
+    const input = document.getElementById('teacher-new-code-input');
+    const newCode = input ? input.value.trim() : '';
+    const studentId = currentProfileStudent ? currentProfileStudent.student_id : null;
+    
+    if (!studentId) return;
+    if (!newCode) { showToast('کد جدید را وارد کنید.', 'warning'); return; }
+    if (!/^[0-9]{3}$/.test(newCode)) { showToast('کد باید ۳ رقم باشه.', 'warning'); return; }
+    
+    const currentCode = currentProfileStudent.student_code;
+    if (newCode === currentCode) { showToast('کد جدید با کد فعلی یکیه.', 'warning'); return; }
+    
+    showToast('در حال بررسی...', 'info');
+    
+    try {
+        const client = getSupabase();
+        if (!client) throw new Error('no_client');
+        
+        const { data: existing, error: checkError } = await client
+            .from('rankings')
+            .select('student_id')
+            .eq('student_code', newCode)
+            .maybeSingle();
+            
+        if (checkError && checkError.code !== 'PGRST116') throw checkError;
+        if (existing && existing.student_id !== studentId) {
+            showToast(`کد <strong>${newCode}</strong> قبلاً استفاده شده.`, 'error');
+            return;
+        }
+        
+        const { error: updateError } = await client
+            .from('rankings')
+            .update({ student_code: newCode })
+            .eq('student_id', studentId);
+            
+        if (updateError) throw updateError;
+        
+        currentProfileStudent.student_code = newCode;
+        renderStudentProfile(); 
+        
+        closeEditStudentCodeModal();
+        showToast(`✅ کد ورود به <strong>${newCode}</strong> تغییر کرد.`, 'success');
+        vibrate(30);
+        
+    } catch (error) {
+        console.error('خطا در تغییر کد:', error);
+        showToast('خطا در تغییر کد. لطفاً دوباره تلاش کنید.', 'error');
+    }
+}
+
+// 🆕 توابع کمکی
 function openEditCompletedLessons() { if (!currentProfileStudent) return; showToast('به زودی', 'info'); }
 
-console.log('🎓 پنل معلم - نسخه ۳۱.۰.۰');
+function playDingSound() {
+    try {
+        const a = new (window.AudioContext || window.webkitAudioContext)();
+        const n = a.currentTime;
+        [880, 1108.73].forEach((f, i) => {
+            const o = a.createOscillator(); const g = a.createGain();
+            o.type = 'sine'; o.frequency.value = f;
+            g.gain.setValueAtTime(0, n + i * 0.15);
+            g.gain.linearRampToValueAtTime(0.3, n + i * 0.15 + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, n + i * 0.15 + 0.4);
+            o.connect(g); g.connect(a.destination);
+            o.start(n + i * 0.15); o.stop(n + i * 0.15 + 0.4);
+        });
+        setTimeout(() => { try { a.close(); } catch(e) {} }, 1000);
+    } catch (e) {}
+}
+
+function showTeacherInAppNotification(sname, msg, sid) {
+    document.querySelectorAll('.inapp-notification').forEach(n => n.remove());
+    const n = document.createElement('div');
+    n.className = 'inapp-notification';
+    n.innerHTML = `<div class="inapp-icon">💬</div><div class="inapp-content"><div class="inapp-title">پیام از ${escapeHTML(sname)}</div><div class="inapp-text">${escapeHTML((msg || '').substring(0, 60))}${(msg || '').length > 60 ? '...' : ''}</div></div>`;
+    n.onclick = () => {
+        n.remove();
+        navigateToPage('messages', true);
+        setTimeout(() => {
+            switchMessagesTab('personal');
+            setTimeout(() => { const cv = currentConversations.find(c => c.student_id === sid); if (cv) openChatWith(sid, cv.student_name, cv.class_name); }, 400);
+        }, 300);
+    };
+    document.body.appendChild(n);
+    setTimeout(() => n.classList.add('show'), 50);
+    setTimeout(() => { n.classList.remove('show'); setTimeout(() => n.remove(), 400); }, 6000);
+}
+
+function switchMessagesTab(tab) {
+    document.querySelectorAll('.messages-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.messages-tab-content').forEach(c => c.classList.remove('active'));
+    const t = document.querySelector(`.messages-tab-btn[data-tab="${tab}"]`);
+    if (t) t.classList.add('active');
+    const c = document.getElementById('tab-' + tab);
+    if (c) c.classList.add('active');
+    if (tab === 'personal') loadStudentConversations(); else if (tab === 'class') loadClassMessages();
+}
+
+async function sendClassMessage() {
+    const cn = document.getElementById('class-message-target').value;
+    const ti = document.getElementById('class-message-title').value.trim();
+    const tx = document.getElementById('class-message-text').value.trim();
+    const ty = document.getElementById('class-message-type').value;
+    if (!ti) { showToast('عنوان را وارد کنید', 'warning'); return; }
+    if (!tx) { showToast('متن پیام را وارد کنید', 'warning'); return; }
+    const d = { message_id: 'cls_' + Date.now(), class_name: cn, title: ti, text: tx, type: ty, date: new Date().toISOString(), date_persian: new Date().toLocaleDateString('fa-IR') };
+    try {
+        showToast('در حال ارسال...', 'info');
+        const r = await sendClassMessageToSupabase(d);
+        if (r.success) {
+            showToast('پیام ارسال شد! ✅', 'success');
+            document.getElementById('class-message-title').value = '';
+            document.getElementById('class-message-text').value = '';
+            localStorage.removeItem(CLASS_MESSAGES_CACHE_KEY);
+            setTimeout(loadClassMessages, 500);
+        } else showToast('خطا', 'error');
+    } catch (e) { showToast('خطا', 'error'); }
+}
+
+async function loadClassMessages() {
+    const c = document.getElementById('class-messages-list');
+    if (!c) return;
+    const ca = getCachedData(CLASS_MESSAGES_CACHE_KEY);
+    if (ca && ca.length > 0) renderClassMessages(ca);
+    else c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
+    try {
+        const m = await getClassMessagesFromSupabase('all');
+        setCachedData(CLASS_MESSAGES_CACHE_KEY, m);
+        renderClassMessages(m);
+    } catch (e) { if (!ca) c.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا</div>'; }
+}
+
+function renderClassMessages(messages) {
+    const c = document.getElementById('class-messages-list');
+    if (!c) return;
+    if (!messages || messages.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز پیام کلاسی ارسال نشده</div>'; return; }
+    messages.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const tt = { info: 'ℹ️ اطلاعیه', warning: '⚠️ هشدار', success: '✅ تبریک', reminder: '🔔 یادآوری' };
+    let h = '';
+    messages.forEach(m => {
+        h += `<div class="class-message-item type-${m.type || 'info'}"><div class="class-message-item-header"><div class="class-message-item-title">${escapeHTML(m.title)}</div><div class="class-message-item-type">${tt[m.type] || 'ℹ️'}</div></div><div class="class-message-item-text">${escapeHTML(m.text)}</div><div class="class-message-item-footer"><div class="class-message-item-target">👥 ${getClassPersianName(m.class_name)}</div><div>${m.date_persian || ''}</div></div></div>`;
+    });
+    c.innerHTML = h;
+}
+
+async function loadStudentConversations() {
+    const c = document.getElementById('messenger-list-items');
+    if (!c) return;
+    const ca = getCachedData(CONVERSATIONS_CACHE_KEY);
+    if (ca && ca.length > 0) {
+        currentConversations = ca;
+        currentConversations.forEach(x => { x.unread_count = computeUnreadForConversation(x); });
+        renderMessengerList(currentConversations);
+    } else c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>';
+    try {
+        const co = await getStudentConversationsFromSupabase();
+        co.forEach(x => { x.unread_count = computeUnreadForConversation(x); });
+        currentConversations = co;
+        setCachedData(CONVERSATIONS_CACHE_KEY, co);
+        if (co.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز مکالمه‌ای وجود نداره</div>'; return; }
+        renderMessengerList(currentConversations);
+        updateHomeBadgesImmediately();
+    } catch (e) { if (!ca) c.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا</div>'; }
+}
+
+function renderMessengerList(convs) {
+    const c = document.getElementById('messenger-list-items');
+    if (!c) return;
+    if (convs.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">مکالمه‌ای یافت نشد</div>'; return; }
+    let h = '';
+    convs.forEach(x => {
+        const a = currentChatStudent && currentChatStudent.student_id === x.student_id;
+        const av = renderAvatarHTML(x);
+        const u = x.unread_count || 0;
+        h += `<div class="messenger-item ${a ? 'active' : ''}" onclick="openChatWith('${escapeHTML(x.student_id)}', '${escapeHTML(x.student_name)}', '${escapeHTML(x.class_name)}')"><div class="messenger-item-avatar">${av}</div><div class="messenger-item-info"><div class="messenger-item-name">${escapeHTML(x.student_name)}</div><div class="messenger-item-last">${escapeHTML(x.last_message || 'بدون پیام')}</div></div><div class="messenger-item-meta"><div class="messenger-item-time">${x.last_date_persian || ''}</div>${u > 0 ? `<div class="messenger-item-unread">${toPersianNum(u)}</div>` : ''}</div></div>`;
+    });
+    c.innerHTML = h;
+}
+
+function filterMessengerList(q) {
+    q = q.toLowerCase().trim();
+    if (!q) { renderMessengerList(currentConversations); return; }
+    const f = currentConversations.filter(c => (c.student_name || '').toLowerCase().includes(q));
+    renderMessengerList(f);
+}
+
+async function openChatWith(sid, sname, cname) {
+    currentChatStudent = { student_id: sid, student_name: sname, class_name: cname };
+    document.getElementById('messenger-empty').style.display = 'none';
+    document.getElementById('messenger-list').style.display = 'none';
+    document.getElementById('messenger-chat').style.display = 'flex';
+    document.getElementById('messenger-chat-name').textContent = sname;
+    document.getElementById('messenger-chat-status').textContent = getClassPersianName(cname);
+    const av = document.getElementById('messenger-chat-avatar');
+    const cv = currentConversations.find(c => c.student_id === sid);
+    if (cv) av.innerHTML = renderAvatarHTML(cv);
+    else av.innerHTML = `<img src="${DEFAULT_AVATAR_URL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    setReadTime(sid);
+    const ci = currentConversations.findIndex(c => c.student_id === sid);
+    if (ci >= 0) {
+        currentConversations[ci].unread_count = 0;
+        setCachedData(CONVERSATIONS_CACHE_KEY, currentConversations);
+        renderMessengerList(currentConversations);
+    }
+    updateHomeBadgesImmediately();
+    await loadChatMessages(sid);
+    markAllMessagesAsSeenSupabase(sid, 'teacher').catch(() => {});
+}
+
+function closeMessengerChat() {
+    document.getElementById('messenger-empty').style.display = 'flex';
+    document.getElementById('messenger-list').style.display = 'flex';
+    document.getElementById('messenger-chat').style.display = 'none';
+    currentChatStudent = null;
+    loadStudentConversations();
+}
+
+async function loadChatMessages(sid) {
+    const c = document.getElementById('messenger-chat-messages');
+    if (!c) return;
+    const ck = 'teacherMessagesCache_' + sid;
+    const ca = getCachedData(ck);
+    if (ca && ca.length > 0) renderChatMessages(ca);
+    else c.innerHTML = '<div class="messenger-chat-messages-empty">در حال بارگذاری...</div>';
+    try {
+        const m = await getPersonalMessages(sid);
+        if (m.length === 0) { c.innerHTML = '<div class="messenger-chat-messages-empty">هنوز پیامی رد و بدل نشده<br>اولین پیام رو بفرست!</div>'; return; }
+        m.sort((a, b) => new Date(a.date) - new Date(b.date));
+        setCachedData(ck, m);
+        renderChatMessages(m);
+    } catch (e) { if (!ca) c.innerHTML = '<div class="messenger-chat-messages-empty">خطا</div>'; }
+}
+
+function renderChatMessages(messages) {
+    const c = document.getElementById('messenger-chat-messages');
+    if (!c) return;
+    let h = '';
+    messages.forEach(m => {
+        const sc = m.sender === 'teacher' ? 'teacher' : 'student';
+        const t = m.date_persian || '';
+        let th = '';
+        if (sc === 'teacher') {
+            const is = m.is_seen === true || m.is_seen === 'true' || m.is_seen === 1;
+            th = is ? `<span class="chat-tick chat-tick-seen">✓✓</span>` : `<span class="chat-tick">✓</span>`;
+        }
+        h += `<div class="messenger-chat-message ${sc}"><div>${escapeHTML(m.text)}</div><div class="messenger-chat-message-time">${t}${th}</div></div>`;
+    });
+    c.innerHTML = h;
+    c.scrollTop = c.scrollHeight;
+}
+
+async function sendChatMessage() {
+    if (!currentChatStudent) return;
+    const i = document.getElementById('messenger-chat-input');
+    const tx = i.value.trim();
+    if (!tx) return;
+    const d = {
+        message_id: 'pm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        student_id: currentChatStudent.student_id, student_name: currentChatStudent.student_name,
+        class_name: currentChatStudent.class_name, sender: 'teacher', text: tx,
+        date: new Date().toISOString(), date_persian: new Date().toLocaleDateString('fa-IR'), is_seen: false
+    };
+    try {
+        i.value = '';
+        const c = document.getElementById('messenger-chat-messages');
+        const t = d.date_persian;
+        const e = c.querySelector('.messenger-chat-messages-empty');
+        if (e) e.remove();
+        const el = document.createElement('div');
+        el.className = 'messenger-chat-message teacher';
+        el.innerHTML = `<div>${escapeHTML(tx)}</div><div class="messenger-chat-message-time">${t}<span class="chat-tick">✓</span></div>`;
+        c.appendChild(el);
+        c.scrollTop = c.scrollHeight;
+        const ck = 'teacherMessagesCache_' + currentChatStudent.student_id;
+        const ca = getCachedData(ck) || [];
+        ca.push(d);
+        setCachedData(ck, ca);
+        await sendPersonalMessageToSupabase(d);
+        setReadTime(currentChatStudent.student_id);
+    } catch (e) { showToast('خطا', 'error'); }
+}
+
+console.log('🎓 پنل معلم - نسخه ۳۴.۰.۰');
