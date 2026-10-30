@@ -3491,3 +3491,315 @@ body { display: flex; justify-content: center; align-items: center; direction: r
     .student-points { font-size: 11px; padding: 5px 8px; }
     .student-stats { font-size: 9px; }
 }
+/* ============================================================
+   🆕 استایل مودال تغییر کد ورود دانش‌آموز (پنل معلم)
+   ============================================================ */
+
+.change-code-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: fadeInOverlay 0.3s ease;
+}
+
+.change-code-overlay.active {
+    display: flex;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.change-code-box {
+    background: #ffffff;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+@keyframes slideUpModal {
+    from { transform: translateY(50px) scale(0.9); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.change-code-close {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.change-code-close:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.change-code-header {
+    background: linear-gradient(135deg, #42a5f5 0%, #1976d2 100%);
+    padding: 24px 20px 20px 20px;
+    border-radius: 24px 24px 0 0;
+    text-align: center;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.change-code-header::before {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 150px; height: 150px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.change-code-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+    display: block;
+    animation: iconBounceChange 2s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15));
+}
+
+@keyframes iconBounceChange {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-6px) rotate(5deg); }
+}
+
+.change-code-title {
+    font-size: 20px;
+    font-weight: 900;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.change-code-subtitle {
+    font-size: 13px;
+    font-weight: bold;
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+    line-height: 1.6;
+}
+
+.current-code-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.3);
+    padding: 3px 14px;
+    border-radius: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    border: 2px dashed rgba(255,255,255,0.5);
+    direction: ltr;
+}
+
+.change-code-body {
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.change-code-label {
+    font-size: 13px;
+    font-weight: 900;
+    color: #37474f;
+    text-align: right;
+    margin-bottom: 4px;
+    padding-right: 5px;
+}
+
+.change-code-input {
+    width: 100%;
+    padding: 18px;
+    border: 2.5px dashed #ff9800;
+    border-radius: 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 32px;
+    font-weight: 900;
+    text-align: center;
+    outline: none;
+    background: linear-gradient(135deg, #fff8e1, #fffde7);
+    color: #e65100;
+    letter-spacing: 12px;
+    padding-left: 24px;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+    direction: ltr;
+}
+
+.change-code-input:focus {
+    border-color: #f57c00;
+    border-style: solid;
+    background: #fff;
+    box-shadow: 0 0 0 5px rgba(255, 152, 0, 0.2);
+    transform: scale(1.02);
+}
+
+.change-code-input::placeholder {
+    color: #ffb74d;
+    letter-spacing: 12px;
+    padding-left: 12px;
+    font-weight: bold;
+}
+
+.change-code-warning {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    border: 1.5px solid #ffc107;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-top: 6px;
+    font-size: 11.5px;
+    font-weight: bold;
+    color: #e65100;
+    line-height: 1.7;
+    text-align: right;
+}
+
+.change-code-footer {
+    padding: 16px 20px 20px 20px;
+    display: flex;
+    gap: 10px;
+    border-top: 1.5px dashed #e3f2fd;
+    background: #fafcff;
+    border-radius: 0 0 24px 24px;
+}
+
+.change-code-btn {
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: 50px;
+    border: none;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 48px;
+}
+
+.change-code-btn:active {
+    transform: scale(0.96);
+}
+
+.change-code-btn-cancel {
+    background: #f5f5f5;
+    color: #546e7a;
+    border: 2px solid #e0e0e0;
+}
+
+.change-code-btn-save {
+    background: linear-gradient(135deg, #42a5f5, #1976d2);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.4);
+}
+
+.change-code-btn-save:hover {
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.6);
+}
+
+/* حالت شب برای مودال تغییر کد (پنل معلم) */
+body.dark-mode .change-code-box {
+    background: #1a2332;
+}
+
+body.dark-mode .change-code-label {
+    color: #b0bec5;
+}
+
+body.dark-mode .change-code-input {
+    background: linear-gradient(135deg, #3a2a0a, #4a3a1a);
+    border-color: #ff9800;
+    color: #ffcc80;
+}
+
+body.dark-mode .change-code-input:focus {
+    background: #0f1419;
+    border-color: #ffb74d;
+}
+
+body.dark-mode .change-code-warning {
+    background: linear-gradient(135deg, #3a2a0a, #4a3a1a);
+    border-color: #ffc107;
+    color: #ffcc80;
+}
+
+body.dark-mode .change-code-footer {
+    background: #0f1419;
+    border-color: #2a3444;
+}
+
+body.dark-mode .change-code-btn-cancel {
+    background: #2a3444;
+    color: #b0bec5;
+    border-color: #37474f;
+}
+
+/* ریسپانسیو مودال */
+@media (max-width: 400px) {
+    .change-code-box {
+        max-width: 100%;
+        border-radius: 20px;
+    }
+    .change-code-header {
+        padding: 20px 16px 16px 16px;
+        border-radius: 20px 20px 0 0;
+    }
+    .change-code-icon { font-size: 40px; }
+    .change-code-title { font-size: 17px; }
+    .change-code-subtitle { font-size: 12px; }
+    .change-code-body { padding: 20px 16px; }
+    .change-code-input {
+        font-size: 26px;
+        letter-spacing: 8px;
+        padding: 14px;
+        padding-left: 20px;
+    }
+    .change-code-footer {
+        padding: 12px 16px 16px 16px;
+        border-radius: 0 0 20px 20px;
+    }
+    .change-code-btn {
+        padding: 12px 12px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+}
