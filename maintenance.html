@@ -43,7 +43,6 @@
             align-items: center;
         }
         
-        /* ذرات متحرک پس‌زمینه */
         .particles {
             position: fixed;
             top: 0; left: 0;
@@ -78,7 +77,6 @@
             }
         }
         
-        /* کانتینر اصلی */
         .maintenance-container {
             position: relative;
             z-index: 10;
@@ -138,7 +136,6 @@
             }
         }
         
-        /* آیکون چرخ‌دنده */
         .gear-wrapper {
             width: 130px;
             height: 130px;
@@ -206,7 +203,6 @@
             filter: drop-shadow(0 4px 8px rgba(25, 118, 210, 0.3));
         }
         
-        /* عنوان */
         .maintenance-title {
             font-size: 26px;
             font-weight: 900;
@@ -255,7 +251,6 @@
             }
         }
         
-        /* متن توضیحات */
         .maintenance-text {
             font-size: 15px;
             color: #546e7a;
@@ -271,7 +266,6 @@
             font-weight: 900;
         }
         
-        /* نوار پیشرفت */
         .progress-wrapper {
             width: 100%;
             height: 10px;
@@ -306,7 +300,6 @@
             }
         }
         
-        /* پیام پایین */
         .footer-msg {
             font-size: 13px;
             color: #90a4ae;
@@ -328,7 +321,6 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
         
-        /* اطلاعات نسخه */
         .version-info {
             margin-top: 20px;
             font-size: 11px;
@@ -338,7 +330,6 @@
             z-index: 2;
         }
         
-        /* ریسپانسیو */
         @media (max-width: 400px) {
             .maintenance-card {
                 padding: 35px 22px 25px 22px;
@@ -369,7 +360,7 @@
             </div>
         </div>
         
-        <div class="maintenance-title">برنامه در حال بروزرسانیه</div>
+        <div class="maintenance-title" id="maintenance-title">برنامه در حال بروزرسانیه</div>
         
         <div class="title-decoration">
             <div class="line"></div>
@@ -377,7 +368,7 @@
             <div class="line"></div>
         </div>
         
-        <div class="maintenance-text">
+        <div class="maintenance-text" id="maintenance-text">
             داریم <span class="highlight">چیزهای باحالی</span> اضافه می‌کنیم<br>
             تا تجربه‌ی یادگیریت بهتر بشه! 🚀
             <br><br>
@@ -386,22 +377,21 @@
             </span>
         </div>
         
-        <div class="progress-wrapper">
+        <div class="progress-wrapper" id="progress-wrapper">
             <div class="progress-bar"></div>
         </div>
         
         <div class="footer-msg">
             <span class="star">🌟</span>
-            <span>ممنون از صبر و همراهیت</span>
+            <span id="footer-text">ممنون از صبر و همراهیت</span>
             <span class="star">🌟</span>
         </div>
         
-        <div class="version-info">عربی هفتم • نسخه ۱.۰.۰</div>
+        <div class="version-info">عربی هفتم • نسخه ۳.۰.۰</div>
     </div>
 </div>
 
 <script>
-    // ============ ساخت ذرات متحرک ============
     function createParticles() {
         const container = document.getElementById('particles');
         if (!container) return;
@@ -427,35 +417,103 @@
         }
     }
     
-    // ============ شروع ============
+    // 🆕 ذخیره وضعیت قبلی برای جلوگیری از رفرش مکرر
+    let lastMaintenanceState = null;
+    
+    async function checkMaintenanceAndRedirect() {
+        try {
+            const response = await fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' });
+            if (!response.ok) return;
+            const data = await response.json();
+            
+            const maintenance = data.maintenance === true;
+            const published = data.published === true;
+            
+            // 🆕 اگر وضعیت تغییر کرد، UI را آپدیت کن
+            const currentState = `${maintenance}-${published}`;
+            if (currentState !== lastMaintenanceState) {
+                lastMaintenanceState = currentState;
+                updateUI(maintenance, published);
+            }
+            
+            // 🆕 فقط اگر هم maintenance=false و هم published=true باشد، برگرد
+            // (جلوگیری از لوپ بی‌نهایت)
+            if (maintenance === false && published === true) {
+                console.log('✅ نگهداری تمام شد - برگشت به برنامه');
+                window.location.replace('./index.html');
+                return;
+            }
+            
+            // 🆕 اگر published=false است، اصلاً برنگرد (کاربر عادی نمی‌تواند وارد شود)
+            if (published === false) {
+                // هیچ کاری نکن - در همین صفحه بمان
+                return;
+            }
+            
+        } catch (e) {
+            // خطا در ارتباط - نادیده بگیر
+        }
+    }
+    
+    // 🆕 آپدیت UI بر اساس وضعیت
+    function updateUI(maintenance, published) {
+        const titleEl = document.getElementById('maintenance-title');
+        const textEl = document.getElementById('maintenance-text');
+        const footerEl = document.getElementById('footer-text');
+        const progressWrapper = document.getElementById('progress-wrapper');
+        
+        if (published === false) {
+            // حالت «منتشر نشده»
+            if (titleEl) titleEl.textContent = 'برنامه هنوز منتشر نشده';
+            if (textEl) {
+                textEl.innerHTML = `
+                    این برنامه هنوز به صورت <span class="highlight">رسمی منتشر نشده است</span><br>
+                    و به‌زودی در دسترس قرار می‌گیرد. 📅
+                    <br><br>
+                    <span style="font-size: 13px; color: #78909c;">
+                        لطفاً بعداً دوباره سر بزن! 🙏
+                    </span>
+                `;
+            }
+            if (footerEl) footerEl.textContent = 'منتظر خبرهای خوب باش';
+            if (progressWrapper) progressWrapper.style.display = 'none';
+        } else if (maintenance === true) {
+            // حالت «در حال نگهداری»
+            if (titleEl) titleEl.textContent = 'برنامه در حال بروزرسانیه';
+            if (textEl) {
+                textEl.innerHTML = `
+                    داریم <span class="highlight">چیزهای باحالی</span> اضافه می‌کنیم<br>
+                    تا تجربه‌ی یادگیریت بهتر بشه! 🚀
+                    <br><br>
+                    <span style="font-size: 13px; color: #78909c;">
+                        کمی صبر کن، به‌زودی برمی‌گردیم! ⏰
+                    </span>
+                `;
+            }
+            if (footerEl) footerEl.textContent = 'ممنون از صبر و همراهیت';
+            if (progressWrapper) progressWrapper.style.display = 'block';
+        }
+    }
+    
     window.addEventListener('load', () => {
         createParticles();
         
+        // 🆕 چک اولیه
+        checkMaintenanceAndRedirect();
+        
+        // 🆕 چک هر ۱۰ ثانیه (به جای ۳ ثانیه که کمتر بار شبکه بیاره)
+        setInterval(checkMaintenanceAndRedirect, 10000);
+        
         // ⭐ جلوگیری از برگشت به صفحه خانه
-        // با push کردن یه صفحه دیگه توی history،
-        // وقتی کاربر برگشت می‌زنه، برنامه بسته میشه
         history.pushState(null, null, location.href);
         window.addEventListener('popstate', function() {
             history.pushState(null, null, location.href);
-            // خروج از برنامه (بستن تب/برنامه)
-            window.close();
-            // اگه مرورگر اجازه بستن نداد، حداقل به صفحه خالی برو
-            setTimeout(() => {
-                window.location.replace('about:blank');
-            }, 100);
         });
         
         // ⭐ وقتی صفحه از کش بازیابی میشه، دوباره چک کن
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
-                fetch('./maintenance.json?t=' + Date.now(), { cache: 'no-store' })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.maintenance === false) {
-                            window.location.replace('./index.html');
-                        }
-                    })
-                    .catch(() => {});
+                checkMaintenanceAndRedirect();
             }
         });
     });

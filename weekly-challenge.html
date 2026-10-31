@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>چالش‌های هفتگی - عربی هفتم</title>
+    <meta name="theme-color" content="#1976d2">
+    <link rel="manifest" href="./manifest.json">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/supabase-config.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/utils.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+    <link rel="stylesheet" href="./css/style.css">
+    
+    <style>
+        body { margin: 0; padding: 0; background: #f0f7ff; font-family: 'Vazirmatn', sans-serif; overflow: hidden; }
+        
+        #challenge-list-view { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+        #challenge-list-view.hidden { display: none !important; }
+        
+        .challenge-header { flex-shrink: 0; background: #fff; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08); border-bottom: 2px solid #e3f2fd; }
+        .challenge-header-back { width: 42px; height: 42px; border-radius: 12px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
+        .challenge-header-back svg { width: 22px; height: 22px; stroke: #fff; fill: none; stroke-width: 2.5; }
+        .challenge-header-title { font-size: 18px; font-weight: 900; color: var(--primary); }
+        
+        .challenge-content { flex: 1; overflow-y: auto; padding: 15px; scrollbar-width: none; -ms-overflow-style: none; }
+        .challenge-content::-webkit-scrollbar { display: none; }
+
+        .challenge-card { background: #fff; border-radius: 20px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08); border: 1.5px solid #e3f2fd; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: transform 0.2s; }
+        .challenge-card:active { transform: scale(0.98); }
+        
+        .challenge-card-icon { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #f0f7ff, #e3f2fd); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15); position: relative; }
+        .challenge-card-icon img, .challenge-card-icon video { width: 100%; height: 100%; object-fit: cover; }
+        .challenge-card-icon .fallback-icon { font-size: 30px; }
+
+        .challenge-card-info { flex: 1; text-align: right; min-width: 0; }
+        .challenge-card-title { font-size: 15px; font-weight: 900; color: var(--primary); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .challenge-card-meta { display: flex; gap: 6px; font-size: 11px; font-weight: bold; margin-bottom: 10px; flex-wrap: wrap; }
+        .meta-badge { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 10px; background: #f8fbff; border: 1px solid #e3f2fd; color: #546e7a; }
+        .meta-badge.date { color: #1976d2; background: #e3f2fd; border-color: #90caf9; }
+        
+        .challenge-btn { border: none; padding: 10px 15px; border-radius: 12px; font-size: 12px; font-weight: 900; cursor: pointer; font-family: 'Vazirmatn', sans-serif; width: 100%; text-align: center; display: flex; justify-content: center; align-items: center; gap: 6px; transition: all 0.3s; }
+        .btn-start { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 10px rgba(25,118,210,0.2); }
+        .btn-report { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #2e7d32; border: 1.5px solid #4caf50; }
+
+        .btn-countdown {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2) !important;
+            color: #e65100 !important;
+            border: 1.5px solid #ff9800 !important;
+            cursor: not-allowed !important;
+            font-family: 'Vazirmatn', sans-serif !important;
+            font-size: 13px !important;
+            font-weight: 900 !important;
+            line-height: 1.4 !important;
+            padding: 9px 12px !important;
+        }
+
+        .btn-expired {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2) !important;
+            color: #c62828 !important;
+            border: 1.5px solid #ef9a9a !important;
+            cursor: not-allowed !important;
+        }
+
+        .start-btn-countdown {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2) !important;
+            color: #e65100 !important;
+            border: 2px solid #ff9800 !important;
+            padding: 18px !important;
+            border-radius: 50px !important;
+            font-size: 18px !important;
+            font-weight: 900 !important;
+            cursor: not-allowed !important;
+            width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 10px !important;
+            font-family: 'Vazirmatn', sans-serif !important;
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3) !important;
+            animation: countdownPulse 1.5s ease-in-out infinite !important;
+            line-height: 1.5 !important;
+        }
+
+        @keyframes countdownPulse {
+            0%, 100% { box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3); }
+            50% { box-shadow: 0 6px 30px rgba(255, 152, 0, 0.6); }
+        }
+
+        .challenge-detail-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 9999; padding: 20px; }
+        .challenge-detail-modal.active { display: flex; }
+        
+        .challenge-detail-box { background: #fff; border-radius: 24px; padding: 25px 20px; width: 100%; max-width: 400px; max-height: 85vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4); position: relative; animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .challenge-detail-box::-webkit-scrollbar { display: none; }
+        
+        .challenge-detail-close { position: absolute; top: 12px; left: 12px; width: 34px; height: 34px; border-radius: 50%; background: #f5f5f5; border: none; font-size: 18px; font-weight: bold; color: #555; cursor: pointer; z-index: 10; }
+        
+        .detail-banner { background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 20px; padding: 25px 20px; text-align: center; border: 2px solid #90caf9; box-shadow: 0 4px 15px rgba(25,118,210,0.1); margin-bottom: 20px; }
+        .detail-banner-icon { width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 15px auto; overflow: hidden; border: 4px solid #fff; box-shadow: 0 6px 15px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; background: #fff; }
+        .detail-banner-icon img, .detail-banner-icon video { width: 100%; height: 100%; object-fit: cover; }
+        .detail-banner-icon .fallback-icon { font-size: 50px; }
+        .detail-banner h2 { font-size: 20px; color: var(--primary-dark); margin: 0; font-weight: 900; }
+
+        .detail-info-card { background: #fff; border-radius: 20px; padding: 15px; border: 1.5px solid #e3f2fd; box-shadow: 0 4px 15px rgba(25,118,210,0.05); margin-bottom: 15px; }
+        .detail-info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #e3f2fd; font-size: 14px; font-weight: bold; }
+        .detail-info-row:last-child { border-bottom: none; }
+        .detail-info-right { display: flex; align-items: center; gap: 10px; color: #546e7a; }
+        .lesson-info-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+        .lesson-info-icon svg { width: 20px; height: 20px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .lesson-info-icon.green { background: linear-gradient(135deg, #e8f5e9, #a5d6a7); }
+        .lesson-info-icon.green svg { stroke: #2e7d32; }
+        .lesson-info-icon.orange { background: linear-gradient(135deg, #fff3e0, #ffcc80); }
+        .lesson-info-icon.orange svg { stroke: #e65100; }
+        .lesson-info-icon.purple { background: linear-gradient(135deg, #f3e5f5, #ce93d8); }
+        .lesson-info-icon.purple svg { stroke: #6a1b9a; }
+        .lesson-info-icon.blue { background: linear-gradient(135deg, #e3f2fd, #90caf9); }
+        .lesson-info-icon.blue svg { stroke: #0d47a1; }
+        
+        .detail-date-box { background: linear-gradient(135deg, #f0f7ff, #e3f2fd); border: 1.5px solid #90caf9; border-radius: 12px; padding: 6px 12px; color: var(--primary); font-size: 13px; font-weight: 900; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(25,118,210,0.1); direction: ltr; }
+        .detail-info-value { color: var(--primary); font-weight: 900; }
+
+        .detail-desc-card { background: #fff; border-radius: 20px; padding: 20px; border: 1.5px solid #e3f2fd; box-shadow: 0 4px 15px rgba(25,118,210,0.05); margin-bottom: 20px; }
+        .detail-desc-title { font-size: 16px; color: var(--primary); font-weight: 900; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .detail-desc-text { line-height: 2; color: #455a64; font-size: 14px; font-weight: bold; }
+
+        .start-btn { background: var(--primary-gradient); color: #fff; border: none; padding: 18px; border-radius: 50px; font-size: 17px; font-weight: 900; cursor: pointer; width: 100%; box-shadow: 0 6px 20px rgba(25,118,210,0.4); display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Vazirmatn', sans-serif; transition: transform 0.2s; }
+        .start-btn:active { transform: scale(0.97); }
+        .start-btn:disabled { background: #cfd8dc; box-shadow: none; color: #78909c; cursor: not-allowed; }
+
+        #quiz-view { display: none; flex-direction: column; height: 100dvh; background: #f0f7ff; overflow: hidden; }
+        #quiz-view.active { display: flex !important; }
+        
+        .quiz-header { flex-shrink: 0; background: #fff; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08); border-bottom: 2px solid #e3f2fd; }
+        .quiz-header-back { width: 42px; height: 42px; border-radius: 12px; background: #ffebee; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1.5px solid #ef9a9a; }
+        .quiz-header-back svg { width: 22px; height: 22px; stroke: #c62828; fill: none; stroke-width: 2.5; }
+        .quiz-header-title { font-size: 18px; font-weight: 900; color: var(--primary); }
+        
+        .quiz-timer {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            color: #c62828; font-weight: 900; font-size: 16px;
+            padding: 8px 16px; border-radius: 20px;
+            display: flex; align-items: center; gap: 6px;
+            border: 1.5px solid #ef9a9a;
+            animation: pulseRed 1s infinite;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        @keyframes pulseRed {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.3); }
+            50% { box-shadow: 0 0 0 6px rgba(198, 40, 40, 0); }
+        }
+        
+        .quiz-content { flex: 1; overflow-y: auto; padding: 20px; scrollbar-width: none; -ms-overflow-style: none; }
+        .quiz-content::-webkit-scrollbar { display: none; }
+        
+        .quiz-question-box { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(25, 118, 210, 0.08); border: 1.5px solid #e3f2fd; margin-bottom: 20px; }
+        .quiz-question-text { font-size: 18px; font-weight: 900; color: #1a237e; line-height: 1.7; text-align: right; }
+        
+        .quiz-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .quiz-option {
+            background: #fff; border: 2px solid #e0e0e0;
+            padding: 16px 18px; border-radius: 16px;
+            font-size: 16px; font-weight: bold; color: #333;
+            cursor: pointer; text-align: right;
+            transition: all 0.2s ease;
+        }
+        .quiz-option:active { transform: scale(0.98); }
+        .quiz-option.selected {
+            border-color: var(--primary); background: #e3f2fd; color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+        }
+        
+        .quiz-footer { flex-shrink: 0; padding: 15px 20px 20px 20px; background: #f0f7ff; }
+        .quiz-submit-btn {
+            background: var(--primary-gradient); color: #fff;
+            border: none; padding: 18px; border-radius: 50px;
+            font-size: 17px; font-weight: 900; cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif; width: 100%;
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+        }
+        .quiz-submit-btn:active { transform: scale(0.97); }
+        .quiz-submit-btn:disabled { background: #cfd8dc; box-shadow: none; cursor: not-allowed; }
+        
+        .quiz-result-box { text-align: center; padding: 40px 20px; }
+        .quiz-result-score { font-size: 60px; font-weight: 900; color: var(--primary); margin-bottom: 10px; }
+        .quiz-result-text { font-size: 20px; font-weight: bold; color: #455a64; margin-bottom: 30px; }
+        .quiz-result-btn { background: var(--primary-gradient); color: #fff; border: none; padding: 16px 30px; border-radius: 50px; font-size: 16px; font-weight: 900; cursor: pointer; font-family: 'Vazirmatn', sans-serif; width: 100%; margin-bottom: 10px; }
+        .quiz-report-btn { background: #fff; color: var(--primary); border: 2px solid var(--primary); padding: 16px 30px; border-radius: 50px; font-size: 16px; font-weight: 900; cursor: pointer; font-family: 'Vazirmatn', sans-serif; width: 100%; }
+        
+        .exit-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 9999; padding: 20px; }
+        .exit-modal-overlay.active { display: flex; }
+        .exit-modal-box { background: #fff; border-radius: 24px; padding: 30px 25px; width: 100%; max-width: 340px; text-align: center; }
+        .exit-icon-wrapper { width: 80px; height: 80px; background: #fff3e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; }
+        .exit-icon-wrapper svg { width: 40px; height: 40px; stroke: #e65100; fill: none; stroke-width: 2; }
+        .exit-title { font-size: 20px; font-weight: 900; color: #333; margin-bottom: 10px; }
+        .exit-text { font-size: 14px; color: #666; margin-bottom: 25px; line-height: 1.7; }
+        .exit-buttons { display: flex; gap: 10px; }
+        .exit-btn-cancel { flex: 1; padding: 14px; border-radius: 50px; border: 2px solid #e0e0e0; background: #fff; color: #666; font-size: 15px; font-weight: bold; cursor: pointer; }
+        .exit-btn-confirm { flex: 1; padding: 14px; border-radius: 50px; border: none; background: #e53935; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; }
+
+        .report-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 15px; }
+        .report-modal.active { display: flex; }
+        .report-box { 
+            background: #fff; border-radius: 24px; padding: 25px 20px; width: 100%; max-width: 450px; max-height: 90vh; 
+            overflow-y: auto; scrollbar-width: none; position: relative; box-shadow: 0 25px 70px rgba(0,0,0,0.5);
+            animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .report-box::-webkit-scrollbar { display: none; }
+        
+        .report-close-btn {
+            position: absolute; top: 15px; left: 15px;
+            width: 34px; height: 34px; border-radius: 50%;
+            background: #f5f5f5; border: none;
+            font-size: 18px; font-weight: bold; color: #555;
+            cursor: pointer; z-index: 10;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .report-close-btn:active { transform: scale(0.9); background: #e0e0e0; }
+        
+        .report-header { 
+            text-align: center; margin-bottom: 20px; 
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 20px; border-radius: 20px; border: 2px solid #90caf9;
+            position: relative; overflow: hidden;
+        }
+        .report-header::before {
+            content: '🏆'; position: absolute; top: -10px; left: -10px;
+            font-size: 60px; opacity: 0.1; transform: rotate(-20deg);
+        }
+        .report-header h2 { color: var(--primary-dark); font-weight: 900; margin-bottom: 8px; font-size: 18px; }
+        .report-header-score { 
+            font-size: 42px; font-weight: 900; color: #2e7d32; 
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            text-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
+        }
+        .report-header-score span { font-size: 16px; color: #546e7a; margin-top: 10px; }
+        
+        .report-question-item { 
+            background: #fff; border-radius: 16px; padding: 15px; margin-bottom: 12px; 
+            border: 1.5px solid #e3f2fd; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .report-question-item.correct-item { border-right: 4px solid #4caf50; background: #f1f8e9; }
+        .report-question-item.wrong-item { border-right: 4px solid #f44336; background: #ffebee; }
+        
+        .report-question-header {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+        }
+        .report-q-number {
+            background: #e3f2fd; color: var(--primary); font-weight: 900; font-size: 12px;
+            width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .report-question-item.correct-item .report-q-number { background: #c8e6c9; color: #2e7d32; }
+        .report-question-item.wrong-item .report-q-number { background: #ffcdd2; color: #c62828; }
+        
+        .report-question-text { font-weight: 900; color: #333; font-size: 14px; line-height: 1.5; }
+        
+        .report-answer-row { 
+            display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: bold; 
+            margin-top: 8px; padding: 8px 12px; border-radius: 10px;
+        }
+        .report-answer-row.correct-ans { background: #e8f5e9; color: #2e7d32; }
+        .report-answer-row.wrong-ans { background: #ffebee; color: #c62828; }
+        .report-answer-row.correct-solution { background: #e3f2fd; color: #1565c0; margin-top: 4px; }
+        
+        .report-label { flex-shrink: 0; opacity: 0.8; }
+        .report-value { font-weight: 900; }
+    </style>
+</head>
+<body>
+
+<!-- نمای اول: لیست آزمون‌ها -->
+<div id="challenge-list-view">
+    <div class="challenge-header">
+        <button class="challenge-header-back" onclick="history.back()">
+            <svg viewBox="0 0 24 24"><path d="M9 18L15 12L9 6"/></svg>
+        </button>
+        <div class="challenge-header-title">چالش‌های هفتگی 🏆</div>
+    </div>
+    
+    <div class="challenge-content" id="challenge-list"></div>
+</div>
+
+<!-- نمای دوم: صفحه آزمون -->
+<div id="quiz-view">
+    <div class="quiz-header">
+        <button class="quiz-header-back" onclick="showExitModal()">
+            <svg viewBox="0 0 24 24"><path d="M9 18L15 12L9 6"/></svg>
+        </button>
+        <div class="quiz-header-title" id="quiz-title">آزمون</div>
+        <div class="quiz-timer" id="quiz-timer-display">⏱ ۰۳:۰۰</div>
+    </div>
+    
+    <div class="quiz-content" id="quiz-content"></div>
+    
+    <div class="quiz-footer" id="quiz-footer">
+        <button class="quiz-submit-btn" id="quiz-submit-btn" disabled>بررسی و سوال بعدی</button>
+    </div>
+</div>
+
+<!-- مودال هشدار خروج -->
+<div class="exit-modal-overlay" id="exit-modal">
+    <div class="exit-modal-box">
+        <div class="exit-icon-wrapper">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="exit-title">خروج از آزمون؟</div>
+        <div class="exit-text">با خروج از آزمون، زمان شما همچنان در حال محاسبه است و ممکن است فرصت خود را از دست بدهید. آیا مطمئن هستید؟</div>
+        <div class="exit-buttons">
+            <button class="exit-btn-cancel" onclick="closeExitModal()">بمانم</button>
+            <button class="exit-btn-confirm" onclick="confirmExit()">خروج</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال نمایش کارنامه -->
+<div class="report-modal" id="report-modal">
+    <div class="report-box" id="report-content"></div>
+</div>
+<script>
+    // ============================================================
+    // 🆕 متغیرها — همه در یک جا تعریف می‌شوند (رفع باگ TDZ)
+    // ============================================================
+    let challengesData = [];
+    let listTimerInterval = null;
+    let detailTimerInterval = null;
+    let currentDetailChallengeId = null;  // 🆕 فقط یک بار اینجا تعریف شد
+
+    // متغیرهای سیستم کوییز
+    let currentQuizData = null;
+    let currentQuestionIndex = 0;
+    let selectedOptionIndex = -1;
+    let quizScore = 0;
+    let quizTimerInterval = null;
+    let quizTimeRemaining = 180;
+    let currentChallengeId = null;
+    let isQuizFinished = false;
+    let userAnswers = [];
+
+    // ============================================================
+    // توابع کمکی
+    // ============================================================
+    function toPersianNumLocal(num) {
+        const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        return String(num).replace(/\d/g, x => persianDigits[parseInt(x)]);
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function formatCountdown(diff) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        if (days > 0) {
+            return `${toPersianNumLocal(days)} روز و ${toPersianNumLocal(hours)} ساعت`;
+        } else if (hours > 0) {
+            return `${toPersianNumLocal(hours)} ساعت و ${toPersianNumLocal(minutes)} دقیقه`;
+        } else if (minutes > 0) {
+            return `${toPersianNumLocal(minutes)} دقیقه و ${toPersianNumLocal(seconds.toString().padStart(2, '0'))} ثانیه`;
+        } else {
+            return `${toPersianNumLocal(seconds)} ثانیه`;
+        }
+    }
+
+    // ============================================================
+    // توابع حالت لیست آزمون‌ها
+    // ============================================================
+    async function markChallengesAsSeen() {
+        try {
+            const response = await fetch('./challenges.json?t=' + Date.now());
+            if (!response.ok) return;
+            const data = await response.json();
+            const challenges = data.challenges || [];
+            const ids = challenges.map(c => c.id);
+            localStorage.setItem('seenChallenges', JSON.stringify(ids));
+        } catch (e) {}
+    }
+
+    async function loadChallenges() {
+        const container = document.getElementById('challenge-list');
+        try {
+            const response = await fetch('./challenges.json?t=' + Date.now());
+            const data = await response.json();
+            challengesData = data.challenges || [];
+
+            if (challengesData.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">هنوز آزمونی ثبت نشده است</div>';
+                return;
+            }
+
+            renderChallenges(container);
+            startListTimer();
+
+        } catch (e) {
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:#c62828; font-weight:bold;">خطا در بارگذاری لیست آزمون‌ها</div>';
+        }
+    }
+
+    function renderChallenges(container) {
+        let html = '';
+        challengesData.forEach(c => {
+            const iconHTML = c.image 
+                ? (c.image.endsWith('.mp4') 
+                    ? `<video src="${c.image}" autoplay loop muted playsinline></video>` 
+                    : `<img src="${c.image}" alt="">`)
+                : `<span class="fallback-icon">📝</span>`;
+
+            const now = new Date();
+            now.setHours(0, 0, 0, 0); 
+            
+            const startDate = new Date(c.startDate);
+            startDate.setHours(0, 0, 0, 0);
+
+            const endDate = c.endDate ? new Date(c.endDate) : new Date(c.startDate);
+            endDate.setHours(23, 59, 59, 999);
+
+            const isCompleted = localStorage.getItem('quizCompleted_' + c.id) === 'true';
+            const hasProgress = localStorage.getItem('quizState_' + c.id) !== null;
+
+            let btnHTML = '';
+            if (isCompleted) {
+                btnHTML = `<button class="challenge-btn btn-report" onclick="event.stopPropagation(); openReportModal('${c.id}')">مشاهده کارنامه</button>`;
+            } else if (now > endDate) {
+                btnHTML = `<button class="challenge-btn btn-expired" disabled>⛔ مهلت به پایان رسید</button>`;
+            } else if (now < startDate) {
+                btnHTML = `<button class="challenge-btn btn-countdown" id="timer-btn-${c.id}" disabled>⏳ در حال محاسبه...</button>`;
+            } else if (hasProgress) {
+                btnHTML = `<button class="challenge-btn btn-start" style="background: linear-gradient(135deg, #ff9800, #f57c00);" onclick="openChallengeDetail('${c.id}')">ادامه آزمون ⏳</button>`;
+            } else {
+                btnHTML = `<button class="challenge-btn btn-start" onclick="openChallengeDetail('${c.id}')">شروع آزمون 🚀</button>`;
+            }
+
+            const shortDate = startDate.toLocaleDateString('fa-IR');
+
+            html += `
+                <div class="challenge-card" onclick="openChallengeDetail('${c.id}')">
+                    <div class="challenge-card-icon">
+                        ${iconHTML}
+                    </div>
+                    <div class="challenge-card-info">
+                        <div class="challenge-card-title">${escapeHTML(c.title)}</div>
+                        <div class="challenge-card-meta">
+                            <span class="meta-badge date">📅 ${shortDate}</span>
+                            <span class="meta-badge">📝 ${toPersianNumLocal(c.questionsCount)} سوال</span>
+                            <span class="meta-badge">⭐ ${toPersianNumLocal(c.points)} امتیاز</span>
+                        </div>
+                        ${btnHTML}
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        updateListTimers();
+    }
+
+    function startListTimer() {
+        if (listTimerInterval) clearInterval(listTimerInterval);
+        listTimerInterval = setInterval(updateListTimers, 1000);
+    }
+
+    function updateListTimers() {
+        challengesData.forEach(c => {
+            const btn = document.getElementById(`timer-btn-${c.id}`);
+            if (!btn) return;
+
+            const now = new Date();
+            
+            const startDate = new Date(c.startDate);
+            startDate.setHours(0, 0, 0, 0);
+
+            const endDate = c.endDate ? new Date(c.endDate) : new Date(c.startDate);
+            endDate.setHours(23, 59, 59, 999);
+
+            if (now > endDate) {
+                btn.className = 'challenge-btn btn-expired';
+                btn.disabled = true;
+                btn.innerHTML = '⛔ مهلت به پایان رسید';
+                return;
+            }
+
+            if (now < startDate) {
+                const diff = startDate.getTime() - now.getTime();
+                btn.className = 'challenge-btn btn-countdown';
+                btn.disabled = true;
+                btn.innerHTML = `⏳ ${formatCountdown(diff)}`;
+                return;
+            }
+
+            const isCompleted = localStorage.getItem('quizCompleted_' + c.id) === 'true';
+            const hasProgress = localStorage.getItem('quizState_' + c.id) !== null;
+            
+            if (isCompleted) {
+                btn.className = 'challenge-btn btn-report';
+                btn.disabled = false;
+                btn.innerHTML = 'مشاهده کارنامه';
+                btn.onclick = (e) => { e.stopPropagation(); openReportModal(c.id); };
+            } else if (hasProgress) {
+                btn.className = 'challenge-btn btn-start';
+                btn.style.background = 'linear-gradient(135deg, #ff9800, #f57c00)';
+                btn.disabled = false;
+                btn.innerHTML = 'ادامه آزمون ⏳';
+                btn.onclick = (e) => { e.stopPropagation(); openChallengeDetail(c.id); };
+            } else {
+                btn.className = 'challenge-btn btn-start';
+                btn.style.background = 'var(--primary-gradient)';
+                btn.disabled = false;
+                btn.innerHTML = 'شروع آزمون 🚀';
+                btn.onclick = (e) => { e.stopPropagation(); openChallengeDetail(c.id); };
+            }
+        });
+    }
+
+    // ============================================================
+    // 🆕 صفحه جزئیات آزمون
+    // ============================================================
+    function openChallengeDetail(challengeId) {
+        const challenge = challengesData.find(c => c.id === challengeId);
+        if (!challenge) return;
+
+        // 🆕 ذخیره شناسه برای تایمر (این خط قبلاً باعث ReferenceError می‌شد)
+        currentDetailChallengeId = challengeId;
+
+        if (navigator.vibrate) navigator.vibrate(15);
+
+        const now = new Date();
+        const startDate = new Date(challenge.startDate);
+        startDate.setHours(0, 0, 0, 0);
+        
+        const endDate = challenge.endDate ? new Date(challenge.endDate) : new Date(challenge.startDate);
+        endDate.setHours(23, 59, 59, 999);
+
+        // اگر قبلاً شرکت کرده، مستقیم کارنامه باز شود
+        if (localStorage.getItem('quizCompleted_' + challengeId) === 'true') {
+            openReportModal(challengeId);
+            return;
+        }
+
+        let existing = document.getElementById('challenge-detail-modal');
+        if (existing) existing.remove();
+
+        let iconHTML = '';
+        if (challenge.image) {
+            if (challenge.image.endsWith('.mp4')) {
+                iconHTML = `<video src="${challenge.image}" autoplay loop muted playsinline></video>`;
+            } else {
+                iconHTML = `<img src="${challenge.image}" alt="آزمون">`;
+            }
+        } else {
+            iconHTML = `<span class="fallback-icon">📝</span>`;
+        }
+
+        const hasProgress = localStorage.getItem('quizState_' + challengeId) !== null;
+        const isExpired = now > endDate;
+        const isNotStarted = now < startDate;
+
+        let btnHTML = '';
+        let btnId = '';
+
+        if (isExpired) {
+            btnHTML = `<button class="start-btn" disabled style="background: #cfd8dc; box-shadow: none; color: #78909c; cursor: not-allowed;">⛔ مهلت به پایان رسید</button>`;
+        } else if (isNotStarted) {
+            btnId = 'detail-countdown-btn';
+            btnHTML = `<button class="start-btn-countdown" id="${btnId}" disabled>⏳ در حال محاسبه...</button>`;
+        } else if (hasProgress) {
+            btnHTML = `<button class="start-btn" onclick="startQuiz('${challenge.id}', '${challenge.file}')" style="background: linear-gradient(135deg, #ff9800, #f57c00); box-shadow: 0 6px 20px rgba(245, 124, 0, 0.4);">ادامه آزمون ⏳</button>`;
+        } else {
+            btnHTML = `<button class="start-btn" onclick="startQuiz('${challenge.id}', '${challenge.file}')">شروع آزمون 🚀</button>`;
+        }
+
+        const startDateObj = new Date(challenge.startDate);
+        const startDatePart = startDateObj.toLocaleDateString('fa-IR');
+        
+        const endDateObj = challenge.endDate ? new Date(challenge.endDate) : new Date(challenge.startDate);
+        const endDatePart = endDateObj.toLocaleDateString('fa-IR');
+        
+        const durationMinutes = Math.floor((challenge.duration || 180) / 60);
+
+        const modal = document.createElement('div');
+        modal.id = 'challenge-detail-modal';
+        modal.className = 'challenge-detail-modal active';
+        
+        modal.innerHTML = `
+            <div class="challenge-detail-box">
+                <button class="challenge-detail-close" onclick="closeChallengeDetail()">✕</button>
+                
+                <div class="detail-banner">
+                    <div class="detail-banner-icon">
+                        ${iconHTML}
+                    </div>
+                    <h2>${escapeHTML(challenge.title)}</h2>
+                </div>
+
+                <div class="detail-info-card">
+                    <div class="detail-info-row">
+                        <div class="detail-info-right">
+                            <div class="lesson-info-icon green">
+                                <svg viewBox="0 0 24 24"><path d="M9 11L12 14L22 4"/><path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16"/></svg>
+                            </div>
+                            <span>تعداد سوالات:</span>
+                        </div>
+                        <span class="detail-info-value">${toPersianNumLocal(challenge.questionsCount)} سوال</span>
+                    </div>
+                    
+                    <div class="detail-info-row">
+                        <div class="detail-info-right">
+                            <div class="lesson-info-icon orange">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <span>زمان آزمون:</span>
+                        </div>
+                        <span class="detail-info-value">${toPersianNumLocal(durationMinutes)} دقیقه</span>
+                    </div>
+                    
+                    <div class="detail-info-row">
+                        <div class="detail-info-right">
+                            <div class="lesson-info-icon purple">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            </div>
+                            <span>تاریخ شروع:</span>
+                        </div>
+                        <div class="detail-date-box">
+                            <span>${startDatePart}</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-info-row">
+                        <div class="detail-info-right">
+                            <div class="lesson-info-icon" style="background: linear-gradient(135deg, #ffebee, #ffcdd2);">
+                                <svg viewBox="0 0 24 24" style="stroke: #c62828;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="16" x2="15" y2="16"/></svg>
+                            </div>
+                            <span>تاریخ پایان:</span>
+                        </div>
+                        <div class="detail-date-box" style="border-color: #ef9a9a; color: #c62828; background: linear-gradient(135deg, #ffebee, #ffcdd2);">
+                            <span>${endDatePart}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-info-row">
+                        <div class="detail-info-right">
+                            <div class="lesson-info-icon blue" style="background: linear-gradient(135deg, #e3f2fd, #90caf9);">
+                                <svg viewBox="0 0 24 24" style="stroke: #0d47a1;"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                            </div>
+                            <span>امتیاز آزمون:</span>
+                        </div>
+                        <span class="detail-info-value">${toPersianNumLocal(challenge.points)} امتیاز</span>
+                    </div>
+                </div>
+
+                <div class="detail-desc-card">
+                    <div class="detail-desc-title">📖 درباره این آزمون</div>
+                    <div class="detail-desc-text">
+                        ${challenge.description}
+                    </div>
+                </div>
+
+                ${btnHTML}
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // 🆕 اگر دکمه روزشمار داخل مودال هست، تایمر راه بنداز
+        if (isNotStarted && btnId) {
+            startDetailCountdown(btnId, startDate);
+        }
+    }
+
+    // 🆕 تایمر شمارش معکوس داخل مودال جزئیات
+    function startDetailCountdown(btnId, startDate) {
+        if (detailTimerInterval) clearInterval(detailTimerInterval);
+
+        const updateBtn = () => {
+            const btn = document.getElementById(btnId);
+            if (!btn) {
+                clearInterval(detailTimerInterval);
+                detailTimerInterval = null;
+                return;
+            }
+
+            const now = new Date();
+            const diff = startDate.getTime() - now.getTime();
+
+            if (diff <= 0) {
+                // زمان شروع رسید → دکمه رو به "شروع آزمون" تغییر بده
+                clearInterval(detailTimerInterval);
+                detailTimerInterval = null;
+                btn.className = 'start-btn';
+                btn.disabled = false;
+                btn.innerHTML = 'شروع آزمون 🚀';
+                btn.removeAttribute('id');
+                
+                const challenge = challengesData.find(c => c.id === currentDetailChallengeId);
+                if (challenge) {
+                    btn.onclick = () => startQuiz(challenge.id, challenge.file);
+                }
+                return;
+            }
+
+            btn.innerHTML = `⏳ ${formatCountdown(diff)}`;
+        };
+
+        updateBtn();
+        detailTimerInterval = setInterval(updateBtn, 1000);
+    }
+
+    function closeChallengeDetail() {
+        const modal = document.getElementById('challenge-detail-modal');
+        if (modal) modal.remove();
+        if (detailTimerInterval) {
+            clearInterval(detailTimerInterval);
+            detailTimerInterval = null;
+        }
+        currentDetailChallengeId = null;
+    }
+</script>
+<script>
+    // ============================================================
+    // 🆕 توابع حالت کوییز
+    // ============================================================
+    
+    async function startQuiz(challengeId, file) {
+        if (navigator.vibrate) navigator.vibrate(20);
+        closeChallengeDetail();
+        
+        try {
+            const response = await fetch('./' + file + '?t=' + Date.now());
+            if (!response.ok) throw new Error('خطا در بارگذاری سوالات');
+            
+            currentQuizData = await response.json();
+            currentChallengeId = challengeId;
+            isQuizFinished = false;
+            userAnswers = [];
+            
+            const savedState = localStorage.getItem('quizState_' + challengeId);
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                currentQuestionIndex = state.currentQuestionIndex || 0;
+                quizScore = state.quizScore || 0;
+                selectedOptionIndex = state.selectedOptionIndex || -1;
+                userAnswers = state.userAnswers || [];
+                
+                if (state.startTime) {
+                    const elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
+                    quizTimeRemaining = Math.max(0, state.totalDuration - elapsedSeconds);
+                } else {
+                    quizTimeRemaining = state.quizTimeRemaining || 180;
+                }
+            } else {
+                currentQuestionIndex = 0;
+                selectedOptionIndex = -1;
+                quizScore = 0;
+                const challenge = challengesData.find(c => c.id === challengeId);
+                quizTimeRemaining = challenge ? challenge.duration : 180; 
+            }
+            
+            if (quizTimeRemaining <= 0) {
+                alert('زمان آزمون به پایان رسیده است!');
+                await finishQuiz();
+                return;
+            }
+            
+            document.getElementById('challenge-list-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.add('active');
+            
+            const challenge = challengesData.find(c => c.id === challengeId);
+            if (challenge) document.getElementById('quiz-title').textContent = challenge.title;
+            
+            document.getElementById('quiz-footer').style.display = 'block';
+            
+            renderQuizQuestion();
+            startQuizTimer();
+            
+            // 🆕 رفع باگ زمان‌سنج: بلافاصله وضعیت را ذخیره کن
+            // (قبلاً فقط بعد از انتخاب گزینه ذخیره می‌شد و با خروج ریست می‌شد)
+            saveQuizState();
+            
+            history.pushState({ quizOpen: true }, '', '#quiz');
+            
+        } catch (e) {
+            alert('خطا در بارگذاری سوالات آزمون');
+            console.error(e);
+            document.getElementById('challenge-list-view').classList.remove('hidden');
+            document.getElementById('quiz-view').classList.remove('active');
+        }
+    }
+
+    function renderQuizQuestion() {
+        const container = document.getElementById('quiz-content');
+        const q = currentQuizData.questions[currentQuestionIndex];
+        if (!q) { finishQuiz(); return; }
+
+        let optionsHTML = '';
+        q.options.forEach((opt, idx) => {
+            const isSelected = (idx === selectedOptionIndex) ? 'selected' : '';
+            optionsHTML += `<div class="quiz-option ${isSelected}" onclick="selectQuizOption(this, ${idx})">${escapeHTML(opt)}</div>`;
+        });
+
+        container.innerHTML = `
+            <div class="quiz-question-box">
+                <div style="font-size: 12px; color: #90a4ae; font-weight: bold; margin-bottom: 10px;">سوال ${toPersianNumLocal(currentQuestionIndex + 1)} از ${toPersianNumLocal(currentQuizData.questions.length)}</div>
+                <div class="quiz-question-text">${escapeHTML(q.question)}</div>
+            </div>
+            <div class="quiz-options">${optionsHTML}</div>
+        `;
+        
+        document.getElementById('quiz-submit-btn').disabled = (selectedOptionIndex === -1);
+        document.getElementById('quiz-submit-btn').textContent = (currentQuestionIndex === currentQuizData.questions.length - 1) ? 'پایان آزمون' : 'بررسی و سوال بعدی';
+    }
+
+    function selectQuizOption(el, idx) {
+        if (isQuizFinished) return;
+        if (navigator.vibrate) navigator.vibrate(10);
+        
+        document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedOptionIndex = idx;
+        document.getElementById('quiz-submit-btn').disabled = false;
+        
+        saveQuizState();
+    }
+
+    // 🆕 saveQuizState — ذخیره دقیق وضعیت (رفع باگ ریست زمان‌سنج)
+    function saveQuizState() {
+        if (!currentChallengeId || isQuizFinished) return;
+        
+        let existingState = {};
+        try {
+            existingState = JSON.parse(localStorage.getItem('quizState_' + currentChallengeId) || '{}');
+        } catch (e) {
+            existingState = {};
+        }
+        
+        const challenge = challengesData.find(c => c.id === currentChallengeId);
+        
+        // 🆕 startTime را فقط بار اول تنظیم کن (تا با خروج ریست نشود)
+        const startTime = existingState.startTime || Date.now();
+        const totalDuration = existingState.totalDuration || (challenge ? challenge.duration : 180);
+        
+        const state = {
+            currentQuestionIndex: currentQuestionIndex,
+            selectedOptionIndex: selectedOptionIndex,
+            quizScore: quizScore,
+            userAnswers: userAnswers,
+            startTime: startTime,
+            totalDuration: totalDuration
+        };
+        localStorage.setItem('quizState_' + currentChallengeId, JSON.stringify(state));
+    }
+
+    document.getElementById('quiz-submit-btn').addEventListener('click', () => {
+        if (isQuizFinished || selectedOptionIndex === -1) return;
+        if (navigator.vibrate) navigator.vibrate(15);
+
+        const q = currentQuizData.questions[currentQuestionIndex];
+        
+        userAnswers.push({
+            questionIndex: currentQuestionIndex,
+            selectedOption: selectedOptionIndex,
+            isCorrect: selectedOptionIndex === q.correct
+        });
+
+        if (selectedOptionIndex === q.correct) {
+            quizScore += (q.points || 10);
+        }
+
+        currentQuestionIndex++;
+        selectedOptionIndex = -1;
+        
+        if (currentQuestionIndex < currentQuizData.questions.length) {
+            saveQuizState();
+            renderQuizQuestion();
+        } else {
+            finishQuiz();
+        }
+    });
+
+    function startQuizTimer() {
+        if (quizTimerInterval) clearInterval(quizTimerInterval);
+        
+        const updateTimerDisplay = () => {
+            const m = Math.floor(quizTimeRemaining / 60);
+            const s = quizTimeRemaining % 60;
+            const el = document.getElementById('quiz-timer-display');
+            if (el) el.textContent = `⏱ ${toPersianNumLocal(m.toString().padStart(2, '0'))}:${toPersianNumLocal(s.toString().padStart(2, '0'))}`;
+        };
+
+        updateTimerDisplay();
+
+        quizTimerInterval = setInterval(() => {
+            quizTimeRemaining--;
+            updateTimerDisplay();
+            
+            if (quizTimeRemaining <= 0) {
+                clearInterval(quizTimerInterval);
+                finishQuiz();
+            }
+        }, 1000);
+    }
+
+    async function finishQuiz() {
+        if (isQuizFinished) return;
+        isQuizFinished = true;
+        if (quizTimerInterval) clearInterval(quizTimerInterval);
+        
+        localStorage.removeItem('quizState_' + currentChallengeId);
+        
+        localStorage.setItem('quizCompleted_' + currentChallengeId, 'true');
+        localStorage.setItem('quizAnswers_' + currentChallengeId, JSON.stringify(userAnswers));
+        localStorage.setItem('quizScore_' + currentChallengeId, quizScore.toString());
+
+        const container = document.getElementById('quiz-content');
+        const footer = document.getElementById('quiz-footer');
+        if (footer) footer.style.display = 'none';
+
+        container.innerHTML = `
+            <div class="quiz-result-box">
+                <div style="font-size: 60px; margin-bottom: 10px;">🏆</div>
+                <div class="quiz-result-score">${toPersianNumLocal(quizScore)}</div>
+                <div class="quiz-result-text">امتیاز شما در این آزمون</div>
+                <button class="quiz-result-btn" onclick="openReportModal('${currentChallengeId}')">مشاهده کارنامه</button>
+                <button class="quiz-report-btn" onclick="closeQuizAndReturn()">بازگشت به لیست آزمون‌ها</button>
+            </div>
+        `;
+
+        // 🆕 بررسی دقیق ذخیره در دیتابیس
+        const saved = await saveQuizScoreToDatabase(currentChallengeId, quizScore);
+        if (!saved) {
+            console.warn('⚠️ ذخیره امتیاز در دیتابیس ناموفق بود');
+        }
+        
+        refreshListButtons();
+    }
+
+    function closeQuizAndReturn() {
+        document.getElementById('quiz-view').classList.remove('active');
+        document.getElementById('challenge-list-view').classList.remove('hidden');
+        document.getElementById('quiz-footer').style.display = 'block';
+        history.replaceState(null, '', location.href.split('#')[0]);
+        
+        // 🆕 رفرش لیست
+        refreshListButtons();
+    }
+
+    function showExitModal() {
+        if (isQuizFinished) {
+            closeQuizAndReturn();
+            return;
+        }
+        const modal = document.getElementById('exit-modal');
+        if (modal) modal.classList.add('active');
+    }
+
+    function closeExitModal() {
+        const modal = document.getElementById('exit-modal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    function confirmExit() {
+        closeExitModal();
+        saveQuizState();
+        if (quizTimerInterval) clearInterval(quizTimerInterval);
+        closeQuizAndReturn();
+    }
+
+    // 🆕 ذخیره امتیاز آزمون در دیتابیس
+    async function saveQuizScoreToDatabase(challengeId, finalScore) {
+        try {
+            const client = getSupabase();
+            if (!client) {
+                console.warn('⚠️ Supabase client نیست');
+                return false;
+            }
+            
+            const studentId = localStorage.getItem('studentUUID');
+            if (!studentId) {
+                console.warn('⚠️ studentUUID نیست');
+                return false;
+            }
+
+            // بررسی تکراری بودن
+            const { data: existing } = await client
+                .from('story_interactions')
+                .select('id')
+                .eq('story_id', challengeId)
+                .eq('student_id', studentId)
+                .maybeSingle();
+
+            if (existing) {
+                console.log('ℹ️ این آزمون قبلاً ثبت شده');
+                return true;
+            }
+
+            // دریافت امتیاز فعلی
+            const { data: currentRanking } = await client
+                .from('rankings')
+                .select('custom_points_added')
+                .eq('student_id', studentId)
+                .maybeSingle();
+                
+            const currentCustom = currentRanking ? parseInt(currentRanking.custom_points_added) || 0 : 0;
+            const newCustom = currentCustom + finalScore;
+            
+            // آپدیت rankings
+            const { error: updateError } = await client
+                .from('rankings')
+                .update({ custom_points_added: newCustom })
+                .eq('student_id', studentId);
+                
+            if (updateError) {
+                console.error('❌ خطا در آپدیت امتیاز:', updateError.message);
+                return false;
+            }
+            
+            // ثبت در story_interactions برای جلوگیری از تکرار
+            const { error: insertError } = await client
+                .from('story_interactions')
+                .insert({ story_id: challengeId, views: 1, likes: 0 });
+                
+            if (insertError) {
+                console.warn('⚠️ خطا در ثبت story_interactions:', insertError.message);
+                // ادامه بده - امتیاز قبلاً ثبت شده
+            }
+                
+            // سینک کامل با saveRankingToSupabase
+            if (typeof saveRankingToSupabase === 'function') {
+                await saveRankingToSupabase();
+            }
+            
+            return true;
+        } catch (e) {
+            console.warn('خطا در ذخیره امتیاز آزمون:', e);
+            return false;
+        }
+    }
+
+    function refreshListButtons() {
+        const container = document.getElementById('challenge-list');
+        if (container) renderChallenges(container);
+    }
+</script>
+<script>
+    // ============================================================
+    // 🆕 نمایش کارنامه
+    // ============================================================
+    async function openReportModal(challengeId) {
+        const challenge = challengesData.find(c => c.id === challengeId);
+        if (!challenge) return;
+
+        const answers = JSON.parse(localStorage.getItem('quizAnswers_' + challengeId) || '[]');
+        const score = localStorage.getItem('quizScore_' + challengeId) || '0';
+        
+        try {
+            const response = await fetch('./' + challenge.file + '?t=' + Date.now());
+            const quizData = await response.json();
+
+            let html = `
+                <div class="report-close-btn" onclick="closeReportModal()">✕</div>
+                <div class="report-header">
+                    <h2>${escapeHTML(challenge.title)}</h2>
+                    <div class="report-header-score">
+                        ${toPersianNumLocal(score)} <span>امتیاز</span>
+                    </div>
+                </div>
+            `;
+
+            quizData.questions.forEach((q, idx) => {
+                const userAns = answers.find(a => a.questionIndex === idx);
+                const isCorrect = userAns && userAns.isCorrect;
+                const userSelection = userAns ? q.options[userAns.selectedOption] : 'پاسخ داده نشده';
+                const correctAnswer = q.options[q.correct];
+
+                html += `
+                    <div class="report-question-item ${isCorrect ? 'correct-item' : 'wrong-item'}">
+                        <div class="report-question-header">
+                            <div class="report-q-number">${toPersianNumLocal(idx + 1)}</div>
+                            <div class="report-question-text">${escapeHTML(q.question)}</div>
+                        </div>
+                        
+                        <div class="report-answer-row ${isCorrect ? 'correct-ans' : 'wrong-ans'}">
+                            <span class="report-label">پاسخ شما:</span>
+                            <span class="report-value">${escapeHTML(userSelection)}</span>
+                            <span style="margin-right:auto;">${isCorrect ? '✅' : '❌'}</span>
+                        </div>
+                        
+                        ${!isCorrect ? `
+                            <div class="report-answer-row correct-solution">
+                                <span class="report-label">پاسخ صحیح:</span>
+                                <span class="report-value">${escapeHTML(correctAnswer)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            html += `<button class="quiz-result-btn" style="margin-top: 10px;" onclick="closeReportModal()">بستن کارنامه</button>`;
+
+            document.getElementById('report-content').innerHTML = html;
+            document.getElementById('report-modal').classList.add('active');
+        } catch (e) {
+            console.warn('خطا در بارگذاری کارنامه:', e);
+        }
+    }
+
+    function closeReportModal() {
+        const modal = document.getElementById('report-modal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    // ============================================================
+    // 🆕 مدیریت دکمه بازگشت گوشی
+    // ============================================================
+    window.addEventListener('popstate', function(event) {
+        const reportModal = document.getElementById('report-modal');
+        if (reportModal && reportModal.classList.contains('active')) {
+            closeReportModal();
+            history.pushState(null, null, location.href);
+            return;
+        }
+
+        const detailModal = document.getElementById('challenge-detail-modal');
+        if (detailModal) {
+            closeChallengeDetail();
+            history.pushState(null, null, location.href);
+            return;
+        }
+
+        const quizView = document.getElementById('quiz-view');
+        if (quizView && quizView.classList.contains('active') && !isQuizFinished) {
+            showExitModal();
+            history.pushState({ quizOpen: true }, '', '#quiz');
+        } else if (quizView && quizView.classList.contains('active') && isQuizFinished) {
+            closeQuizAndReturn();
+        }
+    });
+
+    // ============================================================
+    // 🆕 شروع
+    // ============================================================
+    window.addEventListener('load', () => {
+        loadChallenges();
+        markChallengesAsSeen(); 
+        history.replaceState(null, '', location.href.split('#')[0]);
+    });
+
+    // 🆕 مدیریت visibilitychange — وقتی کاربر برمی‌گرده، تایمر رو چک کن
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            if (currentChallengeId && !isQuizFinished) {
+                // محاسبه زمان سپری شده
+                try {
+                    const savedState = JSON.parse(localStorage.getItem('quizState_' + currentChallengeId) || '{}');
+                    if (savedState.startTime && savedState.totalDuration) {
+                        const elapsedSeconds = Math.floor((Date.now() - savedState.startTime) / 1000);
+                        const remaining = Math.max(0, savedState.totalDuration - elapsedSeconds);
+                        
+                        if (remaining <= 0 && quizTimeRemaining > 0) {
+                            // زمان تمام شد در حالی که کاربر خارج بود
+                            quizTimeRemaining = 0;
+                            finishQuiz();
+                        } else {
+                            quizTimeRemaining = remaining;
+                            if (quizTimerInterval) {
+                                clearInterval(quizTimerInterval);
+                                startQuizTimer();
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn('خطا در بررسی زمان:', e);
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

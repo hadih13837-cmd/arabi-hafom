@@ -1,0 +1,52 @@
+{
+  "challenges": [
+    {
+      "id": "challenge_1",
+      "title": "آزمون تستی هفته اول",
+      "description": "...",
+      "startDate": "2026-10-30",
+      "endDate": "2026-10-30",
+      "duration": 180,
+      "questionsCount": 5,
+      "points": 50,
+      "image": "https://cdn.imgurl.ir/uploads/f978629_.mp4",
+      "file": "challenges/challenge_1_questions.json"
+    },
+    {
+      "id": "challenge_2",
+      "title": "آزمون تستی هفته دوم",
+      "description": "...",
+      "startDate": "2026-11-06",
+      "endDate": "2026-11-06",
+      "duration": 180,
+      "questionsCount": 5,
+      "points": 50,
+      "image": "",
+      "file": "challenges/challenge_2_questions.json"
+    },
+    {
+      "id": "challenge_3",
+      "title": "آزمون تستی هفته سوم",
+      "description": "...",
+      "startDate": "2026-11-13",
+      "endDate": "2026-11-13",
+      "duration": 180,
+      "questionsCount": 5,
+      "points": 50,
+      "image": "",
+      "file": "challenges/challenge_3_questions.json"
+    },
+    {
+      "id": "challenge_4",
+      "title": "آزمون تستی هفته چهارم",
+      "description": "...",
+      "startDate": "2026-11-20",
+      "endDate": "2026-11-20",
+      "duration": 180,
+      "questionsCount": 5,
+      "points": 50,
+      "image": "",
+      "file": "challenges/challenge_4_questions.json"
+    }
+  ]
+}

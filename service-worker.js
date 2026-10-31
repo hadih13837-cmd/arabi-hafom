@@ -1,6 +1,6 @@
 // ============================================================
 // service-worker.js — با بروزرسانی خودکار
-// نسخه: v173
+// نسخه: v174 — با چالش هفتگی
 // ============================================================
 
 const CACHE_NAME = 'arabi-hafom-v174';
@@ -10,6 +10,7 @@ const urlsToCache = [
     './index.html',
     './clips.html',
     './jozve.html',
+    './weekly-challenge.html',
     './teacher.html',
     './maintenance.html',
     './maintenance.json',
@@ -44,6 +45,7 @@ const urlsToCache = [
     './lessons/lesson5.json',
     './jozve/index.json',
     './stories.json',
+    './challenges.json',
 ];
 
 // نصب — فایل‌ها رو ذخیره کن و فوراً فعال شو
@@ -74,22 +76,30 @@ self.addEventListener('activate', event => {
     );
 });
 
-// مدیریت fetch — همیشه اول از شبکه بخون (Network First)
+// مدیریت fetch
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
     const url = event.request.url;
 
+    // Supabase و realtime → همیشه شبکه
     if (url.includes('supabase.co') || url.includes('realtime') || url.includes('ws')) {
         event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
         return;
     }
 
+    // CDN و تصاویر → همیشه شبکه
     if (url.includes('cdn.imgurl.ir') || url.includes('imgurl.ir') || url.includes('githubusercontent.com')) {
         event.respondWith(fetch(event.request, { mode: 'no-cors' }).catch(() => new Response('', { status: 503 })));
         return;
     }
 
-    if (url.includes('maintenance.json') || url.includes('/lessons/') || url.includes('/jozve/') || url.includes('stories.json')) {
+    // 🆕 فایل‌های داده‌ای → NetworkFirst (همیشه تازه)
+    if (url.includes('maintenance.json') || 
+        url.includes('/lessons/') || 
+        url.includes('/jozve/') || 
+        url.includes('stories.json') || 
+        url.includes('challenges.json') || 
+        url.includes('/challenges/')) {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' })
                 .then(response => {
@@ -104,7 +114,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // برای بقیه فایل‌ها: اول شبکه، بعد کش
+    // بقیه فایل‌ها: اول شبکه، بعد کش
     event.respondWith(
         fetch(event.request)
             .then(response => {
