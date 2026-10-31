@@ -1,0 +1,42 @@
+{
+  "lessonId": "challenge_3",
+  "title": "آزمون تستی هفته سوم",
+  "totalPoints": 50,
+  "questions": [
+    {
+      "type": "multiple",
+      "question": "کلمه «مُدَرِّس» به چه معناست؟",
+      "options": ["مدیر", "معلم", "دانش‌آموز", "پزشک"],
+      "correct": 1,
+      "points": 10
+    },
+    {
+      "type": "multiple",
+      "question": "کدام کلمه مؤنث است؟",
+      "options": ["کِتاب", "قَلَم", "شَجَرَة", "باب"],
+      "correct": 2,
+      "points": 10
+    },
+    {
+      "type": "multiple",
+      "question": "ترجمه «أَنا طالِبٌ» چیست؟",
+      "options": ["من دانش‌آموزم", "تو دانش‌آموزی", "او دانش‌آموز است", "ما دانش‌آموزیم"],
+      "correct": 0,
+      "points": 10
+    },
+    {
+      "type": "multiple",
+      "question": "کدام گزینه به معنای «این (برای مؤنث)» است؟",
+      "options": ["هٰذَا", "هٰذِهِ", "هُوَ", "هُم"],
+      "correct": 1,
+      "points": 10
+    },
+    {
+      "type": "multiple",
+      "question": "کلمه «مَدرَسَة» به چه معناست؟",
+      "options": ["کلاس", "مدرسه", "کتاب", "دفتر"],
+      "correct": 1,
+      "points": 10
+    }
+  ]
+}
