@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۳۴.۰.۰ — با قابلیت تغییر کد ورود دانش‌آموز
+// نسخه: ۳۵.۰.۰ — با قابلیت حذف کارنامه برای انجام مجدد
 // ============================================================
 
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
@@ -479,7 +479,6 @@ function markAndOpenProfile(sid, rid) {
     updateHomeBadgesImmediately();
     setTimeout(() => { renderStudents(getFilteredStudents()); }, 500);
 }
-
 async function openStudentProfile(sid) {
     let s = allStudents.find(x => x.student_id === sid);
     if (!s) { showToast('دانش‌آموز پیدا نشد', 'error'); return; }
@@ -516,6 +515,7 @@ function isLessonExpiredForStudent(lesson, cd) {
     const pd = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(t);
     return persianDateToNum(pd) > persianDateToNum(d);
 }
+
 function persianDateToNum(ds) {
     if (!ds || ds === 'نامشخص') return 0;
     const n = String(ds).replace(/[۰-۹]/g, x => '۰۱۲۳۴۵۶۷۸۹'.indexOf(x));
@@ -549,7 +549,12 @@ function renderStudentProfile() {
 
         let rh = '';
         if (id) {
-            rh = `<div class="profile-lesson-report done"><div class="report-row"><span class="report-label">✅ انجام شده</span><span class="report-value-percent">${toPersianNum(r.percent || 0)}%</span></div><div class="report-row"><span class="report-label">امتیاز:</span><span class="report-value-points">${toPersianNum(r.score || 0)} از ${toPersianNum(r.total_points || 0)}</span></div></div>`;
+            // 🆕 دکمه حذف کارنامه برای انجام مجدد
+            rh = `<div class="profile-lesson-report done">
+                    <div class="report-row"><span class="report-label">✅ انجام شده</span><span class="report-value-percent">${toPersianNum(r.percent || 0)}%</span></div>
+                    <div class="report-row"><span class="report-label">امتیاز:</span><span class="report-value-points">${toPersianNum(r.score || 0)} از ${toPersianNum(r.total_points || 0)}</span></div>
+                    <button onclick="deleteLessonReport('${l.id}', '${escapeHTML(s.name)}')" style="margin-top: 10px; background: #ffebee; color: #c62828; border: 1.5px solid #ef9a9a; padding: 8px 12px; border-radius: 10px; font-family: 'Vazirmatn', sans-serif; font-size: 12px; font-weight: 900; cursor: pointer; width: 100%;">🗑️ حذف کارنامه و امتیاز (برای انجام مجدد)</button>
+                  </div>`;
         } else if (ix && !ic) {
             rh = `<div class="profile-lesson-report pending"><span class="report-badge" style="background:linear-gradient(135deg,#ffcdd2,#ef9a9a);color:#b71c1c;">⏰ منقضی شده</span></div>`;
         } else {
@@ -566,6 +571,84 @@ function renderStudentProfile() {
     c.innerHTML = `<div class="profile-header-card"><div class="profile-avatar-big">${renderAvatarHTML(s)}</div><div class="profile-name-big">${escapeHTML(s.name || 'بدون نام')}</div><div class="profile-class-big">${cp}</div></div><div class="profile-stats-grid"><div class="profile-stat-card" onclick="openEditStudentCode()" style="cursor:pointer;"><div class="profile-stat-icon">🔑</div><div class="profile-stat-value">${sc}</div><div class="profile-stat-label">کد ورود (کلیک کن)</div></div><div class="profile-stat-card" onclick="openEditCompletedLessons()" style="cursor:pointer;"><div class="profile-stat-icon">📚</div><div class="profile-stat-value">${toPersianNum(cl)}</div><div class="profile-stat-label">تکالیف (کلیک کن)</div></div><div class="profile-stat-card"><div class="profile-stat-icon">📊</div><div class="profile-stat-value">${toPersianNum(s.avg_percent || 0)}%</div><div class="profile-stat-label">میانگین درصد</div></div><div class="profile-stat-card"><div class="profile-stat-icon">🔥</div><div class="profile-stat-value">${toPersianNum(s.streak_days || 0)}</div><div class="profile-stat-label">روز متوالی</div></div></div><button class="profile-chat-btn" onclick="goToChatFromProfile()">💬 چت با این دانش‌آموز</button><div class="profile-total-points-card"><div class="profile-total-points-label">⭐ امتیاز کل (قابل ویرایش)</div><div class="profile-total-points-value">${toPersianNum(tp)}</div><div class="profile-total-points-actions"><button class="point-btn minus" onclick="changeTotalPoints(-10)">−۱۰</button><button class="point-btn minus" onclick="changeTotalPoints(-1)">−۱</button><button class="point-btn plus" onclick="changeTotalPoints(1)">+۱</button><button class="point-btn plus" onclick="changeTotalPoints(10)">+۱۰</button></div></div><div class="profile-lessons-card"><div class="profile-lessons-title">📚 مدیریت تکالیف</div><div class="profile-lessons-list">${lh}</div></div>`;
 }
 
+// 🆕 تابع حذف کارنامه تکلیف توسط معلم (برای انجام مجدد)
+async function deleteLessonReport(lessonId, studentName) {
+    if (!currentProfileStudent) return;
+    
+    const confirmDelete = confirm(`⚠️ آیا مطمئن هستی که می‌خوای کارنامه تکلیف «${lessonId}» برای دانش‌آموز «${studentName}» رو حذف کنی؟\n\nبا این کار، امتیاز این تکلیف از دانش‌آموز کم میشه و می‌تونه دوباره انجامش بده.`);
+    if (!confirmDelete) return;
+
+    vibrate(20);
+    showToast('در حال حذف...', 'info');
+
+    try {
+        const client = getSupabase();
+        if (!client) throw new Error('no_client');
+        
+        const studentId = currentProfileStudent.student_id;
+
+        // ۱. پیدا کردن اطلاعات کارنامه برای کم کردن امتیاز
+        const { data: reportData, error: findError } = await client
+            .from('reports')
+            .select('score')
+            .eq('student_id', studentId)
+            .eq('lesson_id', lessonId)
+            .maybeSingle();
+
+        if (findError) throw findError;
+
+        // ۲. حذف کارنامه از دیتابیس
+        const { error: deleteError } = await client
+            .from('reports')
+            .delete()
+            .eq('student_id', studentId)
+            .eq('lesson_id', lessonId);
+
+        if (deleteError) throw deleteError;
+
+        // ۳. اگر کارنامه امتیاز داشت، از total_points و completed_lessons دانش‌آموز کم کن
+        if (reportData && reportData.score > 0) {
+            const scoreToSubtract = reportData.score;
+            
+            const { data: rankingData } = await client
+                .from('rankings')
+                .select('total_points, completed_lessons')
+                .eq('student_id', studentId)
+                .maybeSingle();
+
+            if (rankingData) {
+                const newTotalPoints = Math.max(0, (rankingData.total_points || 0) - scoreToSubtract);
+                const newCompletedLessons = Math.max(0, (rankingData.completed_lessons || 0) - 1);
+
+                await client
+                    .from('rankings')
+                    .update({ 
+                        total_points: newTotalPoints,
+                        completed_lessons: newCompletedLessons
+                    })
+                    .eq('student_id', studentId);
+            }
+        }
+
+        // ۴. پاک کردن پیشرفت (progress) اگر وجود داره
+        await client
+            .from('current_progress')
+            .delete()
+            .eq('student_id', studentId)
+            .eq('lesson_id', lessonId);
+
+        // ۵. آپدیت کردن صفحه بدون رفرش
+        showToast('✅ کارنامه با موفقیت حذف شد. دانش‌آموز می‌تونه دوباره انجامش بده.', 'success');
+        vibrate([50, 50, 50]);
+        
+        currentProfileReports = await getStudentReports(studentId);
+        renderStudentProfile();
+
+    } catch (error) {
+        console.error('خطا در حذف کارنامه:', error);
+        showToast('❌ خطا در حذف کارنامه', 'error');
+    }
+}
 async function loadLessonsPage() {
     const c = document.getElementById('lessons-list');
     if (!c) return;
@@ -751,6 +834,7 @@ function selectDueDateDay(days, btn) {
     if (s) s.disabled = false;
     vibrate(10);
 }
+
 function closeDueDateModal() { const m = document.getElementById('due-date-modal'); if (m) m.remove(); selectedDueDateDays = null; }
 
 async function saveDueDate(lessonId) {
@@ -874,6 +958,7 @@ async function addEvent() {
         } else showToast('خطا', 'error');
     } catch (e) { showToast('خطا', 'error'); }
 }
+
 async function loadEvents() {
     const c = document.getElementById('events-list');
     if (!c) return;
@@ -886,6 +971,7 @@ async function loadEvents() {
         renderEvents(ev);
     } catch (e) { if (!ca) c.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا</div>'; }
 }
+
 function renderEvents(events) {
     const c = document.getElementById('events-list');
     if (!c) return;
@@ -916,6 +1002,7 @@ async function addContest() {
         } else showToast('خطا', 'error');
     } catch (e) { showToast('خطا', 'error'); }
 }
+
 async function loadContests() {
     const c = document.getElementById('contests-list');
     if (!c) return;
@@ -928,6 +1015,7 @@ async function loadContests() {
         renderContests(co);
     } catch (e) { if (!ca) c.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا</div>'; }
 }
+
 function renderContests(contests) {
     const c = document.getElementById('contests-list');
     if (!c) return;
@@ -936,6 +1024,7 @@ function renderContests(contests) {
     contests.forEach(x => { h += `<div class="contest-item"><div class="contest-item-icon">🏆</div><div class="contest-item-info"><div class="contest-item-title">${escapeHTML(x.title)}</div><div class="contest-item-meta">🎁 ${escapeHTML(x.prize || 'بدون جایزه')} • 📅 از ${x.start_date} تا ${x.end_date}</div></div></div>`; });
     c.innerHTML = h;
 }
+
 async function addLibraryItem() {
     const ti = document.getElementById('lib-title').value.trim();
     const ty = document.getElementById('lib-type').value;
@@ -954,6 +1043,7 @@ async function addLibraryItem() {
         } else showToast('خطا', 'error');
     } catch (e) { showToast('خطا', 'error'); }
 }
+
 async function loadLibrary() {
     const c = document.getElementById('library-list');
     if (!c) return;
@@ -966,6 +1056,7 @@ async function loadLibrary() {
         renderLibrary(it);
     } catch (e) { if (!ca) c.innerHTML = '<div style="text-align:center; padding:20px; color:#c62828; font-weight:bold;">خطا</div>'; }
 }
+
 function renderLibrary(items) {
     const c = document.getElementById('library-list');
     if (!c) return;
@@ -984,6 +1075,7 @@ function downloadAllStudents() {
     downloadFile(csv, 'دانش‌آموزان.csv', 'text/csv');
     showToast('دانلود شد', 'success');
 }
+
 function downloadClassReport() {
     const cl = document.getElementById('report-class-filter').value;
     const f = cl === 'all' ? allStudents : allStudents.filter(s => s.class_name === cl);
@@ -994,6 +1086,7 @@ function downloadClassReport() {
     downloadFile(csv, (cl === 'all' ? 'همه_کلاس‌ها.csv' : getClassPersianName(cl) + '.csv'), 'text/csv');
     showToast('دانلود شد', 'success');
 }
+
 function downloadFile(content, filename, type) {
     const b = new Blob([content], { type: type + ';charset=utf-8' });
     const u = URL.createObjectURL(b);
@@ -1003,7 +1096,9 @@ function downloadFile(content, filename, type) {
     a.click();
     URL.revokeObjectURL(u);
 }
+
 function printStudentCertificates() { showToast('به‌زودی', 'info'); }
+
 function showTopStudentsReport() {
     const top = [...allStudents].sort((a, b) => calculateTotalPoints(b) - calculateTotalPoints(a)).slice(0, 10);
     const c = document.getElementById('full-report-content');
@@ -1015,6 +1110,7 @@ function showTopStudentsReport() {
     });
     c.innerHTML = h;
 }
+
 function generateFullReport() {
     const cl = document.getElementById('report-class-filter').value;
     const f = cl === 'all' ? allStudents : allStudents.filter(s => s.class_name === cl);
@@ -1392,4 +1488,4 @@ async function sendChatMessage() {
     } catch (e) { showToast('خطا', 'error'); }
 }
 
-console.log('🎓 پنل معلم - نسخه ۳۴.۰.۰');
+console.log('🎓 پنل معلم - نسخه ۳۵.۰.۰');
