@@ -1,6 +1,6 @@
 // ============================================================
 // settings.js — تنظیمات، پروفایل، ورود، ثبت‌نام
-// نسخه: ۱۹.۰.۰ — اطمینان کامل از ثبت در rankings
+// نسخه: ۲۳.۰.۰ — رفع باگ‌های ورود و کد
 // ============================================================
 
 // ============================================================
@@ -60,7 +60,6 @@ async function saveUserInfo() {
         
         closeModal();
         
-        // 🆕 مهم: ثبت در rankings قبل از نمایش پیام موفقیت
         const success = await ensureRankingSaved(newUUID, name, cls, code);
         
         if (success) {
@@ -72,7 +71,6 @@ async function saveUserInfo() {
                 '✨');
             console.log('✅ ثبت‌نام کامل شد');
         } else {
-            // اگه ثبت نشد، ولی localStorage ذخیره شد
             console.warn('⚠️ ثبت‌نام ناقص موند، ولی اطلاعات توی localStorage ذخیره شد');
             showModal('⚠️ توجه', 
                 `حساب شما ساخته شد، ولی نتوانستیم اطلاعات رو در سرور ذخیره کنیم.\n\n` +
@@ -118,7 +116,6 @@ async function ensureRankingSaved(studentId, name, cls, code) {
             return false;
         }
         
-        // چک کن که آیا رکورد وجود داره یا نه
         const { data: existing, error: checkError } = await client
             .from('rankings')
             .select('student_id, name, class_name, custom_completed_lessons')
@@ -127,7 +124,6 @@ async function ensureRankingSaved(studentId, name, cls, code) {
         
         if (checkError && checkError.code !== 'PGRST116') {
             console.error('❌ خطا در چک رکورد:', checkError.message);
-            // اگه خطای ستون بود، ادامه بده
             if (!checkError.message.includes('custom_completed_lessons')) {
                 return false;
             }
@@ -157,7 +153,6 @@ async function ensureRankingSaved(studentId, name, cls, code) {
             return true;
         }
         
-        // رکورد جدید بساز
         const payload = {
             student_id: studentId,
             name: name,
@@ -183,22 +178,11 @@ async function ensureRankingSaved(studentId, name, cls, code) {
         if (error) {
             console.error('❌ خطا در درج رکورد:', error.message);
             
-            // اگه خطای ستون custom_completed_lessons بود، بدون اون تلاش کن
             if (error.message.includes('custom_completed_lessons')) {
                 console.warn('⚠️ ستون custom_completed_lessons وجود نداره، بدون اون تلاش می‌کنم');
                 
-                const fallbackPayload = {
-                    student_id: studentId,
-                    name: name,
-                    class_name: classNameToSlug(cls),
-                    total_points: 0,
-                    completed_lessons: 0,
-                    avg_percent: 0,
-                    streak_days: 0,
-                    avatar_url: 'default',
-                    student_code: code,
-                    last_update: new Date().toISOString()
-                };
+                const fallbackPayload = { ...payload };
+                delete fallbackPayload.custom_completed_lessons;
                 
                 const { error: retryError } = await client
                     .from('rankings')
@@ -209,11 +193,10 @@ async function ensureRankingSaved(studentId, name, cls, code) {
                     return false;
                 }
                 
-                console.log('✅ رکورد بدون custom_completed_lessons ثبت شد (لطفاً ستون رو به دیتابیس اضافه کن)');
+                console.log('✅ رکورد بدون custom_completed_lessons ثبت شد');
                 return true;
             }
             
-            // یه بار دیگه تلاش کن
             await new Promise(resolve => setTimeout(resolve, 1000));
             
             const { error: retryError } = await client
@@ -237,7 +220,6 @@ async function ensureRankingSaved(studentId, name, cls, code) {
         return false;
     }
 }
-
 // ============================================================
 // ورود با کد
 // ============================================================
@@ -272,6 +254,7 @@ async function loginWithCode() {
         const name = checkResult.name;
         const className = slugToClassName(checkResult.className);
         
+        // 🆕 پاک کردن کش‌های موقت (قبل از ورود)
         clearTempCachesBeforeLogin();
         
         localStorage.setItem('studentUUID', studentId);
@@ -287,9 +270,12 @@ async function loginWithCode() {
         showModal('⏳ در حال بازیابی...', 'داریم اطلاعاتت رو برمی‌گردونیم...', '🔄');
         
         const recovered = await recoverAllDataFromSupabase();
-        await markAllAsSeenForReturningUser();
         
-        // اطمینان از وجود رکورد در rankings
+        // 🆕 استفاده از نسخه notifications.js (کامل‌تر)
+        if (typeof markAllAsSeenForReturningUser === 'function') {
+            await markAllAsSeenForReturningUser();
+        }
+        
         await ensureRankingSaved(studentId, name, className, code);
         
         if (recovered) {
@@ -343,90 +329,37 @@ async function loginWithCode() {
 }
 
 // ============================================================
-// علامت‌گذاری همه چیز به عنوان دیده‌شده
-// ============================================================
-async function markAllAsSeenForReturningUser() {
-    try {
-        const studentId = localStorage.getItem('studentUUID');
-        if (!studentId) return;
-        
-        console.log('🔇 علامت‌گذاری همه اعلان‌ها...');
-        
-        const client = getSupabase();
-        if (!client) return;
-        
-        try {
-            const { data: personalMsgs } = await client
-                .from('personal_messages')
-                .select('message_id')
-                .eq('student_id', studentId)
-                .eq('sender', 'teacher');
-            
-            if (personalMsgs && personalMsgs.length > 0) {
-                const seenChat = personalMsgs.map(m => m.message_id);
-                localStorage.setItem('seenChatMessages', JSON.stringify(seenChat));
-            }
-        } catch (e) {}
-        
-        try {
-            const userClass = localStorage.getItem('userClass');
-            const classSlug = classNameToSlug(userClass);
-            const { data: classMsgs } = await client
-                .from('class_messages')
-                .select('message_id')
-                .or(`class_name.eq.${classSlug},class_name.eq.all`);
-            
-            if (classMsgs && classMsgs.length > 0) {
-                const seenClass = classMsgs.map(m => m.message_id);
-                localStorage.setItem('seenClassMessages', JSON.stringify(seenClass));
-            }
-        } catch (e) {}
-        
-        try {
-            const response = await fetch('./lessons/index.json?t=' + Date.now());
-            const data = await response.json();
-            const lessons = data.lessons || [];
-            const seenLessons = lessons.map(l => l.id);
-            localStorage.setItem('seenLessonsForNotif', JSON.stringify(seenLessons));
-            localStorage.setItem('seenLessons', JSON.stringify(seenLessons));
-        } catch (e) {}
-        
-        try {
-            const response = await fetch('./jozve/index.json?t=' + Date.now());
-            const data = await response.json();
-            const items = data.items || [];
-            const seenJozve = items.map(item => item.id);
-            localStorage.setItem('seenJozveIds', JSON.stringify(seenJozve));
-            localStorage.setItem('dismissedNewJozveNotif', 'true');
-        } catch (e) {}
-        
-        localStorage.setItem('seenVideos', JSON.stringify(['video_1', 'video_2']));
-        localStorage.setItem('dismissedNewMessageNotif', 'true');
-        if (typeof UPDATE_VERSION !== 'undefined') {
-            localStorage.setItem('seenUpdateVersion', UPDATE_VERSION);
-        }
-        localStorage.setItem('hasSeenRankingsGuide', 'true');
-        localStorage.setItem('guideCompleted', 'true');
-        localStorage.setItem('lessonsGuideShown', 'true');
-        localStorage.setItem('welcomeShown', 'true');
-        
-        const today = getPersianDate();
-        localStorage.setItem('lastStreakMessageShown', today);
-        localStorage.setItem('lastDeadlineNotifDate', today);
-        
-    } catch (error) {
-        console.error('❌ خطا در seen:', error);
-    }
-}
-
-// ============================================================
-// پاک کردن کش‌های موقت
+// 🆕 پاک کردن کش‌های موقت (با کلیدهای dismissed)
 // ============================================================
 function clearTempCachesBeforeLogin() {
     const tempKeys = [
         'studentClassMessagesCache',
         'notifications',
-        'lessonsListCache'
+        'lessonsListCache',
+        // 🆕 کلیدهای dismissed (تا کاربر جدید پیام‌های جدید ببیند)
+        'dismissedNewMessageNotif',
+        'dismissedNewJozveNotif',
+        'dismissedDeadlineNotif',
+        'seenChatMessages',
+        'seenClassMessages',
+        'seenLessonsForNotif',
+        'seenLessons',
+        'seenVideos',
+        'seenJozveIds',
+        'lastStreakMessageShown',
+        'lastDeadlineNotifDate',
+        // 🆕 کش رتبه‌بندی
+        'rankings_cache_hafom-1',
+        'rankings_cache_hafom-2',
+        'rankings_cache_hafom-3',
+        'rankings_cache_hafom-4',
+        'rankings_cache_hafom-5',
+        // 🆕 کش استوری‌ها
+        'viewedStories',
+        'likedStories',
+        'storiesCache',
+        'seenChallenges',
+        'seenStories'
     ];
     
     tempKeys.forEach(key => {
@@ -436,7 +369,7 @@ function clearTempCachesBeforeLogin() {
     try {
         for (let i = localStorage.length - 1; i >= 0; i--) {
             const key = localStorage.key(i);
-            if (key && key.startsWith('studentChatCache_')) {
+            if (key && (key.startsWith('studentChatCache_') || key.startsWith('rankings_cache_'))) {
                 localStorage.removeItem(key);
             }
         }
@@ -444,12 +377,13 @@ function clearTempCachesBeforeLogin() {
 }
 
 // ============================================================
-// توابع کمکی
+// توابع کمکی کد
 // ============================================================
 async function generateUniqueCodeForOldUser() {
     try {
         const client = getSupabase();
         if (!client) return null;
+        
         for (let attempt = 0; attempt < 20; attempt++) {
             const code = String(Math.floor(100 + Math.random() * 900));
             const { data, error } = await client
@@ -457,21 +391,26 @@ async function generateUniqueCodeForOldUser() {
                 .select('student_id')
                 .eq('student_code', code)
                 .maybeSingle();
+            
             if (!error && !data) return code;
         }
         return null;
-    } catch (error) { return null; }
+    } catch (error) { 
+        return null; 
+    }
 }
 
 async function assignCodeToOldUser() {
     try {
         const studentId = localStorage.getItem('studentUUID');
         const existingCode = localStorage.getItem('studentCode');
+        
         if (existingCode && /^[0-9]{3}$/.test(existingCode)) return existingCode;
         if (!studentId) return null;
         
         const newCode = await generateUniqueCodeForOldUser();
         if (!newCode) return null;
+        
         localStorage.setItem('studentCode', newCode);
         
         const client = getSupabase();
@@ -482,7 +421,9 @@ async function assignCodeToOldUser() {
                 .eq('student_id', studentId);
         }
         return newCode;
-    } catch (error) { return null; }
+    } catch (error) { 
+        return null; 
+    }
 }
 
 async function showCodeModalToOldUser(code) {
@@ -565,6 +506,7 @@ function openChangeCodeModal() {
         </div>
     `;
     document.body.appendChild(modal);
+    
     setTimeout(() => {
         const input = document.getElementById('new-code-input');
         if (input) {
@@ -583,28 +525,51 @@ function closeChangeCodeModal() {
 async function saveNewCode() {
     const input = document.getElementById('new-code-input');
     const newCode = input ? input.value.trim() : '';
-    if (!newCode) { showModal('خطا', 'کد جدید را وارد کنید.', '⚠️'); return; }
-    if (!/^[0-9]{3}$/.test(newCode)) { showModal('خطا', 'کد باید ۳ رقم باشه.', '⚠️'); return; }
+    
+    if (!newCode) { 
+        showModal('خطا', 'کد جدید را وارد کنید.', '⚠️'); 
+        return; 
+    }
+    
+    if (!/^[0-9]{3}$/.test(newCode)) { 
+        showModal('خطا', 'کد باید ۳ رقم باشه.', '⚠️'); 
+        return; 
+    }
+    
     const currentCode = localStorage.getItem('studentCode');
-    if (newCode === currentCode) { showModal('توجه', 'کد جدید با کد فعلی یکیه.', '⚠️'); return; }
+    if (newCode === currentCode) { 
+        showModal('توجه', 'کد جدید با کد فعلی یکیه.', '⚠️'); 
+        return; 
+    }
     
     showModal('⏳ در حال بررسی...', 'لطفاً صبر کنید...', '🔄');
+    
     try {
         const checkResult = await checkStudentCodeExists(newCode);
+        
         if (checkResult.exists) {
             closeModal();
             showModal('❌ کد تکراری', `کد <strong>${newCode}</strong> قبلاً استفاده شده.`, '❌');
             return;
         }
+        
         localStorage.setItem('studentCode', newCode);
+        
         const studentId = localStorage.getItem('studentUUID');
         const client = getSupabase();
+        
         if (client && studentId) {
-            const { error } = await client.from('rankings').update({ student_code: newCode }).eq('student_id', studentId);
+            const { error } = await client
+                .from('rankings')
+                .update({ student_code: newCode })
+                .eq('student_id', studentId);
+            
             if (error) throw error;
         }
+        
         const codeEl = document.getElementById('profile-code');
         if (codeEl) codeEl.textContent = newCode;
+        
         closeModal();
         closeChangeCodeModal();
         showModal('✅ موفق', `کد ورودت به <strong>${newCode}</strong> تغییر کرد.`, '✅');
@@ -614,59 +579,127 @@ async function saveNewCode() {
         showModal('خطا', 'مشکلی پیش آمد.', '❌');
     }
 }
-
 async function transferLocalDataToSupabase() {
     try {
         const studentId = localStorage.getItem('studentUUID');
         if (!studentId) return false;
+        
         const client = getSupabase();
         if (!client) return false;
+        
         const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        
         if (reports.length > 0) {
-            const { data: existingReports } = await client.from('reports').select('lesson_id').eq('student_id', studentId);
+            const { data: existingReports } = await client
+                .from('reports')
+                .select('lesson_id')
+                .eq('student_id', studentId);
+            
             const existingLessonIds = new Set((existingReports || []).map(r => r.lesson_id));
             const newReports = reports.filter(r => !existingLessonIds.has(r.lessonId));
+            
             for (const report of newReports) {
+                const safePercent = isNaN(report.percent) ? 0 : (report.percent || 0);
+                const safeScore = isNaN(report.score) ? 0 : (report.score || 0);
+                const safeTotalPoints = isNaN(report.totalPoints) ? 0 : (report.totalPoints || 0);
+                const safeCorrect = isNaN(report.correct) ? 0 : (report.correct || 0);
+                const safeWrong = isNaN(report.wrong) ? 0 : (report.wrong || 0);
+                const safeTimeTaken = isNaN(report.timeTaken) ? 1 : (report.timeTaken || 1);
+                
                 const payload = {
-                    student_id: studentId, lesson_id: report.lessonId, lesson_title: report.lessonTitle,
-                    percent: report.percent || 0, score: report.score || 0, total_points: report.totalPoints || 0,
-                    correct: report.correct || 0, wrong: report.wrong || 0, time_taken: report.timeTaken || 0,
+                    student_id: studentId,
+                    lesson_id: report.lessonId,
+                    lesson_title: report.lessonTitle || 'تکلیف',
+                    percent: safePercent,
+                    score: safeScore,
+                    total_points: safeTotalPoints,
+                    correct: safeCorrect,
+                    wrong: safeWrong,
+                    time_taken: safeTimeTaken,
                     created_at: report.timestamp || new Date().toISOString()
                 };
                 await client.from('reports').insert(payload);
             }
         }
-        if (typeof saveRankingToSupabase === 'function') await saveRankingToSupabase();
+        
+        if (typeof saveRankingToSupabase === 'function') {
+            await saveRankingToSupabase();
+        }
+        
         return true;
-    } catch (error) { return false; }
+    } catch (error) { 
+        console.warn('⚠️ خطا در transferLocalDataToSupabase:', error);
+        return false; 
+    }
 }
 
 async function recoverAllDataFromSupabase() {
     try {
         const studentId = localStorage.getItem('studentUUID');
         if (!studentId) return false;
+        
         const client = getSupabase();
         if (!client) return false;
         
+        // 🆕 دریافت گزارش‌ها
         const reports = await getReportsFromSupabase(studentId);
-        if (reports.length > 0) {
+        
+        if (reports && reports.length > 0) {
             const userName = localStorage.getItem('userName') || '';
             const userClass = localStorage.getItem('userClass') || '';
+            
             const localReports = reports.map(r => ({
-                studentName: userName, studentClass: userClass,
-                lessonId: r.lesson_id, lessonTitle: r.lesson_title,
-                date: new Date(r.created_at).toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }),
-                timestamp: r.created_at, percent: r.percent || 0, correct: r.correct || 0, wrong: r.wrong || 0,
-                score: r.score || 0, totalPoints: r.total_points || 0, timeTaken: r.time_taken || 0, surveyAnswer: ''
+                studentName: userName,
+                studentClass: userClass,
+                lessonId: r.lesson_id,
+                lessonTitle: r.lesson_title,
+                date: new Date(r.created_at).toLocaleDateString('fa-IR', { 
+                    year: 'numeric', month: '2-digit', day: '2-digit' 
+                }),
+                timestamp: r.created_at,
+                percent: r.percent || 0,
+                correct: r.correct || 0,
+                wrong: r.wrong || 0,
+                score: r.score || 0,
+                totalPoints: r.total_points || 0,
+                timeTaken: r.time_taken || 0,
+                surveyAnswer: ''
             }));
-            localStorage.setItem('reports', JSON.stringify(localReports));
+            
+            // 🆕 فقط اگر reports محلی خالی بود، از Supabase بنویس
+            const existingLocalReports = JSON.parse(localStorage.getItem('reports') || '[]');
+            if (existingLocalReports.length === 0) {
+                localStorage.setItem('reports', JSON.stringify(localReports));
+            } else {
+                // 🆕 ادغام: هر گزارش که در Supabase هست ولی در لوکال نیست، اضافه کن
+                const mergedMap = {};
+                existingLocalReports.forEach(r => {
+                    if (r.lessonId) mergedMap[r.lessonId] = r;
+                });
+                localReports.forEach(r => {
+                    if (r.lessonId && !mergedMap[r.lessonId]) {
+                        mergedMap[r.lessonId] = r;
+                    }
+                });
+                localStorage.setItem('reports', JSON.stringify(Object.values(mergedMap)));
+            }
         }
         
-        const { data: rankingData } = await client.from('rankings').select('*').eq('student_id', studentId).maybeSingle();
+        // 🆕 دریافت rankings
+        const { data: rankingData } = await client
+            .from('rankings')
+            .select('*')
+            .eq('student_id', studentId)
+            .maybeSingle();
+        
         if (rankingData) {
             if (rankingData.name) localStorage.setItem('userName', rankingData.name);
-            if (rankingData.class_name) localStorage.setItem('userClass', slugToClassName(rankingData.class_name));
-            if (rankingData.student_code) localStorage.setItem('studentCode', rankingData.student_code);
+            if (rankingData.class_name) {
+                localStorage.setItem('userClass', slugToClassName(rankingData.class_name));
+            }
+            if (rankingData.student_code) {
+                localStorage.setItem('studentCode', rankingData.student_code);
+            }
             if (rankingData.avatar_url) {
                 const avatarUrl = String(rankingData.avatar_url).trim();
                 if (avatarUrl.startsWith('emoji:')) {
@@ -693,22 +726,38 @@ async function recoverAllDataFromSupabase() {
             localStorage.setItem('customTotalPoints', rankingData.custom_total_points || 0);
         }
         
+        // 🆕 دریافت وضعیت تکالیف
         const status = await getStudentLessonStatus(studentId);
-        localStorage.setItem('lessonStatusCache', JSON.stringify({ data: status, timestamp: Date.now() }));
+        localStorage.setItem('lessonStatusCache', JSON.stringify({ 
+            data: status, 
+            timestamp: Date.now() 
+        }));
         
+        // 🆕 بازیابی seen_data
         if (typeof recoverSeenDataFromSupabase === 'function') {
             await recoverSeenDataFromSupabase(studentId);
         }
         
         return true;
-    } catch (error) { return false; }
+    } catch (error) { 
+        console.warn('⚠️ خطا در recoverAllDataFromSupabase:', error);
+        return false; 
+    }
 }
 
+// ============================================================
+// 🆕 updateHomeUI
+// ============================================================
 function updateHomeUI() {
     const name = localStorage.getItem('userName');
     if (name) {
         const homeNameEl = document.getElementById('home-student-name');
         if (homeNameEl) homeNameEl.textContent = `سلام، ${name} جان`;
+    }
+    
+    // 🆕 آپدیت آواتار
+    if (typeof applyAvatarToElements === 'function') {
+        applyAvatarToElements();
     }
 }
 
@@ -741,15 +790,18 @@ function loadProfileData() {
     if (yearEl) yearEl.textContent = year;
     
     loadStudentCodeInProfile();
+    
     if (typeof applyAvatarToElements === 'function') applyAvatarToElements();
+    
     loadProfileStatsFromSupabase();
 }
 
 async function loadProfileStatsFromSupabase() {
     const reports = JSON.parse(localStorage.getItem('reports') || '[]');
-    let totalPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
     const completedLessons = reports.length;
-    const avgPercent = reports.length > 0 ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length) : 0;
+    const avgPercent = reports.length > 0 
+        ? Math.round(reports.reduce((sum, r) => sum + (r.percent || 0), 0) / reports.length) 
+        : 0;
     const stats = typeof getUserStats === 'function' ? getUserStats() : { unlockedMedals: [] };
     
     const pointsEl = document.getElementById('stat-points');
@@ -757,38 +809,67 @@ async function loadProfileStatsFromSupabase() {
     const completedEl = document.getElementById('stat-completed');
     const percentEl = document.getElementById('stat-percent');
     
-    if (pointsEl) pointsEl.textContent = toPersianNum(totalPoints);
-    if (medalsEl) medalsEl.textContent = toPersianNum(stats.unlockedMedals.length);
-    if (completedEl) completedEl.textContent = toPersianNum(completedLessons);
-    if (percentEl) percentEl.textContent = toPersianNum(avgPercent) + '%';
-    
     try {
         const client = getSupabase();
-        if (!client) return;
+        if (!client) {
+            const localPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
+            if (pointsEl) pointsEl.textContent = toPersianNum(localPoints);
+            if (medalsEl) medalsEl.textContent = toPersianNum(stats.unlockedMedals.length);
+            if (completedEl) completedEl.textContent = toPersianNum(completedLessons);
+            if (percentEl) percentEl.textContent = toPersianNum(avgPercent) + '%';
+            return;
+        }
+        
         const studentId = localStorage.getItem('studentUUID');
         if (!studentId) return;
+        
         const { data, error } = await client
             .from('rankings')
-            .select('custom_points_added, custom_total_points, total_points, completed_lessons, avg_percent, student_code')
+            .select('total_points, custom_points_added, custom_total_points, student_code')
             .eq('student_id', studentId)
             .maybeSingle();
-        if (error || !data) return;
-        const customAdded = data.custom_points_added || 0;
-        const customTotal = data.custom_total_points || 0;
-        const finalTotalPoints = totalPoints + customAdded + customTotal;
+            
+        if (error || !data) {
+            const localPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
+            if (pointsEl) pointsEl.textContent = toPersianNum(localPoints);
+            if (medalsEl) medalsEl.textContent = toPersianNum(stats.unlockedMedals.length);
+            if (completedEl) completedEl.textContent = toPersianNum(completedLessons);
+            if (percentEl) percentEl.textContent = toPersianNum(avgPercent) + '%';
+            return;
+        }
+        
+        const basePoints = parseInt(data.total_points) || 0;
+        const challengePoints = parseInt(data.custom_points_added) || 0;
+        const manualPoints = parseInt(data.custom_total_points) || 0;
+        
+        const finalTotalPoints = Math.max(0, basePoints + challengePoints + manualPoints);
+        
         if (pointsEl) pointsEl.textContent = toPersianNum(finalTotalPoints);
+        if (medalsEl) medalsEl.textContent = toPersianNum(stats.unlockedMedals.length);
+        if (completedEl) completedEl.textContent = toPersianNum(completedLessons);
+        if (percentEl) percentEl.textContent = toPersianNum(avgPercent) + '%';
+        
         if (data.student_code && !localStorage.getItem('studentCode')) {
             localStorage.setItem('studentCode', data.student_code);
             loadStudentCodeInProfile();
         }
-        localStorage.setItem('customPointsAdded', customAdded);
-        localStorage.setItem('customTotalPoints', customTotal);
-    } catch (e) {}
+        
+    } catch (e) {
+        const localPoints = reports.reduce((sum, r) => sum + (r.score || 0), 0);
+        if (pointsEl) pointsEl.textContent = toPersianNum(localPoints);
+        if (medalsEl) medalsEl.textContent = toPersianNum(stats.unlockedMedals.length);
+        if (completedEl) completedEl.textContent = toPersianNum(completedLessons);
+        if (percentEl) percentEl.textContent = toPersianNum(avgPercent) + '%';
+    }
 }
-
 function toggleDarkMode(el) {
-    if (el.checked) { localStorage.setItem('darkMode', 'true'); document.body.classList.add('dark-mode'); }
-    else { localStorage.setItem('darkMode', 'false'); document.body.classList.remove('dark-mode'); }
+    if (el.checked) { 
+        localStorage.setItem('darkMode', 'true'); 
+        document.body.classList.add('dark-mode'); 
+    } else { 
+        localStorage.setItem('darkMode', 'false'); 
+        document.body.classList.remove('dark-mode'); 
+    }
 }
 
 function toggleMusicSetting(el) {
@@ -883,6 +964,7 @@ function typeMotivation() {
     const cursor = document.createElement('span');
     cursor.className = 'cursor-blink';
     el.appendChild(cursor);
+    
     function type() {
         if (index < text.length) {
             cursor.before(document.createTextNode(text[index]));
@@ -899,35 +981,51 @@ function openUpdateDataModal() {
     const modal = document.getElementById('update-data-modal');
     if (modal) modal.classList.add('active');
 }
+
 function closeUpdateDataModal() {
     const modal = document.getElementById('update-data-modal');
     if (modal) modal.classList.remove('active');
 }
+
 async function confirmUpdateData() {
     closeUpdateDataModal();
     showModal('⏳ در حال بروزرسانی...', 'لطفاً چند لحظه صبر کنید.', '🔄');
+    
     try {
         if ('caches' in window) {
             const cacheNames = await caches.keys();
             await Promise.all(cacheNames.map(name => caches.delete(name)));
         }
+        
         if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (let registration of registrations) await registration.unregister();
         }
+        
         showModal('✅ بروزرسانی موفق', 'اطلاعات شما حفظ شد.', '✅');
+        
         setTimeout(() => {
             const url = new URL(window.location.href);
             url.searchParams.set('updated', Date.now());
             window.location.href = url.toString();
         }, 1500);
-    } catch (error) { setTimeout(() => location.reload(), 1500); }
+    } catch (error) { 
+        setTimeout(() => location.reload(), 1500); 
+    }
 }
 
+// ============================================================
+// آواتار
+// ============================================================
 function changeAvatar(event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { showModal('خطا', 'حجم عکس باید کمتر از ۵ مگابایت باشد.', '⚠️'); return; }
+    
+    if (file.size > 5 * 1024 * 1024) { 
+        showModal('خطا', 'حجم عکس باید کمتر از ۵ مگابایت باشد.', '⚠️'); 
+        return; 
+    }
+    
     const reader = new FileReader();
     reader.onload = function(e) {
         const img = new Image();
@@ -936,20 +1034,44 @@ function changeAvatar(event) {
                 const canvas = document.createElement('canvas');
                 const MAX_SIZE = 300;
                 let width = img.width, height = img.height;
-                if (width > height) { if (width > MAX_SIZE) { height = Math.round((height * MAX_SIZE) / width); width = MAX_SIZE; } }
-                else { if (height > MAX_SIZE) { width = Math.round((width * MAX_SIZE) / height); height = MAX_SIZE; } }
-                canvas.width = width; canvas.height = height;
+                
+                if (width > height) { 
+                    if (width > MAX_SIZE) { 
+                        height = Math.round((height * MAX_SIZE) / width); 
+                        width = MAX_SIZE; 
+                    } 
+                } else { 
+                    if (height > MAX_SIZE) { 
+                        width = Math.round((width * MAX_SIZE) / height); 
+                        height = MAX_SIZE; 
+                    } 
+                }
+                
+                canvas.width = width; 
+                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+                ctx.imageSmoothingEnabled = true; 
+                ctx.imageSmoothingQuality = 'high';
                 ctx.drawImage(img, 0, 0, width, height);
+                
                 let compressedData = canvas.toDataURL('image/jpeg', 0.85);
-                if (compressedData.length > 45000) compressedData = canvas.toDataURL('image/jpeg', 0.6);
+                if (compressedData.length > 45000) {
+                    compressedData = canvas.toDataURL('image/jpeg', 0.6);
+                }
+                
                 localStorage.setItem('userAvatar', compressedData);
                 localStorage.removeItem('userAvatarEmoji');
+                
                 if (typeof applyAvatarToElements === 'function') applyAvatarToElements();
+                
                 showModal('موفق', 'عکس پروفایل تغییر کرد.', '✅');
-                if (typeof saveRankingToSupabase === 'function') setTimeout(() => saveRankingToSupabase(), 800);
-            } catch (err) { showModal('خطا', 'مشکلی در پردازش عکس.', '❌'); }
+                
+                if (typeof saveRankingToSupabase === 'function') {
+                    setTimeout(() => saveRankingToSupabase(), 800);
+                }
+            } catch (err) { 
+                showModal('خطا', 'مشکلی در پردازش عکس.', '❌'); 
+            }
         };
         img.src = e.target.result;
     };
@@ -961,45 +1083,263 @@ function openAvatarOptionsModal() {
     const modal = document.getElementById('avatar-options-modal');
     if (modal) modal.classList.add('active');
 }
+
 function closeAvatarOptionsModal() {
     const modal = document.getElementById('avatar-options-modal');
     if (modal) modal.classList.remove('active');
 }
+
 function chooseEmojiOption() {
     closeAvatarOptionsModal();
-    setTimeout(() => { if (typeof openEmojiPicker === 'function') openEmojiPicker(); }, 250);
+    setTimeout(() => { 
+        if (typeof openEmojiPicker === 'function') openEmojiPicker(); 
+    }, 250);
 }
+
 function chooseGalleryOption() {
     closeAvatarOptionsModal();
-    setTimeout(() => { const fileInput = document.getElementById('avatar-input'); if (fileInput) fileInput.click(); }, 250);
+    setTimeout(() => { 
+        const fileInput = document.getElementById('avatar-input'); 
+        if (fileInput) fileInput.click(); 
+    }, 250);
 }
+
+// ============================================================
+// پروفایل
+// ============================================================
 function openEditProfile() {
     const nameEl = document.getElementById('edit-name');
     const classEl = document.getElementById('edit-class');
     const schoolEl = document.getElementById('edit-school');
     const yearEl = document.getElementById('edit-year');
+    
     if (nameEl) nameEl.value = localStorage.getItem('userName') || '';
     if (classEl) classEl.value = localStorage.getItem('userClass') || 'هفتم یک';
     if (schoolEl) schoolEl.value = localStorage.getItem('userSchool') || '';
     if (yearEl) yearEl.value = '۱۴۰۵-۱۴۰۶';
+    
     const modal = document.getElementById('edit-profile-modal');
     if (modal) modal.classList.add('active');
 }
+
 function closeEditProfile() {
     const modal = document.getElementById('edit-profile-modal');
     if (modal) modal.classList.remove('active');
 }
+
 function saveProfileChanges() {
     const newName = document.getElementById('edit-name').value.trim();
     const newClass = document.getElementById('edit-class').value;
     const newSchool = document.getElementById('edit-school').value.trim();
-    if (!newName) { showModal('خطا', 'لطفاً نام خود را وارد کنید.', '⚠️'); return; }
+    
+    if (!newName) { 
+        showModal('خطا', 'لطفاً نام خود را وارد کنید.', '⚠️'); 
+        return; 
+    }
+    
     localStorage.setItem('userName', newName);
     localStorage.setItem('userClass', newClass);
     localStorage.setItem('userSchool', newSchool || 'تعیین نشده');
+    
     updateHomeUI();
     loadProfileData();
     closeEditProfile();
     showModal('موفق', 'اطلاعات شما ذخیره شد.', '✅');
-    if (typeof saveRankingToSupabase === 'function') setTimeout(() => saveRankingToSupabase(), 800);
+    
+    if (typeof saveRankingToSupabase === 'function') {
+        setTimeout(() => saveRankingToSupabase(), 800);
+    }
+}
+
+// ============================================================
+// 🆕 مودال تاریخچه امتیازات (برای صفحه پروفایل)
+// ============================================================
+async function openPointsHistoryModal() {
+    if (navigator.vibrate) navigator.vibrate(15);
+    
+    let existing = document.getElementById('points-history-modal');
+    if (existing) existing.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'points-history-modal';
+    modal.className = 'points-history-modal active';
+    modal.innerHTML = `
+        <div class="points-history-box" id="points-history-content">
+            <button class="points-history-close" onclick="closePointsHistoryModal()">✕</button>
+            <div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    let historyHTML = '';
+    let totalPoints = 0;
+
+    const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+    reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    reports.forEach(r => {
+        totalPoints += (r.score || 0);
+        historyHTML += `
+            <div class="points-history-item lesson-item">
+                <div class="points-history-icon lesson">📚</div>
+                <div class="points-history-info">
+                    <div class="points-history-title">${r.lessonTitle || 'تکلیف'}</div>
+                    <div class="points-history-date">${r.date || ''}</div>
+                </div>
+                <div class="points-history-value">+${toPersianNum(r.score || 0)}</div>
+            </div>
+        `;
+    });
+
+    try {
+        const chalRes = await fetch('./challenges.json?t=' + Date.now());
+        if (chalRes.ok) {
+            const chalData = await chalRes.json();
+            const challenges = chalData.challenges || [];
+            
+            challenges.forEach(c => {
+                if (localStorage.getItem('quizCompleted_' + c.id) === 'true') {
+                    const score = parseInt(localStorage.getItem('quizScore_' + c.id)) || 0;
+                    totalPoints += score;
+                    historyHTML += `
+                        <div class="points-history-item challenge-item">
+                            <div class="points-history-icon challenge">🏆</div>
+                            <div class="points-history-info">
+                                <div class="points-history-title">${c.title}</div>
+                                <div class="points-history-date">چالش هفتگی</div>
+                            </div>
+                            <div class="points-history-value">+${toPersianNum(score)}</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+    } catch(e) {
+        console.warn('خطا در دریافت لیست چالش‌ها:', e);
+    }
+
+    const container = document.getElementById('points-history-content');
+    if (!container) return;
+    
+    if (historyHTML === '') {
+        historyHTML = `<div class="points-history-empty">هنوز هیچ امتیازی کسب نکرده‌اید.<br>با انجام تکالیف و چالش‌ها، امتیاز بگیرید!</div>`;
+    }
+
+    container.innerHTML = `
+        <button class="points-history-close" onclick="closePointsHistoryModal()">✕</button>
+        <div class="points-history-header">
+            <h2>تاریخچه امتیازات</h2>
+            <div class="points-history-total">
+                ${toPersianNum(totalPoints)} <span>امتیاز</span>
+            </div>
+        </div>
+        <div style="padding-bottom: 10px;">
+            ${historyHTML}
+        </div>
+    `;
+}
+
+// ============================================================
+// 🆕 مودال تاریخچه امتیازات برای سایر کاربران
+// ============================================================
+async function openPointsHistoryModalForUser(studentId) {
+    if (navigator.vibrate) navigator.vibrate(15);
+    
+    let existing = document.getElementById('points-history-modal');
+    if (existing) existing.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'points-history-modal';
+    modal.className = 'points-history-modal active';
+    modal.innerHTML = `
+        <div class="points-history-box" id="points-history-content">
+            <button class="points-history-close" onclick="closePointsHistoryModal()">✕</button>
+            <div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">در حال بارگذاری...</div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    let historyHTML = '';
+    let totalPoints = 0;
+
+    try {
+        const client = getSupabase();
+        if (client) {
+            // ۱. مجموع امتیازات تکالیف
+            const { data: reports } = await client
+                .from('reports')
+                .select('score')
+                .eq('student_id', studentId);
+            
+            let totalLessonPoints = 0;
+            if (reports && reports.length > 0) {
+                reports.forEach(r => {
+                    totalLessonPoints += (r.score || 0);
+                });
+            }
+            
+            if (totalLessonPoints > 0) {
+                totalPoints += totalLessonPoints;
+                historyHTML += `
+                    <div class="points-history-item lesson-item">
+                        <div class="points-history-icon lesson">📚</div>
+                        <div class="points-history-info">
+                            <div class="points-history-title">مجموع امتیاز تکالیف</div>
+                            <div class="points-history-date">از دیتابیس</div>
+                        </div>
+                        <div class="points-history-value">+${toPersianNum(totalLessonPoints)}</div>
+                    </div>
+                `;
+            }
+
+            // ۲. امتیازات چالش هفتگی
+            const { data: rankingData } = await client
+                .from('rankings')
+                .select('custom_points_added')
+                .eq('student_id', studentId)
+                .maybeSingle();
+            
+            if (rankingData && rankingData.custom_points_added > 0) {
+                const chalPoints = rankingData.custom_points_added;
+                totalPoints += chalPoints;
+                historyHTML += `
+                    <div class="points-history-item challenge-item">
+                        <div class="points-history-icon challenge">🏆</div>
+                        <div class="points-history-info">
+                            <div class="points-history-title">مجموع چالش‌های هفتگی</div>
+                            <div class="points-history-date">از دیتابیس</div>
+                        </div>
+                        <div class="points-history-value">+${toPersianNum(chalPoints)}</div>
+                    </div>
+                `;
+            }
+        }
+    } catch(e) {
+        console.warn('خطا در دریافت تاریخچه امتیازات:', e);
+    }
+
+    const container = document.getElementById('points-history-content');
+    if (!container) return;
+    
+    if (historyHTML === '') {
+        historyHTML = `<div class="points-history-empty">این کاربر هنوز هیچ امتیازی کسب نکرده است.</div>`;
+    }
+
+    container.innerHTML = `
+        <button class="points-history-close" onclick="closePointsHistoryModal()">✕</button>
+        <div class="points-history-header">
+            <h2>تاریخچه امتیازات</h2>
+            <div class="points-history-total">
+                ${toPersianNum(totalPoints)} <span>امتیاز</span>
+            </div>
+        </div>
+        <div style="padding-bottom: 10px;">
+            ${historyHTML}
+        </div>
+    `;
+}
+
+function closePointsHistoryModal() {
+    const modal = document.getElementById('points-history-modal');
+    if (modal) modal.remove();
 }

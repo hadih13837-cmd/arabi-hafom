@@ -1,6 +1,6 @@
 // ============================================================
 // reports.js — کارنامه، PDF، لیست کارنامه‌ها، ثبت امتیاز
-// نسخه: ۱۴.۰.۰ — رفع باگ دکمه دیدن کارنامه و جلوگیری از ذخیره تکراری
+// نسخه: ۱۵.۰.۰ — رفع باگ‌های ذخیره کارنامه و امتیاز
 // ============================================================
 
 let currentPreviewReport = null;
@@ -130,9 +130,8 @@ function renderReportsList(reports, container) {
         </div>
     `).join('');
 }
-
 // ============================================================
-// 🆕 saveReport (اصلی) — با قفل درون‌برنامه‌ای
+// 🆕 saveReport (اصلی) — با قفل درون‌برنامه‌ای و بررسی کامل
 // ============================================================
 async function saveReport(report) {
     if (savingReports[report.lessonId]) {
@@ -143,7 +142,15 @@ async function saveReport(report) {
     savingReports[report.lessonId] = true;
     
     try {
-        const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        // 🆕 اصلاح: بررسی خطای localStorage
+        let reports = [];
+        try {
+            reports = JSON.parse(localStorage.getItem('reports') || '[]');
+            if (!Array.isArray(reports)) reports = [];
+        } catch (e) {
+            console.warn('⚠️ خطا در خواندن reports، آرایه خالی استفاده می‌شود');
+            reports = [];
+        }
         
         const existingIndex = reports.findIndex(r => r.lessonId === report.lessonId);
         
@@ -155,27 +162,42 @@ async function saveReport(report) {
             reports.push(report);
         }
         
-        localStorage.setItem('reports', JSON.stringify(reports));
+        // 🆕 اصلاح: بررسی خطای ذخیره در localStorage
+        try {
+            localStorage.setItem('reports', JSON.stringify(reports));
+        } catch (e) {
+            console.error('❌ خطا در ذخیره در localStorage:', e);
+            return false;
+        }
         
+        // 🆕 ذخیره در Supabase فقط اگر studentId داشته باشیم
         try {
             const studentId = localStorage.getItem('studentUUID');
-            if (!studentId) return;
+            if (!studentId) {
+                console.warn('⚠️ studentUUID نیست، فقط در localStorage ذخیره شد');
+                return true;
+            }
             
             const existingReports = await getReportsFromSupabase(studentId);
             const existingLessonIds = (existingReports || []).map(r => r.lesson_id);
             
             if (existingLessonIds.includes(report.lessonId)) {
                 console.log('ℹ️ این کارنامه قبلاً در Supabase ثبت شده');
-                return;
+                return true;
             }
             
             const success = await saveReportToSupabase(report, studentId);
             if (success) {
                 console.log('✅ کارنامه در Supabase ذخیره شد');
+            } else {
+                console.warn('⚠️ ذخیره در Supabase ناموفق بود، ولی در localStorage ذخیره شد');
             }
         } catch (error) {
-            console.error('❌ خطا:', error);
+            console.error('❌ خطا در ذخیره در Supabase:', error);
+            // 🆕 در localStorage ذخیره شده، پس true برمی‌گردان
         }
+        
+        return true;
     } finally {
         setTimeout(() => {
             delete savingReports[report.lessonId];
@@ -184,27 +206,30 @@ async function saveReport(report) {
 }
 
 // ============================================================
-// 🆕 saveReportCardOnce — ذخیره یک‌باره کارنامه (برای showResult)
+// 🆕 saveReportCardOnce — ذخیره یک‌باره کارنامه (نسخه اصلاح‌شده)
 // ============================================================
 async function saveReportCardOnce() {
     try {
+        // 🆕 بررسی ۱: آیا currentLesson موجود است؟
         if (!currentLesson || !currentLesson.lessonId) {
             console.warn('⚠️ currentLesson تعریف نشده');
             return false;
         }
         
-        if (isPracticeMode) {
+        // 🆕 بررسی ۲: آیا حالت تمرین است؟ (اگر بله، ذخیره نکن)
+        if (isPracticeMode === true) {
             console.log('ℹ️ حالت تمرین - کارنامه ذخیره نمیشه');
             return false;
         }
         
+        // 🆕 بررسی ۳: آیا studentUUID موجود است؟
         const studentId = localStorage.getItem('studentUUID');
         if (!studentId) {
             console.warn('⚠️ studentUUID پیدا نشد');
             return false;
         }
         
-        // 🆕 چک کردن شدید در حافظه محلی (جلوگیری از ذخیره تکراری)
+        // 🆕 بررسی ۴: آیا در localStorage قبلاً ذخیره شده؟
         const savedReports = JSON.parse(localStorage.getItem('reports') || '[]');
         const alreadySavedLocal = savedReports.find(r => r.lessonId === currentLesson.lessonId);
         if (alreadySavedLocal) {
@@ -212,13 +237,13 @@ async function saveReportCardOnce() {
             return true;
         }
         
-        // 🆕 چک کردن در Supabase (جلوگیری از ذخیره تکراری)
+        // 🆕 بررسی ۵: آیا در Supabase قبلاً ذخیره شده؟
         const existingReports = await getReportsFromSupabase(studentId);
         const existingLessonIds = (existingReports || []).map(r => r.lesson_id);
         if (existingLessonIds.includes(currentLesson.lessonId)) {
             console.log('ℹ️ کارنامه قبلاً در سرور ذخیره شده است:', currentLesson.lessonId);
             
-            // آپدیت حافظه محلی
+            // آپدیت حافظه محلی از Supabase
             const existingReport = existingReports.find(r => r.lesson_id === currentLesson.lessonId);
             if (existingReport) {
                 const localReport = convertSupabaseReportToLocal(
@@ -227,12 +252,16 @@ async function saveReportCardOnce() {
                     localStorage.getItem('userClass')
                 );
                 savedReports.push(localReport);
-                localStorage.setItem('reports', JSON.stringify(savedReports));
+                try {
+                    localStorage.setItem('reports', JSON.stringify(savedReports));
+                } catch (e) {
+                    console.warn('⚠️ خطا در ذخیره در localStorage');
+                }
             }
             return true;
         }
         
-        // 🆕 چک کردن منقضی شدن
+        // 🆕 بررسی ۶: آیا تکلیف منقضی شده؟
         const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
         const lesson = allLessons[lessonIndex];
         let dueDate = '۱۴۰۵/۰۹/۱۵';
@@ -248,13 +277,21 @@ async function saveReportCardOnce() {
             return false;
         }
         
-        // 🆕 محاسبه دقیق نمره (جلوگیری از محاسبه اشتباه)
+        // 🆕 بررسی ۷: محاسبه دقیق امتیاز و درصد
         const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
-        const finalScore = Math.min(score, maxTotalPoints); 
+        const finalScore = Math.min(score, maxTotalPoints);
+        
         let finalPercent = Math.round((correctCount / currentLesson.questions.length) * 100);
         if (finalPercent > 100) finalPercent = 100;
+        if (finalPercent < 0) finalPercent = 0;
         
-        const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
+        // 🆕 اصلاح باگ: محافظت از endTime که ممکن است null باشد
+        const safeEndTime = endTime || new Date();
+        const safeStartTime = startTime || new Date(Date.now() - 60000);
+        let timeTaken = Math.max(1, Math.round((safeEndTime - safeStartTime) / 60000));
+        // محدود کردن به ۶۰ دقیقه (برای امنیت بیشتر)
+        if (timeTaken > 60) timeTaken = 60;
+        
         const now = new Date();
         const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
         const taskTitle = allLessons[lessonIndex] ? allLessons[lessonIndex].title : currentLesson.title;
@@ -271,18 +308,28 @@ async function saveReportCardOnce() {
             wrong: wrongCount,
             score: finalScore, 
             totalPoints: maxTotalPoints, 
-            timeTaken, 
+            timeTaken: timeTaken, 
             surveyAnswer: surveyAnswerText
         };
         
+        // 🆕 ذخیره در localStorage
         savedReports.push(report);
-        localStorage.setItem('reports', JSON.stringify(savedReports));
+        try {
+            localStorage.setItem('reports', JSON.stringify(savedReports));
+        } catch (e) {
+            console.error('❌ خطا در ذخیره در localStorage:', e);
+            return false;
+        }
         
+        // 🆕 ذخیره در Supabase
         const success = await saveReportToSupabase(report, studentId);
         if (success) {
             console.log('✅ کارنامه در Supabase ذخیره شد');
+        } else {
+            console.warn('⚠️ ذخیره در Supabase ناموفق بود، ولی در localStorage ذخیره شد');
         }
         
+        // 🆕 ذخیره امتیاز در rankings
         if (typeof saveRankingToSupabase === 'function') {
             try {
                 await saveRankingToSupabase();
@@ -291,6 +338,7 @@ async function saveReportCardOnce() {
             }
         }
         
+        // 🆕 بررسی مدال‌های جدید
         if (typeof checkForNewMedals === 'function') {
             setTimeout(() => checkForNewMedals(), 1500);
         }
@@ -301,7 +349,6 @@ async function saveReportCardOnce() {
         return false;
     }
 }
-
 // ============================================================
 // generateGraphicReport (بدون تغییر)
 // ============================================================
@@ -491,7 +538,6 @@ async function downloadPdfFromPreview() {
         }
     }
 }
-
 async function downloadReportFast(report, filename) {
     let container = null;
     try {
@@ -587,24 +633,32 @@ async function downloadReportByData(index) {
 // 🆕 showReportCard — نسخه اصلاح‌شده و مطمئن
 // ============================================================
 async function showReportCard() {
+    // 🆕 بررسی ۱: حالت تمرین
     if (isPracticeMode) {
         showModal('توجه', 'این تکلیف در حالت تمرین انجام شده و کارنامه‌ای صادر نمی‌شود.', '⚠️');
         return;
     }
     
+    // 🆕 بررسی ۲: بارگذاری وضعیت تکلیف
     if (typeof loadCustomLessonStatus === 'function') {
         await loadCustomLessonStatus();
     }
     
-    // 🆕 محاسبه دقیق درصد (محدود به ۱۰۰)
+    // 🆕 بررسی ۳: محاسبه دقیق درصد (محدود به ۱۰۰)
     let percent = Math.round((correctCount / currentLesson.questions.length) * 100);
     if (percent > 100) percent = 100;
+    if (percent < 0) percent = 0;
     
-    // 🆕 محاسبه دقیق امتیاز (محدود به حداکثر)
+    // 🆕 بررسی ۴: محاسبه دقیق امتیاز (محدود به حداکثر)
     const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
     const finalScore = Math.min(score, maxTotalPoints);
 
-    const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
+    // 🆕 بررسی ۵: محافظت از endTime
+    const safeEndTime = endTime || new Date();
+    const safeStartTime = startTime || new Date(Date.now() - 60000);
+    let timeTaken = Math.max(1, Math.round((safeEndTime - safeStartTime) / 60000));
+    if (timeTaken > 60) timeTaken = 60;
+    
     const now = new Date();
     const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
@@ -638,12 +692,15 @@ async function showReportCard() {
         wrong: wrongCount,
         score: finalScore,
         totalPoints: maxTotalPoints,
-        timeTaken, 
+        timeTaken: timeTaken, 
         surveyAnswer: surveyAnswerText
     };
     
-    // 🆕 از saveReportCardOnce استفاده کن (که خودش چک می‌کنه)
-    await saveReportCardOnce();
+    // 🆕 استفاده از saveReportCardOnce (که خودش چک می‌کنه)
+    const saveResult = await saveReportCardOnce();
+    if (!saveResult) {
+        console.warn('⚠️ کارنامه ذخیره نشد یا قبلاً ذخیره شده بود');
+    }
     
     const container = document.getElementById('report-view-content');
     container.innerHTML = generateGraphicReport(report);
@@ -668,12 +725,19 @@ async function showReportCard() {
 }
 
 async function downloadCurrentReport() {
+    // 🆕 محاسبه دقیق مثل showReportCard
     let percent = Math.round((correctCount / currentLesson.questions.length) * 100);
     if (percent > 100) percent = 100;
+    if (percent < 0) percent = 0;
+    
     const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
     const finalScore = Math.min(score, maxTotalPoints);
 
-    const timeTaken = Math.max(1, Math.round((endTime - startTime) / 60000));
+    const safeEndTime = endTime || new Date();
+    const safeStartTime = startTime || new Date(Date.now() - 60000);
+    let timeTaken = Math.max(1, Math.round((safeEndTime - safeStartTime) / 60000));
+    if (timeTaken > 60) timeTaken = 60;
+    
     const now = new Date();
     const dateStr = now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);

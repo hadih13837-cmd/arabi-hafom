@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۳۰.۰.۰ — رفع باگ کارنامه و امتیاز
+// نسخه: ۳۳.۰.۰ — رفع باگ drag-gender و اصلاح ذخیره پیشرفت
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -43,6 +43,8 @@ let selectedFillMultipleWord = null;
 
 let dragIntoBlankItems = [];
 let selectedDibWord = null;
+
+let isOnFeedbackScreen = false;
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -89,10 +91,21 @@ async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracti
         if (!currentLesson.lessonId) currentLesson.lessonId = lessonId;
         
         hasSavedReport = false;
+        isOnFeedbackScreen = false;
         
         if (startFromIndex > 0 && !forcePracticeMode) {
             const progress = getCurrentProgress();
             if (progress && progress.lessonId === lessonId) {
+                if (progress.questionIndex >= currentLesson.questions.length) {
+                    currentQuestionIndex = 0;
+                    score = progress.score || 0;
+                    correctCount = progress.correctCount || 0;
+                    wrongCount = progress.wrongCount || 0;
+                    isPracticeMode = progress.isPracticeMode || false;
+                    startTime = progress.startTime ? new Date(progress.startTime) : new Date();
+                    showResult();
+                    return;
+                }
                 currentQuestionIndex = progress.questionIndex || 0;
                 score = progress.score || 0;
                 correctCount = progress.correctCount || 0;
@@ -118,9 +131,13 @@ async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracti
         showModal('خطا', 'مشکلی در بارگذاری تکلیف پیش آمد.', '❌');
     }
 }
-
 function renderQuestion() {
     const q = currentLesson.questions[currentQuestionIndex];
+    if (!q) {
+        showResult();
+        return;
+    }
+
     const container = document.getElementById('question-area');
     const counter = document.getElementById('question-counter');
     const progress = document.getElementById('progress-fill');
@@ -136,7 +153,6 @@ function renderQuestion() {
         skipBtn.style.display = (currentQuestionIndex === currentLesson.questions.length - 1) ? 'none' : 'flex';
     }
     
-    // ریست کردن متغیرها
     selectedOptionIndex = -1;
     selectedMatchFa = null;
     selectedMatchAr = null;
@@ -308,7 +324,7 @@ function renderQuestion() {
         
         html += `<div class="drag-guide-text">روی یک کلمه بزن، بعد روی جای خالی بزن تا اونجا بره.</div>`;
         
-        dragIntoBlankItems = q.items.map((it, i) => ({ ...it, id: 'dib_' + i, filled: false }));
+        dragIntoBlankItems = q.items.map((it, i) => ({ ...it, id: 'dib_' + i, filled: false, filledValue: null }));
         html += `<div class="dib-options-pool" id="dib-options-pool">`;
         const shuffledOpts = shuffleArray([...q.options]);
         shuffledOpts.forEach((opt) => {
@@ -410,8 +426,6 @@ function renderQuestion() {
     }
     container.innerHTML = html;
 }
-
-// 🆕 drag-gender با کلیک + قابلیت برگشت
 function clickGenderWord(el, uniqueId) {
     if (isAnswered) return;
     if (el.classList.contains('placed')) {
@@ -459,6 +473,8 @@ function moveGenderWordToBox(item, gender) {
         const placedEl = document.createElement('div');
         placedEl.className = 'gender-word-placed';
         placedEl.textContent = item.text;
+        placedEl.dataset.gender = gender; // 🆕 ذخیره جنسیت
+        placedEl.dataset.uniqueId = item.uniqueId; // 🆕 ذخیره شناسه
         placedEl.style.cursor = 'pointer';
         placedEl.onclick = function() {
             if (isAnswered) return;
@@ -471,13 +487,16 @@ function moveGenderWordToBox(item, gender) {
     }
 }
 
-// 🆕 fill-multiple با کلیک + قابلیت برگشت
 function clickFillMultipleOption(el, word) {
     if (isAnswered) return;
     if (el.classList.contains('used')) {
         vibrate(15);
         el.classList.remove('used');
-        const idx = fillMultipleAnswers.indexOf(word);
+        // 🆕 اصلاح: پیدا کردن آخرین جای خالی که این کلمه در آن است
+        let idx = -1;
+        for (let i = fillMultipleAnswers.length - 1; i >= 0; i--) {
+            if (fillMultipleAnswers[i] === word) { idx = i; break; }
+        }
         if (idx >= 0) {
             fillMultipleAnswers[idx] = null;
             const blankEl = document.getElementById('fm-blank-' + idx);
@@ -520,15 +539,19 @@ function clickFillMultipleBlank(index) {
     }
 }
 
-// 🆕 drag-into-blank با کلیک + قابلیت برگشت
 function clickDibOption(el, value) {
     if (isAnswered) return;
     if (el.classList.contains('used')) {
         vibrate(15);
         el.classList.remove('used');
-        const idx = dragIntoBlankItems.findIndex(it => it.filled && it.correct === value);
+        // 🆕 اصلاح: پیدا کردن آخرین جای خالی که این کلمه در آن است
+        let idx = -1;
+        for (let i = dragIntoBlankItems.length - 1; i >= 0; i--) {
+            if (dragIntoBlankItems[i].filled && dragIntoBlankItems[i].filledValue === value) { idx = i; break; }
+        }
         if (idx >= 0) {
             dragIntoBlankItems[idx].filled = false;
+            dragIntoBlankItems[idx].filledValue = null;
             const blankEl = document.getElementById('dib-blank-' + idx);
             if (blankEl) { blankEl.textContent = '---'; blankEl.classList.remove('filled'); delete blankEl.dataset.value; }
         }
@@ -545,8 +568,9 @@ function clickDibBlank(index) {
     if (!selectedDibWord) {
         if (dragIntoBlankItems[index].filled) {
             vibrate(15);
-            const oldValue = dragIntoBlankItems[index].correct;
+            const oldValue = dragIntoBlankItems[index].filledValue;
             dragIntoBlankItems[index].filled = false;
+            dragIntoBlankItems[index].filledValue = null;
             const blankEl = document.getElementById('dib-blank-' + index);
             if (blankEl) { blankEl.textContent = '---'; blankEl.classList.remove('filled'); delete blankEl.dataset.value; }
             document.querySelectorAll('.dib-option-item').forEach(o => {
@@ -558,10 +582,14 @@ function clickDibBlank(index) {
     if (dragIntoBlankItems[index].filled) return;
     vibrate(15);
     dragIntoBlankItems[index].filled = true;
+    dragIntoBlankItems[index].filledValue = selectedDibWord; // 🆕 ذخیره مقدار
     const blankEl = document.getElementById('dib-blank-' + index);
     if (blankEl) { blankEl.textContent = selectedDibWord; blankEl.classList.add('filled'); blankEl.dataset.value = selectedDibWord; }
-    const remainingBlankCount = dragIntoBlankItems.filter(it => !it.filled && it.correct === selectedDibWord).length;
-    if (remainingBlankCount === 0) {
+    
+    // 🆕 اصلاح: فقط اگر تعداد استفاده‌های این کلمه از تعداد جای خالی‌های باقیمانده‌اش بیشتر شد، used کن
+    const remainingNeeds = dragIntoBlankItems.filter(it => it.correct === selectedDibWord).length;
+    const currentFilled = dragIntoBlankItems.filter(it => it.filled && it.filledValue === selectedDibWord).length;
+    if (currentFilled >= remainingNeeds) {
         document.querySelectorAll('.dib-option-item').forEach(opt => {
             if (opt.dataset.value === selectedDibWord) { opt.classList.add('used'); opt.classList.remove('selected-for-move'); }
         });
@@ -572,7 +600,6 @@ function clickDibBlank(index) {
     }
 }
 
-// بقیه توابع (بدون تغییر)
 function skipQuestion() {
     if (isAnswered) return;
     
@@ -619,8 +646,9 @@ function confirmSkipQuestion() {
     vibrate(20);
     wrongCount++;
     currentQuestionIndex++;
+    saveCurrentProgress();
+    
     if (currentQuestionIndex < currentLesson.questions.length) {
-        saveCurrentProgress();
         goToScreen('screen-quiz');
         renderQuestion();
     } else {
@@ -830,22 +858,13 @@ function selectFillOption(el, word, displayIdx) {
     if (slot) { slot.textContent = word; slot.classList.add('filled'); }
 }
 
-// ============================================================
-// 🆕 truefalse-custom — انتخاب بله/نه (رفع باگ)
-// ============================================================
 function selectTFCustom(el, isYes) {
     if (isAnswered) return;
     vibrate(15);
-    
-    // حذف انتخاب قبلی از همه دکمه‌ها
     document.querySelectorAll('.tf-custom-btn').forEach(btn => {
         btn.classList.remove('selected');
     });
-    
-    // مارک دکمه انتخاب‌شده
     el.classList.add('selected');
-    
-    // ذخیره انتخاب: 1 = بله، 0 = نه
     selectedOptionIndex = isYes ? 1 : 0;
 }
 
@@ -881,9 +900,7 @@ function selectMatch(el, type) {
         }
     }
 }
-
 function checkAnswer() {
-    // 🆕 جلوگیری از اجرای مجدد (مهم‌ترین بخش برای رفع باگ)
     if (isAnswered) return; 
     
     const q = currentLesson.questions[currentQuestionIndex];
@@ -904,7 +921,8 @@ function checkAnswer() {
         }
     }
     else if (q.type === 'translation') {
-        const ans = document.getElementById('translation-answer').value.trim();
+        const ansEl = document.getElementById('translation-answer');
+        const ans = ansEl ? ansEl.value.trim() : '';
         if (ans !== '') {
             answerGiven = true;
             if (ans === q.correct || (q.altCorrect || []).includes(ans)) isCorrect = true;
@@ -968,19 +986,44 @@ function checkAnswer() {
         }
     }
     else if (q.type === 'drag-gender') {
-        const allPlaced = document.querySelectorAll('.gender-word-placed').length === q.words.length;
-        if (allPlaced) { isCorrect = true; answerGiven = true; }
-        else { showModal('توجه', 'لطفاً همه کلمات را در کادر درست قرار بده.', '⚠️'); return; }
+        // 🆕 باگ ۲ رفع شد: بررسی درست بودن جنسیت هر کلمه، نه فقط تعداد
+        const placedEls = document.querySelectorAll('.gender-word-placed');
+        const allPlaced = placedEls.length === q.words.length;
+        if (allPlaced) {
+            let allCorrect = true;
+            dragGenderItems.forEach(item => {
+                const placedEl = Array.from(placedEls).find(el => el.dataset.uniqueId === item.uniqueId);
+                if (!placedEl) { allCorrect = false; return; }
+                if (placedEl.dataset.gender !== item.gender) allCorrect = false;
+            });
+            if (allCorrect) {
+                isCorrect = true;
+                answerGiven = true;
+            } else {
+                showModal('خطا', 'بعضی کلمات در کادر اشتباه قرار گرفتن. دوباره تلاش کن.', '❌');
+                // 🆕 ریست کردن کلمات اشتباه
+                placedEls.forEach(placedEl => {
+                    const item = dragGenderItems.find(it => it.uniqueId === placedEl.dataset.uniqueId);
+                    if (item && placedEl.dataset.gender !== item.gender) {
+                        placedEl.remove();
+                        const wEl = document.querySelector(`.gender-word-item[data-unique-id="${item.uniqueId}"]`);
+                        if (wEl) { wEl.classList.remove('placed'); wEl.style.display = ''; }
+                    }
+                });
+                return;
+            }
+        } else {
+            showModal('توجه', 'لطفاً همه کلمات را در کادر درست قرار بده.', '⚠️');
+            return;
+        }
     }
     else if (q.type === 'drag-into-blank') {
         const allFilled = dragIntoBlankItems.every(it => it.filled);
         if (allFilled) {
             answerGiven = true;
             let allCorrect = true;
-            dragIntoBlankItems.forEach((item, i) => {
-                const blankEl = document.getElementById('dib-blank-' + i);
-                const filledValue = blankEl ? blankEl.dataset.value : null;
-                if (filledValue !== item.correct) allCorrect = false;
+            dragIntoBlankItems.forEach((item) => {
+                if (item.filledValue !== item.correct) allCorrect = false;
             });
             if (allCorrect) isCorrect = true;
             else { showModal('خطا', 'بعضی جواب‌ها اشتباه است. دوباره تلاش کن.', '❌'); return; }
@@ -1017,7 +1060,8 @@ function checkAnswer() {
         }
     }
     else if (q.type === 'survey') {
-        const ans = document.getElementById('survey-answer').value.trim();
+        const ansEl = document.getElementById('survey-answer');
+        const ans = ansEl ? ansEl.value.trim() : '';
         if (ans.length >= (q.minLength || 2)) { answerGiven = true; isCorrect = true; surveyAnswerText = ans; }
         else { showModal('توجه', 'لطفاً نظرت رو بنویس.', '⚠️'); return; }
     }
@@ -1027,26 +1071,27 @@ function checkAnswer() {
         return;
     }
 
-    // 🆕 تنظیم isAnswered روی true تا از اجرای مجدد جلوگیری بشه
     isAnswered = true;
     document.getElementById('submit-btn').disabled = true;
 
     if (isCorrect) {
         if (!isPracticeMode) {
-            // 🆕 محدود کردن امتیاز به حداکثر امتیاز ممکن (جلوگیری از باگ ۲۰۷٪)
             const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
-            score = Math.min(score + q.points, maxTotalPoints);
+            score = Math.min(score + (q.points || 0), maxTotalPoints);
         }
         correctCount++;
         playCorrectSound();
         vibrate(30);
-        showFeedback(true, isPracticeMode ? 0 : q.points, q);
+        showFeedback(true, isPracticeMode ? 0 : (q.points || 0), q);
     } else {
         wrongCount++;
         playWrongSound();
         vibrate([50, 30, 50]);
         showFeedback(false, 0, q);
     }
+    
+    currentQuestionIndex++;
+    isOnFeedbackScreen = true;
     saveCurrentProgress();
 }
 
@@ -1075,8 +1120,6 @@ function showFeedback(isCorrect, points, q) {
     const sub = document.getElementById('fb-sub');
     const pts = document.getElementById('fb-points');
     const answerBox = document.getElementById('correct-answer-box');
-    const answerLabel = document.getElementById('answer-label');
-    const answerText = document.getElementById('answer-text');
     const findErrorBox = document.getElementById('find-error-feedback-box');
 
     findErrorBox.style.display = 'none';
@@ -1116,7 +1159,8 @@ function showFeedback(isCorrect, points, q) {
 }
 
 function nextQuestion() {
-    currentQuestionIndex++;
+    isOnFeedbackScreen = false;
+
     if (currentQuestionIndex < currentLesson.questions.length) {
         saveCurrentProgress();
         goToScreen('screen-quiz');
@@ -1127,14 +1171,18 @@ function nextQuestion() {
 }
 
 async function showResult() {
-    endTime = new Date();
+    // 🆕 باگ ۳ رفع شد: همیشه endTime رو تنظیم کن
+    if (!endTime) {
+        endTime = new Date();
+    }
     goToScreen('screen-result');
     
-    // 🆕 محاسبه دقیق درصد (با محدود کردن به ۱۰۰)
+    // 🆕 محاسبه دقیق درصد (محدود به ۱۰۰)
     let percent = Math.round((correctCount / currentLesson.questions.length) * 100);
     if (percent > 100) percent = 100;
+    if (percent < 0) percent = 0;
     
-    // 🆕 محاسبه دقیق امتیاز (با محدود کردن به حداکثر امتیاز ممکن)
+    // 🆕 محاسبه دقیق امتیاز (محدود به حداکثر)
     const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
     const finalScore = Math.min(score, maxTotalPoints);
 
@@ -1159,10 +1207,8 @@ async function showResult() {
     const lessonIndex = allLessons.findIndex(l => l.id === currentLesson.lessonId);
     const lesson = allLessons[lessonIndex];
 
-    // 🆕 جایگزینی برای ensureCustomLessonStatus
     let dueDate = '۱۴۰۵/۰۹/۱۵';
     if (lesson) {
-        // از getEffectiveDueDate استفاده می‌کنیم اگه وجود داشت، وگرنه dueDate پیش‌فرض
         if (typeof getEffectiveDueDate === 'function') {
             dueDate = getEffectiveDueDate(lesson);
         } else {
@@ -1178,13 +1224,14 @@ async function showResult() {
         if (percent >= 80 && typeof showConfetti === 'function') showConfetti();
         practiceBanner.classList.remove('show');
         
+        // 🆕 ذخیره خودکار با بررسی دقیق
         if (!hasSavedReport) {
             hasSavedReport = true;
             setTimeout(async () => {
                 try {
                     if (typeof saveReportCardOnce === 'function') {
-                        await saveReportCardOnce();
-                        console.log('✅ کارنامه به صورت خودکار ذخیره شد');
+                        const saved = await saveReportCardOnce();
+                        console.log(saved ? '✅ کارنامه به صورت خودکار ذخیره شد' : 'ℹ️ کارنامه ذخیره نشد (احتمالاً تکراری)');
                     }
                 } catch (e) { console.error('خطا در ذخیره خودکار:', e); }
             }, 300);

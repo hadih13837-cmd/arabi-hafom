@@ -1,16 +1,12 @@
 // ============================================================
 // utils.js — توابع کمکی، تاریخ، فصل‌ها، کانفتی، استریک، UUID
+// نسخه: ۴.۰.۰ — اصلاح کامل تقویم و استریک
 // ============================================================
 
-// ============================================================
-// 🆕 تولید UUID یکتا برای هر کاربر
-// ============================================================
 function generateUUID() {
-    // روش ۱: اگه مرورگر پشتیبانی می‌کنه (اکثر مرورگرهای جدید)
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
         return crypto.randomUUID();
     }
-    // روش ۲: روش قدیمی (برای مرورگرهای قدیمی)
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         const r = Math.random() * 16 | 0;
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -18,9 +14,6 @@ function generateUUID() {
     });
 }
 
-// ============================================================
-// 🆕 گرفتن یا ساختن UUID کاربر
-// ============================================================
 function getOrCreateStudentUUID() {
     let uuid = localStorage.getItem('studentUUID');
     if (!uuid) {
@@ -31,9 +24,6 @@ function getOrCreateStudentUUID() {
     return uuid;
 }
 
-// ============================================================
-// توابع اعداد فارسی
-// ============================================================
 function toPersianNum(num) {
     const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
     return num.toString().replace(/\d/g, x => persianDigits[parseInt(x)]);
@@ -44,8 +34,9 @@ function fromPersianNum(str) {
 }
 
 // ============================================================
-// تاریخ شمسی
+// 🆕 توابع تاریخ و تقویم (اصلاح‌شده)
 // ============================================================
+
 function getPersianDate() {
     return new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
@@ -75,12 +66,19 @@ function getPersianMonthNum() {
     return parseInt(fromPersianNum(num));
 }
 
+// 🆕 تبدیل دقیق تاریخ شمسی به یک عدد یکتا برای مقایسه
 function persianDateToNumber(dateStr) {
     if (!dateStr) return 0;
-    const normalized = fromPersianNum(dateStr);
+    const normalized = fromPersianNum(String(dateStr)).trim();
     const parts = normalized.split(/[\/\-]/);
     if (parts.length !== 3) return 0;
-    return parseInt(parts[0]) * 10000 + parseInt(parts[1]) * 100 + parseInt(parts[2]);
+    
+    const y = parseInt(parts[0]);
+    const m = parseInt(parts[1]);
+    const d = parseInt(parts[2]);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return 0;
+    
+    return (y * 10000) + (m * 100) + d;
 }
 
 function isExpired(dueDate) {
@@ -100,28 +98,39 @@ function getDaysDiff(dueDate) {
     if (!dueDate) return 999;
     const due = persianDateToNumber(dueDate);
     const today = persianDateToNumber(getPersianDate());
-    return due - today;
+    
+    const todayYear = Math.floor(today / 10000);
+    const todayMonth = Math.floor((today % 10000) / 100);
+    const todayDay = today % 100;
+    
+    const dueYear = Math.floor(due / 10000);
+    const dueMonth = Math.floor((due % 10000) / 100);
+    const dueDay = due % 100;
+    
+    let diffDays = 0;
+    if (dueYear === todayYear) {
+        if (dueMonth === todayMonth) {
+            diffDays = dueDay - todayDay;
+        } else {
+            diffDays = (dueMonth - todayMonth) * 30 + (dueDay - todayDay);
+        }
+    } else {
+        diffDays = (dueYear - todayYear) * 365 + (dueMonth - todayMonth) * 30 + (dueDay - todayDay);
+    }
+    
+    return diffDays;
 }
 
-// ============================================================
-// فصل جاری
-// ============================================================
 function getCurrentSeason() {
     const m = getPersianMonthNum();
     const info = MONTHS_INFO.find(mi => mi.num === m);
     return info ? info.season : 'spring';
 }
 
-// ============================================================
-// ویبره
-// ============================================================
 function vibrate(pattern = 30) {
     if (navigator.vibrate) navigator.vibrate(pattern);
 }
 
-// ============================================================
-// کانفتی (جشن و شادی)
-// ============================================================
 function showConfetti() {
     const container = document.getElementById('confetti-container');
     if (!container) return;
@@ -146,24 +155,52 @@ function showConfetti() {
     }, 4000);
 }
 
-// ============================================================
-// استریک (تعداد روزهای متوالی)
-// ============================================================
+// 🆕 محاسبه استریک (اصلاح‌شده)
 function updateStreak() {
     const today = getPersianDate();
     let streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
+    
     if (!streakData.lastDate) {
         streakData = { lastDate: today, count: 1, dates: [today] };
     } else if (streakData.lastDate !== today) {
         const lastNum = persianDateToNumber(streakData.lastDate);
         const todayNum = persianDateToNumber(today);
-        if (todayNum - lastNum === 1) streakData.count += 1;
-        else if (todayNum - lastNum > 1) streakData.count = 1;
+        
+        const lastYear = Math.floor(lastNum / 10000);
+        const lastMonth = Math.floor((lastNum % 10000) / 100);
+        const lastDay = lastNum % 100;
+        
+        const todayYear = Math.floor(todayNum / 10000);
+        const todayMonth = Math.floor((todayNum % 10000) / 100);
+        const todayDay = todayNum % 100;
+        
+        let diff = 0;
+        if (todayYear === lastYear) {
+            if (todayMonth === lastMonth) {
+                diff = todayDay - lastDay;
+            } else {
+                diff = (todayMonth - lastMonth) * 30 + (todayDay - lastDay);
+            }
+        } else {
+            diff = (todayYear - lastYear) * 365 + (todayMonth - lastMonth) * 30 + (todayDay - lastDay);
+        }
+        
+        if (diff === 1) {
+            streakData.count += 1;
+        } else if (diff > 1) {
+            streakData.count = 1;
+        }
+        
         streakData.lastDate = today;
         if (!streakData.dates) streakData.dates = [];
-        streakData.dates.push(today);
-        if (streakData.dates.length > 400) streakData.dates = streakData.dates.slice(-400);
+        if (!streakData.dates.includes(today)) {
+            streakData.dates.push(today);
+        }
+        if (streakData.dates.length > 400) {
+            streakData.dates = streakData.dates.slice(-400);
+        }
     }
+    
     localStorage.setItem('streakData', JSON.stringify(streakData));
     displayStreak();
 }
@@ -185,13 +222,12 @@ function getVisitedDates() {
     return streakData.dates || [];
 }
 
-// ============================================================
-// پیام استریک
-// ============================================================
 function showStreakMessage() {
     const today = getPersianDate();
     const lastShown = localStorage.getItem('lastStreakMessageShown');
+    
     if (lastShown === today) return;
+    
     const streakData = JSON.parse(localStorage.getItem('streakData') || '{}');
     const count = streakData.count || 1;
     const season = getCurrentSeason();
@@ -202,10 +238,15 @@ function showStreakMessage() {
     const title = document.getElementById('streak-title');
     const text = document.getElementById('streak-text');
     const countBadge = document.getElementById('streak-count-badge');
+    
+    if (!overlay || !card) return;
+    
     card.classList.remove('spring', 'summer', 'autumn', 'winter');
     card.classList.add(season);
+    
     let titleText = '';
     let textMain = '';
+    
     if (count === 1) {
         titleText = `${seasonInfo.icon} خوش آمدی!`;
         textMain = `اولین روزت در برنامه است. امیدواریم این مسیر پر از یادگیری و موفقیت باشه! 🌟`;
@@ -219,11 +260,14 @@ function showStreakMessage() {
         titleText = `${seasonInfo.icon} قهرمان!`;
         textMain = `تو یه قهرمان واقعی هستی! ${toPersianNum(count)} روز متوالیه که داری یاد می‌گیری. بهت افتخار می‌کنیم! 👑`;
     }
+    
     emoji.textContent = seasonInfo.emoji;
     title.textContent = titleText;
     text.innerHTML = textMain + `<br><br>${seasonInfo.name}ه و ${seasonInfo.desc} ${seasonInfo.icon}`;
     countBadge.textContent = `🔥 ${toPersianNum(count)} روز متوالی`;
+    
     localStorage.setItem('lastStreakMessageShown', today);
+    
     overlay.classList.add('active');
     vibrate([30, 50, 30]);
 }
@@ -231,6 +275,7 @@ function showStreakMessage() {
 function closeStreakMessage() {
     const overlay = document.getElementById('streak-message-overlay');
     const card = document.getElementById('streak-message-card');
+    if (!overlay || !card) return;
     card.classList.add('shrinking');
     setTimeout(() => {
         overlay.classList.remove('active');
@@ -239,7 +284,7 @@ function closeStreakMessage() {
 }
 
 // ============================================================
-// تقویم
+// 🆕 توابع تقویم (اصلاح‌شده)
 // ============================================================
 let calendarCurrentMonth = null;
 
@@ -284,6 +329,7 @@ function renderCalendar() {
     const container = document.getElementById('calendar-content');
     const screen = document.getElementById('screen-calendar');
     if (!container) return;
+    
     initCalendarMonth();
     const today = getPersianDate();
     const todayNum = persianDateToNumber(today);
@@ -293,12 +339,15 @@ function renderCalendar() {
     const monthInfo = MONTHS_INFO.find(mi => mi.num === month);
     const season = monthInfo.season;
     const seasonInfo = SEASONS_INFO[season];
+    
     screen.classList.remove('season-spring', 'season-summer', 'season-autumn', 'season-winter');
     screen.classList.add(`season-${season}`);
+    
     const daysInMonth = monthInfo.days;
     const firstDayOfWeek = getFirstDayOfWeek(year, month);
     const canGoPrev = !(year === 1405 && month === 7);
     const canGoNext = !(year === 1406 && month === 3);
+    
     let html = `
         <div class="calendar-season-banner ${season}">
             <div class="calendar-season-icon">${seasonInfo.icon}</div>
@@ -334,16 +383,23 @@ function renderCalendar() {
             </div>
             <div class="calendar-days-grid">
     `;
-    for (let i = 0; i < firstDayOfWeek; i++) html += `<div class="calendar-day empty"></div>`;
+    
+    for (let i = 0; i < firstDayOfWeek; i++) {
+        html += `<div class="calendar-day empty"></div>`;
+    }
+    
     for (let d = 1; d <= daysInMonth; d++) {
         const dayNum = year * 10000 + month * 100 + d;
         const isToday = (dayNum === todayNum);
         const isVisited = visitedNums.includes(dayNum);
+        
         let classes = 'calendar-day';
         if (isToday) classes += ' today';
         if (isVisited) classes += ' visited';
+        
         html += `<div class="${classes}"><span>${toPersianNum(d)}</span></div>`;
     }
+    
     html += `
             </div>
         </div>
@@ -352,6 +408,7 @@ function renderCalendar() {
             <div class="calendar-legend-item"><div class="calendar-legend-today"></div><span>امروز</span></div>
         </div>
     `;
+    
     container.innerHTML = html;
 }
 

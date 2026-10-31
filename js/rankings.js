@@ -1,6 +1,6 @@
 // ============================================================
 // rankings.js — سیستم رتبه‌بندی (برنامه دانش‌آموز)
-// نسخه: ۲۲.۰.۰ — با custom_completed_lessons
+// نسخه: ۲۴.۰.۰ — محاسبه مجموع امتیاز (تکالیف + چالش)
 // ============================================================
 
 let currentRankings = [];
@@ -9,20 +9,26 @@ let autoRefreshInterval = null;
 let lastRankingsHash = '';
 let isLoadingRankings = false;
 
-// ============================================================
-// محاسبه امتیاز کل با احتساب امتیازهای دستی معلم
-// ============================================================
+// 🆕 تابع escape برای جلوگیری از XSS
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// 🆕 محاسبه مجموع امتیاز (تکالیف + چالش + دستی)
 function calculateTotalPointsFromRanking(ranking) {
     if (!ranking) return 0;
     const basePoints = parseInt(ranking.total_points) || 0;
-    const customTotal = parseInt(ranking.custom_total_points) || 0;
-    const customAdded = parseInt(ranking.custom_points_added) || 0;
-    return basePoints + customTotal + customAdded;
+    const challengePoints = parseInt(ranking.custom_points_added) || 0;
+    const manualPoints = parseInt(ranking.custom_total_points) || 0;
+    return basePoints + challengePoints + manualPoints;
 }
 
-// ============================================================
-// 🆕 محاسبه تعداد تکالیف کل با احتساب دستی معلم
-// ============================================================
 function calculateCompletedLessons(ranking) {
     if (!ranking) return 0;
     const base = parseInt(ranking.completed_lessons) || 0;
@@ -30,9 +36,6 @@ function calculateCompletedLessons(ranking) {
     return base + custom;
 }
 
-// ============================================================
-// بارگذاری صفحه رتبه‌بندی
-// ============================================================
 async function loadRankingsPage() {
     const container = document.getElementById('rankings-content');
     if (!container) return;
@@ -77,7 +80,6 @@ async function loadRankingsPage() {
             const rankings = await getRankingsByClass(userClass);
             
             if (rankings && rankings.length > 0) {
-                // مرتب‌سازی بر اساس امتیاز کل با احتساب امتیازهای دستی
                 rankings.sort((a, b) => calculateTotalPointsFromRanking(b) - calculateTotalPointsFromRanking(a));
                 
                 const newHash = getRankingsHash(rankings);
@@ -118,9 +120,6 @@ async function loadRankingsPage() {
     }, 2000);
 }
 
-// ============================================================
-// hash رتبه‌بندی (برای تشخیص تغییر)
-// ============================================================
 function getRankingsHash(rankings) {
     if (!rankings || rankings.length === 0) return '';
     return rankings.map(r => 
@@ -128,9 +127,6 @@ function getRankingsHash(rankings) {
     ).join('|');
 }
 
-// ============================================================
-// Auto-refresh
-// ============================================================
 function startAutoRefresh() {
     stopAutoRefresh();
     
@@ -189,9 +185,6 @@ function stopAutoRefresh() {
     }
 }
 
-// ============================================================
-// رندر لیست رتبه‌بندی
-// ============================================================
 function renderRankingsList(rankings, userClass, studentId) {
     let html = '';
     
@@ -206,7 +199,6 @@ function renderRankingsList(rankings, userClass, studentId) {
         const isSecondMe = second.student_id === studentId;
         const isThirdMe = third.student_id === studentId;
         
-        // امتیاز کل با احتساب امتیازهای دستی
         const firstPoints = calculateTotalPointsFromRanking(first);
         const secondPoints = calculateTotalPointsFromRanking(second);
         const thirdPoints = calculateTotalPointsFromRanking(third);
@@ -219,7 +211,7 @@ function renderRankingsList(rankings, userClass, studentId) {
                 
                 <div class="lb-podium-people">
                     <div class="lb-podium-person lb-person-2 ${isSecondMe ? 'lb-is-me' : ''}" 
-                         onclick="openProfileCard('${second.student_id}')">
+                         onclick="openProfileCard('${escapeHTML(second.student_id)}')">
                         <div class="lb-person-avatar ${getAvatarClass(second)}">
                             ${renderAvatar(second)}
                         </div>
@@ -233,7 +225,7 @@ function renderRankingsList(rankings, userClass, studentId) {
                     </div>
                     
                     <div class="lb-podium-person lb-person-1 ${isFirstMe ? 'lb-is-me' : ''}" 
-                         onclick="openProfileCard('${first.student_id}')">
+                         onclick="openProfileCard('${escapeHTML(first.student_id)}')">
                         <div class="lb-person-crown">👑</div>
                         <div class="lb-person-avatar ${getAvatarClass(first)}">
                             ${renderAvatar(first)}
@@ -248,7 +240,7 @@ function renderRankingsList(rankings, userClass, studentId) {
                     </div>
                     
                     <div class="lb-podium-person lb-person-3 ${isThirdMe ? 'lb-is-me' : ''}" 
-                         onclick="openProfileCard('${third.student_id}')">
+                         onclick="openProfileCard('${escapeHTML(third.student_id)}')">
                         <div class="lb-person-avatar ${getAvatarClass(third)}">
                             ${renderAvatar(third)}
                         </div>
@@ -270,11 +262,7 @@ function renderRankingsList(rankings, userClass, studentId) {
     rankings.forEach((ranking, index) => {
         const rank = index + 1;
         const isMe = ranking.student_id === studentId;
-        
-        // امتیاز کل با احتساب امتیازهای دستی
         const totalPoints = calculateTotalPointsFromRanking(ranking);
-        
-        // 🆕 تعداد تکالیف کل با احتساب دستی
         const totalLessons = calculateCompletedLessons(ranking);
         
         let medalEmoji = '';
@@ -285,7 +273,7 @@ function renderRankingsList(rankings, userClass, studentId) {
         const classPersian = getClassPersianName(ranking.class_name);
         
         html += `
-            <div class="lb-row ${isMe ? 'lb-row-me' : ''}" onclick="openProfileCard('${ranking.student_id}')">
+            <div class="lb-row ${isMe ? 'lb-row-me' : ''}" onclick="openProfileCard('${escapeHTML(ranking.student_id)}')">
                 <div class="lb-row-rank">
                     ${medalEmoji 
                         ? `<span class="lb-row-medal">${medalEmoji}</span>` 
@@ -295,7 +283,7 @@ function renderRankingsList(rankings, userClass, studentId) {
                 
                 <div class="lb-row-info">
                     <div class="lb-row-name">
-                        ${ranking.name}
+                        ${escapeHTML(ranking.name)}
                         ${isMe ? '<span class="lb-row-you">شما</span>' : ''}
                     </div>
                     <div class="lb-row-class">${classPersian} • ${toPersianNum(totalLessons)} تکلیف</div>
@@ -388,8 +376,8 @@ function renderAvatarInRanking(ranking) {
 function truncateName(fullName) {
     if (!fullName) return 'دانش‌آموز';
     const parts = fullName.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0];
-    return `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
+    if (parts.length === 1) return escapeHTML(parts[0]);
+    return `${escapeHTML(parts[0])} ${escapeHTML(parts[parts.length - 1].charAt(0))}.`;
 }
 
 function renderEmptyRankings() {
@@ -458,9 +446,6 @@ async function refreshRankings() {
     }
 }
 
-// ============================================================
-// باز کردن کارت پروفایل
-// ============================================================
 function openProfileCard(studentId) {
     const ranking = currentRankings.find(r => r.student_id === studentId);
     if (!ranking) return;
@@ -476,11 +461,7 @@ function openProfileCard(studentId) {
     const classPersian = getClassPersianName(ranking.class_name);
     const isMe = studentId === localStorage.getItem('studentUUID');
     const medalCount = getUserEarnedMedals(ranking).length;
-    
-    // امتیاز کل با احتساب امتیازهای دستی
     const totalPoints = calculateTotalPointsFromRanking(ranking);
-    
-    // 🆕 تعداد تکالیف کل با احتساب دستی
     const totalLessons = calculateCompletedLessons(ranking);
     
     const avatarUrl = (ranking && ranking.avatar_url) ? String(ranking.avatar_url).trim() : '';
@@ -542,7 +523,7 @@ function openProfileCard(studentId) {
                 <div class="pc-main-info">
                     <div class="pc-modal-name">
                         ${medalHTML ? `<span class="pc-rank-inline">${medalHTML}</span>` : ''}
-                        ${ranking.name}
+                        ${escapeHTML(ranking.name)}
                         ${isMe ? '<span class="pc-modal-you-badge">شما</span>' : ''}
                     </div>
                     <div class="pc-modal-class">${classPersian}</div>
@@ -570,7 +551,7 @@ function openProfileCard(studentId) {
                 <div class="pc-modal-stats-title">آمار کلی</div>
                 
                 <div class="pc-modal-stats-grid-v2">
-                    <div class="pc-modal-stat-card-v2 pc-modal-stat-yellow">
+                                        <div class="pc-modal-stat-card-v2 pc-modal-stat-yellow" onclick="openPointsHistoryModalForUser('${escapeHTML(ranking.student_id)}')">
                         <div class="pc-modal-stat-icon-v2">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
@@ -580,9 +561,10 @@ function openProfileCard(studentId) {
                             <div class="pc-modal-stat-label-v2">امتیاز کل</div>
                             <div class="pc-modal-stat-value-v2">${toPersianNum(totalPoints)}</div>
                         </div>
+                        <div class="pc-modal-stat-arrow">›</div>
                     </div>
                     
-                    <div class="pc-modal-stat-card-v2 pc-modal-stat-orange" onclick="openMedalsPage('${ranking.student_id}')">
+                    <div class="pc-modal-stat-card-v2 pc-modal-stat-orange" onclick="openMedalsPage('${escapeHTML(ranking.student_id)}')">
                         <div class="pc-modal-stat-icon-v2">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="12" cy="8" r="6"/>
@@ -628,9 +610,6 @@ function openProfileCard(studentId) {
     modal.classList.add('active');
 }
 
-// ============================================================
-// باز کردن صفحه مدال‌ها
-// ============================================================
 function openMedalsPage(studentId) {
     const ranking = currentRankings.find(r => r.student_id === studentId);
     if (!ranking) return;
@@ -654,7 +633,7 @@ function openMedalsPage(studentId) {
             
             <div class="um-modal-header">
                 <div class="um-modal-header-icon">🏆</div>
-                <div class="um-modal-header-title">مدال‌های ${ranking.name}</div>
+                <div class="um-modal-header-title">مدال‌های ${escapeHTML(ranking.name)}</div>
                 <div class="um-modal-header-sub">${toPersianNum(userMedals.length)} مدال گرفته شده</div>
             </div>
             
@@ -690,30 +669,23 @@ function getUserEarnedMedals(ranking) {
     const avg = ranking.avg_percent || 0;
     const streak = ranking.streak_days || 0;
     
-    const allMedals = [
-        { id: 'first', icon: '🥇', title: 'اولین قدم', desc: 'اولین تکلیف را انجام بده', check: () => lessons >= 1 },
-        { id: 'diamond', icon: '💎', title: 'الماس', desc: 'تکمیل ۵ تکلیف', check: () => lessons >= 5 },
-        { id: 'king', icon: '👑', title: 'پادشاه', desc: 'تکمیل ۱۰ تکلیف', check: () => lessons >= 10 },
-        { id: 'accurate', icon: '🎯', title: 'دقیق', desc: 'میانگین درصد بالای ۸۰%', check: () => avg >= 80 && lessons >= 2 },
-        { id: 'brilliant', icon: '🌟', title: 'درخشان', desc: 'میانگین درصد ۱۰۰%', check: () => avg >= 100 && lessons >= 3 },
-        { id: 'star', icon: '⭐', title: 'ستاره', desc: 'کسب ۱۰۰ امتیاز', check: () => points >= 100 },
-        { id: 'champion', icon: '🏆', title: 'قهرمان', desc: 'کسب ۳۰۰ امتیاز', check: () => points >= 300 },
-        { id: 'genius', icon: '💠', title: 'نابغه', desc: 'کسب ۶۰۰ امتیاز', check: () => points >= 600 },
-        { id: 'rocket', icon: '🚀', title: 'موشک', desc: 'کسب ۱۰۰۰ امتیاز', check: () => points >= 1000 },
-        { id: 'smart', icon: '🧠', title: 'زیرک', desc: '۵ تکلیف با درصد ۱۰۰%', check: () => lessons >= 5 && avg >= 100 },
-        { id: 'invincible', icon: '🛡️', title: 'شکست‌ناپذیر', desc: '۱۰ تکلیف با درصد بالای ۹۰%', check: () => lessons >= 10 && avg >= 90 },
-        { id: 'fast', icon: '⚡', title: 'سریع', desc: 'تکمیل تکلیف زیر ۳ دقیقه', check: () => lessons >= 1 },
-        { id: 'loyal', icon: '🎖️', title: 'سرباز فداکار', desc: 'فعالیت در ۷ روز مختلف', check: () => streak >= 7 },
-        { id: 'beginner', icon: '🌱', title: 'تازه‌کار', desc: 'اولین امتیازت رو بگیر', check: () => points >= 10 },
-        { id: 'diligent', icon: '📚', title: 'کوشا', desc: 'تکمیل ۳ تکلیف', check: () => lessons >= 3 },
-        { id: 'expert', icon: '🎓', title: 'متخصص', desc: 'تکمیل ۷ تکلیف', check: () => lessons >= 7 },
-        { id: 'flawless', icon: '✨', title: 'بی‌نقص', desc: '۳ تکلیف با درصد ۱۰۰%', check: () => avg >= 100 && lessons >= 3 },
-        { id: 'persistent', icon: '🔥', title: 'پیگیر', desc: 'فعالیت در ۳ روز مختلف', check: () => streak >= 3 },
-        { id: 'dedicated', icon: '💪', title: 'با اراده', desc: 'فعالیت در ۱۵ روز مختلف', check: () => streak >= 15 },
-        { id: 'legend', icon: '🌈', title: 'افسانه', desc: 'کسب ۲۰۰۰ امتیاز', check: () => points >= 2000 }
-    ];
+    const stats = {
+        totalPoints: points,
+        completedLessons: lessons,
+        avgPercent: avg,
+        perfectScores: 0,
+        highScores: 0,
+        fastLessons: 0,
+        streakDays: streak,
+        maxInOneDay: 0
+    };
     
-    return allMedals.filter(m => m.check());
+    if (avg >= 100) stats.perfectScores = lessons;
+    else if (avg >= 90) stats.highScores = lessons;
+    
+    return MEDALS_LIST.filter(m => {
+        try { return m.condition(stats); } catch(e) { return false; }
+    });
 }
 
 function closeUserMedals() {

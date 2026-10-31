@@ -1,6 +1,6 @@
 // ============================================================
 // navigation.js — ناوبری، منو، مودال‌ها، راهنما، تم
-// نسخه: ۸.۰.۰ — رفع خطای bgMusic + پشتیبانی از جزوه
+// نسخه: ۹.۰.۰ — با پشتیبانی از استوری و دکمه بازگشت
 // ============================================================
 
 // ============================================================
@@ -41,11 +41,29 @@ function pushHistory(screenId) {
 }
 
 function goBackToHome() {
-    goToScreen('screen-home', false);
-    pushHistory('screen-home');
+    goToScreen('screen-home', true);
 }
 
+// ============================================================
+// 🆕 مدیریت دکمه بازگشت گوشی (Popstate)
+// ============================================================
 window.addEventListener('popstate', function(event) {
+    // 1. اول چک کن ببین استوری بازه یا نه
+    const storyOverlay = document.getElementById('story-viewer-overlay');
+    if (storyOverlay && storyOverlay.classList.contains('active')) {
+        // اگر استوری باز بود، فقط استوری رو ببند
+        const video = document.getElementById('story-viewer-video');
+        const progress = document.getElementById('story-viewer-progress-bar');
+        if (video) { video.pause(); video.src = ''; }
+        if (progress) { progress.style.transition = 'none'; progress.style.width = '0%'; }
+        storyOverlay.classList.remove('active');
+        
+        // رندر مجدد دایره استوری (برای برداشتن بج جدید)
+        if (typeof renderStories === 'function') renderStories();
+        return; // مهم: نذار بقیه کدهای ناوبری اجرا بشن
+    }
+
+    // 2. اگر استوری باز نبود، کدهای ناوبری صفحه (رفتن به خانه) رو اجرا کن
     const activeScreen = document.querySelector('.screen.active');
     if (!activeScreen) return;
     const activeId = activeScreen.id;
@@ -88,7 +106,7 @@ function goToScreen(screenId, addToHistory = true) {
     
     if (addToHistory) pushHistory(screenId);
     
-    // 🆕 مدیریت موسیقی پس‌زمینه (با محافظت از خطا)
+    // مدیریت موسیقی پس‌زمینه
     try {
         if (typeof bgMusic !== 'undefined' && bgMusic) {
             if (['screen-quiz', 'screen-feedback', 'screen-result'].includes(screenId)) {

@@ -75,18 +75,27 @@ function isLessonEnabled(lesson) {
 }
 
 function getEffectiveDueDate(lesson) {
+    if (!lesson) return '۱۴۰۵/۰۹/۱۵';
+    
+    // 🆕 بررسی ۱: وضعیت شخصی (اولویت اول)
     const custom = customLessonStatus[lesson.id];
-    if (custom && custom.custom_due_date) return custom.custom_due_date;
+    if (custom && custom.custom_due_date) {
+        return custom.custom_due_date;
+    }
     
+    // 🆕 بررسی ۲: وضعیت کلاسی (اولویت دوم)
     const classCustom = customClassStatus[lesson.id];
-    if (classCustom && classCustom.custom_due_date) return classCustom.custom_due_date;
+    if (classCustom && classCustom.custom_due_date) {
+        return classCustom.custom_due_date;
+    }
     
-    return lesson.dueDate || '۱۴۰۵/۰۹/۱۵';
-}
-
-function isLessonExpired(lesson) {
-    const effectiveDueDate = getEffectiveDueDate(lesson);
-    return isExpired(effectiveDueDate);
+    // 🆕 بررسی ۳: مهلت پیش‌فرض درس
+    if (lesson.dueDate) {
+        return lesson.dueDate;
+    }
+    
+    // 🆕 بررسی ۴: مهلت پیش‌فرض کلی
+    return '۱۴۰۵/۰۹/۱۵';
 }
 
 // ============================================================
