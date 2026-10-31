@@ -12229,3 +12229,1460 @@ body.dark-mode .drag-guide-text {
     border-color: #00897b;
     color: #80cbc4;
 }
+/* ============================================================
+   🆕 استوری شناور صفحه خانه
+   ============================================================ */
+
+.home-floating-stories {
+    position: absolute;
+    top: 42%; /* تنظیم ارتفاع دقیق روی منحنی سفید */
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 50; /* بالاتر از عکس پس‌زمینه، پایین‌تر از منوها */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* مخفی کردن اسکرول‌بار در فایرفاکس */
+}
+
+.home-floating-stories::-webkit-scrollbar {
+    display: none; /* مخفی کردن اسکرول‌بار در کروم و سافاری */
+}
+
+/* محفظه هر استوری */
+.story-item-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.story-item-wrapper:active {
+    transform: scale(0.95);
+}
+
+/* حلقه دور استوری */
+.story-item-ring {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    padding: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.4); /* حلقه خاکستری برای دیده شده */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    position: relative;
+}
+
+/* حلقه رنگی (برای استوری دیده نشده) */
+.story-item-ring.new-story {
+    background: linear-gradient(135deg, #f44336, #ff9800, #e91e63);
+    animation: storyRingPulse 2s ease-in-out infinite;
+}
+
+@keyframes storyRingPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.4), 0 4px 10px rgba(0,0,0,0.15); }
+    50% { box-shadow: 0 0 0 6px rgba(233, 30, 99, 0), 0 4px 10px rgba(0,0,0,0.15); }
+}
+
+/* تصویر یا ویدیوی داخل حلقه */
+.story-item-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #000;
+    border: 2.5px solid #fff; /* حاشیه سفید برای جدا شدن از حلقه */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.story-item-image video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.story-item-play-icon {
+    position: absolute;
+    font-size: 14px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.4);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    bottom: 2px;
+    right: 2px;
+    backdrop-filter: blur(4px);
+}
+
+/* عنوان زیر استوری */
+.story-item-title {
+    font-size: 11px;
+    font-weight: 900;
+    color: #1565c0; /* رنگ آبی تیره برای خوانایی روی زمینه سفید */
+    background: rgba(255, 255, 255, 0.85);
+    padding: 2px 8px;
+    border-radius: 10px;
+    max-width: 75px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* نشان "جدید" روی استوری */
+.story-new-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: linear-gradient(135deg, #f44336, #c62828);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 1.5px solid #fff;
+    box-shadow: 0 2px 6px rgba(244, 67, 54, 0.5);
+    z-index: 2;
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+/* حالت شب */
+body.dark-mode .story-item-title {
+    color: #90caf9;
+    background: rgba(26, 35, 50, 0.85);
+}
+body.dark-mode .story-item-ring {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================================
+   🆕 مودال تمام‌صفحه پخش استوری
+   ============================================================ */
+
+.story-viewer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 99999; /* بالاترین لایه */
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.story-viewer-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.story-viewer-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    max-width: 500px; /* برای دسکتاپ وسط صفحه باشه */
+    margin: 0 auto;
+    background: #000;
+}
+
+/* نوار پیشرفت بالای استوری */
+.story-progress-wrapper {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.story-viewer-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #fff;
+    border-radius: 4px;
+}
+
+/* هدر استوری (عنوان و دکمه بستن) */
+.story-viewer-header {
+    position: absolute;
+    top: 30px;
+    left: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.story-viewer-title {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.story-viewer-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    transition: background 0.2s ease;
+}
+
+.story-viewer-close:active {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0.9);
+}
+
+/* ویدیو اصلی استوری */
+.story-viewer-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
+/* ============================================================
+   🆕 فیکس نهایی: دایره استوری و کادر سفید (تمیز و مرتب)
+   ============================================================ */
+
+/* ۱. کادر سفید (خوش‌آمدگویی) - جمع و جور و چسبیده به بنر */
+.home-welcome {
+    background: #fff !important; 
+    border-radius: 25px 25px 0 0 !important;
+    margin-top: -25px !important; /* اتصال دقیق به بنر */
+    padding: 15px 20px !important; /* پدینگ استاندارد */
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: space-between !important;
+    position: relative !important; 
+    z-index: 10 !important; 
+    box-shadow: 0 -5px 20px rgba(25, 118, 210, 0.1) !important;
+    min-height: 100px !important;
+}
+
+/* ۲. دایره استوری (آوردن به پایین‌ترین حالت ممکن) */
+.home-floating-stories {
+    position: absolute !important;
+    /* 🆕 عدد مثبت برای آوردن دایره به پایین و روی منحنی */
+    top: 10px !important; 
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+
+.home-floating-stories::-webkit-scrollbar { display: none !important; }
+
+/* ۳. ساختار داخلی (متن و آواتار) */
+.home-welcome-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    position: relative !important;
+    z-index: 15 !important;
+}
+
+/* ۴. استایل‌های دایره (بدون تغییر) */
+.story-item-wrapper {
+    display: flex !important; flex-direction: column !important; align-items: center !important; gap: 6px !important;
+    cursor: pointer !important; position: relative !important; flex-shrink: 0 !important;
+}
+
+.story-item-ring {
+    width: 76px !important; height: 76px !important; border-radius: 50% !important; padding: 3px !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    position: relative !important;
+    background: rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
+    transition: all 0.3s ease !important;
+}
+
+.story-item-ring.new-story {
+    background: conic-gradient(from 0deg, #f44336, #ff9800, #e91e63, #9c27b0, #f44336) !important;
+    animation: spinRing 3s linear infinite !important;
+    box-shadow: 0 0 15px rgba(233, 30, 99, 0.4) !important;
+}
+
+.story-item-ring.seen-story {
+    background: rgba(255, 255, 255, 0.4) !important;
+    animation: none !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
+}
+
+@keyframes spinRing {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.story-item-image {
+    width: 100% !important; height: 100% !important; border-radius: 50% !important; overflow: hidden !important;
+    background: #000 !important; border: 2.5px solid #fff !important; position: relative !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+}
+
+.story-item-image video { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+
+.story-item-play-icon { display: none !important; } /* مخفی کردن فلش */
+
+.story-item-title {
+    font-size: 11px !important; font-weight: 900 !important; color: #1565c0 !important;
+    background: rgba(255, 255, 255, 0.95) !important; padding: 3px 10px !important;
+    border-radius: 10px !important; box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+}
+
+.story-new-badge {
+    position: absolute !important; top: 0 !important; right: 0 !important;
+    background: #f44336 !important; color: #fff !important; font-size: 10px !important;
+    padding: 2px 8px !important; border-radius: 10px !important;
+    border: 2px solid #fff !important; box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+    z-index: 2 !important;
+}
+/* ============================================================
+   🆕 فیکس نهایی: آوردن دایره استوری پایین + تمام صفحه شدن ویدیو
+   ============================================================ */
+
+/* ۱. آوردن دایره استوری پایین (چسبیده به کادر سفید) */
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد منفی رو کم کردیم تا دایره بیاد پایین و روی منحنی بشینه */
+    margin-top: -40px !important; 
+    margin-bottom: 15px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+
+/* ۲. تنظیم مجدد کادر سفید برای جای دادن دایره */
+.home-welcome {
+    background: #fff !important; 
+    border-radius: 25px 25px 0 0 !important;
+    margin-top: -25px !important; 
+    padding: 15px 20px !important; 
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: space-between !important;
+    position: relative !important; 
+    z-index: 10 !important; 
+    box-shadow: 0 -5px 20px rgba(25, 118, 210, 0.1) !important;
+    min-height: auto !important; 
+}
+
+/* ۳. ویدیوی استوری تمام صفحه */
+.story-viewer-container {
+    position: relative !important;
+    width: 100% !important; 
+    height: 100% !important;
+    display: flex !important; 
+    flex-direction: column !important;
+    max-width: 100% !important; /* حذف محدودیت عرض */
+    margin: 0 !important;
+    background: #000 !important;
+}
+
+.story-viewer-video {
+    width: 100% !important; 
+    height: 100% !important; 
+    object-fit: cover !important; /* پر کردن کل صفحه بدون حاشیه سیاه */
+    background: #000 !important;
+}
+
+/* ۴. دکمه‌های نامرئی برای لمس سمت چپ و راست (مثل اینستاگرام) */
+.story-nav-left, 
+.story-nav-right {
+    position: absolute !important; 
+    top: 60px !important; 
+    bottom: 0 !important;
+    width: 35% !important; 
+    z-index: 15 !important; 
+    cursor: pointer !important;
+    /* دکمه‌ها نامرئی هستن ولی کلیک‌پذیر */
+    background: transparent !important;
+}
+
+.story-nav-left { left: 0 !important; }
+.story-nav-right { right: 0 !important; }
+
+/* ۵. اصلاح نوار پیشرفت و هدر برای تمام صفحه */
+.story-progress-wrapper {
+    top: 20px !important;
+    left: 15px !important;
+    right: 15px !important;
+}
+
+.story-viewer-header {
+    top: 40px !important;
+    left: 15px !important;
+    right: 15px !important;
+}
+/* ============================================================
+   🆕 بردن دایره استوری بالاتر (روی بنر)
+   ============================================================ */
+
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد رو از -40 به -75 تغییر دادیم تا بره بالاتر */
+    margin-top: -75px !important; 
+    margin-bottom: 15px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+/* ============================================================
+   🆕 فیکس نهایی: دایره استوری روی منحنی و کادر سفید جمع‌وجور
+   ============================================================ */
+
+/* ۱. کادر سفید: فاصله از بنر و فضای لازم برای دایره */
+.home-welcome {
+    background: #fff !important; 
+    border-radius: 25px 25px 0 0 !important;
+    margin-top: -25px !important; /* اتصال به بنر */
+    /* 🆕 پدینگ بالا برای قرارگیری دایره، پدینگ پایین برای محتوا */
+    padding: 45px 20px 15px 20px !important; 
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: space-between !important;
+    position: relative !important; 
+    z-index: 10 !important; 
+    box-shadow: 0 -5px 20px rgba(25, 118, 210, 0.1) !important;
+    min-height: auto !important; 
+}
+
+/* ۲. دایره استوری: دقیقاً روی لبه منحنی */
+.home-floating-stories {
+    position: absolute !important;
+    /* 🆕 این عدد دایره رو میذاره وسط فضای خالی (بالای محتوا) */
+    top: 5px !important; 
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+
+.home-floating-stories::-webkit-scrollbar { display: none !important; }
+
+/* ۳. ویدیوی استوری تمام صفحه */
+.story-viewer-container {
+    position: relative !important;
+    width: 100% !important; 
+    height: 100% !important;
+    display: flex !important; 
+    flex-direction: column !important;
+    max-width: 100% !important; 
+    margin: 0 !important;
+    background: #000 !important;
+}
+
+.story-viewer-video {
+    width: 100% !important; 
+    height: 100% !important; 
+    object-fit: cover !important; /* پر کردن کل صفحه */
+    background: #000 !important;
+}
+
+/* ۴. دکمه‌های نامرئی برای لمس سمت چپ و راست (مثل اینستاگرام) */
+.story-nav-left, 
+.story-nav-right {
+    position: absolute !important; 
+    top: 60px !important; 
+    bottom: 0 !important;
+    width: 35% !important; 
+    z-index: 15 !important; 
+    cursor: pointer !important;
+    background: transparent !important;
+}
+
+.story-nav-left { left: 0 !important; }
+.story-nav-right { right: 0 !important; }
+/* ============================================================
+   🆕 فیکس نهایی: دایره استوری روی عکس بنر + کادر سفید مرتب
+   ============================================================ */
+
+/* ۱. کادر سفید (خوش‌آمدگویی) */
+.home-welcome {
+    background: #fff !important; 
+    border-radius: 25px 25px 0 0 !important;
+    /* 🆕 کادر سفید رو کمی پایین‌تر می‌بریم تا دایره بالای اون قرار بگیره */
+    margin-top: 0 !important; 
+    padding: 15px 20px !important; 
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: space-between !important;
+    position: relative !important; 
+    z-index: 10 !important; 
+    box-shadow: 0 -5px 20px rgba(25, 118, 210, 0.1) !important;
+    min-height: auto !important; 
+}
+
+/* ۲. دایره استوری (کشیده شده به بالا روی بنر) */
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این منفی دایره رو میکشه بالا و روی بنر قرار میده */
+    margin-top: -55px !important; 
+    margin-bottom: 10px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+
+.home-floating-stories::-webkit-scrollbar { display: none !important; }
+
+/* ۳. ویدیوی استوری تمام صفحه */
+.story-viewer-container {
+    position: relative !important;
+    width: 100% !important; 
+    height: 100% !important;
+    display: flex !important; 
+    flex-direction: column !important;
+    max-width: 100% !important; 
+    margin: 0 !important;
+    background: #000 !important;
+}
+
+.story-viewer-video {
+    width: 100% !important; 
+    height: 100% !important; 
+    object-fit: cover !important; 
+    background: #000 !important;
+}
+
+/* ۴. دکمه‌های نامرئی برای لمس سمت چپ و راست (مثل اینستاگرام) */
+.story-nav-left, 
+.story-nav-right {
+    position: absolute !important; 
+    top: 60px !important; 
+    bottom: 0 !important;
+    width: 35% !important; 
+    z-index: 15 !important; 
+    cursor: pointer !important;
+    background: transparent !important;
+}
+
+.story-nav-left { left: 0 !important; }
+.story-nav-right { right: 0 !important; }
+/* ============================================================
+   🆕 آوردن دایره استوری به پایین‌ترین حالت ممکن (روی منحنی)
+   ============================================================ */
+
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد رو از -55 به -30 تغییر دادیم تا دایره بیاد پایین */
+    margin-top: -30px !important; 
+    margin-bottom: 10px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+/* ============================================================
+   🆕 تنظیم دقیق دایره استوری (چسبیده به منحنی سفید)
+   ============================================================ */
+
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد دایره رو میذاره دقیقاً روی لبه منحنی */
+    margin-top: -45px !important; 
+    margin-bottom: 10px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+/* ============================================================
+   🆕 بردن دایره استوری به بالاترین حد ممکن (روی بنر)
+   ============================================================ */
+
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد رو بیشتر منفی کردیم تا دایره بره بالاتر (روی بنر) */
+    margin-top: -70px !important; 
+    margin-bottom: 10px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+/* ============================================================
+   🆕 بردن دایره استوری باز هم بالاتر (روی بنر)
+   ============================================================ */
+
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد رو باز هم منفی‌تر کردیم تا دایره بالاتر بره */
+    margin-top: -90px !important; 
+    margin-bottom: 10px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+/* ============================================================
+   🆕 بردن دایره استوری به بالاترین حد ممکن (روی بنر)
+   ============================================================ */
+
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد رو باز هم منفی‌تر کردیم تا دایره بالاتر بره */
+    margin-top: -110px !important; 
+    margin-bottom: 10px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+/* ============================================================
+   🆕 بردن دایره استوری یکم بالاتر
+   ============================================================ */
+
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد رو از -110 به -120 تغییر دادیم تا یکم بالاتر بره */
+    margin-top: -120px !important; 
+    margin-bottom: 10px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+/* ============================================================
+   🆕 بردن دایره استوری کمی بالاتر
+   ============================================================ */
+
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد رو از -120 به -125 تغییر دادیم تا کمی بالاتر بره */
+    margin-top: -125px !important; 
+    margin-bottom: 10px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+/* ============================================================
+   🆕 بردن دایره استوری یکم دیگه بالاتر
+   ============================================================ */
+
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد رو از -125 به -130 تغییر دادیم تا یکم بالاتر بره */
+    margin-top: -130px !important; 
+    margin-bottom: 10px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+/* ============================================================
+   🆕 بردن دایره استوری یکم دیگه بالاتر
+   ============================================================ */
+
+.home-floating-stories {
+    position: relative !important;
+    /* 🆕 این عدد رو از -130 به -135 تغییر دادیم تا یکم بالاتر بره */
+    margin-top: -135px !important; 
+    margin-bottom: 10px !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    z-index: 20 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+/* ============================================================
+   🆕 نوار تعامل استوری (لایک، بازدید، دانلود)
+   ============================================================ */
+
+.story-interaction-bar {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 12px 24px;
+    border-radius: 50px;
+    z-index: 20;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.story-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    padding: 5px;
+    transition: transform 0.2s ease;
+}
+
+.story-action-btn:active {
+    transform: scale(0.9);
+}
+
+.story-action-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: #fff;
+    fill: none;
+    transition: all 0.3s ease;
+}
+
+/* 🆕 حالت لایک شده (قلب قرمز) */
+.story-action-btn.like-btn.liked svg {
+    fill: #f44336;
+    stroke: #f44336;
+    animation: heartPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.story-action-btn.like-btn.liked .action-count {
+    color: #f44336;
+}
+
+@keyframes heartPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.action-count {
+    font-size: 14px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.download-btn svg {
+    stroke: #4fc3f7;
+}
+
+.download-btn:active svg {
+    transform: translateY(2px);
+}
+
+/* حالت شب */
+body.dark-mode .story-interaction-bar {
+    background: rgba(15, 20, 25, 0.7);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+/* ============================================================
+   🆕 استایل جدید دکمه‌های استوری (سمت چپ، زیر هم، بدون کارت)
+   ============================================================ */
+
+.story-interaction-bar {
+    position: absolute !important;
+    bottom: 30px !important;
+    left: 15px !important;
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    z-index: 20 !important;
+}
+
+.story-action-btn {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 4px !important;
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    padding: 0 !important;
+    transition: transform 0.2s ease !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+}
+
+.story-action-btn:active {
+    transform: scale(0.9) !important;
+}
+
+.story-action-btn svg {
+    width: 32px !important;
+    height: 32px !important;
+    stroke: #fff !important;
+    fill: none !important;
+    transition: all 0.3s ease !important;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)) !important;
+}
+
+.story-action-btn.like-btn.liked svg {
+    fill: #f44336 !important;
+    stroke: #f44336 !important;
+    animation: heartPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.story-action-btn.like-btn.liked .action-count {
+    color: #f44336 !important;
+}
+
+@keyframes heartPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.action-count {
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    color: #fff !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+}
+
+.download-btn svg {
+    stroke: #4fc3f7 !important;
+}
+
+.download-btn:active svg {
+    transform: translateY(2px) !important;
+}
+/* ============================================================
+   🆕 استایل جدید دکمه‌های استوری (سمت چپ، زیر هم، بزرگ‌تر و بالاتر)
+   ============================================================ */
+
+.story-interaction-bar {
+    position: absolute !important;
+    /* 🆕 اومد بالاتر (از ۳۰ به ۸۰ تغییر کرد) */
+    bottom: 80px !important; 
+    left: 15px !important;
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    /* 🆕 فاصله بین دکمه‌ها بیشتر شد */
+    gap: 25px !important; 
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    z-index: 20 !important;
+}
+
+.story-action-btn {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    padding: 0 !important;
+    transition: transform 0.2s ease !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6) !important;
+}
+
+.story-action-btn:active {
+    transform: scale(0.9) !important;
+}
+
+.story-action-btn svg {
+    /* 🆕 آیکون‌ها بزرگ‌تر شدن (از ۳۲ به ۳۸ تغییر کرد) */
+    width: 38px !important; 
+    height: 38px !important;
+    stroke: #fff !important;
+    fill: none !important;
+    transition: all 0.3s ease !important;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5)) !important;
+}
+
+.story-action-btn.like-btn.liked svg {
+    fill: #f44336 !important;
+    stroke: #f44336 !important;
+    animation: heartPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.story-action-btn.like-btn.liked .action-count {
+    color: #f44336 !important;
+}
+
+@keyframes heartPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.action-count {
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    color: #fff !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6) !important;
+}
+
+.download-btn svg {
+    stroke: #4fc3f7 !important;
+}
+
+.download-btn:active svg {
+    transform: translateY(2px) !important;
+}
+/* ============================================================
+   🆕 استایل جدید دکمه‌های استوری (آیکون‌های کوچک‌تر)
+   ============================================================ */
+
+.story-interaction-bar {
+    position: absolute !important;
+    bottom: 80px !important; 
+    left: 15px !important;
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 25px !important; 
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    z-index: 20 !important;
+}
+
+.story-action-btn {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 4px !important;
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    padding: 0 !important;
+    transition: transform 0.2s ease !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6) !important;
+}
+
+.story-action-btn:active {
+    transform: scale(0.9) !important;
+}
+
+.story-action-btn svg {
+    /* 🆕 آیکون‌ها کوچک‌تر شدن (از ۳۸ به ۲۸ تغییر کرد) */
+    width: 28px !important; 
+    height: 28px !important;
+    stroke: #fff !important;
+    fill: none !important;
+    transition: all 0.3s ease !important;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)) !important;
+}
+
+.story-action-btn.like-btn.liked svg {
+    fill: #f44336 !important;
+    stroke: #f44336 !important;
+    animation: heartPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.story-action-btn.like-btn.liked .action-count {
+    color: #f44336 !important;
+}
+
+@keyframes heartPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.action-count {
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    color: #fff !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6) !important;
+}
+
+.download-btn svg {
+    stroke: #4fc3f7 !important;
+}
+
+.download-btn:active svg {
+    transform: translateY(2px) !important;
+}
+/* ============================================================
+   🆕 بروزرسانی استوری: نور پالس به جای چرخش (اعمال در انتها)
+   ============================================================ */
+
+.story-item-ring.new-story {
+    background: conic-gradient(from 0deg, #f44336, #ff9800, #e91e63, #9c27b0, #f44336) !important;
+    animation: storyRingPulseNew 1.5s ease-in-out infinite !important;
+    box-shadow: 0 0 15px rgba(233, 30, 99, 0.4) !important;
+}
+
+.story-item-ring.seen-story {
+    background: rgba(255, 255, 255, 0.4) !important;
+    animation: none !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
+}
+
+/* انیمیشن جدید: فقط نور پالس (بدون چرخش و بدون تغییر سایز) */
+@keyframes storyRingPulseNew {
+    0%, 100% { 
+        box-shadow: 0 0 10px rgba(233, 30, 99, 0.4), 0 4px 10px rgba(0,0,0,0.15); 
+    }
+    50% { 
+        box-shadow: 0 0 25px rgba(233, 30, 99, 0.9), 0 4px 15px rgba(0,0,0,0.2); 
+    }
+}
+/* ============================================================
+   🆕 دایره چالش هفتگی (هم‌اندازه با استوری)
+   ============================================================ */
+
+.home-weekly-challenge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.home-weekly-challenge:active {
+    transform: scale(0.95);
+}
+
+/* حلقه دور چالش (هم‌اندازه با استوری) */
+.weekly-challenge-ring {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    padding: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ff9800, #f44336);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    position: relative;
+}
+
+/* عکس/ویدیوی داخل دایره */
+.weekly-challenge-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #000;
+    border: 2.5px solid #fff;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.weekly-challenge-image video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* عنوان زیر دایره */
+.weekly-challenge-title {
+    font-size: 11px;
+    font-weight: 900;
+    color: #1565c0;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 3px 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    white-space: nowrap;
+}
+
+/* حالت شب */
+body.dark-mode .weekly-challenge-title {
+    color: #90caf9;
+    background: rgba(26, 35, 50, 0.85);
+}
+/* ============================================================
+   🆕 استایل‌های چالش هفتگی و زمان‌سنج
+   ============================================================ */
+
+/* دکمه زمان‌سنج (وقتی هنوز موعد نرسیده) */
+.btn-countdown {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2) !important;
+    color: #e65100 !important;
+    border: 1.5px solid #ff9800 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    cursor: not-allowed;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 8px 20px;
+    border-radius: 50px;
+    width: 100%;
+}
+
+/* مودال جزئیات آزمون */
+.challenge-detail-modal {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: none; justify-content: center;
+    align-items: center; z-index: 9999;
+    padding: 20px;
+}
+.challenge-detail-modal.active { display: flex; }
+.challenge-detail-box {
+    background: #fff; border-radius: 24px;
+    padding: 25px 20px; width: 100%; max-width: 400px;
+    max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    position: relative;
+    animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.challenge-detail-close {
+    position: absolute; top: 12px; left: 12px;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #f5f5f5; border: none;
+    font-size: 18px; font-weight: bold; color: #555;
+    cursor: pointer; z-index: 10;
+}
+.challenge-detail-banner {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border-radius: 20px; padding: 20px; text-align: center;
+    margin-bottom: 20px; border: 2px solid #90caf9;
+}
+.challenge-detail-banner img, .challenge-detail-banner video {
+    width: 90px; height: 90px; object-fit: cover;
+    border-radius: 16px; margin-bottom: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.challenge-detail-banner h2 {
+    font-size: 18px; color: var(--primary-dark);
+    margin: 0; font-weight: 900;
+}
+.challenge-detail-info {
+    background: #fff; border-radius: 20px;
+    padding: 15px; border: 1.5px solid #e3f2fd;
+    margin-bottom: 15px;
+}
+.challenge-detail-row {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 10px 0;
+    border-bottom: 1px dashed #e3f2fd;
+    font-size: 13px; font-weight: bold;
+}
+.challenge-detail-row:last-child { border-bottom: none; }
+.challenge-detail-label { color: #546e7a; display: flex; gap: 8px; }
+.challenge-detail-value { color: var(--primary); font-weight: 900; }
+.challenge-detail-desc {
+    background: #f8fbff; border-radius: 16px;
+    padding: 15px; border: 1px solid #e3f2fd;
+    line-height: 1.8; color: #455a64;
+    font-size: 13px; font-weight: bold; margin-bottom: 20px;
+}
+.challenge-detail-btn {
+    background: var(--primary-gradient);
+    color: #fff; border: none; padding: 16px;
+    border-radius: 50px; font-size: 16px; font-weight: 900;
+    width: 100%; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(25,118,210,0.4);
+    font-family: 'Vazirmatn', sans-serif;
+}
+.challenge-detail-btn:disabled {
+    background: #cfd8dc; box-shadow: none;
+    color: #78909c; cursor: not-allowed;
+}
+/* ============================================================
+   🆕 استایل‌های چالش هفتگی و زمان‌سنج
+   ============================================================ */
+
+.btn-countdown {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2) !important;
+    color: #e65100 !important;
+    border: 1.5px solid #ff9800 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    cursor: not-allowed;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 8px 20px;
+    border-radius: 50px;
+    width: 100%;
+}
+
+/* مودال جزئیات آزمون */
+.challenge-detail-modal {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: none; justify-content: center;
+    align-items: center; z-index: 9999;
+    padding: 20px;
+}
+.challenge-detail-modal.active { display: flex; }
+.challenge-detail-box {
+    background: #fff; border-radius: 24px;
+    padding: 25px 20px; width: 100%; max-width: 400px;
+    max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    position: relative;
+    animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.challenge-detail-close {
+    position: absolute; top: 12px; left: 12px;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #f5f5f5; border: none;
+    font-size: 18px; font-weight: bold; color: #555;
+    cursor: pointer; z-index: 10;
+}
+.challenge-detail-banner {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border-radius: 20px; padding: 20px; text-align: center;
+    margin-bottom: 20px; border: 2px solid #90caf9;
+}
+.challenge-detail-banner img, .challenge-detail-banner video {
+    width: 90px; height: 90px; object-fit: cover;
+    border-radius: 16px; margin-bottom: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.challenge-detail-banner h2 {
+    font-size: 18px; color: var(--primary-dark);
+    margin: 0; font-weight: 900;
+}
+.challenge-detail-info {
+    background: #fff; border-radius: 20px;
+    padding: 15px; border: 1.5px solid #e3f2fd;
+    margin-bottom: 15px;
+}
+.challenge-detail-row {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 10px 0;
+    border-bottom: 1px dashed #e3f2fd;
+    font-size: 13px; font-weight: bold;
+}
+.challenge-detail-row:last-child { border-bottom: none; }
+.challenge-detail-label { color: #546e7a; display: flex; gap: 8px; }
+.challenge-detail-value { color: var(--primary); font-weight: 900; }
+.challenge-detail-desc {
+    background: #f8fbff; border-radius: 16px;
+    padding: 15px; border: 1px solid #e3f2fd;
+    line-height: 1.8; color: #455a64;
+    font-size: 13px; font-weight: bold; margin-bottom: 20px;
+}
+.challenge-detail-btn {
+    background: var(--primary-gradient);
+    color: #fff; border: none; padding: 16px;
+    border-radius: 50px; font-size: 16px; font-weight: 900;
+    width: 100%; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(25,118,210,0.4);
+    font-family: 'Vazirmatn', sans-serif;
+}
+.challenge-detail-btn:disabled {
+    background: #cfd8dc; box-shadow: none;
+    color: #78909c; cursor: not-allowed;
+}
+/* ============================================================
+   🆕 بج چالش هفتگی
+   ============================================================ */
+.challenge-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: linear-gradient(135deg, #f44336, #c62828);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+/* ============================================================
+   🆕 مودال تاریخچه امتیازات
+   ============================================================ */
+.points-history-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);
+    display: none; justify-content: center; align-items: center;
+    z-index: 9999; padding: 20px;
+}
+.points-history-modal.active { display: flex; }
+
+.points-history-box {
+    background: #fff; border-radius: 24px; padding: 25px 20px;
+    width: 100%; max-width: 400px; max-height: 85vh;
+    overflow-y: auto; scrollbar-width: none;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    position: relative; animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.points-history-box::-webkit-scrollbar { display: none; }
+
+.points-history-close {
+    position: absolute; top: 12px; left: 12px;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #f5f5f5; border: none;
+    font-size: 18px; font-weight: bold; color: #555;
+    cursor: pointer; z-index: 10;
+}
+.points-history-close:active { transform: scale(0.9); }
+
+.points-history-header {
+    text-align: center; margin-bottom: 20px;
+    padding-bottom: 15px; border-bottom: 2px dashed #e3f2fd;
+}
+.points-history-header h2 {
+    color: var(--primary); font-weight: 900; margin-bottom: 8px; font-size: 18px;
+}
+.points-history-total {
+    font-size: 36px; font-weight: 900; color: #f57c00;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.points-history-total span { font-size: 14px; color: #78909c; margin-top: 8px; }
+
+.points-history-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; margin-bottom: 10px;
+    background: #f8fbff; border-radius: 16px;
+    border: 1.5px solid #e3f2fd;
+}
+.points-history-item.lesson-item { border-right: 4px solid #1976d2; }
+.points-history-item.challenge-item { border-right: 4px solid #ff9800; }
+
+.points-history-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+}
+.points-history-icon.lesson { background: #e3f2fd; }
+.points-history-icon.challenge { background: #fff3e0; }
+
+.points-history-info { flex: 1; text-align: right; min-width: 0; }
+.points-history-title { font-size: 14px; font-weight: 900; color: #1a237e; margin-bottom: 4px; }
+.points-history-date { font-size: 11px; color: #78909c; font-weight: bold; }
+
+.points-history-value {
+    font-size: 16px; font-weight: 900; color: #2e7d32;
+    flex-shrink: 0; background: #e8f5e9; padding: 4px 10px; border-radius: 10px;
+}
+
+.points-history-empty {
+    text-align: center; padding: 30px 20px; color: #90a4ae;
+    font-weight: bold; line-height: 1.7;
+}
