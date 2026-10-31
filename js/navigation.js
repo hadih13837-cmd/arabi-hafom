@@ -1,11 +1,8 @@
 // ============================================================
 // navigation.js — ناوبری، منو، مودال‌ها، راهنما، تم
-// نسخه: ۹.۰.۰ — با پشتیبانی از استوری و دکمه بازگشت
+// نسخه: ۱۱.۰.۰ — رفع باگ اعلان‌های همزمان و تکرار
 // ============================================================
 
-// ============================================================
-// مودال عمومی
-// ============================================================
 function showModal(title, text, icon = 'ℹ️') {
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-text').textContent = text;
@@ -17,25 +14,16 @@ function closeModal() {
     document.getElementById('modal').classList.remove('active');
 }
 
-// ============================================================
-// رفتن به صفحه کلیپ‌ها
-// ============================================================
 function openClipsPage() {
     sessionStorage.setItem('cameFromClips', 'true');
     window.location.href = './clips.html';
 }
 
-// ============================================================
-// رفتن به صفحه جزوه و کلمات
-// ============================================================
 function openJozvePage() {
     sessionStorage.setItem('cameFromClips', 'true');
     window.location.href = './jozve.html';
 }
 
-// ============================================================
-// ناوبری بین صفحات
-// ============================================================
 function pushHistory(screenId) {
     history.pushState({ screen: screenId }, '', '');
 }
@@ -44,26 +32,18 @@ function goBackToHome() {
     goToScreen('screen-home', true);
 }
 
-// ============================================================
-// 🆕 مدیریت دکمه بازگشت گوشی (Popstate)
-// ============================================================
 window.addEventListener('popstate', function(event) {
-    // 1. اول چک کن ببین استوری بازه یا نه
     const storyOverlay = document.getElementById('story-viewer-overlay');
     if (storyOverlay && storyOverlay.classList.contains('active')) {
-        // اگر استوری باز بود، فقط استوری رو ببند
         const video = document.getElementById('story-viewer-video');
         const progress = document.getElementById('story-viewer-progress-bar');
         if (video) { video.pause(); video.src = ''; }
         if (progress) { progress.style.transition = 'none'; progress.style.width = '0%'; }
         storyOverlay.classList.remove('active');
-        
-        // رندر مجدد دایره استوری (برای برداشتن بج جدید)
         if (typeof renderStories === 'function') renderStories();
-        return; // مهم: نذار بقیه کدهای ناوبری اجرا بشن
+        return;
     }
 
-    // 2. اگر استوری باز نبود، کدهای ناوبری صفحه (رفتن به خانه) رو اجرا کن
     const activeScreen = document.querySelector('.screen.active');
     if (!activeScreen) return;
     const activeId = activeScreen.id;
@@ -72,19 +52,16 @@ window.addEventListener('popstate', function(event) {
         pushHistory('screen-home');
     }
 });
-
 function goToScreen(screenId, addToHistory = true) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) targetScreen.classList.add('active');
     document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
     
-    // توقف auto-refresh رتبه‌بندی
     if (screenId !== 'screen-rankings' && typeof stopAutoRefresh === 'function') {
         stopAutoRefresh();
     }
     
-    // شروع auto-refresh رتبه‌بندی
     if (screenId === 'screen-rankings' && typeof startAutoRefresh === 'function') {
         setTimeout(() => {
             const activeScreen = document.querySelector('.screen.active');
@@ -94,7 +71,6 @@ function goToScreen(screenId, addToHistory = true) {
         }, 500);
     }
     
-    // ترتیب نوار پایین
     document.querySelectorAll('.bottom-nav').forEach(nav => {
         const items = nav.querySelectorAll('.bottom-nav-item');
         if (screenId === 'screen-medals' && items[0]) items[0].classList.add('active');
@@ -106,7 +82,6 @@ function goToScreen(screenId, addToHistory = true) {
     
     if (addToHistory) pushHistory(screenId);
     
-    // مدیریت موسیقی پس‌زمینه
     try {
         if (typeof bgMusic !== 'undefined' && bgMusic) {
             if (['screen-quiz', 'screen-feedback', 'screen-result'].includes(screenId)) {
@@ -124,75 +99,115 @@ function goToScreen(screenId, addToHistory = true) {
     }
     
     if (screenId === 'screen-lessons') {
-        loadLessonsList();
-        showLessonsGuide();
+        if (typeof loadLessonsList === 'function') loadLessonsList();
+        if (typeof showLessonsGuide === 'function') showLessonsGuide();
     }
-    if (screenId === 'screen-reports') loadReports();
-    if (screenId === 'screen-profile') loadProfileData();
-    if (screenId === 'screen-medals') loadMedals();
-    if (screenId === 'screen-notifications') loadNotifications();
+    if (screenId === 'screen-reports') {
+        if (typeof loadReports === 'function') loadReports();
+    }
+    if (screenId === 'screen-profile') {
+        if (typeof loadProfileData === 'function') loadProfileData();
+    }
+    if (screenId === 'screen-medals') {
+        if (typeof loadMedals === 'function') loadMedals();
+    }
+    if (screenId === 'screen-notifications') {
+        if (typeof loadNotifications === 'function') loadNotifications();
+    }
     
-    // صفحه رتبه‌بندی + راهنما
     if (screenId === 'screen-rankings') {
-        loadRankingsPage();
-        
+        if (typeof loadRankingsPage === 'function') loadRankingsPage();
         if (typeof checkAndShowRankingsGuide === 'function') {
             setTimeout(() => checkAndShowRankingsGuide(), 1500);
         }
     }
     
+    // 🆕 صفحه پیام‌های معلم
     if (screenId === 'screen-teacher-messages') {
-        loadStudentMessages();
+        if (typeof switchStudentMessagesTab === 'function') {
+            switchStudentMessagesTab('class');
+        }
         const fab = document.getElementById('home-messages-fab');
         if (fab) fab.style.display = 'none';
     }
     
     if (screenId === 'screen-calendar') {
         calendarCurrentMonth = null;
-        renderCalendar();
+        if (typeof renderCalendar === 'function') renderCalendar();
     }
     
+    // 🆕 صفحه خانه: مدیریت صحیح و بدون تکرار اعلان‌ها
     if (screenId === 'screen-home') {
+        const fab = document.getElementById('home-messages-fab');
+        if (fab) fab.style.display = 'flex';
+        
         typeMotivation();
-        if (allLessons.length === 0) {
-            loadLessonsListForNotification().then(() => {
-                checkAndShowNotification();
-                updateNotificationBadge();
-                checkDeadlineWarning();
-            });
-        } else {
-            checkAndShowNotification();
-            updateNotificationBadge();
-            checkDeadlineWarning();
-        }
-        checkVideoNotification();
         displayStreak();
         
-        setTimeout(() => {
-            if (typeof checkTeacherMessagesBadge === 'function') {
-                checkTeacherMessagesBadge();
-            }
-        }, 500);
+        // 🆕 آپدیت بج‌ها
+        if (typeof updateStudentMessageBadges === 'function') {
+            updateStudentMessageBadges();
+        }
         
-        if (typeof checkAndShowNewMessageNotification === 'function') {
+        // 🆕 مدیریت اعلان‌ها با فاصله زمانی (برای جلوگیری از تکرار و روی هم افتادن)
+        const lastCheck = localStorage.getItem('lastNotificationCheck');
+        const now = Date.now();
+        const shouldCheck = !lastCheck || (now - parseInt(lastCheck)) > 30000; // هر ۳۰ ثانیه یک‌بار
+        
+        if (shouldCheck) {
+            localStorage.setItem('lastNotificationCheck', now.toString());
+            
+            // اجرای اعلان‌ها با تاخیرهای متفاوت تا روی هم نیفتن
             setTimeout(() => {
-                checkAndShowNewMessageNotification();
+                if (allLessons.length === 0) {
+                    if (typeof loadLessonsListForNotification === 'function') {
+                        loadLessonsListForNotification().then(() => {
+                            if (typeof checkAndShowNotification === 'function') checkAndShowNotification();
+                            if (typeof updateNotificationBadge === 'function') updateNotificationBadge();
+                            if (typeof checkDeadlineWarning === 'function') checkDeadlineWarning();
+                        });
+                    }
+                } else {
+                    if (typeof checkAndShowNotification === 'function') checkAndShowNotification();
+                    if (typeof updateNotificationBadge === 'function') updateNotificationBadge();
+                    if (typeof checkDeadlineWarning === 'function') checkDeadlineWarning();
+                }
+            }, 300);
+            
+            setTimeout(() => {
+                if (typeof checkVideoNotification === 'function') checkVideoNotification();
+            }, 600);
+            
+            setTimeout(() => {
+                if (typeof checkAndShowNewMessageNotification === 'function') checkAndShowNewMessageNotification();
+            }, 900);
+            
+            // 🆕 مرتب کردن اعلان‌ها بعد از نمایش
+            setTimeout(() => {
+                if (typeof repositionNotifications === 'function') repositionNotifications();
             }, 1500);
+        } else {
+            // اگه تازه چک شده، فقط بج‌ها رو آپدیت کن
+            if (typeof updateNotificationBadge === 'function') updateNotificationBadge();
+            if (typeof checkNewLessons === 'function') checkNewLessons();
         }
     }
 }
-
 // ============================================================
 // منوی کناری
 // ============================================================
 function openSideMenu() {
-    document.getElementById('side-menu-overlay').classList.add('active');
-    document.getElementById('side-menu').classList.add('active');
+    const overlay = document.getElementById('side-menu-overlay');
+    const menu = document.getElementById('side-menu');
+    if (overlay) overlay.classList.add('active');
+    if (menu) menu.classList.add('active');
 }
 
 function closeSideMenu() {
-    document.getElementById('side-menu-overlay').classList.remove('active');
-    document.getElementById('side-menu').classList.remove('active');
+    const overlay = document.getElementById('side-menu-overlay');
+    const menu = document.getElementById('side-menu');
+    if (overlay) overlay.classList.remove('active');
+    if (menu) menu.classList.remove('active');
 }
 
 // ============================================================
@@ -201,7 +216,8 @@ function closeSideMenu() {
 let currentGuideStep = 0;
 
 function startGuide() {
-    document.getElementById('welcome-graphic-modal').classList.remove('active');
+    const welcomeModal = document.getElementById('welcome-graphic-modal');
+    if (welcomeModal) welcomeModal.classList.remove('active');
     localStorage.setItem('welcomeShown', 'true');
     setTimeout(() => { currentGuideStep = 0; showGuideStep(); }, 400);
 }
@@ -215,28 +231,42 @@ function showGuideStep() {
     const text = document.getElementById('guide-text');
     const indicator = document.getElementById('guide-indicator');
     const nextBtn = document.getElementById('guide-next-btn');
-    if (currentGuideStep >= GUIDE_STEPS.length) { endGuide(); return; }
+    
+    if (!overlay || !tooltip) return;
+    
+    if (currentGuideStep >= GUIDE_STEPS.length) { 
+        endGuide(); 
+        return; 
+    }
+    
     const step = GUIDE_STEPS[currentGuideStep];
     const activeScreen = document.querySelector('.screen.active');
+    
     if (activeScreen && activeScreen.id !== 'screen-home') {
         goToScreen('screen-home', false);
         setTimeout(() => showGuideStep(), 400);
         return;
     }
+    
     overlay.classList.add('active');
     tooltip.style.display = 'block';
-    icon.textContent = step.icon;
-    title.textContent = step.title;
-    text.textContent = step.text;
-    nextBtn.textContent = (currentGuideStep === GUIDE_STEPS.length - 1) ? 'تمام! 🎉' : 'فهمیدم!';
-    let indicatorHTML = '';
-    for (let i = 0; i < GUIDE_STEPS.length; i++) {
-        indicatorHTML += `<div class="guide-step-dot ${i === currentGuideStep ? 'active' : ''}"></div>`;
+    
+    if (icon) icon.textContent = step.icon;
+    if (title) title.textContent = step.title;
+    if (text) text.textContent = step.text;
+    if (nextBtn) nextBtn.textContent = (currentGuideStep === GUIDE_STEPS.length - 1) ? 'تمام! 🎉' : 'فهمیدم!';
+    
+    if (indicator) {
+        let indicatorHTML = '';
+        for (let i = 0; i < GUIDE_STEPS.length; i++) {
+            indicatorHTML += `<div class="guide-step-dot ${i === currentGuideStep ? 'active' : ''}"></div>`;
+        }
+        indicator.innerHTML = indicatorHTML;
     }
-    indicator.innerHTML = indicatorHTML;
+    
     if (step.element) {
         const el = document.getElementById(step.element);
-        if (el) {
+        if (el && highlight) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             setTimeout(() => {
                 const rect = el.getBoundingClientRect();
@@ -245,21 +275,23 @@ function showGuideStep() {
                 const holeTop = rect.top - padding;
                 const holeRight = rect.right + padding;
                 const holeBottom = rect.bottom + padding;
+                
                 highlight.style.display = 'block';
                 highlight.style.top = holeTop + 'px';
                 highlight.style.left = holeLeft + 'px';
                 highlight.style.width = (rect.width + padding * 2) + 'px';
                 highlight.style.height = (rect.height + padding * 2) + 'px';
+                
                 applyClipPathHole(overlay, holeLeft, holeTop, holeRight, holeBottom, 20);
                 positionGuideTooltip(rect);
             }, 400);
         } else {
-            highlight.style.display = 'none';
+            if (highlight) highlight.style.display = 'none';
             clearClipPath(overlay);
             positionCenterTooltip();
         }
     } else {
-        highlight.style.display = 'none';
+        if (highlight) highlight.style.display = 'none';
         clearClipPath(overlay);
         positionCenterTooltip();
     }
@@ -276,12 +308,14 @@ function applyClipPathHole(overlay, left, top, right, bottom, radius) {
 }
 
 function clearClipPath(overlay) {
+    if (!overlay) return;
     overlay.style.clipPath = '';
     overlay.style.webkitClipPath = '';
 }
 
 function positionCenterTooltip() {
     const tooltip = document.getElementById('guide-tooltip');
+    if (!tooltip) return;
     tooltip.style.top = '50%';
     tooltip.style.left = '50%';
     tooltip.style.transform = 'translate(-50%, -50%)';
@@ -289,6 +323,7 @@ function positionCenterTooltip() {
 
 function positionGuideTooltip(rect) {
     const tooltip = document.getElementById('guide-tooltip');
+    if (!tooltip) return;
     tooltip.style.transform = 'none';
     const tooltipWidth = Math.min(320, window.innerWidth - 40);
     const tooltipHeight = 240;
@@ -318,13 +353,19 @@ function skipGuide() {
 
 function endGuide() {
     const overlay = document.getElementById('guide-overlay');
-    overlay.classList.remove('active');
-    clearClipPath(overlay);
-    document.getElementById('guide-highlight').style.display = 'none';
-    document.getElementById('guide-tooltip').style.display = 'none';
+    const highlight = document.getElementById('guide-highlight');
+    const tooltip = document.getElementById('guide-tooltip');
+    
+    if (overlay) {
+        overlay.classList.remove('active');
+        clearClipPath(overlay);
+    }
+    if (highlight) highlight.style.display = 'none';
+    if (tooltip) tooltip.style.display = 'none';
+    
     localStorage.setItem('guideCompleted', 'true');
     currentGuideStep = 0;
-    setTimeout(() => { showStreakMessage(); }, 500);
+    setTimeout(() => { if (typeof showStreakMessage === 'function') showStreakMessage(); }, 500);
 }
 
 function restartGuide() {
@@ -357,7 +398,7 @@ function changeTheme(theme, element) {
     localStorage.setItem('theme', theme);
     document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
     if (element) element.classList.add('active');
-    vibrate(20);
+    if (typeof vibrate === 'function') vibrate(20);
 }
 
 function loadTheme() {
@@ -374,11 +415,13 @@ function loadTheme() {
 // خروج از برنامه
 // ============================================================
 function openExitModal() {
-    document.getElementById('exit-modal').classList.add('active');
+    const modal = document.getElementById('exit-modal');
+    if (modal) modal.classList.add('active');
 }
 
 function closeExitModal() {
-    document.getElementById('exit-modal').classList.remove('active');
+    const modal = document.getElementById('exit-modal');
+    if (modal) modal.classList.remove('active');
 }
 
 function confirmExit() {
@@ -390,13 +433,15 @@ function confirmExit() {
 // مودال تکرار تکلیف
 // ============================================================
 function closeRepeatModal() {
-    document.getElementById('repeat-modal').classList.remove('active');
-    pendingLessonId = null;
+    const modal = document.getElementById('repeat-modal');
+    if (modal) modal.classList.remove('active');
+    if (typeof pendingLessonId !== 'undefined') pendingLessonId = null;
 }
 
 async function confirmRepeatLesson() {
-    document.getElementById('repeat-modal').classList.remove('active');
-    if (pendingLessonId) {
+    const modal = document.getElementById('repeat-modal');
+    if (modal) modal.classList.remove('active');
+    if (typeof pendingLessonId !== 'undefined' && pendingLessonId) {
         await runLesson(pendingLessonId, true, 0);
         pendingLessonId = null;
     }
@@ -406,17 +451,21 @@ async function confirmRepeatLesson() {
 // مودال حذف حساب کاربری
 // ============================================================
 function openDeleteAccountModal() {
-    document.getElementById('delete-account-modal').classList.add('active');
+    const modal = document.getElementById('delete-account-modal');
+    if (modal) modal.classList.add('active');
 }
 
 function closeDeleteAccountModal() {
-    document.getElementById('delete-account-modal').classList.remove('active');
+    const modal = document.getElementById('delete-account-modal');
+    if (modal) modal.classList.remove('active');
 }
 
 function confirmDeleteAccount() {
     localStorage.clear();
     
-    caches.keys().then(names => names.forEach(name => caches.delete(name)));
+    if ('caches' in window) {
+        caches.keys().then(names => names.forEach(name => caches.delete(name)));
+    }
     
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(registrations => {
@@ -432,11 +481,13 @@ function confirmDeleteAccount() {
 // مودال بازگشت تنظیمات
 // ============================================================
 function openResetSettingsModal() {
-    document.getElementById('reset-settings-modal').classList.add('active');
+    const modal = document.getElementById('reset-settings-modal');
+    if (modal) modal.classList.add('active');
 }
 
 function closeResetSettingsModal() {
-    document.getElementById('reset-settings-modal').classList.remove('active');
+    const modal = document.getElementById('reset-settings-modal');
+    if (modal) modal.classList.remove('active');
 }
 
 function confirmResetSettings() {
@@ -444,9 +495,15 @@ function confirmResetSettings() {
     localStorage.removeItem('soundsEnabled');
     localStorage.removeItem('musicEnabled');
     localStorage.removeItem('theme');
-    document.getElementById('setting-dark-mode').checked = false;
-    document.getElementById('setting-sounds').checked = true;
-    document.getElementById('setting-music').checked = true;
+    
+    const darkModeEl = document.getElementById('setting-dark-mode');
+    const soundsEl = document.getElementById('setting-sounds');
+    const musicEl = document.getElementById('setting-music');
+    
+    if (darkModeEl) darkModeEl.checked = false;
+    if (soundsEl) soundsEl.checked = true;
+    if (musicEl) musicEl.checked = true;
+    
     document.body.classList.remove('dark-mode');
     document.body.removeAttribute('data-theme');
     
@@ -467,32 +524,49 @@ function confirmResetSettings() {
 // مودال ویرایش پروفایل
 // ============================================================
 function openEditProfile() {
-    document.getElementById('edit-name').value = localStorage.getItem('userName') || '';
-    document.getElementById('edit-class').value = localStorage.getItem('userClass') || 'هفتم یک';
-    document.getElementById('edit-school').value = localStorage.getItem('userSchool') || '';
-    document.getElementById('edit-year').value = '۱۴۰۵-۱۴۰۶';
-    document.getElementById('edit-profile-modal').classList.add('active');
+    const nameEl = document.getElementById('edit-name');
+    const classEl = document.getElementById('edit-class');
+    const schoolEl = document.getElementById('edit-school');
+    const yearEl = document.getElementById('edit-year');
+    
+    if (nameEl) nameEl.value = localStorage.getItem('userName') || '';
+    if (classEl) classEl.value = localStorage.getItem('userClass') || 'هفتم یک';
+    if (schoolEl) schoolEl.value = localStorage.getItem('userSchool') || '';
+    if (yearEl) yearEl.value = '۱۴۰۵-۱۴۰۶';
+    
+    const modal = document.getElementById('edit-profile-modal');
+    if (modal) modal.classList.add('active');
 }
 
 function closeEditProfile() {
-    document.getElementById('edit-profile-modal').classList.remove('active');
+    const modal = document.getElementById('edit-profile-modal');
+    if (modal) modal.classList.remove('active');
 }
 
 function saveProfileChanges() {
-    const newName = document.getElementById('edit-name').value.trim();
-    const newClass = document.getElementById('edit-class').value;
-    const newSchool = document.getElementById('edit-school').value.trim();
+    const nameEl = document.getElementById('edit-name');
+    const classEl = document.getElementById('edit-class');
+    const schoolEl = document.getElementById('edit-school');
+    
+    const newName = nameEl ? nameEl.value.trim() : '';
+    const newClass = classEl ? classEl.value : '';
+    const newSchool = schoolEl ? schoolEl.value.trim() : '';
+    
     if (!newName) {
         showModal('خطا', 'لطفاً نام خود را وارد کنید.', '⚠️');
         return;
     }
+    
     localStorage.setItem('userName', newName);
     localStorage.setItem('userClass', newClass);
     localStorage.setItem('userSchool', newSchool || 'تعیین نشده');
-    updateHomeUI();
-    loadProfileData();
+    
+    if (typeof updateHomeUI === 'function') updateHomeUI();
+    if (typeof loadProfileData === 'function') loadProfileData();
+    
     closeEditProfile();
     showModal('موفق', 'اطلاعات شما با موفقیت ذخیره شد.', '✅');
+    
     setTimeout(() => {
         if (typeof saveRankingToSupabase === 'function') {
             saveRankingToSupabase();
