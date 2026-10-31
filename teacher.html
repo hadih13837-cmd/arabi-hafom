@@ -10,14 +10,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="پنل معلم">
     
-    <!-- 🆕 اتصال به مانیفست پنل معلم -->
     <link rel="manifest" href="./teacher-manifest.json">
-    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
-    
-    <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <link rel="stylesheet" href="./css/teacher.css">
 </head>
 <body>
@@ -57,10 +52,8 @@
     <!-- محتوای اصلی -->
     <main class="panel-content" id="panel-content">
 
-        <!-- ═══ صفحه ۱: خانه (طراحی جدید) ═══ -->
+        <!-- صفحه ۱: خانه -->
         <section class="page active" id="page-home">
-            
-            <!-- کارت خوش‌آمدگویی گرافیکی -->
             <div class="home-hero-card">
                 <div class="home-hero-bg"></div>
                 <div class="home-hero-content">
@@ -69,107 +62,32 @@
                     <div class="home-hero-sub">امروز آماده‌ای کلاس‌هات رو مدیریت کنی؟</div>
                 </div>
             </div>
-
-            <!-- آمار گرافیکی -->
             <div class="home-stats-grid">
-                <div class="home-stat-card stat-blue">
-                    <div class="home-stat-icon">👥</div>
-                    <div class="home-stat-value" id="home-stat-students">۰</div>
-                    <div class="home-stat-label">دانش‌آموز</div>
-                </div>
-                <div class="home-stat-card stat-green">
-                    <div class="home-stat-icon">📚</div>
-                    <div class="home-stat-value" id="home-stat-lessons">۰</div>
-                    <div class="home-stat-label">تکلیف انجام‌شده</div>
-                </div>
-                <div class="home-stat-card stat-orange">
-                    <div class="home-stat-icon">💬</div>
-                    <div class="home-stat-value" id="home-stat-messages">۰</div>
-                    <div class="home-stat-label">پیام جدید</div>
-                </div>
-                <div class="home-stat-card stat-purple">
-                    <div class="home-stat-icon">🏆</div>
-                    <div class="home-stat-value" id="home-stat-medals">۰</div>
-                    <div class="home-stat-label">مدال‌های داده شده</div>
-                </div>
+                <div class="home-stat-card stat-blue"><div class="home-stat-icon">👥</div><div class="home-stat-value" id="home-stat-students">۰</div><div class="home-stat-label">دانش‌آموز</div></div>
+                <div class="home-stat-card stat-green"><div class="home-stat-icon">📚</div><div class="home-stat-value" id="home-stat-lessons">۰</div><div class="home-stat-label">تکلیف انجام‌شده</div></div>
+                <div class="home-stat-card stat-orange"><div class="home-stat-icon">💬</div><div class="home-stat-value" id="home-stat-messages">۰</div><div class="home-stat-label">پیام جدید</div></div>
+                <div class="home-stat-card stat-purple"><div class="home-stat-icon">🏆</div><div class="home-stat-value" id="home-stat-medals">۰</div><div class="home-stat-label">مدال‌های داده شده</div></div>
             </div>
-
-            <!-- دسترسی سریع -->
             <div class="home-section-title">⚡ دسترسی سریع</div>
             <div class="home-quick-actions">
-                <div class="home-quick-card qa-blue" onclick="showPage('students')" style="position: relative;">
-                    <span class="home-quick-badge" id="home-badge-students" style="display:none;">۰</span>
-                    <div class="home-quick-icon">👥</div>
-                    <div class="home-quick-title">دانش‌آموزان</div>
-                </div>
-                <div class="home-quick-card qa-green" onclick="showPage('lessons')">
-                    <div class="home-quick-icon">📚</div>
-                    <div class="home-quick-title">تکالیف</div>
-                </div>
-                <div class="home-quick-card qa-orange" onclick="showPage('messages')" style="position: relative;">
-                    <span class="home-quick-badge" id="home-badge-messages" style="display:none;">۰</span>
-                    <div class="home-quick-icon">💬</div>
-                    <div class="home-quick-title">پیام‌ها</div>
-                </div>
-                <div class="home-quick-card qa-purple" onclick="showPage('rankings')">
-                    <div class="home-quick-icon">🏆</div>
-                    <div class="home-quick-title">رتبه‌بندی</div>
-                </div>
+                <div class="home-quick-card qa-blue" onclick="showPage('students')" style="position: relative;"><span class="home-quick-badge" id="home-badge-students" style="display:none;">۰</span><div class="home-quick-icon">👥</div><div class="home-quick-title">دانش‌آموزان</div></div>
+                <div class="home-quick-card qa-green" onclick="showPage('lessons')"><div class="home-quick-icon">📚</div><div class="home-quick-title">تکالیف</div></div>
+                <div class="home-quick-card qa-orange" onclick="showPage('messages')" style="position: relative;"><span class="home-quick-badge" id="home-badge-messages" style="display:none;">۰</span><div class="home-quick-icon">💬</div><div class="home-quick-title">پیام‌ها</div></div>
+                <div class="home-quick-card qa-purple" onclick="showPage('rankings')"><div class="home-quick-icon">🏆</div><div class="home-quick-title">رتبه‌بندی</div></div>
             </div>
-
-            <!-- بهترین دانش‌آموزان -->
             <div class="home-section-title">🏆 بهترین دانش‌آموزان</div>
-            <div class="home-top-card">
-                <div class="home-top-list" id="home-top-students"></div>
-            </div>
-            
-            <!-- منوی کامل -->
+            <div class="home-top-card"><div class="home-top-list" id="home-top-students"></div></div>
             <div class="home-section-title">📋 همه بخش‌ها</div>
             <div class="home-menu-list">
-                <div class="home-menu-item" onclick="showPage('calendar')">
-                    <div class="home-menu-item-icon icon-teal">📅</div>
-                    <div class="home-menu-item-text">
-                        <div class="home-menu-item-title">تقویم و رویدادها</div>
-                        <div class="home-menu-item-desc">مدیریت امتحانات و تکالیف</div>
-                    </div>
-                    <div class="home-menu-item-arrow">‹</div>
-                </div>
-                <div class="home-menu-item" onclick="showPage('contests')">
-                    <div class="home-menu-item-icon icon-pink">🎯</div>
-                    <div class="home-menu-item-text">
-                        <div class="home-menu-item-title">مسابقات</div>
-                        <div class="home-menu-item-desc">ایجاد و مدیریت مسابقات</div>
-                    </div>
-                    <div class="home-menu-item-arrow">‹</div>
-                </div>
-                <div class="home-menu-item" onclick="showPage('library')">
-                    <div class="home-menu-item-icon icon-indigo">📖</div>
-                    <div class="home-menu-item-text">
-                        <div class="home-menu-item-title">کتابخانه</div>
-                        <div class="home-menu-item-desc">منابع آموزشی</div>
-                    </div>
-                    <div class="home-menu-item-arrow">‹</div>
-                </div>
-                <div class="home-menu-item" onclick="showPage('reports')">
-                    <div class="home-menu-item-icon icon-red">📄</div>
-                    <div class="home-menu-item-text">
-                        <div class="home-menu-item-title">گزارش‌ها</div>
-                        <div class="home-menu-item-desc">خروجی Excel از اطلاعات</div>
-                    </div>
-                    <div class="home-menu-item-arrow">‹</div>
-                </div>
-                <div class="home-menu-item" onclick="showPage('settings')">
-                    <div class="home-menu-item-icon icon-gray">⚙️</div>
-                    <div class="home-menu-item-text">
-                        <div class="home-menu-item-title">تنظیمات پنل</div>
-                        <div class="home-menu-item-desc">رمز، کش، اطلاعات</div>
-                    </div>
-                    <div class="home-menu-item-arrow">‹</div>
-                </div>
+                <div class="home-menu-item" onclick="showPage('calendar')"><div class="home-menu-item-icon icon-teal">📅</div><div class="home-menu-item-text"><div class="home-menu-item-title">تقویم و رویدادها</div><div class="home-menu-item-desc">مدیریت امتحانات و تکالیف</div></div><div class="home-menu-item-arrow">‹</div></div>
+                <div class="home-menu-item" onclick="showPage('contests')"><div class="home-menu-item-icon icon-pink">🎯</div><div class="home-menu-item-text"><div class="home-menu-item-title">مسابقات</div><div class="home-menu-item-desc">ایجاد و مدیریت مسابقات</div></div><div class="home-menu-item-arrow">‹</div></div>
+                <div class="home-menu-item" onclick="showPage('library')"><div class="home-menu-item-icon icon-indigo">📖</div><div class="home-menu-item-text"><div class="home-menu-item-title">کتابخانه</div><div class="home-menu-item-desc">منابع آموزشی</div></div><div class="home-menu-item-arrow">‹</div></div>
+                <div class="home-menu-item" onclick="showPage('reports')"><div class="home-menu-item-icon icon-red">📄</div><div class="home-menu-item-text"><div class="home-menu-item-title">گزارش‌ها</div><div class="home-menu-item-desc">خروجی Excel از اطلاعات</div></div><div class="home-menu-item-arrow">‹</div></div>
+                <div class="home-menu-item" onclick="showPage('settings')"><div class="home-menu-item-icon icon-gray">⚙️</div><div class="home-menu-item-text"><div class="home-menu-item-title">تنظیمات پنل</div><div class="home-menu-item-desc">رمز، کش، اطلاعات</div></div><div class="home-menu-item-arrow">‹</div></div>
             </div>
         </section>
 
-        <!-- ═══ صفحه ۲: دانش‌آموزان ═══ -->
+        <!-- صفحه ۲: دانش‌آموزان -->
         <section class="page" id="page-students">
             <div class="page-toolbar">
                 <div class="page-toolbar-search">
@@ -194,7 +112,7 @@
             <div class="students-grid" id="students-grid"></div>
         </section>
 
-        <!-- ═══ صفحه ۳: رتبه‌بندی ═══ -->
+        <!-- صفحه ۳: رتبه‌بندی -->
         <section class="page" id="page-rankings">
             <div class="rankings-class-tabs" id="rankings-class-tabs">
                 <button class="rankings-class-tab active" data-class="hafom-1" onclick="switchRankingClass('hafom-1', this)">هفتم یک</button>
@@ -216,7 +134,7 @@
             <div class="rankings-list" id="rankings-list"></div>
         </section>
 
-        <!-- ═══ صفحه ۴: پیام‌رسانی ═══ -->
+        <!-- صفحه ۴: پیام‌رسانی -->
         <section class="page" id="page-messages">
             <div class="messages-tabs">
                 <button class="messages-tab-btn active" data-tab="class" onclick="switchMessagesTab('class')"><span class="tab-icon">📢</span><span>پیام کلاسی</span></button>
@@ -262,7 +180,7 @@
             </div>
         </section>
 
-        <!-- ═══ صفحه ۵: مدیریت تکالیف ═══ -->
+        <!-- صفحه ۵: مدیریت تکالیف -->
         <section class="page" id="page-lessons">
             <div class="info-banner"><div class="info-banner-icon">ℹ️</div><div class="info-banner-text">تکالیف از فایل <strong>lessons/index.json</strong> خونده می‌شن.</div></div>
             <div class="lesson-toolbar">
@@ -272,7 +190,7 @@
             <div class="lessons-list" id="lessons-list"></div>
         </section>
 
-        <!-- ═══ صفحه ۶: تقویم ═══ -->
+        <!-- صفحه ۶: تقویم -->
         <section class="page" id="page-calendar">
             <div class="calendar-form-card">
                 <div class="calendar-form-title">📅 افزودن رویداد جدید</div>
@@ -288,7 +206,7 @@
             <div class="calendar-events-card"><div class="calendar-events-title">📋 رویدادهای ثبت شده</div><div class="calendar-events-list" id="events-list"></div></div>
         </section>
 
-        <!-- ═══ صفحه ۷: مسابقات ═══ -->
+        <!-- صفحه ۷: مسابقات -->
         <section class="page" id="page-contests">
             <div class="contest-form-card">
                 <div class="contest-form-title">🏆 ایجاد مسابقه جدید</div>
@@ -304,7 +222,7 @@
             <div class="contests-list-card"><div class="contests-list-title">🎯 مسابقات فعال</div><div class="contests-list" id="contests-list"></div></div>
         </section>
 
-        <!-- ═══ صفحه ۸: کتابخانه ═══ -->
+        <!-- صفحه ۸: کتابخانه -->
         <section class="page" id="page-library">
             <div class="library-form-card">
                 <div class="library-form-title">📖 افزودن منبع جدید</div>
@@ -319,7 +237,7 @@
             <div class="library-list-card"><div class="library-list-title">📚 منابع موجود</div><div class="library-list" id="library-list"></div></div>
         </section>
 
-        <!-- ═══ صفحه ۹: گزارش‌ها ═══ -->
+        <!-- صفحه ۹: گزارش‌ها -->
         <section class="page" id="page-reports">
             <div class="reports-grid">
                 <div class="report-card" onclick="downloadAllStudents()"><div class="report-card-icon">📊</div><div class="report-card-title">همه دانش‌آموزان</div><div class="report-card-desc">خروجی Excel</div></div>
@@ -337,7 +255,7 @@
             </div>
         </section>
 
-        <!-- ═══ صفحه ۱۰: تنظیمات ═══ -->
+        <!-- صفحه ۱۰: تنظیمات -->
         <section class="page" id="page-settings">
             <div class="settings-card">
                 <div class="settings-card-title">🔧 تنظیمات پنل</div>
@@ -347,7 +265,7 @@
             </div>
         </section>
 
-        <!-- ═══ صفحه ۱۱: پروفایل دانش‌آموز ═══ -->
+        <!-- صفحه ۱۱: پروفایل دانش‌آموز -->
         <section class="page" id="page-student-profile">
             <div id="student-profile-content"></div>
         </section>
