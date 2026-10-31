@@ -821,12 +821,11 @@
             </div>
         </div>
         
-        <button class="home-messages-fab" id="home-messages-fab" onclick="goToTeacherMessages()" style="display: none;">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span class="home-messages-fab-badge" id="home-messages-fab-badge">0</span>
-        </button>
+        <button class="home-messages-fab" id="home-messages-fab" onclick="goToScreen('screen-teacher-messages')">    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="home-messages-fab-badge" id="home-messages-fab-badge">0</span>
+</button>
         
         <div class="bottom-nav">
             <button class="bottom-nav-item medals-item" id="guide-medals-btn" onclick="goToScreen('screen-medals')">
