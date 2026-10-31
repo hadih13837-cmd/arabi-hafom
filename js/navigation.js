@@ -1,6 +1,6 @@
 // ============================================================
 // navigation.js — ناوبری، منو، مودال‌ها، راهنما، تم
-// نسخه: ۱۱.۰.۰ — رفع باگ اعلان‌های همزمان و تکرار
+// نسخه: ۱۲.۰.۰ — با قابلیت نمایش اعلان پیام‌ها به محض ورود
 // ============================================================
 
 function showModal(title, text, icon = 'ℹ️') {
@@ -122,7 +122,7 @@ function goToScreen(screenId, addToHistory = true) {
         }
     }
     
-    // 🆕 صفحه پیام‌های معلم
+    // صفحه پیام‌های معلم
     if (screenId === 'screen-teacher-messages') {
         if (typeof switchStudentMessagesTab === 'function') {
             switchStudentMessagesTab('class');
@@ -136,7 +136,7 @@ function goToScreen(screenId, addToHistory = true) {
         if (typeof renderCalendar === 'function') renderCalendar();
     }
     
-    // 🆕 صفحه خانه: مدیریت صحیح و بدون تکرار اعلان‌ها
+    // صفحه خانه: مدیریت صحیح اعلان‌ها
     if (screenId === 'screen-home') {
         const fab = document.getElementById('home-messages-fab');
         if (fab) fab.style.display = 'flex';
@@ -144,20 +144,17 @@ function goToScreen(screenId, addToHistory = true) {
         typeMotivation();
         displayStreak();
         
-        // 🆕 آپدیت بج‌ها
         if (typeof updateStudentMessageBadges === 'function') {
             updateStudentMessageBadges();
         }
         
-        // 🆕 مدیریت اعلان‌ها با فاصله زمانی (برای جلوگیری از تکرار و روی هم افتادن)
         const lastCheck = localStorage.getItem('lastNotificationCheck');
         const now = Date.now();
-        const shouldCheck = !lastCheck || (now - parseInt(lastCheck)) > 30000; // هر ۳۰ ثانیه یک‌بار
+        const shouldCheck = !lastCheck || (now - parseInt(lastCheck)) > 30000;
         
         if (shouldCheck) {
             localStorage.setItem('lastNotificationCheck', now.toString());
             
-            // اجرای اعلان‌ها با تاخیرهای متفاوت تا روی هم نیفتن
             setTimeout(() => {
                 if (allLessons.length === 0) {
                     if (typeof loadLessonsListForNotification === 'function') {
@@ -178,24 +175,22 @@ function goToScreen(screenId, addToHistory = true) {
                 if (typeof checkVideoNotification === 'function') checkVideoNotification();
             }, 600);
             
-            setTimeout(() => {
-                if (typeof checkAndShowNewMessageNotification === 'function') checkAndShowNewMessageNotification();
-            }, 900);
+            // 🆕 چک کردن پیام‌های جدید به محض ورود (بدون شرط isReturningUser)
+            setTimeout(async () => {
+                if (typeof checkAndShowNewMessageNotification === 'function') {
+                    await checkAndShowNewMessageNotification();
+                }
+            }, 800);
             
-            // 🆕 مرتب کردن اعلان‌ها بعد از نمایش
             setTimeout(() => {
                 if (typeof repositionNotifications === 'function') repositionNotifications();
             }, 1500);
         } else {
-            // اگه تازه چک شده، فقط بج‌ها رو آپدیت کن
             if (typeof updateNotificationBadge === 'function') updateNotificationBadge();
             if (typeof checkNewLessons === 'function') checkNewLessons();
         }
     }
 }
-// ============================================================
-// منوی کناری
-// ============================================================
 function openSideMenu() {
     const overlay = document.getElementById('side-menu-overlay');
     const menu = document.getElementById('side-menu');

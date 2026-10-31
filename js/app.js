@@ -1,6 +1,6 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۳۶.۰.۰ — با قابلیت همگام‌سازی حذف کارنامه از طرف معلم
+// نسخه: ۳۸.۰.۰ — رفع باگ اعلان پیام‌ها هنگام ورود به برنامه
 // ============================================================
 
 const UPDATE_VERSION = 'v2.5.0';
@@ -125,51 +125,56 @@ function closeRankingsGuide() {
     localStorage.setItem('rankingsGuideSeenDate', new Date().toISOString());
 }
 
-function checkAndShowNewMessageNotification() {
-    if (isReturningUser()) return;
-    
-    const dismissed = localStorage.getItem('dismissedNewMessageNotif') === 'true';
-    if (dismissed) return;
-    
+// 🆕 نسخه جدید چک کردن پیام‌های جدید (از دیتابیس، مستقل از isReturningUser)
+async function checkAndShowNewMessageNotification() {
     const studentId = localStorage.getItem('studentUUID');
     if (!studentId) return;
-    
-    const cachedChat = getCachedData('studentChatCache_' + studentId);
-    const cachedClass = getCachedData('studentClassMessagesCache');
-    if (!cachedChat && !cachedClass) return;
-    
-    const seenChat = JSON.parse(localStorage.getItem('seenChatMessages') || '[]');
-    const seenClass = JSON.parse(localStorage.getItem('seenClassMessages') || '[]');
-    
-    let unreadChat = 0, unreadClass = 0;
-    if (cachedChat && cachedChat.length > 0) {
-        unreadChat = cachedChat.filter(m => m.sender === 'teacher' && !seenChat.includes(m.message_id)).length;
-    }
-    if (cachedClass && cachedClass.length > 0) {
-        unreadClass = cachedClass.filter(m => !seenClass.includes(m.message_id)).length;
-    }
-    
-    const totalUnread = unreadChat + unreadClass;
-    if (totalUnread === 0) return;
-    
-    const notif = document.getElementById('new-message-notification');
-    const subText = document.getElementById('new-message-notification-sub');
-    
-    if (notif && subText) {
-        let text = '';
-        if (unreadChat > 0 && unreadClass > 0) {
-            text = `${toPersianNum(unreadChat)} پیام شخصی و ${toPersianNum(unreadClass)} پیام کلاسی جدید`;
-        } else if (unreadChat > 0) {
-            text = unreadChat === 1 ? 'یک پیام شخصی جدید داری' : `${toPersianNum(unreadChat)} پیام شخصی جدید داری`;
-        } else {
-            text = unreadClass === 1 ? 'یک پیام کلاسی جدید داری' : `${toPersianNum(unreadClass)} پیام کلاسی جدید داری`;
+
+    try {
+        // ۱. گرفتن لیست پیام‌های شخصی و کلاسی از دیتابیس (به صورت زنده)
+        const userClass = localStorage.getItem('userClass') || 'هفتم یک';
+        const [chatMessages, classMessages] = await Promise.all([
+            getPersonalMessages(studentId),
+            getClassMessagesFromSupabase(userClass)
+        ]);
+
+        // ۲. پیدا کردن پیام‌های خونده نشده
+        const seenChat = JSON.parse(localStorage.getItem('seenChatMessages') || '[]');
+        const seenClass = JSON.parse(localStorage.getItem('seenClassMessages') || '[]');
+
+        // پیام‌های چت معلم که خونده نشدن
+        const unreadChat = chatMessages.filter(m => m.sender === 'teacher' && !seenChat.includes(m.message_id)).length;
+        
+        // پیام‌های کلاسی که خونده نشدن
+        const unreadClass = classMessages.filter(m => !seenClass.includes(m.message_id)).length;
+
+        const totalUnread = unreadChat + unreadClass;
+
+        if (totalUnread > 0) {
+            // ۳. پخش صدا و ویبره
+            if (typeof playStudentDingSound === 'function') playStudentDingSound();
+            if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+
+            // ۴. نمایش اعلان شناور بالای صفحه
+            let notifText = '';
+            if (unreadChat > 0 && unreadClass > 0) {
+                notifText = `${toPersianNum(unreadChat)} پیام شخصی و ${toPersianNum(unreadClass)} پیام کلاسی جدید`;
+            } else if (unreadChat > 0) {
+                notifText = unreadChat === 1 ? 'یک پیام شخصی جدید از معلم داری' : `${toPersianNum(unreadChat)} پیام شخصی جدید از معلم داری`;
+            } else {
+                notifText = unreadClass === 1 ? 'یک پیام کلاسی جدید داری' : `${toPersianNum(unreadClass)} پیام کلاسی جدید داری`;
+            }
+
+            if (typeof showStudentInAppNotification === 'function') {
+                showStudentInAppNotification('پیام جدید!', notifText);
+            }
+
+            // ۵. آپدیت نشانگرها
+            if (typeof updateStudentMessageBadges === 'function') updateStudentMessageBadges();
+            if (typeof updateBadgeImmediately === 'function') updateBadgeImmediately();
         }
-        subText.textContent = text;
-        if (typeof repositionNotifications === 'function') repositionNotifications();
-        setTimeout(() => { 
-            notif.classList.add('show'); 
-            if (typeof repositionNotifications === 'function') repositionNotifications(); 
-        }, 600);
+    } catch (error) {
+        console.warn('⚠️ خطا در بررسی پیام‌های جدید:', error);
     }
 }
 
@@ -190,6 +195,11 @@ function dismissNewMessageNotification() {
     
     localStorage.setItem('dismissedNewMessageNotif', 'true');
     if (typeof debouncedSaveSeenData === 'function') debouncedSaveSeenData();
+
+    // 🆕 بعد از ۲ ثانیه، دستور رو پاک کن تا اگه پیام جدید اومد، دوباره نمایش داده بشه
+    setTimeout(() => {
+        localStorage.removeItem('dismissedNewMessageNotif');
+    }, 2000);
 }
 
 function goToTeacherMessagesFromNotification() {
@@ -659,51 +669,6 @@ async function downloadStoryVideo() {
 }
 
 // ============================================================
-// 🆕 چک کردن دستورات حذف کارنامه از طرف معلم (کلید حل مشکل)
-// ============================================================
-async function checkAndApplyTeacherResets() {
-    try {
-        const client = getSupabase();
-        if (!client) return;
-        const studentId = localStorage.getItem('studentUUID');
-        if (!studentId) return;
-
-        // گرفتن دستورات ریست از دیتابیس
-        const { data: resets, error } = await client
-            .from('lesson_resets')
-            .select('id, lesson_id')
-            .eq('student_id', studentId);
-
-        if (error || !resets || resets.length === 0) return;
-
-        let localReports = JSON.parse(localStorage.getItem('reports') || '[]');
-        let changed = false;
-
-        for (const reset of resets) {
-            // حذف کارنامه از حافظه محلی
-            const originalLength = localReports.length;
-            localReports = localReports.filter(r => r.lessonId !== reset.lesson_id);
-            if (localReports.length !== originalLength) {
-                changed = true;
-                console.log('🗑️ کارنامه از حافظه محلی حذف شد:', reset.lesson_id);
-            }
-            // حذف دستور از دیتابیس تا دوباره اجرا نشه
-            await client.from('lesson_resets').delete().eq('id', reset.id);
-        }
-
-        if (changed) {
-            localStorage.setItem('reports', JSON.stringify(localReports));
-            // پاک کردن کش‌های رتبه‌بندی برای آپدیت شدن
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('rankings_cache_')) localStorage.removeItem(key);
-            }
-        }
-    } catch (e) {
-        console.warn('⚠️ خطا در چک کردن دستورات معلم:', e);
-    }
-}
-// ============================================================
 // 🆕 autoSyncRanking — با بررسی کامل
 // ============================================================
 function autoSyncRanking(reason = 'unknown') {
@@ -745,7 +710,6 @@ async function checkMaintenanceMode() {
         return false; 
     }
 }
-
 async function startApp() {
     const isRegistered = localStorage.getItem('userRegistered') === 'true';
     
@@ -754,7 +718,6 @@ async function startApp() {
         await loadLessonsListForNotification();
         goToScreen('screen-home');
         
-        // 🆕 تخصیص کد برای کاربر قدیمی
         setTimeout(async () => {
             const existingCode = localStorage.getItem('studentCode');
             if (!existingCode || !/^[0-9]{3}$/.test(existingCode)) {
@@ -767,7 +730,6 @@ async function startApp() {
             }
         }, 1000);
         
-        // 🆕 انتقال داده‌های محلی به Supabase
         setTimeout(async () => {
             try {
                 if (typeof transferLocalDataToSupabase === 'function') {
@@ -828,7 +790,7 @@ function generateUUID() {
 }
 
 // ============================================================
-// 🆕 PWA — Service Worker
+// PWA — Service Worker
 // ============================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -963,12 +925,9 @@ window.addEventListener('appinstalled', () => {
 });
 
 // ============================================================
-// 🆕 بارگذاری اولیه — اجرای checkAndApplyTeacherResets
+// 🆕 بارگذاری اولیه — نمایش اعلان پیام‌ها
 // ============================================================
 window.addEventListener('load', async () => {
-    // 🆕 چک دستورات حذف کارنامه از طرف معلم (اول از همه)
-    await checkAndApplyTeacherResets();
-
     const isMaintenance = await checkMaintenanceMode();
     if (isMaintenance) {
         window.location.replace('./maintenance.html');
@@ -1063,9 +1022,15 @@ window.addEventListener('load', async () => {
                     setTimeout(() => startRealtimeSubscriptions(), 1000);
                 }
                 
+                // 🆕 نمایش اعلان پیام جدید به محض ورود (مستقل از isReturningUser)
+                setTimeout(async () => {
+                    if (typeof checkAndShowNewMessageNotification === 'function') {
+                        await checkAndShowNewMessageNotification();
+                    }
+                }, 1200);
+                
                 if (!isReturningUser()) {
                     checkAndShowUpdateModal();
-                    setTimeout(() => checkAndShowNewMessageNotification(), 1500);
                     setTimeout(() => checkAndShowNewJozveNotification(), 2000);
                     setTimeout(() => showStreakMessage(), 800);
                 }
@@ -1097,14 +1062,11 @@ window.addEventListener('load', async () => {
 });
 
 // ============================================================
-// مدیریت تغییر وضعیت visibility
+// مدیریت تغییر وضعیت visibility (برگشت از پس‌زمینه)
 // ============================================================
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         if (localStorage.getItem('userRegistered') === 'true') {
-            // 🆕 چک کردن دستورات معلم هنگام برگشت به برنامه
-            checkAndApplyTeacherResets();
-            
             autoSyncRanking('بازگشت به برنامه');
             
             if (typeof startRealtimeSubscriptions === 'function' && 
@@ -1113,8 +1075,14 @@ document.addEventListener('visibilitychange', () => {
                 setTimeout(() => startRealtimeSubscriptions(), 1000);
             }
             
+            // 🆕 چک کردن پیام‌های جدید هنگام برگشت به برنامه
+            setTimeout(async () => {
+                if (typeof checkAndShowNewMessageNotification === 'function') {
+                    await checkAndShowNewMessageNotification();
+                }
+            }, 1000);
+            
             if (!isReturningUser()) {
-                setTimeout(() => checkAndShowNewMessageNotification(), 1000);
                 setTimeout(() => checkAndShowNewJozveNotification(), 1500);
             }
             
