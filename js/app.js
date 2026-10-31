@@ -1,6 +1,6 @@
 // ============================================================
 // app.js — نقطه شروع برنامه
-// نسخه: ۳۵.۰.۰ — رفع باگ چالش هفتگی و تکرار بارگذاری
+// نسخه: ۳۶.۰.۰ — با قابلیت همگام‌سازی حذف کارنامه از طرف معلم
 // ============================================================
 
 const UPDATE_VERSION = 'v2.5.0';
@@ -39,15 +39,11 @@ function showLoginView() {
 }
 
 function checkAndShowUpdateModal() {
-    // 🆕 اگر published نباشد، مودال نشان نده
     if (typeof isPublished !== 'undefined' && !isPublished) return;
-    
     if (isReturningUser()) return;
-    
     const seenVersion = localStorage.getItem('seenUpdateVersion');
     if (seenVersion === UPDATE_VERSION) return;
     if (localStorage.getItem('userRegistered') !== 'true') return;
-    
     setTimeout(() => showUpdateModal(), 2500);
 }
 
@@ -128,6 +124,7 @@ function closeRankingsGuide() {
     localStorage.setItem('hasSeenRankingsGuide', 'true');
     localStorage.setItem('rankingsGuideSeenDate', new Date().toISOString());
 }
+
 function checkAndShowNewMessageNotification() {
     if (isReturningUser()) return;
     
@@ -327,7 +324,6 @@ async function loadChallenges() {
     }
 }
 
-// 🆕 بررسی بج چالش هفتگی
 async function checkChallengeBadge() {
     try {
         if (!challengesData || challengesData.length === 0) {
@@ -367,8 +363,6 @@ async function checkChallengeBadge() {
     }
 }
 
-
-// 🆕 رندر استوری‌ها + چالش هفتگی
 function renderStories() {
     const container = document.getElementById('story-scroll-container');
     if (!container) return;
@@ -394,7 +388,6 @@ function renderStories() {
         `;
     }
 
-    // 🆕 چالش هفتگی — فقط پیام درون‌برنامه‌ای "در حال ساخت"
     html += `
         <div class="story-item-wrapper" onclick="showChallengeComingSoon()">
             <div class="weekly-challenge-ring">
@@ -411,7 +404,6 @@ function renderStories() {
     setTimeout(() => checkChallengeBadge(), 100);
 }
 
-// 🆕 نمایش پیام "در حال ساخت" برای چالش هفتگی
 function showChallengeComingSoon() {
     if (navigator.vibrate) {
         navigator.vibrate([50, 30, 30]);
@@ -422,7 +414,6 @@ function showChallengeComingSoon() {
         '🚧'
     );
 }
-// ✅ تابع باز کردن استوری
 function openStoryViewer(index) {
     if (allStories.length === 0) return;
     
@@ -666,23 +657,62 @@ async function downloadStoryVideo() {
         a.remove();
     }
 }
+
+// ============================================================
+// 🆕 چک کردن دستورات حذف کارنامه از طرف معلم (کلید حل مشکل)
+// ============================================================
+async function checkAndApplyTeacherResets() {
+    try {
+        const client = getSupabase();
+        if (!client) return;
+        const studentId = localStorage.getItem('studentUUID');
+        if (!studentId) return;
+
+        // گرفتن دستورات ریست از دیتابیس
+        const { data: resets, error } = await client
+            .from('lesson_resets')
+            .select('id, lesson_id')
+            .eq('student_id', studentId);
+
+        if (error || !resets || resets.length === 0) return;
+
+        let localReports = JSON.parse(localStorage.getItem('reports') || '[]');
+        let changed = false;
+
+        for (const reset of resets) {
+            // حذف کارنامه از حافظه محلی
+            const originalLength = localReports.length;
+            localReports = localReports.filter(r => r.lessonId !== reset.lesson_id);
+            if (localReports.length !== originalLength) {
+                changed = true;
+                console.log('🗑️ کارنامه از حافظه محلی حذف شد:', reset.lesson_id);
+            }
+            // حذف دستور از دیتابیس تا دوباره اجرا نشه
+            await client.from('lesson_resets').delete().eq('id', reset.id);
+        }
+
+        if (changed) {
+            localStorage.setItem('reports', JSON.stringify(localReports));
+            // پاک کردن کش‌های رتبه‌بندی برای آپدیت شدن
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('rankings_cache_')) localStorage.removeItem(key);
+            }
+        }
+    } catch (e) {
+        console.warn('⚠️ خطا در چک کردن دستورات معلم:', e);
+    }
+}
 // ============================================================
 // 🆕 autoSyncRanking — با بررسی کامل
 // ============================================================
 function autoSyncRanking(reason = 'unknown') {
-    // 🆕 بررسی ۱: ثبت‌نام
     if (localStorage.getItem('userRegistered') !== 'true') return;
-    
-    // 🆕 بررسی ۲: تابع موجود
     if (typeof saveRankingToSupabase !== 'function') return;
-    
-    // 🆕 بررسی ۳: studentUUID موجود باشد
     const studentId = localStorage.getItem('studentUUID');
     if (!studentId) return;
     
-    // 🆕 بررسی ۴: کاربر برگشتی نباید بلافاصله سینک شود
     if (isReturningUser()) {
-        // فقط در بازگشت به برنامه سینک شود، نه در هر بار
         if (reason !== 'بازگشت به برنامه') return;
     }
     
@@ -707,14 +737,8 @@ async function checkMaintenanceMode() {
         isPublished = (data.published !== false);
         
         if (isAdmin) return false;
-        
-        // 🆕 اگر maintenance: true باشد، نگهداری
         if (data.maintenance === true) return true;
-        
-        // 🆕 اگر published: false باشد، کاربر عادی نمی‌تواند وارد شود
-        if (data.published === false) {
-            return true;
-        }
+        if (data.published === false) return true;
         
         return false;
     } catch(e) { 
@@ -785,7 +809,6 @@ async function startApp() {
                 }
             }
             
-            // 🆕 بارگذاری استوری و چالش فقط یک بار
             loadQuranStories();
             loadChallenges();
         }, 500);
@@ -883,6 +906,7 @@ function showUpdateNotification() {
         setTimeout(() => notif.remove(), 300);
     }, 2000);
 }
+
 // ============================================================
 // PWA — نصب
 // ============================================================
@@ -939,10 +963,12 @@ window.addEventListener('appinstalled', () => {
 });
 
 // ============================================================
-// بارگذاری اولیه
+// 🆕 بارگذاری اولیه — اجرای checkAndApplyTeacherResets
 // ============================================================
 window.addEventListener('load', async () => {
-    // 🆕 بررسی حالت نگهداری
+    // 🆕 چک دستورات حذف کارنامه از طرف معلم (اول از همه)
+    await checkAndApplyTeacherResets();
+
     const isMaintenance = await checkMaintenanceMode();
     if (isMaintenance) {
         window.location.replace('./maintenance.html');
@@ -952,7 +978,6 @@ window.addEventListener('load', async () => {
     loadUserInfo();
     loadTheme();
     
-    // 🆕 تخصیص کد برای کاربر قدیمی
     if (localStorage.getItem('userRegistered') === 'true') {
         const existingCode = localStorage.getItem('studentCode');
         if (!existingCode || !/^[0-9]{3}$/.test(existingCode)) {
@@ -967,7 +992,6 @@ window.addEventListener('load', async () => {
         }
     }
 
-    // 🆕 تولید studentUUID اگر نیست
     if (localStorage.getItem('userRegistered') === 'true' && !localStorage.getItem('studentUUID')) {
         const studentCode = localStorage.getItem('studentCode');
         if (studentCode && typeof generateUUIDFromCode === 'function') {
@@ -979,7 +1003,6 @@ window.addEventListener('load', async () => {
         }
     }
 
-    // 🆕 بارگذاری تنظیمات
     if (localStorage.getItem('soundsEnabled') === 'false') {
         const el = document.getElementById('setting-sounds');
         if (el) el.checked = false;
@@ -994,7 +1017,7 @@ window.addEventListener('load', async () => {
         document.body.classList.add('dark-mode');
     }
 
-    initNotificationSwipe();
+    if (typeof initNotificationSwipe === 'function') initNotificationSwipe();
 
     const cameFromClips = sessionStorage.getItem('cameFromClips') === 'true';
     const isRegistered = localStorage.getItem('userRegistered') === 'true';
@@ -1007,7 +1030,6 @@ window.addEventListener('load', async () => {
             updateStreak();
             goToScreen('screen-home', false);
             
-            // 🆕 انتقال داده‌ها به Supabase
             setTimeout(async () => {
                 try {
                     if (typeof transferLocalDataToSupabase === 'function') {
@@ -1016,7 +1038,6 @@ window.addEventListener('load', async () => {
                 } catch (e) {}
             }, 1500);
             
-            // 🆕 بارگذاری تکالیف و نوتیفیکیشن‌ها
             setTimeout(() => {
                 if (allLessons.length === 0) {
                     loadLessonsListForNotification().then(() => {
@@ -1049,7 +1070,6 @@ window.addEventListener('load', async () => {
                     setTimeout(() => showStreakMessage(), 800);
                 }
                 
-                // 🆕 بارگذاری استوری و چالش فقط یک بار
                 setTimeout(() => {
                     loadQuranStories();
                     loadChallenges();
@@ -1064,12 +1084,10 @@ window.addEventListener('load', async () => {
         setTimeout(typeMotivation, 500);
     }
 
-    // 🆕 سینک اولیه امتیاز
     if (isRegistered) {
         setTimeout(() => autoSyncRanking('ورود به برنامه'), 1500);
     }
     
-    // 🆕 بارگذاری استوری/چالش فقط یک بار در اینجا
     if (isRegistered) {
         setTimeout(() => {
             loadQuranStories();
@@ -1084,6 +1102,9 @@ window.addEventListener('load', async () => {
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         if (localStorage.getItem('userRegistered') === 'true') {
+            // 🆕 چک کردن دستورات معلم هنگام برگشت به برنامه
+            checkAndApplyTeacherResets();
+            
             autoSyncRanking('بازگشت به برنامه');
             
             if (typeof startRealtimeSubscriptions === 'function' && 
@@ -1097,7 +1118,6 @@ document.addEventListener('visibilitychange', () => {
                 setTimeout(() => checkAndShowNewJozveNotification(), 1500);
             }
             
-            // 🆕 بروزرسانی استوری و چالش
             setTimeout(() => {
                 loadQuranStories();
                 loadChallenges();
