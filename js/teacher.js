@@ -1,6 +1,6 @@
 // ============================================================
 // teacher.js — پنل معلم با Supabase
-// نسخه: ۳۸.۰.۰ — حذف کامل دکمه و کدهای مربوط به حذف کارنامه
+// نسخه: ۴۰.۰.۰ — با قابلیت مسدودسازی کاربران
 // ============================================================
 
 const TEACHER_PASSWORD_KEY = 'teacherPassword';
@@ -200,11 +200,27 @@ function startConversationsRealtime() {
     if (typeof subscribeToConversations !== 'function') return;
     conversationsChannel = subscribeToConversations(async (payload) => {
         if (payload.table === 'reports' && payload.eventType === 'INSERT') {
-            await loadAllReportsForBadges();
-            const a = document.querySelector('.page.active');
-            if (a && a.id === 'page-students') renderStudents(getFilteredStudents());
-            updateHomeBadgesImmediately();
+            const studentId = payload.new.student_id;
+            const client = getSupabase();
+            
+            if (client) {
+                const { data: studentReports } = await client
+                    .from('reports')
+                    .select('*')
+                    .eq('student_id', studentId)
+                    .order('created_at', { ascending: false });
+                
+                allReportsRaw = allReportsRaw.filter(r => r.student_id !== studentId);
+                (studentReports || []).forEach(r => allReportsRaw.push(r));
+                
+                const a = document.querySelector('.page.active');
+                if (a && a.id === 'page-students') {
+                    renderStudents(getFilteredStudents());
+                }
+                updateHomeBadgesImmediately();
+            }
         }
+        
         const convs = await getStudentConversationsFromSupabase();
         convs.forEach(c => { c.unread_count = computeUnreadForConversation(c); });
         currentConversations = convs;
@@ -419,6 +435,8 @@ function renderStudents(students) {
     const seen = getReadLessons();
     
     students.sort((a, b) => {
+        if (a.is_blocked && !b.is_blocked) return 1;
+        if (!a.is_blocked && b.is_blocked) return -1;
         const aReports = allReportsRaw.filter(r => r.student_id === a.student_id);
         const bReports = allReportsRaw.filter(r => r.student_id === b.student_id);
         const aHasUnseen = aReports.some(r => !seen[r.id]);
@@ -436,26 +454,32 @@ function renderStudents(students) {
     students.forEach(s => {
         const sc = s.student_code || '---';
         const tl = getTotalCompletedLessons(s);
+        const isBlocked = s.is_blocked === true;
         const studentReports = allReportsRaw.filter(r => r.student_id === s.student_id);
         const hasDoneLesson = studentReports.length > 0;
         const hasUnseenReport = studentReports.some(r => !seen[r.id]);
         const latestReport = studentReports.length > 0 ? studentReports[0] : null;
         
         let badgeHTML = '';
-        if (hasUnseenReport) {
+        if (isBlocked) {
+            badgeHTML += `<div class="student-notif-badge" style="background: linear-gradient(135deg, #607d8b, #455a64); color: white; border-color: white;">🚫 مسدود</div>`;
+        } else if (hasUnseenReport) {
             badgeHTML += `<div class="student-notif-badge">🔔 اعلان</div>`;
         } else if (hasDoneLesson) {
             badgeHTML += `<div class="student-done-badge">✅</div>`;
         }
         
         let onclickAction = '';
-        if (hasUnseenReport && latestReport) {
+        if (hasUnseenReport && latestReport && !isBlocked) {
             onclickAction = `markAndOpenProfile('${escapeHTML(s.student_id)}', '${escapeHTML(latestReport.id)}')`;
         } else {
             onclickAction = `openStudentProfile('${escapeHTML(s.student_id)}')`;
         }
         
-        const cardClass = hasUnseenReport ? 'has-new-lesson' : (hasDoneLesson ? 'has-done-lesson' : '');
+        let cardClass = '';
+        if (isBlocked) cardClass = 'blocked-student';
+        else if (hasUnseenReport) cardClass = 'has-new-lesson';
+        else if (hasDoneLesson) cardClass = 'has-done-lesson';
         
         h += `<div class="student-card ${cardClass}" onclick="${onclickAction}">
             ${badgeHTML}
@@ -530,6 +554,7 @@ function renderStudentProfile() {
     const cp = getClassPersianName(s.class_name);
     const sc = s.student_code || '---';
     const cl = getTotalCompletedLessons(s);
+    const isBlocked = s.is_blocked === true;
 
     const rm = {};
     currentProfileReports.forEach(r => { if (!rm[r.lesson_id]) rm[r.lesson_id] = r; });
@@ -547,7 +572,6 @@ function renderStudentProfile() {
 
         let rh = '';
         if (id) {
-            // فقط نمایش کارنامه - دکمه حذف وجود ندارد
             rh = `<div class="profile-lesson-report done">
                     <div class="report-row"><span class="report-label">✅ انجام شده</span><span class="report-value-percent">${toPersianNum(r.percent || 0)}%</span></div>
                     <div class="report-row"><span class="report-label">امتیاز:</span><span class="report-value-points">${toPersianNum(r.score || 0)} از ${toPersianNum(r.total_points || 0)}</span></div>
@@ -565,7 +589,71 @@ function renderStudentProfile() {
     });
     if (currentProfileLessons.length === 0) lh = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">تکلیفی یافت نشد</div>';
 
-    c.innerHTML = `<div class="profile-header-card"><div class="profile-avatar-big">${renderAvatarHTML(s)}</div><div class="profile-name-big">${escapeHTML(s.name || 'بدون نام')}</div><div class="profile-class-big">${cp}</div></div><div class="profile-stats-grid"><div class="profile-stat-card" onclick="openEditStudentCode()" style="cursor:pointer;"><div class="profile-stat-icon">🔑</div><div class="profile-stat-value">${sc}</div><div class="profile-stat-label">کد ورود (کلیک کن)</div></div><div class="profile-stat-card" onclick="openEditCompletedLessons()" style="cursor:pointer;"><div class="profile-stat-icon">📚</div><div class="profile-stat-value">${toPersianNum(cl)}</div><div class="profile-stat-label">تکالیف (کلیک کن)</div></div><div class="profile-stat-card"><div class="profile-stat-icon">📊</div><div class="profile-stat-value">${toPersianNum(s.avg_percent || 0)}%</div><div class="profile-stat-label">میانگین درصد</div></div><div class="profile-stat-card"><div class="profile-stat-icon">🔥</div><div class="profile-stat-value">${toPersianNum(s.streak_days || 0)}</div><div class="profile-stat-label">روز متوالی</div></div></div><button class="profile-chat-btn" onclick="goToChatFromProfile()">💬 چت با این دانش‌آموز</button><div class="profile-total-points-card"><div class="profile-total-points-label">⭐ امتیاز کل (قابل ویرایش)</div><div class="profile-total-points-value">${toPersianNum(tp)}</div><div class="profile-total-points-actions"><button class="point-btn minus" onclick="changeTotalPoints(-10)">−۱۰</button><button class="point-btn minus" onclick="changeTotalPoints(-1)">−۱</button><button class="point-btn plus" onclick="changeTotalPoints(1)">+۱</button><button class="point-btn plus" onclick="changeTotalPoints(10)">+۱۰</button></div></div><div class="profile-lessons-card"><div class="profile-lessons-title">📚 مدیریت تکالیف</div><div class="profile-lessons-list">${lh}</div></div>`;
+    c.innerHTML = `
+    <div class="profile-header-card">
+        <div class="profile-avatar-big">${renderAvatarHTML(s)}</div>
+        <div class="profile-name-big">${escapeHTML(s.name || 'بدون نام')} ${isBlocked ? '<span style="font-size:16px;">🚫</span>' : ''}</div>
+        <div class="profile-class-big">${cp}</div>
+    </div>
+    <div class="profile-stats-grid">
+        <div class="profile-stat-card" onclick="openEditStudentCode()" style="cursor:pointer;"><div class="profile-stat-icon">🔑</div><div class="profile-stat-value">${sc}</div><div class="profile-stat-label">کد ورود (کلیک کن)</div></div>
+        <div class="profile-stat-card" onclick="openEditCompletedLessons()" style="cursor:pointer;"><div class="profile-stat-icon">📚</div><div class="profile-stat-value">${toPersianNum(cl)}</div><div class="profile-stat-label">تکالیف (کلیک کن)</div></div>
+        <div class="profile-stat-card"><div class="profile-stat-icon">📊</div><div class="profile-stat-value">${toPersianNum(s.avg_percent || 0)}%</div><div class="profile-stat-label">میانگین درصد</div></div>
+        <div class="profile-stat-card"><div class="profile-stat-icon">🔥</div><div class="profile-stat-value">${toPersianNum(s.streak_days || 0)}</div><div class="profile-stat-label">روز متوالی</div></div>
+    </div>
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <button class="profile-chat-btn" onclick="goToChatFromProfile()" style="flex: 1; margin-bottom: 0;">💬 چت با این دانش‌آموز</button>
+        <button onclick="toggleBlockStudent()" style="flex: 1; background: ${isBlocked ? 'linear-gradient(135deg, #4caf50, #2e7d32)' : 'linear-gradient(135deg, #ef5350, #c62828)'}; color: #fff; border: none; padding: 15px 25px; border-radius: 50px; font-family: 'Vazirmatn', sans-serif; font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 20px ${isBlocked ? 'rgba(46, 125, 50, 0.4)' : 'rgba(198, 40, 40, 0.4)'};">
+            ${isBlocked ? '🔓 رفع مسدودی' : '🚫 مسدود کردن'}
+        </button>
+    </div>
+    <div class="profile-total-points-card">
+        <div class="profile-total-points-label">⭐ امتیاز کل (قابل ویرایش)</div>
+        <div class="profile-total-points-value">${toPersianNum(tp)}</div>
+        <div class="profile-total-points-actions">
+            <button class="point-btn minus" onclick="changeTotalPoints(-10)">−۱۰</button>
+            <button class="point-btn minus" onclick="changeTotalPoints(-1)">−۱</button>
+            <button class="point-btn plus" onclick="changeTotalPoints(1)">+۱</button>
+            <button class="point-btn plus" onclick="changeTotalPoints(10)">+۱۰</button>
+        </div>
+    </div>
+    <div class="profile-lessons-card">
+        <div class="profile-lessons-title">📚 مدیریت تکالیف</div>
+        <div class="profile-lessons-list">${lh}</div>
+    </div>`;
+}
+
+// 🆕 تابع مسدود کردن / رفع مسدودی
+async function toggleBlockStudent() {
+    if (!currentProfileStudent) return;
+    vibrate(15);
+    
+    const currentStatus = currentProfileStudent.is_blocked === true;
+    const newStatus = !currentStatus;
+    const actionText = newStatus ? 'مسدود' : 'رفع مسدودی';
+    
+    if (!confirm(`آیا مطمئن هستید که می‌خواهید این دانش‌آموز را ${actionText} کنید؟`)) return;
+    
+    try {
+        const client = getSupabase();
+        if (!client) return;
+        
+        const { error } = await client
+            .from('rankings')
+            .update({ is_blocked: newStatus })
+            .eq('student_id', currentProfileStudent.student_id);
+            
+        if (error) throw error;
+        
+        currentProfileStudent.is_blocked = newStatus;
+        renderStudentProfile();
+        
+        showToast(newStatus ? '🚫 دانش‌آموز مسدود شد' : '✅ مسدودی برداشته شد', 'success');
+        vibrate(30);
+    } catch (error) {
+        console.error('خطا در تغییر وضعیت مسدودی:', error);
+        showToast('خطا در انجام عملیات', 'error');
+    }
 }
 
 async function toggleLessonEnabled(lessonId, isEnabled) {
@@ -988,8 +1076,8 @@ function renderLibrary(items) {
 function downloadAllStudents() {
     if (allStudents.length === 0) { showToast('داده‌ای نیست', 'warning'); return; }
     let csv = '\uFEFF';
-    csv += 'نام,کد ورود,کلاس,امتیاز,تکالیف,درصد,روز متوالی\n';
-    allStudents.forEach(s => { csv += `"${s.name}","${s.student_code || ''}","${getClassPersianName(s.class_name)}",${calculateTotalPoints(s)},${getTotalCompletedLessons(s)},${s.avg_percent},${s.streak_days || 0}\n`; });
+    csv += 'نام,کد ورود,کلاس,امتیاز,تکالیف,درصد,روز متوالی,وضعیت\n';
+    allStudents.forEach(s => { csv += `"${s.name}","${s.student_code || ''}","${getClassPersianName(s.class_name)}",${calculateTotalPoints(s)},${getTotalCompletedLessons(s)},${s.avg_percent},${s.streak_days || 0},"${s.is_blocked ? 'مسدود' : 'فعال'}"\n`; });
     downloadFile(csv, 'دانش‌آموزان.csv', 'text/csv');
     showToast('دانلود شد', 'success');
 }
@@ -1142,10 +1230,7 @@ async function saveNewStudentCode() {
         if (!client) throw new Error('no_client');
         
         const { data: existing, error: checkError } = await client
-            .from('rankings')
-            .select('student_id')
-            .eq('student_code', newCode)
-            .maybeSingle();
+            .from('rankings').select('student_id').eq('student_code', newCode).maybeSingle();
             
         if (checkError && checkError.code !== 'PGRST116') throw checkError;
         if (existing && existing.student_id !== studentId) {
@@ -1153,11 +1238,7 @@ async function saveNewStudentCode() {
             return;
         }
         
-        const { error: updateError } = await client
-            .from('rankings')
-            .update({ student_code: newCode })
-            .eq('student_id', studentId);
-            
+        const { error: updateError } = await client.from('rankings').update({ student_code: newCode }).eq('student_id', studentId);
         if (updateError) throw updateError;
         
         currentProfileStudent.student_code = newCode;
@@ -1168,7 +1249,6 @@ async function saveNewStudentCode() {
         vibrate(30);
         
     } catch (error) {
-        console.error('خطا در تغییر کد:', error);
         showToast('خطا در تغییر کد. لطفاً دوباره تلاش کنید.', 'error');
     }
 }
@@ -1404,4 +1484,4 @@ async function sendChatMessage() {
     } catch (e) { showToast('خطا', 'error'); }
 }
 
-console.log('🎓 پنل معلم - نسخه ۳۸.۰.۰ (بدون قابلیت حذف کارنامه)');
+console.log('🎓 پنل معلم - نسخه ۴۰.۰.۰ (با قابلیت مسدودسازی)');

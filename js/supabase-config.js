@@ -135,7 +135,7 @@ async function checkStudentCodeExists(studentCode) {
         
         const { data, error } = await client
             .from('rankings')
-            .select('student_id, name, class_name, student_code')
+            .select('student_id, name, class_name, student_code, is_blocked')
             .eq('student_code', normalizedCode)
             .maybeSingle();
         
@@ -151,7 +151,8 @@ async function checkStudentCodeExists(studentCode) {
                 data: data,
                 studentId: data.student_id,
                 name: data.name,
-                className: data.class_name
+                className: data.class_name,
+                isBlocked: data.is_blocked === true
             };
         } else {
             console.log('ℹ️ کد جدید');
