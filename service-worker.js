@@ -1,9 +1,9 @@
 // ============================================================
 // service-worker.js — با بروزرسانی خودکار
-// نسخه: v174 — با چالش هفتگی
+// نسخه: v175 — رفع مشکل رفرش ناخواسته هنگام آپدیت
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v188';
+const CACHE_NAME = 'arabi-hafom-v176';
 
 const urlsToCache = [
     './',
@@ -93,7 +93,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // 🆕 فایل‌های داده‌ای → NetworkFirst (همیشه تازه)
+    // فایل‌های داده‌ای → NetworkFirst (همیشه تازه)
     if (url.includes('maintenance.json') || 
         url.includes('/lessons/') || 
         url.includes('/jozve/') || 
