@@ -640,24 +640,26 @@ async function getRankingsByClass(className) {
     try {
         const client = getSupabase();
         if (!client) return [];
-
+        
         const classSlug = classNameToSlug(className);
-
+        
+        // 🆕 فیلتر کردن کاربران مسدود شده
         const { data, error } = await client
             .from('rankings')
             .select('student_id, name, class_name, total_points, completed_lessons, custom_completed_lessons, custom_points_added, custom_total_points, avg_percent, streak_days, avatar_url')
             .eq('class_name', classSlug)
+            .or('is_blocked.is.null,is_blocked.eq.false') // فقط کاربران غیرمسدود
             .order('total_points', { ascending: false })
             .order('avg_percent', { ascending: false });
-
+        
         if (error) {
             console.warn('⚠️ خطا در دریافت رتبه‌بندی:', error.message);
             return [];
         }
-
+        
         return Array.isArray(data) ? data : [];
-    } catch (error) {
-        return [];
+    } catch (error) { 
+        return []; 
     }
 }
 

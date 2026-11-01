@@ -571,10 +571,27 @@ function renderStudentProfile() {
         const ix = isLessonExpiredForStudent(l, cd);
 
         let rh = '';
-        if (id) {
+                if (id) {
+            // 🆕 تبدیل تاریخ و ساعت به شمسی
+            let dateStr = '';
+            let timeStr = '';
+            if (r.created_at) {
+                const d = new Date(r.created_at);
+                dateStr = d.toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' });
+                timeStr = d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+            }
+
             rh = `<div class="profile-lesson-report done">
                     <div class="report-row"><span class="report-label">✅ انجام شده</span><span class="report-value-percent">${toPersianNum(r.percent || 0)}%</span></div>
                     <div class="report-row"><span class="report-label">امتیاز:</span><span class="report-value-points">${toPersianNum(r.score || 0)} از ${toPersianNum(r.total_points || 0)}</span></div>
+                    <div class="report-row" style="margin-top: 5px; padding-top: 5px; border-top: 1px dashed #cfd8dc;">
+                        <span class="report-label" style="font-size: 11px;">📅 تاریخ:</span>
+                        <span class="report-value" style="font-size: 12px;">${dateStr}</span>
+                    </div>
+                    <div class="report-row">
+                        <span class="report-label" style="font-size: 11px;">⏰ ساعت:</span>
+                        <span class="report-value" style="font-size: 12px;">${timeStr}</span>
+                    </div>
                   </div>`;
         } else if (ix && !ic) {
             rh = `<div class="profile-lesson-report pending"><span class="report-badge" style="background:linear-gradient(135deg,#ffcdd2,#ef9a9a);color:#b71c1c;">⏰ منقضی شده</span></div>`;
@@ -711,8 +728,10 @@ async function loadRankings() {
     try {
         let ad = getCachedData(STUDENTS_CACHE_KEY);
         if (!ad) { const r = await getAllStudents(); ad = r || []; setCachedData(STUDENTS_CACHE_KEY, ad); }
-        const rk = ad.filter(s => s.class_name === currentRankingClass).sort((a, b) => calculateTotalPoints(b) - calculateTotalPoints(a));
-        const ce = document.getElementById('rankings-current-count');
+        // 🆕 فیلتر کردن کاربران مسدود از رتبه‌بندی
+const rk = ad
+    .filter(s => s.class_name === currentRankingClass && s.is_blocked !== true)
+    .sort((a, b) => calculateTotalPoints(b) - calculateTotalPoints(a));        const ce = document.getElementById('rankings-current-count');
         if (ce) ce.textContent = `${toPersianNum(rk.length)} دانش‌آموز`;
         if (rk.length === 0) { c.innerHTML = '<div style="text-align:center; padding:40px; color:#90a4ae; font-weight:bold;">دانش‌آموزی در این کلاس نیست</div>'; return; }
         let h = '';
