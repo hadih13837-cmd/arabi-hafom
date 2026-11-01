@@ -378,8 +378,10 @@ async function loadHomeData() {
 function renderHomeTopStudents(students) {
     const cont = document.getElementById('home-top-students');
     if (!cont) return;
-    const top = [...students].sort((a, b) => calculateTotalPoints(b) - calculateTotalPoints(a)).slice(0, 5);
-    if (top.length === 0) { cont.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز دانش‌آموزی ثبت‌نام نکرده</div>'; return; }
+    const top = [...students]
+        .filter(s => s.is_blocked !== true)
+        .sort((a, b) => calculateTotalPoints(b) - calculateTotalPoints(a))
+        .slice(0, 10); // 🆕 حالا ۱۰ نفر برتر رو نشون بده    if (top.length === 0) { cont.innerHTML = '<div style="text-align:center; padding:20px; color:#90a4ae; font-weight:bold;">هنوز دانش‌آموزی ثبت‌نام نکرده</div>'; return; }
     let h = '';
     top.forEach((s, i) => {
         const r = i + 1;
