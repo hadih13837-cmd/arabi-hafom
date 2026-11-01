@@ -31,6 +31,16 @@
       ],
       "color": "purple",
       "subtitleNote": "به صورت A4 سیاه و سفید چاپ و حل شود."
-    }
+    },
+{
+  "id": "esm_esharat_mofrad",
+  "title": "کاربرگ اسامی اشاره مفرد",
+  "subtitle": "",
+  "background": "https://cdn.imgurl.ir/uploads/q503901_.png",
+  "pdfFile": "https://cdn.imgurl.ir/uploads/c89353_.pdf",
+  "imageFiles": [],
+  "color": "purple",
+  "subtitleNote": "به صورت A4 سیاه و سفید چاپ و حل شود."
+}
   ]
 }
