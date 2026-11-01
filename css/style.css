@@ -411,7 +411,7 @@ body { display: flex; justify-content: center; align-items: center; }
 }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 .home-welcome-avatar {
-    width: 65px; height: 65px; border-radius: 50%;
+    width: 90px; height: 90px; border-radius: 50%;
     background: var(--primary-gradient);
     display: flex; align-items: center; justify-content: center;
     overflow: hidden; border: 3px solid #fff;
