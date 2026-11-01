@@ -1200,3 +1200,68 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }, 3000);
 });
+// ============================================================
+// 🆕 بررسی مسدودی قبل از ورود (برای صفحه اسپلش)
+// ============================================================
+async function handleStartClick() {
+    const isRegistered = localStorage.getItem('userRegistered') === 'true';
+    
+    if (isRegistered) {
+        const studentId = localStorage.getItem('studentUUID');
+        
+        if (studentId) {
+            showModal('⏳ در حال بررسی...', 'لطفاً صبر کنید...', '🔄');
+            
+            try {
+                const client = getSupabase();
+                if (client) {
+                    const { data: userData } = await client
+                        .from('rankings')
+                        .select('is_blocked')
+                        .eq('student_id', studentId)
+                        .maybeSingle();
+                    
+                    if (userData && userData.is_blocked === true) {
+                        closeModal();
+                        
+                        // پاک کردن اطلاعات کاربری
+                        localStorage.removeItem('userRegistered');
+                        localStorage.removeItem('studentUUID');
+                        localStorage.removeItem('userName');
+                        localStorage.removeItem('userClass');
+                        localStorage.removeItem('studentCode');
+                        
+                        // نمایش پیام مسدودی
+                        showModal('🚫 حساب مسدود شده', 
+                            'حساب کاربری شما توسط معلم مسدود شده است.\n\n' +
+                            'برای پیگیری با معلم خود تماس بگیرید.\n\n' +
+                            'برای ورود با کد دیگر، دکمه زیر را بزنید.', 
+                            '🚫');
+                        
+                        // دکمه بازگشت به صفحه ورود/ثبت‌نام
+                        setTimeout(() => {
+                            const modalBtn = document.querySelector('.modal-btn');
+                            if (modalBtn) {
+                                modalBtn.textContent = 'بازگشت به صفحه ورود';
+                                modalBtn.onclick = function() {
+                                    closeModal();
+                                    goToScreen('screen-welcome');
+                                    setTimeout(() => showChoiceView(), 100);
+                                };
+                            }
+                        }, 100);
+                        
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('خطا در بررسی مسدودی:', e);
+            }
+            
+            closeModal();
+        }
+    }
+    
+    // اگر مسدود نبود، برنامه رو شروع کن
+    startApp();
+}
