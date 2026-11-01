@@ -3,7 +3,7 @@
 // نسخه: v174 — با چالش هفتگی
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v181';
+const CACHE_NAME = 'arabi-hafom-v182';
 
 const urlsToCache = [
     './',
