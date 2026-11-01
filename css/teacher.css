@@ -3803,3 +3803,21 @@ body.dark-mode .change-code-btn-cancel {
         min-height: 44px;
     }
 }
+/* ============================================================
+   🆕 استایل دانش‌آموز مسدود شده
+   ============================================================ */
+.student-card.blocked-student {
+    background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
+    border-color: #90a4ae;
+    opacity: 0.85;
+}
+
+.student-card.blocked-student .student-name {
+    color: #546e7a;
+    text-decoration: line-through;
+}
+
+.student-card.blocked-student .student-avatar {
+    filter: grayscale(1);
+    opacity: 0.7;
+}
