@@ -1,6 +1,6 @@
 // ============================================================
 // quiz.js — سیستم سوالات، بررسی پاسخ، بازخورد، نتیجه
-// نسخه: ۳۳.۰.۰ — رفع باگ drag-gender و اصلاح ذخیره پیشرفت
+// نسخه: ۳۴.۰.۰ — رفع باگ drag-gender و اصلاح ذخیره پیشرفت
 // ============================================================
 
 let currentQuestionIndex = 0;
@@ -131,6 +131,7 @@ async function runLesson(lessonId, practiceMode, startFromIndex = 0, forcePracti
         showModal('خطا', 'مشکلی در بارگذاری تکلیف پیش آمد.', '❌');
     }
 }
+
 function renderQuestion() {
     const q = currentLesson.questions[currentQuestionIndex];
     if (!q) {
@@ -339,13 +340,28 @@ function renderQuestion() {
     }
     else if (q.type === 'truefalse-custom') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
-        html += `<div class="truefalse-custom-container">
-            <button class="tf-custom-btn tf-yes" onclick="selectTFCustom(this, true)">✓ بله</button>
-            <button class="tf-custom-btn tf-no" onclick="selectTFCustom(this, false)">✗ نه</button>
-        </div>`;
+        
+        // 🆕 پشتیبانی از گزینه‌های سفارشی (مثل نَعَم/لا)
+        if (q.options && q.options.length === 2) {
+            html += `<div class="truefalse-custom-container">
+                <button class="tf-custom-btn tf-yes" onclick="selectTFCustom(this, true)">✓ ${q.options[0]}</button>
+                <button class="tf-custom-btn tf-no" onclick="selectTFCustom(this, false)">✗ ${q.options[1]}</button>
+            </div>`;
+        } else {
+            html += `<div class="truefalse-custom-container">
+                <button class="tf-custom-btn tf-yes" onclick="selectTFCustom(this, true)">✓ بله</button>
+                <button class="tf-custom-btn tf-no" onclick="selectTFCustom(this, false)">✗ نه</button>
+            </div>`;
+        }
     }
     else if (q.type === 'multiple') {
         html += `<div class="question-text"><div class="question-type-icon ${iconData.class}">${iconData.svg}</div><div class="question-text-text">${q.question}</div></div>`;
+        
+        // 🆕 اگه جمله عربی داشت، توی کادر جدا نشون بده
+        if (q.arabicSentence) {
+            html += `<div class="arabic-question-box"><div class="arabic-question-text">${q.arabicSentence}</div></div>`;
+        }
+        
         currentShuffledOpts = shuffleArray(q.options.map((opt, i) => ({ opt, originalIdx: i })));
         html += `<div class="options-grid">`;
         currentShuffledOpts.forEach((item, displayIdx) => {
@@ -425,7 +441,44 @@ function renderQuestion() {
         html += `</div>`;
     }
     container.innerHTML = html;
+
+    // 🆕 لغو انتخاب با کلیک روی هر جای خالی از صفحه
+    container.onclick = (e) => {
+        // اگه روی یه دکمه یا کلمه کلیک شده، کاری نکن
+        if (e.target.closest('.option-btn') || 
+            e.target.closest('.dib-option-item') || 
+            e.target.closest('.gender-word-item') || 
+            e.target.closest('.fill-multiple-option') ||
+            e.target.closest('.dib-blank') ||
+            e.target.closest('.gender-box') ||
+            e.target.closest('.fill-multiple-blank') ||
+            e.target.closest('.gender-word-placed') ||
+            e.target.closest('.word-attach-item') ||
+            e.target.closest('.tf-custom-btn')) {
+            return;
+        }
+        
+        // لغو انتخاب drag-into-blank
+        if (selectedDibWord) {
+            document.querySelectorAll('.dib-option-item').forEach(o => o.classList.remove('selected-for-move'));
+            selectedDibWord = null;
+        }
+        // لغو انتخاب drag-gender
+        if (selectedGenderWordId) {
+            document.querySelectorAll('.gender-word-item').forEach(w => w.classList.remove('selected-for-move'));
+            selectedGenderWordId = null;
+        }
+        // لغو انتخاب fill-multiple
+        if (selectedFillMultipleWord) {
+            document.querySelectorAll('.fill-multiple-option').forEach(o => o.classList.remove('selected-for-move'));
+            selectedFillMultipleWord = null;
+        }
+    };
 }
+
+// ============================================================
+// drag-gender
+// ============================================================
 function clickGenderWord(el, uniqueId) {
     if (isAnswered) return;
     if (el.classList.contains('placed')) {
@@ -437,7 +490,7 @@ function clickGenderWord(el, uniqueId) {
         el.style.display = '';
         const placedEls = document.querySelectorAll('.gender-word-placed');
         placedEls.forEach(p => {
-            if (p.textContent === item.text) p.remove();
+            if (p.textContent === item.text && p.dataset.uniqueId === uniqueId) p.remove();
         });
         selectedGenderWordId = uniqueId;
         return;
@@ -459,9 +512,7 @@ function clickGenderBox(gender) {
     }
     moveGenderWordToBox(item, gender);
     selectedGenderWordId = null;
-    if (document.querySelectorAll('.gender-word-item:not(.placed)').length === 0) {
-        setTimeout(() => checkAnswer(), 500);
-    }
+    // 🆕 بررسی خودکار حذف شد - کاربر باید دکمه بررسی رو بزنه
 }
 
 function moveGenderWordToBox(item, gender) {
@@ -473,10 +524,11 @@ function moveGenderWordToBox(item, gender) {
         const placedEl = document.createElement('div');
         placedEl.className = 'gender-word-placed';
         placedEl.textContent = item.text;
-        placedEl.dataset.gender = gender; // 🆕 ذخیره جنسیت
-        placedEl.dataset.uniqueId = item.uniqueId; // 🆕 ذخیره شناسه
+        placedEl.dataset.gender = gender;
+        placedEl.dataset.uniqueId = item.uniqueId;
         placedEl.style.cursor = 'pointer';
-        placedEl.onclick = function() {
+        placedEl.onclick = function(e) {
+            e.stopPropagation();
             if (isAnswered) return;
             vibrate(15);
             this.remove();
@@ -487,12 +539,14 @@ function moveGenderWordToBox(item, gender) {
     }
 }
 
+// ============================================================
+// fill-multiple
+// ============================================================
 function clickFillMultipleOption(el, word) {
     if (isAnswered) return;
     if (el.classList.contains('used')) {
         vibrate(15);
         el.classList.remove('used');
-        // 🆕 اصلاح: پیدا کردن آخرین جای خالی که این کلمه در آن است
         let idx = -1;
         for (let i = fillMultipleAnswers.length - 1; i >= 0; i--) {
             if (fillMultipleAnswers[i] === word) { idx = i; break; }
@@ -534,17 +588,17 @@ function clickFillMultipleBlank(index) {
         if (o.dataset.value === selectedFillMultipleWord) { o.classList.add('used'); o.classList.remove('selected-for-move'); }
     });
     selectedFillMultipleWord = null;
-    if (fillMultipleAnswers.every(a => a !== null)) {
-        setTimeout(() => checkAnswer(), 500);
-    }
+    // 🆕 بررسی خودکار حذف شد
 }
 
+// ============================================================
+// drag-into-blank
+// ============================================================
 function clickDibOption(el, value) {
     if (isAnswered) return;
     if (el.classList.contains('used')) {
         vibrate(15);
         el.classList.remove('used');
-        // 🆕 اصلاح: پیدا کردن آخرین جای خالی که این کلمه در آن است
         let idx = -1;
         for (let i = dragIntoBlankItems.length - 1; i >= 0; i--) {
             if (dragIntoBlankItems[i].filled && dragIntoBlankItems[i].filledValue === value) { idx = i; break; }
@@ -582,11 +636,10 @@ function clickDibBlank(index) {
     if (dragIntoBlankItems[index].filled) return;
     vibrate(15);
     dragIntoBlankItems[index].filled = true;
-    dragIntoBlankItems[index].filledValue = selectedDibWord; // 🆕 ذخیره مقدار
+    dragIntoBlankItems[index].filledValue = selectedDibWord;
     const blankEl = document.getElementById('dib-blank-' + index);
     if (blankEl) { blankEl.textContent = selectedDibWord; blankEl.classList.add('filled'); blankEl.dataset.value = selectedDibWord; }
     
-    // 🆕 اصلاح: فقط اگر تعداد استفاده‌های این کلمه از تعداد جای خالی‌های باقیمانده‌اش بیشتر شد، used کن
     const remainingNeeds = dragIntoBlankItems.filter(it => it.correct === selectedDibWord).length;
     const currentFilled = dragIntoBlankItems.filter(it => it.filled && it.filledValue === selectedDibWord).length;
     if (currentFilled >= remainingNeeds) {
@@ -595,11 +648,12 @@ function clickDibBlank(index) {
         });
     }
     selectedDibWord = null;
-    if (dragIntoBlankItems.every(it => it.filled)) {
-        setTimeout(() => { if (!isAnswered) checkAnswer(); }, 500);
-    }
+    // 🆕 بررسی خودکار حذف شد
 }
 
+// ============================================================
+// skip question
+// ============================================================
 function skipQuestion() {
     if (isAnswered) return;
     
@@ -656,12 +710,18 @@ function confirmSkipQuestion() {
     }
 }
 
+// ============================================================
+// Word Build audio
+// ============================================================
 function playWordBuildAudio(el, audioUrl) {
     if (isAnswered) return;
     if (!audioUrl) return;
     playAudioFromVideo(audioUrl, el);
 }
 
+// ============================================================
+// letter-order
+// ============================================================
 function selectLetterOrder(el, uniqueId) {
     if (isAnswered) return;
     if (selectedLettersOrder.some(item => item.uniqueId === uniqueId)) return;
@@ -701,6 +761,9 @@ function selectLetterOrder(el, uniqueId) {
     }
 }
 
+// ============================================================
+// match-flip
+// ============================================================
 function flipCard(el, cardIdx) {
     if (isAnswered || flipLocked || matchFlipChecking) return;
     if (el.classList.contains('flipped') || el.classList.contains('matched')) return;
@@ -732,6 +795,9 @@ function flipCard(el, cardIdx) {
     }
 }
 
+// ============================================================
+// word-attach
+// ============================================================
 function selectAttachOption(el, option) {
     if (isAnswered) return;
     vibrate(15);
@@ -742,6 +808,9 @@ function selectAttachOption(el, option) {
     if (slot) { slot.textContent = option; slot.classList.add('filled'); }
 }
 
+// ============================================================
+// audio-match
+// ============================================================
 function selectAudio(el, audioIdx) {
     if (isAnswered) return;
     const q = currentLesson.questions[currentQuestionIndex];
@@ -779,6 +848,9 @@ function selectFaWord(el, word, faOrigIdx) {
     }
 }
 
+// ============================================================
+// find-error
+// ============================================================
 function selectErrorWord(el, index) {
     if (isAnswered) return;
     vibrate(15);
@@ -787,6 +859,9 @@ function selectErrorWord(el, index) {
     selectedErrorWord = index;
 }
 
+// ============================================================
+// word-build
+// ============================================================
 function selectWordBuild(el, word) {
     if (isAnswered) return;
     if (orderSelected.includes(word)) return;
@@ -813,6 +888,9 @@ function selectWordBuild(el, word) {
     resultDiv.appendChild(wordSpan);
 }
 
+// ============================================================
+// order
+// ============================================================
 function selectOrder(el, word) {
     if (isAnswered) return;
     if (orderSelected.includes(word)) return;
@@ -839,6 +917,9 @@ function selectOrder(el, word) {
     resultDiv.appendChild(wordSpan);
 }
 
+// ============================================================
+// multiple / fill / image / reading
+// ============================================================
 function selectOption(el, displayIdx) {
     if (isAnswered) return;
     vibrate(15);
@@ -858,6 +939,9 @@ function selectFillOption(el, word, displayIdx) {
     if (slot) { slot.textContent = word; slot.classList.add('filled'); }
 }
 
+// ============================================================
+// truefalse-custom
+// ============================================================
 function selectTFCustom(el, isYes) {
     if (isAnswered) return;
     vibrate(15);
@@ -868,6 +952,9 @@ function selectTFCustom(el, isYes) {
     selectedOptionIndex = isYes ? 1 : 0;
 }
 
+// ============================================================
+// match
+// ============================================================
 function selectMatch(el, type) {
     if (isAnswered || el.classList.contains('correct') || el.classList.contains('wrong')) return;
     vibrate(15);
@@ -900,6 +987,10 @@ function selectMatch(el, type) {
         }
     }
 }
+
+// ============================================================
+// checkAnswer — بررسی نهایی
+// ============================================================
 function checkAnswer() {
     if (isAnswered) return; 
     
@@ -986,7 +1077,6 @@ function checkAnswer() {
         }
     }
     else if (q.type === 'drag-gender') {
-        // 🆕 باگ ۲ رفع شد: بررسی درست بودن جنسیت هر کلمه، نه فقط تعداد
         const placedEls = document.querySelectorAll('.gender-word-placed');
         const allPlaced = placedEls.length === q.words.length;
         if (allPlaced) {
@@ -1001,7 +1091,7 @@ function checkAnswer() {
                 answerGiven = true;
             } else {
                 showModal('خطا', 'بعضی کلمات در کادر اشتباه قرار گرفتن. دوباره تلاش کن.', '❌');
-                // 🆕 ریست کردن کلمات اشتباه
+                // ریست کردن کلمات اشتباه
                 placedEls.forEach(placedEl => {
                     const item = dragGenderItems.find(it => it.uniqueId === placedEl.dataset.uniqueId);
                     if (item && placedEl.dataset.gender !== item.gender) {
@@ -1095,9 +1185,15 @@ function checkAnswer() {
     saveCurrentProgress();
 }
 
+// ============================================================
+// feedback
+// ============================================================
 function getCorrectAnswerText(q) {
     if (q.type === 'multiple' || q.type === 'fill' || q.type === 'image' || q.type === 'image-question' || q.type === 'reading-comprehension') return q.options[q.correct];
-    if (q.type === 'truefalse-custom') return q.correct ? 'بله ✓' : 'نه ✗';
+    if (q.type === 'truefalse-custom') {
+        if (q.options && q.options.length === 2) return q.correct ? q.options[0] : q.options[1];
+        return q.correct ? 'بله ✓' : 'نه ✗';
+    }
     if (q.type === 'translation') return q.correct;
     if (q.type === 'match') return q.pairs.map(p => `${p.ar} → ${p.fa}`).join('\n');
     if (q.type === 'match-flip') return q.pairs.map(p => `${p.ar} → ${p.fa}`).join('\n');
@@ -1171,18 +1267,15 @@ function nextQuestion() {
 }
 
 async function showResult() {
-    // 🆕 باگ ۳ رفع شد: همیشه endTime رو تنظیم کن
     if (!endTime) {
         endTime = new Date();
     }
     goToScreen('screen-result');
     
-    // 🆕 محاسبه دقیق درصد (محدود به ۱۰۰)
     let percent = Math.round((correctCount / currentLesson.questions.length) * 100);
     if (percent > 100) percent = 100;
     if (percent < 0) percent = 0;
     
-    // 🆕 محاسبه دقیق امتیاز (محدود به حداکثر)
     const maxTotalPoints = currentLesson.questions.reduce((sum, q) => sum + (q.points || 0), 0);
     const finalScore = Math.min(score, maxTotalPoints);
 
@@ -1224,7 +1317,6 @@ async function showResult() {
         if (percent >= 80 && typeof showConfetti === 'function') showConfetti();
         practiceBanner.classList.remove('show');
         
-        // 🆕 ذخیره خودکار با بررسی دقیق
         if (!hasSavedReport) {
             hasSavedReport = true;
             setTimeout(async () => {
