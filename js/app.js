@@ -436,6 +436,10 @@ function openStoryViewer(index) {
     history.pushState({ storyOpen: true }, '', '#story');
     overlay.classList.add('active');
     
+    // 🆕 ساخت نوارهای پیشرفت برای هر استوری
+    renderStoryProgressBars();
+    // ... بقیه کد
+    
     const viewedStories = JSON.parse(localStorage.getItem('viewedStories') || '[]');
     const isNewView = !viewedStories.includes(story.id);
     
@@ -466,6 +470,36 @@ function openStoryViewer(index) {
     }
 }
 
+// 🆕 ساخت نوارهای پیشرفت برای هر استوری
+function renderStoryProgressBars() {
+    const wrapper = document.getElementById('story-progress-wrapper');
+    if (!wrapper) return;
+    
+    wrapper.innerHTML = '';
+    
+    allStories.forEach((story, i) => {
+        const barContainer = document.createElement('div');
+        barContainer.className = 'story-progress-bar-container';
+        barContainer.id = `story-progress-container-${i}`;
+        
+        const barFill = document.createElement('div');
+        barFill.className = 'story-viewer-progress-bar';
+        barFill.id = `story-viewer-progress-bar-${i}`;
+        
+        // استوری‌های قبلی رو پر کن
+        if (i < currentStoryIndex) {
+            barFill.style.width = '100%';
+            barFill.style.transition = 'none';
+        } else {
+            barFill.style.width = '0%';
+            barFill.style.transition = 'none';
+        }
+        
+        barContainer.appendChild(barFill);
+        wrapper.appendChild(barContainer);
+    });
+}
+
 function playCurrentStory() {
     const story = allStories[currentStoryIndex];
     if (!story) {
@@ -475,36 +509,46 @@ function playCurrentStory() {
 
     const title = document.getElementById('story-viewer-title');
     const video = document.getElementById('story-viewer-video');
-    const progress = document.getElementById('story-viewer-progress-bar');
     
     title.textContent = story.title;
     video.src = story.videoUrl;
     
-    progress.style.transition = 'none';
-    progress.style.width = '0%';
+    // 🆕 به‌روزرسانی نوارهای پیشرفت
+    renderStoryProgressBars();
+    
+    const currentProgressBar = document.getElementById(`story-viewer-progress-bar-${currentStoryIndex}`);
+    
+    if (currentProgressBar) {
+        currentProgressBar.style.transition = 'none';
+        currentProgressBar.style.width = '0%';
+    }
     
     video.onloadedmetadata = () => {
         const duration = video.duration;
         video.play().then(() => {
-            if (duration > 0 && isFinite(duration)) {
+            if (duration > 0 && isFinite(duration) && currentProgressBar) {
                 setTimeout(() => {
-                    progress.style.transition = `width ${duration}s linear`;
-                    progress.style.width = '100%';
+                    currentProgressBar.style.transition = `width ${duration}s linear`;
+                    currentProgressBar.style.width = '100%';
                 }, 50);
             }
         }).catch(() => {});
     };
 
     video.onended = () => {
+        // 🆕 نوار پیشرفت استوری فعلی رو کامل کن
+        if (currentProgressBar) {
+            currentProgressBar.style.transition = 'none';
+            currentProgressBar.style.width = '100%';
+        }
         nextStory();
     };
 
-    if (currentStoryIndex === 0) {
-        const seenStories = JSON.parse(localStorage.getItem('seenStories') || '[]');
-        if (!seenStories.includes(story.id)) {
-            seenStories.push(story.id);
-            localStorage.setItem('seenStories', JSON.stringify(seenStories));
-        }
+    // 🆕 علامت‌گذاری استوری به عنوان دیده شده
+    const seenStories = JSON.parse(localStorage.getItem('seenStories') || '[]');
+    if (!seenStories.includes(story.id)) {
+        seenStories.push(story.id);
+        localStorage.setItem('seenStories', JSON.stringify(seenStories));
     }
 }
 
