@@ -13686,3 +13686,103 @@ body.dark-mode .weekly-challenge-title {
     text-align: center; padding: 30px 20px; color: #90a4ae;
     font-weight: bold; line-height: 1.7;
 }
+/* 🆕 کادر جدا برای متن عربی در سوالات */
+.arabic-question-box {
+    background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+    border: 2px solid #ffc107;
+    border-radius: 18px;
+    padding: 16px 22px;
+    margin: 15px auto;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    position: relative;
+}
+
+.arabic-question-box::before {
+    content: '📝';
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: #fff;
+    padding: 0 6px;
+    font-size: 18px;
+    border-radius: 50%;
+}
+
+.arabic-question-text {
+    font-size: 24px;
+    font-weight: 900;
+    color: #e65100;
+    direction: rtl;
+    line-height: 1.8;
+}
+
+/* 🆕 کادر جدا برای جمله عربی در سوالات ترجمه */
+.arabic-sentence-box {
+    background: linear-gradient(135deg, #fff 0%, #f3e5f5 100%);
+    border: 2.5px solid #ce93d8;
+    border-radius: 18px;
+    padding: 20px 24px;
+    margin: 16px 0 20px 0;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(142, 36, 170, 0.12);
+    position: relative;
+}
+
+.arabic-sentence-box::before {
+    content: '🕌';
+    position: absolute;
+    top: -14px;
+    right: 18px;
+    font-size: 22px;
+    background: #fff;
+    padding: 0 6px;
+    border-radius: 50%;
+}
+
+.arabic-sentence-label {
+    font-size: 12px;
+    color: #8e24aa;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.arabic-sentence-text {
+    font-size: 26px;
+    font-weight: 900;
+    color: #4a148c;
+    line-height: 1.7;
+    direction: rtl;
+}
+/* ============================================================
+   🆕 نوارهای پیشرفت استوری (چندتایی)
+   ============================================================ */
+
+.story-progress-wrapper {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    display: flex;
+    gap: 4px;
+    z-index: 10;
+    padding: 0;
+    background: transparent;
+    height: 4px;
+}
+
+.story-progress-bar-container {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.story-viewer-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #fff;
+    border-radius: 4px;
+}
