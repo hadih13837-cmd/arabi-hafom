@@ -3,7 +3,7 @@
 // نسخه: v175 — رفع مشکل رفرش ناخواسته هنگام آپدیت
 // ============================================================
 
-const CACHE_NAME = 'arabi-hafom-v177';
+const CACHE_NAME = 'arabi-hafom-v178';
 
 const urlsToCache = [
     './',
